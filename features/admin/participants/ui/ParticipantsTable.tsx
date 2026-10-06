@@ -1,26 +1,27 @@
 "use client";
 
-import { Ban, Download, LockOpen, Trash2, X } from "lucide-react";
+import { Ban, LockOpen, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { debounce, useQueryStates } from "nuqs";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
-import { toastWithUndo } from "@/components/admin/undo-toast";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { toastWithUndo } from "@/components/undo-toast";
+import type { PageInfo } from "@/components/data-table/page-info";
 import {
   DataTable,
   useTableTransition,
   type DataTableColumn,
-  type PageInfo,
-} from "@/components/admin/data-table/DataTable";
+} from "@/components/data-table/DataTable";
 import {
+  FilterActions,
   FilterDate,
   FilterSearch,
   FilterSelect,
   SortDirection,
-} from "@/components/admin/data-table/filters";
-import { StatusBadge } from "@/components/admin/StatusBadge";
+} from "@/components/data-table/filters";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatNumber, formatRelative } from "@/lib/format";
 import { resetPage, type BulkSelection } from "@/lib/table-params";
@@ -29,10 +30,10 @@ import {
   deleteParticipantsAction,
   restoreParticipantsAction,
   unblockParticipantsAction,
-} from "../actions";
-import { SORT_OPTIONS, STATUS_LABELS, STATUS_OPTIONS } from "../labels";
-import type { ParticipantRow } from "../queries";
-import { participantParsers } from "../search-params";
+} from "@/features/admin/participants/actions";
+import { SORT_OPTIONS, STATUS_LABELS, STATUS_OPTIONS } from "@/features/admin/participants/labels";
+import type { ParticipantRow } from "@/features/admin/participants/queries";
+import { participantParsers } from "@/features/admin/participants/search-params";
 
 export interface ParticipantPermissions {
   update: boolean;
@@ -83,29 +84,11 @@ function Filters({ exportHref }: { exportHref: string | null }) {
         value={params.ordem}
         onChange={(ordem) => void setParams({ ordem, ...resetPage })}
       />
-      <span className="flex gap-2">
-        {active ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9"
-            onClick={() =>
-              void setParams({ q: null, status: null, de: null, ate: null, ...resetPage })
-            }
-          >
-            <X aria-hidden="true" />
-            Limpar
-          </Button>
-        ) : null}
-        {exportHref ? (
-          <Button asChild variant="outline" size="sm" className="h-9">
-            <a href={exportHref} download>
-              <Download aria-hidden="true" />
-              Exportar CSV
-            </a>
-          </Button>
-        ) : null}
-      </span>
+      <FilterActions
+        active={active}
+        exportHref={exportHref}
+        onClear={() => void setParams({ q: null, status: null, de: null, ate: null, ...resetPage })}
+      />
     </>
   );
 }

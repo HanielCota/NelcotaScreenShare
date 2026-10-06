@@ -1,3 +1,4 @@
+import type { AuditRow } from "./queries";
 /** Rótulos em pt-BR das ações do audit log (a desconhecida aparece como está). */
 const ACTION_LABELS: Record<string, string> = {
   "auth.sign_in": "Entrou no painel",
@@ -58,3 +59,10 @@ export const LEAVE_REASON_LABELS: Record<string, string> = {
   room_closed: "Sala encerrada",
   unknown: "Desconhecido",
 };
+
+/** Quem fez: admin pelo nome, participante marcado, ou o próprio sistema. */
+export function actorText(actor: AuditRow["actor"]): string {
+  if (actor.kind === "admin") return actor.name;
+  if (actor.kind === "user") return `${actor.name} (participante)`;
+  return "Sistema";
+}

@@ -41,7 +41,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { adminAuthClient } from "@/lib/admin-auth-client";
-import type { NavGroup } from "@/server/admin-nav";
+import type { NavGroup } from "@/features/admin/shell/nav";
 import { CommandPalette } from "./CommandPalette";
 import { NAV_ICONS } from "./nav-icons";
 

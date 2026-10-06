@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
-import { AdminShell } from "@/components/admin/shell/AdminShell";
-import { navFor } from "@/server/admin-nav";
+import { AdminShell } from "@/features/admin/shell/ui/AdminShell";
+import { navFor } from "@/features/admin/shell/nav";
 import { needsTwoFactorSetup, requireAdmin } from "@/server/auth/admin-session";
 import { ADMIN_ROLE_LABELS } from "@/server/auth/roles";
 

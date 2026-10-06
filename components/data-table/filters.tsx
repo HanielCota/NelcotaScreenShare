@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownWideNarrow, ArrowUpNarrowWide, Search } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowUpNarrowWide, Download, Search, X } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 /** Campos de filtro das tabelas do painel (mesmo visual em todas as telas). */
-const SELECT_CLASS = "h-9 rounded-lg border border-input bg-surface-2 px-2.5 text-sm text-ink";
+export const SELECT_CLASS =
+  "h-9 rounded-lg border border-input bg-surface-2 px-2.5 text-sm text-ink";
 
 function Field({
   label,
@@ -103,7 +104,8 @@ export function FilterSearch({
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
-  type?: "search" | "number";
+  /** "text": busca exata (IDs), sem a lupa. */
+  type?: "search" | "number" | "text";
 }) {
   const id = useId();
   const [text, setText] = useState(value);
@@ -114,7 +116,7 @@ export function FilterSearch({
     if (value === "") setText("");
   }
   return (
-    <Field label={label} htmlFor={id} className={type === "search" ? "min-w-48 flex-1" : "w-32"}>
+    <Field label={label} htmlFor={id} className={type === "number" ? "w-32" : "min-w-48 flex-1"}>
       <div className="relative">
         {type === "search" ? (
           <Search
@@ -160,5 +162,35 @@ export function SortDirection({
     >
       {desc ? <ArrowDownWideNarrow aria-hidden="true" /> : <ArrowUpNarrowWide aria-hidden="true" />}
     </Button>
+  );
+}
+
+/** "Limpar" (com filtro ativo) e "Exportar CSV" (com permissão), no fim da barra de filtros. */
+export function FilterActions({
+  active,
+  onClear,
+  exportHref,
+}: {
+  active: boolean;
+  onClear: () => void;
+  exportHref: string | null;
+}) {
+  return (
+    <span className="flex gap-2">
+      {active ? (
+        <Button variant="ghost" size="sm" className="h-9" onClick={onClear}>
+          <X aria-hidden="true" />
+          Limpar
+        </Button>
+      ) : null}
+      {exportHref ? (
+        <Button asChild variant="outline" size="sm" className="h-9">
+          <a href={exportHref} download>
+            <Download aria-hidden="true" />
+            Exportar CSV
+          </a>
+        </Button>
+      ) : null}
+    </span>
   );
 }

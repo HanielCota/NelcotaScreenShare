@@ -24,9 +24,9 @@ vi.mock("next/cache", () => ({ revalidatePath: () => {}, refresh: () => {} }));
 
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { adminSession } = await import("./support/admin-session");
-const actions = await import("@/features/usuarios/actions");
-const { listParticipants } = await import("@/features/usuarios/queries");
-const { loadParticipantParams } = await import("@/features/usuarios/search-params");
+const actions = await import("@/features/admin/participants/actions");
+const { listParticipants } = await import("@/features/admin/participants/queries");
+const { loadParticipantParams } = await import("@/features/admin/participants/search-params");
 const { getUserAuth } = await import("@/server/auth/user");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

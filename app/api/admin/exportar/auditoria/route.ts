@@ -1,7 +1,7 @@
 import { csvExportRoute } from "@/features/admin/csv-export-route";
-import { iterateAuditLogs } from "@/features/auditoria/queries";
-import { loadAuditParams } from "@/features/auditoria/search-params";
-import { actionLabel, resourceLabel } from "@/lib/audit-labels";
+import { iterateAuditLogs } from "@/features/admin/audit/queries";
+import { loadAuditParams } from "@/features/admin/audit/search-params";
+import { actionLabel, resourceLabel } from "@/features/admin/audit/labels";
 
 /**
  * CSV do audit log com os filtros da tela, em stream (lotes keyset de 1.000).

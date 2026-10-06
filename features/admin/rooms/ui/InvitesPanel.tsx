@@ -4,7 +4,7 @@ import { Copy, Link2, Plus, XCircle } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useId, useState } from "react";
 import { toast } from "sonner";
-import { StatusBadge } from "@/components/admin/StatusBadge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SELECT_CLASS } from "@/components/data-table/filters";
 import { formatDateTime } from "@/lib/format";
-import { createInviteAction, revokeInviteAction } from "../actions";
+import { createInviteAction, revokeInviteAction } from "@/features/admin/rooms/actions";
 
 export interface InviteRow {
   id: string;
@@ -158,7 +159,7 @@ function CreateInviteDialog({
                   id={ids.validity}
                   name="validity"
                   defaultValue="24"
-                  className="h-9 rounded-lg border border-input bg-surface-2 px-2.5 text-sm text-ink"
+                  className={SELECT_CLASS}
                 >
                   {VALIDITY_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>

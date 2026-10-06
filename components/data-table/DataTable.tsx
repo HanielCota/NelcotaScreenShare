@@ -40,13 +40,7 @@ const dataTableFeatures = tableFeatures({ rowSelectionFeature });
 type DataTableFeatures = typeof dataTableFeatures;
 export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures, TData>;
 
-export interface PageInfo {
-  nextCursor: string | null;
-  prevCursor: string | null;
-  total: number;
-  /** O total passou do limite de contagem ("mais de 10.000"). */
-  capped: boolean;
-}
+import type { PageInfo } from "./page-info";
 
 interface DataTableProps<TData extends RowData & { id: string }> {
   /** Rótulo da tabela para leitores de tela. */

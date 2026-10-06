@@ -14,9 +14,9 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { searchPanelAction } from "@/features/busca/actions";
+import { searchPanelAction } from "@/features/admin/search/actions";
 import { applyTheme, currentTheme } from "@/lib/theme";
-import type { NavGroup } from "@/server/admin-nav";
+import type { NavGroup } from "@/features/admin/shell/nav";
 import { NAV_ICONS } from "./nav-icons";
 
 /**

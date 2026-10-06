@@ -1,26 +1,25 @@
 "use client";
 
-import { Download, X } from "lucide-react";
 import Link from "next/link";
 import { debounce, useQueryStates } from "nuqs";
+import type { PageInfo } from "@/components/data-table/page-info";
 import {
   DataTable,
   useTableTransition,
   type DataTableColumn,
-  type PageInfo,
-} from "@/components/admin/data-table/DataTable";
+} from "@/components/data-table/DataTable";
 import {
+  FilterActions,
   FilterDate,
   FilterSearch,
   FilterSelect,
   SortDirection,
-} from "@/components/admin/data-table/filters";
-import { StatusBadge } from "@/components/admin/StatusBadge";
-import { Button } from "@/components/ui/button";
+} from "@/components/data-table/filters";
+import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime, formatDuration } from "@/lib/format";
 import { resetPage } from "@/lib/table-params";
-import type { ShareRow } from "../queries";
-import { shareParsers } from "../search-params";
+import type { ShareRow } from "@/features/admin/shares/queries";
+import { shareParsers } from "@/features/admin/shares/search-params";
 
 const AUDIO_OPTIONS = [
   { value: "com", label: "Com áudio" },
@@ -88,37 +87,21 @@ function Filters({ exportHref }: { exportHref: string | null }) {
         value={params.ordem}
         onChange={(ordem) => void setParams({ ordem, ...resetPage })}
       />
-      <span className="flex gap-2">
-        {active ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9"
-            onClick={() =>
-              void setParams({
-                sala: null,
-                audio: null,
-                situacao: null,
-                min: null,
-                de: null,
-                ate: null,
-                ...resetPage,
-              })
-            }
-          >
-            <X aria-hidden="true" />
-            Limpar
-          </Button>
-        ) : null}
-        {exportHref ? (
-          <Button asChild variant="outline" size="sm" className="h-9">
-            <a href={exportHref} download>
-              <Download aria-hidden="true" />
-              Exportar CSV
-            </a>
-          </Button>
-        ) : null}
-      </span>
+      <FilterActions
+        active={active}
+        exportHref={exportHref}
+        onClear={() =>
+          void setParams({
+            sala: null,
+            audio: null,
+            situacao: null,
+            min: null,
+            de: null,
+            ate: null,
+            ...resetPage,
+          })
+        }
+      />
     </>
   );
 }

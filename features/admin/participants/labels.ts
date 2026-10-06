@@ -1,4 +1,4 @@
-import type { BadgeTone } from "@/components/admin/StatusBadge";
+import type { BadgeTone } from "@/components/StatusBadge";
 import { PARTICIPANT_STATUSES, type ParticipantStatus } from "./search-params";
 
 export const STATUS_LABELS: Record<ParticipantStatus, { label: string; tone: BadgeTone }> = {

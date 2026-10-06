@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { pageInfo } from "@/components/data-table/page-info";
 import { createSerializer } from "nuqs/server";
-import { AuditTable } from "@/features/auditoria/components/AuditTable";
-import { auditFilterOptions, listAuditLogs } from "@/features/auditoria/queries";
-import { auditParsers, loadAuditParams } from "@/features/auditoria/search-params";
+import { AuditTable } from "@/features/admin/audit/ui/AuditTable";
+import { auditFilterOptions, listAuditLogs } from "@/features/admin/audit/queries";
+import { auditParsers, loadAuditParams } from "@/features/admin/audit/search-params";
 import { PAGE_SIZE } from "@/lib/table-params";
 import { requireAdmin } from "@/server/auth/admin-session";
 import { can } from "@/server/auth/permissions";
@@ -35,12 +36,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
       </div>
       <AuditTable
         rows={page.items}
-        page={{
-          nextCursor: page.nextCursor,
-          prevCursor: page.prevCursor,
-          total: page.total,
-          capped: page.capped,
-        }}
+        page={pageInfo(page)}
         options={options}
         exportHref={exportHref}
       />

@@ -1,7 +1,7 @@
 import { csvExportRoute } from "@/features/admin/csv-export-route";
-import { STATUS_LABELS } from "@/features/usuarios/labels";
-import { iterateParticipants } from "@/features/usuarios/queries";
-import { loadParticipantParams } from "@/features/usuarios/search-params";
+import { STATUS_LABELS } from "@/features/admin/participants/labels";
+import { iterateParticipants } from "@/features/admin/participants/queries";
+import { loadParticipantParams } from "@/features/admin/participants/search-params";
 
 /** CSV dos participantes com os filtros da tela (exige `participant.export`). */
 export const GET = csvExportRoute({

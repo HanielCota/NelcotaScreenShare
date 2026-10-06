@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { updateRoomNoteAction } from "../actions";
+import { updateRoomNoteAction } from "@/features/admin/rooms/actions";
 
 /** Nota interna da sala: só o painel vê. */
 export function RoomNoteForm({

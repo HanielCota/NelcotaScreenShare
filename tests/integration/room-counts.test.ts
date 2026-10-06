@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, test } from "vitest";
-import { listRooms } from "@/features/salas/queries";
-import { loadRoomParams } from "@/features/salas/search-params";
+import { listRooms } from "@/features/admin/rooms/queries";
+import { loadRoomParams } from "@/features/admin/rooms/search-params";
 import * as schema from "@/server/db/schema";
 import { roomPresence } from "@/server/rooms/presence";
 

@@ -4,8 +4,8 @@ import { Ban, LockOpen, LogOut, MailCheck, RotateCcw, ShieldX, Trash2 } from "lu
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
-import { toastWithUndo } from "@/components/admin/undo-toast";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { toastWithUndo } from "@/components/undo-toast";
 import { Button } from "@/components/ui/button";
 import {
   anonymizeParticipantAction,
@@ -15,8 +15,8 @@ import {
   restoreParticipantsAction,
   revokeParticipantSessionsAction,
   unblockParticipantsAction,
-} from "../actions";
-import type { ParticipantStatus } from "../search-params";
+} from "@/features/admin/participants/actions";
+import type { ParticipantStatus } from "@/features/admin/participants/search-params";
 
 type Dialog = "block" | "delete" | "anonymize" | null;
 

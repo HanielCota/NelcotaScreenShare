@@ -1,6 +1,6 @@
 import { csvExportRoute } from "@/features/admin/csv-export-route";
-import { iterateRooms } from "@/features/salas/queries";
-import { loadRoomParams } from "@/features/salas/search-params";
+import { iterateRooms } from "@/features/admin/rooms/queries";
+import { loadRoomParams } from "@/features/admin/rooms/search-params";
 
 /** CSV das salas com os filtros da tela (exige `room.export`). */
 export const GET = csvExportRoute({

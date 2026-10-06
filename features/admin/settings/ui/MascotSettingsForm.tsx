@@ -4,7 +4,7 @@ import { Loader2, RotateCcw } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useId, useState } from "react";
 import { toast } from "sonner";
-import { saveMascotSettings } from "@/app/admin/(painel)/configuracoes/actions";
+import { saveMascotSettings } from "@/features/admin/settings/actions";
 import { Mascot } from "@/components/Mascot";
 import { Button } from "@/components/ui/button";
 import type { MascotSettings } from "@/server/settings";
