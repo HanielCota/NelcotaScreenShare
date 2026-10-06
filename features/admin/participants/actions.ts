@@ -4,9 +4,9 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { BULK_FILTER_LIMIT } from "@/lib/table-params";
-import { adminAction } from "@/server/actions/client";
+import { adminAction } from "@/features/auth/server/action-clients";
 import { ActionError } from "@/server/actions/errors";
-import { getUserAuth } from "@/server/auth/user";
+import { getUserAuth } from "@/features/auth/server/participant-auth";
 import { getDb } from "@/server/db";
 import { users } from "@/server/db/schema";
 import {
@@ -16,7 +16,7 @@ import {
   revokeParticipantSessions,
   softDeleteParticipants,
   unblockParticipants,
-} from "@/server/participants/operations";
+} from "@/features/participants/server/operations";
 import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection";
 import { participantIdsForFilter } from "./queries";
 

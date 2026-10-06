@@ -1,10 +1,10 @@
 import { TimerOff } from "lucide-react";
 import Link from "next/link";
-import { AcceptInvitationForm } from "@/components/admin/auth/AcceptInvitationForm";
-import { AuthCard } from "@/components/auth/AuthCard";
+import { AcceptInvitationForm } from "@/features/auth/ui/AcceptInvitationForm";
+import { AuthCard } from "@/features/auth/ui/AuthCard";
 import { Button } from "@/components/ui/button";
-import { findPendingInvitation } from "@/server/auth/invitations";
-import { ADMIN_ROLE_LABELS, isAdminRole } from "@/server/auth/roles";
+import { findPendingInvitation } from "@/features/auth/server/admin-invitations";
+import { ADMIN_ROLE_LABELS, isAdminRole } from "@/features/auth/domain/roles";
 import { getDb } from "@/server/db";
 
 export default async function AcceptInvitationPage({

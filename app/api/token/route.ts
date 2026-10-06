@@ -1,8 +1,8 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { AccessToken, RoomConfiguration, ServerError, TrackSource } from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
-import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/auth/origin-guard";
-import { getUserAuth } from "@/server/auth/user";
+import { forbiddenCrossSite, isCrossSiteMutation } from "@/features/auth/server/origin-guard";
+import { getUserAuth } from "@/features/auth/server/participant-auth";
 import { clientIpFrom } from "@/server/client-ip";
 import { getEnv } from "@/server/env";
 import { requestLogger } from "@/server/request-log";

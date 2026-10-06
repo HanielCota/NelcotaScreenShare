@@ -5,8 +5,8 @@ import { SharesTable } from "@/features/admin/shares/ui/SharesTable";
 import { listShares } from "@/features/admin/shares/queries";
 import { loadShareParams, shareParsers } from "@/features/admin/shares/search-params";
 import { PAGE_SIZE } from "@/lib/table-params";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { can } from "@/server/auth/permissions";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { can } from "@/features/auth/server/permissions";
 import { getDb } from "@/server/db";
 
 export const metadata: Metadata = { title: "Compartilhamentos" };

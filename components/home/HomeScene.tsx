@@ -18,7 +18,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import type { RecentRoom } from "@/lib/recent-room";
-import { ShareSupportNote } from "@/components/account/ShareSupportNote";
+import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { RecentRooms } from "./RecentRooms";
 import { SmartBar } from "./SmartBar";
 

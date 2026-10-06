@@ -1,7 +1,7 @@
 import "server-only";
 import { recordAudit } from "@/server/audit/record";
-import { requireAdminApi } from "@/server/auth/admin-api";
-import type { PermissionRequest } from "@/server/auth/permissions";
+import { requireAdminApi } from "@/features/auth/server/admin-api";
+import type { PermissionRequest } from "@/features/auth/server/permissions";
 import { getDb, type Database } from "@/server/db";
 import { csvResponse } from "@/server/table/csv-export";
 

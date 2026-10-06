@@ -3,9 +3,12 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { eq, like } from "drizzle-orm";
 import { Pool } from "pg";
 import { afterAll, describe, test } from "vitest";
-import { ADMIN_AUTH_BASE_PATH, createAdminAuthForTests } from "@/server/auth/admin";
-import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/auth/origin-guard";
-import { acceptAdminInvitation, createAdminInvitation } from "@/server/auth/invitations";
+import { ADMIN_AUTH_BASE_PATH, createAdminAuthForTests } from "@/features/auth/server/admin-auth";
+import { forbiddenCrossSite, isCrossSiteMutation } from "@/features/auth/server/origin-guard";
+import {
+  acceptAdminInvitation,
+  createAdminInvitation,
+} from "@/features/auth/server/admin-invitations";
 import * as schema from "@/server/db/schema";
 import { CookieJar, makeCaller } from "./support/http-auth";
 import { totpFromUri } from "./support/totp";

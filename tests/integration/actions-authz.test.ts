@@ -12,7 +12,7 @@ import { z } from "zod";
  * ficam na lista abaixo. Uma action nova criada fora do `adminAction`/`userAction`
  * quebra este teste.
  */
-const PUBLIC_ACTIONS = new Set(["app/admin/(auth)/convite/[token]/actions.ts#acceptInvitation"]);
+const PUBLIC_ACTIONS = new Set(["features/auth/actions.ts#acceptInvitation"]);
 
 const anonymous = new Headers({ "x-client-ip": "203.0.113.200", "user-agent": "vitest" });
 vi.mock("next/headers", () => ({

@@ -1,5 +1,5 @@
 import { HomeScene } from "@/components/home/HomeScene";
-import { getUserSession } from "@/server/auth/user-session";
+import { getUserSession } from "@/features/auth/server/participant-session";
 import { getDb } from "@/server/db";
 import { recentRoomsFor } from "@/server/rooms/recent";
 

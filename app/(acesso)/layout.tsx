@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { BrandPanel } from "@/components/account/BrandPanel";
-import { ShareSupportNote } from "@/components/account/ShareSupportNote";
+import { BrandPanel } from "@/features/auth/ui/BrandPanel";
+import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import Link from "next/link";
 import { HowItWorks } from "@/components/HowItWorks";
 import { navItemClass } from "@/components/nav-item-class";

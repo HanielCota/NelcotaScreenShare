@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { TwoFactorSettings } from "@/components/auth/TwoFactorSettings";
-import { needsTwoFactorSetup, requireAdmin } from "@/server/auth/admin-session";
-import { ROLES_REQUIRING_2FA } from "@/server/auth/roles";
+import { TwoFactorSettings } from "@/features/auth/ui/TwoFactorSettings";
+import { needsTwoFactorSetup, requireAdmin } from "@/features/auth/server/admin-session";
+import { ROLES_REQUIRING_2FA } from "@/features/auth/domain/roles";
 
 export const metadata: Metadata = { title: "Segurança da conta" };
 

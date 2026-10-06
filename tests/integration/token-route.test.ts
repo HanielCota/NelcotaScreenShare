@@ -52,7 +52,7 @@ Object.assign(process.env, {
 
 const { POST } = await import("@/app/api/token/route");
 const { NextRequest } = await import("next/server");
-const { getUserAuth } = await import("@/server/auth/user");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth");
 const { createRoomInvite } = await import("@/server/rooms/invites");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

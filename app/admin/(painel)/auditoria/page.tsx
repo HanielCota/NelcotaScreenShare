@@ -5,8 +5,8 @@ import { AuditTable } from "@/features/admin/audit/ui/AuditTable";
 import { auditFilterOptions, listAuditLogs } from "@/features/admin/audit/queries";
 import { auditParsers, loadAuditParams } from "@/features/admin/audit/search-params";
 import { PAGE_SIZE } from "@/lib/table-params";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { can } from "@/server/auth/permissions";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { can } from "@/features/auth/server/permissions";
 import { getDb } from "@/server/db";
 
 export const metadata: Metadata = { title: "Auditoria" };

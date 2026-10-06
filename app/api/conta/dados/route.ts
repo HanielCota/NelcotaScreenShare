@@ -1,5 +1,5 @@
 import { personalData } from "@/features/account/server/personal-data";
-import { getUserAuth } from "@/server/auth/user";
+import { getUserAuth } from "@/features/auth/server/participant-auth";
 import { getDb } from "@/server/db";
 import { createRateLimiter } from "@/server/rate-limit";
 

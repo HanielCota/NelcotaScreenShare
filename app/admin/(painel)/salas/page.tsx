@@ -5,8 +5,8 @@ import { RoomsTable } from "@/features/admin/rooms/ui/RoomsTable";
 import { listRooms } from "@/features/admin/rooms/queries";
 import { loadRoomParams, roomParsers } from "@/features/admin/rooms/search-params";
 import { PAGE_SIZE } from "@/lib/table-params";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { can } from "@/server/auth/permissions";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { can } from "@/features/auth/server/permissions";
 import { getDb } from "@/server/db";
 
 export const metadata: Metadata = { title: "Salas" };

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { VerifyEmailPanel } from "@/components/account/VerifyEmailPanel";
-import { safeReturnPath } from "@/lib/return-path";
-import { getUserSession } from "@/server/auth/user-session";
+import { VerifyEmailPanel } from "@/features/auth/ui/VerifyEmailPanel";
+import { safeReturnPath } from "@/features/auth/domain/return-path";
+import { getUserSession } from "@/features/auth/server/participant-session";
 
 export const metadata: Metadata = { title: "Confirme seu e-mail" };
 

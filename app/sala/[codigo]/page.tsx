@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { RoomSession } from "@/components/room/RoomSession";
-import { requireUser } from "@/server/auth/user-session";
+import { requireUser } from "@/features/auth/server/participant-session";
 import { getDb } from "@/server/db";
 import { getEnv } from "@/server/env";
 import { roomPresence } from "@/server/rooms/presence";

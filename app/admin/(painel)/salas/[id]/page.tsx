@@ -10,8 +10,8 @@ import { RoomStatus } from "@/features/admin/rooms/ui/RoomStatus";
 import { getRoomDetail } from "@/features/admin/rooms/queries";
 import { actionLabel, LEAVE_REASON_LABELS } from "@/features/admin/audit/labels";
 import { formatDateTime, formatSpan } from "@/lib/format";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { can } from "@/server/auth/permissions";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { can } from "@/features/auth/server/permissions";
 import { getDb } from "@/server/db";
 
 export const metadata: Metadata = { title: "Sala" };

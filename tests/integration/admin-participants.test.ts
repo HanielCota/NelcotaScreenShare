@@ -27,7 +27,7 @@ const { adminSession } = await import("./support/admin-session");
 const actions = await import("@/features/admin/participants/actions");
 const { listParticipants } = await import("@/features/admin/participants/queries");
 const { loadParticipantParams } = await import("@/features/admin/participants/search-params");
-const { getUserAuth } = await import("@/server/auth/user");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

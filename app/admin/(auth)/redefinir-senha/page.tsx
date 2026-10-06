@@ -1,4 +1,4 @@
-import { ResetPasswordForm } from "@/components/auth/PasswordForms";
+import { ResetPasswordForm } from "@/features/auth/ui/PasswordForms";
 
 /** O Better Auth redireciona para cá com ?token=… (ou ?error=INVALID_TOKEN). */
 export default async function AdminResetPasswordPage({

@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/features/auth/client/participant-auth-client";
 import { displayNameSchema } from "@/lib/livekit";
 import { initials } from "@/lib/participant-label";
 

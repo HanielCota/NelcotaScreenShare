@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { safeReturnPath } from "@/lib/return-path";
+import { safeReturnPath } from "@/features/auth/domain/return-path";
 
 describe("safeReturnPath", () => {
   it("aceita caminhos internos como vieram", () => {

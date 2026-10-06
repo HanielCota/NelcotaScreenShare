@@ -1,6 +1,6 @@
 import "server-only";
-import { can, type PermissionRequest } from "@/server/auth/permissions";
-import type { AdminRole } from "@/server/auth/roles";
+import { can, type PermissionRequest } from "@/features/auth/server/permissions";
+import type { AdminRole } from "@/features/auth/domain/roles";
 
 /**
  * Navegação do painel. Cada fase acrescenta as telas que ficam prontas; o

@@ -3,7 +3,10 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, describe, test, vi } from "vitest";
-import { createUserAuthForTests, USER_AUTH_BASE_PATH } from "@/server/auth/user";
+import {
+  createUserAuthForTests,
+  USER_AUTH_BASE_PATH,
+} from "@/features/auth/server/participant-auth";
 import * as schema from "@/server/db/schema";
 import { logger } from "@/server/logger";
 import { verifiedParticipant } from "./support/accounts";

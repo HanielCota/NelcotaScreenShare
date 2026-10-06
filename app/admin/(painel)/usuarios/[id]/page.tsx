@@ -11,8 +11,8 @@ import { getParticipantDetail } from "@/features/admin/participants/queries";
 import { actionLabel, LEAVE_REASON_LABELS } from "@/features/admin/audit/labels";
 import { formatDateTime, formatNumber, formatSpan } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { can } from "@/server/auth/permissions";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { can } from "@/features/auth/server/permissions";
 import { getDb } from "@/server/db";
 
 export const metadata: Metadata = { title: "Participante" };

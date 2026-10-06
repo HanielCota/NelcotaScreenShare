@@ -2,8 +2,8 @@
 
 import { and, desc, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { adminAction } from "@/server/actions/client";
-import { can } from "@/server/auth/permissions";
+import { adminAction } from "@/features/auth/server/action-clients";
+import { can } from "@/features/auth/server/permissions";
 import { getDb } from "@/server/db";
 import { rooms, users } from "@/server/db/schema";
 import { likeEscape, unaccentLike } from "@/server/table/search";

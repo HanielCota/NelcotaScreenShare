@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { BULK_FILTER_LIMIT } from "@/lib/table-params";
 import { roomLink } from "@/lib/livekit";
-import { adminAction } from "@/server/actions/client";
+import { adminAction } from "@/features/auth/server/action-clients";
 import { ActionError } from "@/server/actions/errors";
 import { diffChanges } from "@/server/audit/record";
 import { getDb } from "@/server/db";

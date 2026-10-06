@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, test } from "vitest";
-import { authErrorMessage } from "@/lib/auth-errors";
+import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
-import { emailHash, LOCKOUT, lockDurationMs } from "@/server/auth/lockout";
-import { hashPassword, verifyPassword } from "@/server/auth/password";
-import { can, statements, type PermissionRequest } from "@/server/auth/permissions";
-import { ADMIN_ROLES, type AdminRole } from "@/server/auth/roles";
+import { emailHash, LOCKOUT, lockDurationMs } from "@/features/auth/server/lockout";
+import { hashPassword, verifyPassword } from "@/features/auth/server/password";
+import { can, statements, type PermissionRequest } from "@/features/auth/server/permissions";
+import { ADMIN_ROLES, type AdminRole } from "@/features/auth/domain/roles";
 
 describe("senha", () => {
   test("argon2id com os parâmetros da OWASP e verificação", async () => {

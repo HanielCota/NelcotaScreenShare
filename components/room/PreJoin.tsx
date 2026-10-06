@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
-import { ShareSupportNote } from "@/components/account/ShareSupportNote";
+import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { Mascot } from "@/components/Mascot";
 import { upsetMascot } from "@/components/mascot/events";
 import { Button } from "@/components/ui/button";

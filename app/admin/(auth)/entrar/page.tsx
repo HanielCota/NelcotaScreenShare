@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { AdminSignInForm } from "@/components/admin/auth/AdminSignInForm";
-import { AdminDisabled } from "@/components/admin/auth/AdminDisabled";
-import { getAdminAuth } from "@/server/auth/admin";
-import { getAdminSession } from "@/server/auth/admin-session";
+import { AdminSignInForm } from "@/features/auth/ui/AdminSignInForm";
+import { AdminDisabled } from "@/features/auth/ui/AdminDisabled";
+import { getAdminAuth } from "@/features/auth/server/admin-auth";
+import { getAdminSession } from "@/features/auth/server/admin-session";
 
 const NOTICES: Record<string, string> = {
   convite: "Conta criada. Entre com seu e-mail e a senha que você escolheu.",

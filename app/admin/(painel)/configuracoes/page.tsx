@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { MascotSettingsForm } from "@/features/admin/settings/ui/MascotSettingsForm";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { can } from "@/server/auth/permissions";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { can } from "@/features/auth/server/permissions";
 import { getSetting, MASCOT_SATURATION, mascotSettings } from "@/server/settings";
 
 export const metadata: Metadata = { title: "Configurações" };

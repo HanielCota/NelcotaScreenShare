@@ -11,7 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { ADMIN_ROLES } from "../../auth/roles";
+import { ADMIN_ROLES } from "@/features/auth/domain/roles";
 import { createdAt, id, timestamptz, updatedAt } from "./columns";
 
 /**
