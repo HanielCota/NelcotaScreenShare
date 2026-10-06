@@ -4,6 +4,7 @@ import { Keyboard, Plus, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useTransition } from "react";
+import { HowItWorks } from "@/components/HowItWorks";
 import { Mascot } from "@/components/Mascot";
 import { celebrateMascot } from "@/components/mascot/events";
 import {
@@ -19,12 +20,6 @@ import { Button } from "@/components/ui/button";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import { generateRoomCode, roomPath } from "@/lib/livekit";
 import { JoinForm } from "./JoinForm";
-
-const STEPS = [
-  "Crie uma sala e copie o link.",
-  "Mande para o time: cada pessoa entra pelo navegador, sem instalar nada.",
-  "Clique em compartilhar e escolha a tela inteira, uma janela ou uma aba.",
-];
 
 export function HomeScene({
   invalidCode,
@@ -75,19 +70,7 @@ export function HomeScene({
         <NavBar aria-label="Principal" className="mx-auto max-w-5xl">
           <NavBrand href="/" />
           <NavDivider />
-          <NavPopover trigger="Como funciona" label="Como funciona">
-            <p className="text-sm font-semibold tracking-tight">Como funciona</p>
-            <ol className="mt-3 flex flex-col gap-2.5">
-              {STEPS.map((step, index) => (
-                <li key={step} className="flex gap-3 text-sm text-ink-muted">
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-brand-ink">
-                    {index + 1}
-                  </span>
-                  {step}
-                </li>
-              ))}
-            </ol>
-          </NavPopover>
+          <HowItWorks />
           <NavPopover
             trigger={
               <>

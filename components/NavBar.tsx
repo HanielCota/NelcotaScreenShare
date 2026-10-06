@@ -5,6 +5,7 @@ import { Popover } from "radix-ui";
 import type { ComponentProps, ReactNode } from "react";
 import { ROOM_SHORTCUTS } from "@/lib/shortcuts";
 import { cn } from "@/lib/utils";
+import { navItemClass } from "./nav-item-class";
 
 /** Barra de vidro do topo, usada na home e na sala. Seções separadas por `NavDivider`. */
 export function NavBar({ className, ...props }: ComponentProps<"nav">) {
@@ -59,8 +60,7 @@ export function NavBrand({
   );
 }
 
-export const navItemClass =
-  "inline-flex h-9 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-ink-muted transition-colors hover:bg-surface-3 hover:text-ink focus-visible:bg-surface-3 data-[state=open]:bg-surface-3 data-[state=open]:text-ink";
+export { navItemClass } from "./nav-item-class";
 
 /** Item da navbar que abre um painel (popover) abaixo dele. */
 export function NavPopover({
