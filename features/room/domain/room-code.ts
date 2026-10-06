@@ -1,12 +1,17 @@
 import { z } from "zod";
 
-/** Código de sala: minúsculas, números e hífens (ex.: "abc-defg-hij"). */
+/**
+ * Código de sala: minúsculas, números e hífens (ex.: "abc-defg-hij"). A mesma
+ * regra vale no CHECK da tabela `rooms` (server/db/schema/rooms.ts).
+ */
+export const ROOM_CODE_PATTERN = "^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$";
+
 export const roomCodeSchema = z
   .string()
   .trim()
   .toLowerCase()
   .regex(
-    /^[a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9])$/,
+    new RegExp(ROOM_CODE_PATTERN),
     "Confira o código da sala. Use letras, números e hífens, como kfa-mtrx-q2p.",
   );
 

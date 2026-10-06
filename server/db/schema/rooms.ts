@@ -18,6 +18,7 @@ import {
 import { adminUsers } from "./admin-auth";
 import { createdAt, id, timestamptz, updatedAt } from "./columns";
 import { users } from "./user-auth";
+import { ROOM_CODE_PATTERN } from "@/features/room/domain/room-code";
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
 
@@ -27,9 +28,6 @@ const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
  * ver `server/livekit/projector.ts`.
  */
 export const roomStatus = pgEnum("room_status", ["active", "finished"]);
-
-/** Mesmo padrão de `roomCodeSchema` (lib/livekit.ts). */
-export const ROOM_CODE_PATTERN = "^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$";
 
 export const rooms = pgTable(
   "rooms",

@@ -109,7 +109,6 @@ export default defineConfig({
       files: [
         "app/admin/(painel)/salas/[[]id]/page.tsx",
         "app/admin/(painel)/usuarios/[[]id]/page.tsx",
-        "app/api/token/route.ts",
         "features/auth/ui/SignUpForm.tsx",
         "components/data-table/DataTable.tsx",
         "features/mascot/engine/avatar-frames.ts",
@@ -117,7 +116,6 @@ export default defineConfig({
         "features/room/ui/call/RoomView.tsx",
         "features/room/ui/stage/ScreenStage.tsx",
         "features/admin/participants/ui/ParticipantActions.tsx",
-        "features/room/server/webhook/projector.ts",
       ],
       rules: { "eslint/max-lines": "off", "eslint/complexity": "off" },
     },
