@@ -1,7 +1,18 @@
 "use client";
 
 import { createAudioAnalyser, createLocalAudioTrack, MediaDeviceFailure } from "livekit-client";
-import { ArrowRight, Link2, Loader2, Lock, Mic, MicOff, Ticket } from "lucide-react";
+import {
+  ArrowRight,
+  AudioLines,
+  Link2,
+  Loader2,
+  Lock,
+  Mic,
+  MicOff,
+  Play,
+  Square,
+  Ticket,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Mascot } from "@/components/Mascot";
@@ -9,6 +20,7 @@ import { upsetMascot } from "@/components/mascot/events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import { copyRoomLink } from "@/lib/copy-room-link";
 import { requestToken, roomLink } from "@/lib/livekit";
@@ -282,84 +294,105 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
         <fieldset className="flex min-w-0 flex-col gap-3 px-4 py-3">
           <legend className="sr-only">Microfone</legend>
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              id={micId}
-              aria-pressed={micEnabled}
-              aria-label={micEnabled ? "Microfone ligado: desligar" : "Microfone desligado: ligar"}
-              onClick={() => {
-                setMicEnabled((value) => !value);
-                setTesting(false);
-              }}
-              className={cn(
-                "grid size-10 shrink-0 place-items-center rounded-full transition-[transform,background-color] active:scale-95",
-                micEnabled ? "bg-brand text-brand-ink" : "bg-danger/15 text-danger",
-              )}
-            >
-              {micEnabled ? (
-                <Mic className="size-4.5" aria-hidden="true" />
-              ) : (
-                <MicOff className="size-4.5" aria-hidden="true" />
-              )}
-            </button>
-            <p className="min-w-0 flex-1">
-              <span className="block text-xs text-ink-subtle">Microfone</span>
-              <strong className="block font-semibold">
-                {micEnabled ? "Ligado ao entrar" : "Mutado ao entrar"}
-              </strong>
-            </p>
-            {micEnabled ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setMicError(undefined);
-                  setTesting((value) => !value);
-                }}
-              >
-                {testing ? "Parar" : "Testar"}
-              </Button>
-            ) : null}
-          </div>
-
-          {/* Medidor: só aparece durante o teste (antes, vazio, parecia quebrado). */}
-          <div className={cn("flex flex-col gap-2", !testing && "hidden")}>
-            <span className="sr-only">Teste de microfone em andamento: fale algo.</span>
-            <div
+            <span
               aria-hidden="true"
-              className="relative h-1.5 overflow-hidden rounded-full bg-surface-3"
+              className={cn(
+                "grid size-10 shrink-0 place-items-center rounded-full transition-colors",
+                micEnabled ? "bg-brand/15 text-brand-soft" : "bg-danger/15 text-danger",
+              )}
             >
-              <div
-                ref={meterRef}
-                className="absolute inset-0 origin-left scale-x-0 rounded-full bg-linear-to-r from-brand to-brand-soft"
-              />
-            </div>
-            <span className="text-xs text-ink-subtle">Fale algo: a barra deve se mexer.</span>
+              {micEnabled ? <Mic className="size-4.5" /> : <MicOff className="size-4.5" />}
+            </span>
+            <Label htmlFor={micId} className="min-w-0 flex-1 flex-col items-start gap-0">
+              <span className="text-xs font-normal text-ink-subtle">Microfone</span>
+              <span className="text-base font-semibold">
+                {micEnabled ? "Ligado ao entrar" : "Mutado ao entrar"}
+              </span>
+            </Label>
+            <Switch
+              id={micId}
+              checked={micEnabled}
+              onCheckedChange={(checked) => {
+                setMicEnabled(checked);
+                if (!checked) setTesting(false);
+              }}
+            />
           </div>
 
-          {devices.length > 1 ? (
-            <div className="flex items-center gap-2">
-              <Label htmlFor={deviceId} className="shrink-0 text-xs text-ink-subtle">
-                Dispositivo
-              </Label>
-              <select
-                id={deviceId}
-                value={audioDeviceId ?? ""}
-                onChange={(event) => {
-                  const id = event.target.value || undefined;
-                  setChosenMic(id ?? null);
-                  saveMicrophone(id);
-                }}
-                className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface-2 px-2.5 text-sm text-ink"
-              >
-                <option value="">Padrão do sistema</option>
-                {devices.map((device, index) => (
-                  <option key={device.deviceId} value={device.deviceId}>
-                    {device.label || `Microfone ${index + 1}`}
-                  </option>
-                ))}
-              </select>
+          {/* Teste e dispositivo num bloco só: o medidor ocupa o lugar do texto durante o teste. */}
+          {micEnabled ? (
+            <div className="flex flex-col gap-3 rounded-xl bg-surface-2 p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <AudioLines
+                    className={cn(
+                      "size-4 shrink-0",
+                      testing ? "text-brand-soft" : "text-ink-subtle",
+                    )}
+                    aria-hidden="true"
+                  />
+                  {/* Sempre montado: o efeito do teste escreve direto na barra. */}
+                  <div
+                    aria-hidden="true"
+                    className={cn(
+                      "relative h-2 flex-1 overflow-hidden rounded-full bg-surface-3",
+                      !testing && "hidden",
+                    )}
+                  >
+                    <div
+                      ref={meterRef}
+                      className="absolute inset-0 origin-left scale-x-0 rounded-full bg-linear-to-r from-brand to-brand-soft"
+                    />
+                  </div>
+                  <span
+                    aria-live="polite"
+                    className={cn("text-sm text-ink-muted", testing && "sr-only")}
+                  >
+                    {testing ? "Teste em andamento: fale algo." : "Teste rápido do microfone"}
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setMicError(undefined);
+                    setTesting((value) => !value);
+                  }}
+                >
+                  {testing ? (
+                    <Square className="size-3 fill-current" aria-hidden="true" />
+                  ) : (
+                    <Play className="size-3 fill-current" aria-hidden="true" />
+                  )}
+                  {testing ? "Parar" : "Testar"}
+                </Button>
+              </div>
+
+              {devices.length > 1 ? (
+                <div className="flex items-center gap-2.5">
+                  <Label htmlFor={deviceId} className="shrink-0 text-sm font-normal text-ink-muted">
+                    Usar
+                  </Label>
+                  <select
+                    id={deviceId}
+                    value={audioDeviceId ?? ""}
+                    onChange={(event) => {
+                      const id = event.target.value || undefined;
+                      setChosenMic(id ?? null);
+                      saveMicrophone(id);
+                    }}
+                    className="h-9 min-w-0 flex-1 rounded-full border border-line bg-surface px-3.5 text-sm text-ink"
+                  >
+                    <option value="">Padrão do sistema</option>
+                    {devices.map((device, index) => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Microfone ${index + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
