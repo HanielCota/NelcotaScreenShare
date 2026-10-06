@@ -77,18 +77,20 @@ function PresenceLine({ presence, max }: { presence: { online: number } | null; 
   const { online } = presence;
   if (online >= max) {
     return (
-      <p className="text-sm font-medium text-warning">
+      <p className="text-base font-medium text-warning">
         A sala está cheia ({online} de {max} pessoas). Aguarde alguém sair.
       </p>
     );
   }
   if (online === 0) {
     return (
-      <p className="text-sm text-ink-muted">Ninguém na sala ainda: você será a primeira pessoa.</p>
+      <p className="text-base text-ink-muted">
+        Ninguém na sala ainda: você será a primeira pessoa.
+      </p>
     );
   }
   return (
-    <p className="inline-flex items-center gap-2 text-sm font-medium text-ink">
+    <p className="inline-flex items-center gap-2 text-base font-semibold text-ink">
       <span className="relative flex size-2" aria-hidden="true">
         <span className="absolute inset-0 animate-ping rounded-full bg-success/60 motion-reduce:hidden" />
         <span className="relative size-2 rounded-full bg-success" />
@@ -298,13 +300,13 @@ export function PreJoin({
       <header data-anim="row" className="flex flex-col items-center gap-3 text-center">
         <Mascot className="size-28 sm:size-32" sizes="(min-width: 640px) 384px, 336px" />
         <div className="flex flex-col items-center gap-2">
-          <p className="text-sm font-medium text-ink-muted">Você está entrando na sala</p>
-          <h1 className="max-w-full font-mono text-2xl font-semibold tracking-tight break-all sm:text-3xl">
+          <p className="text-base font-medium text-ink-muted">Você está entrando na sala</p>
+          <h1 className="max-w-full font-mono text-3xl font-semibold tracking-tight break-all sm:text-4xl">
             {code}
           </h1>
           <PresenceLine presence={presence} max={maxParticipants} />
           {invite ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-xs font-semibold text-ink">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3.5 py-1.5 text-sm font-semibold text-ink">
               <Ticket className="size-3.5 text-brand-soft" aria-hidden="true" />
               Você tem convite: não precisa de senha
             </span>
@@ -333,8 +335,8 @@ export function PreJoin({
               {joinsMuted ? <MicOff className="size-4.5" /> : <Mic className="size-4.5" />}
             </span>
             <Label htmlFor={micId} className="min-w-0 flex-1 flex-col items-start gap-0">
-              <span className="text-xs font-normal text-ink-subtle">Microfone</span>
-              <span className="text-base font-semibold">
+              <span className="text-sm font-normal text-ink-muted">Microfone</span>
+              <span className="text-lg font-semibold">
                 {!micEnabled
                   ? "Desligado: você entra só ouvindo"
                   : blocked
@@ -356,12 +358,12 @@ export function PreJoin({
             <div className="flex flex-col gap-3 rounded-xl bg-surface-2 p-3">
               {blocked ? (
                 // Bloqueado: o passo a passo para liberar, à vista.
-                <div className="flex flex-col gap-3 text-sm">
+                <div className="flex flex-col gap-3 text-base">
                   <p className="flex items-start gap-2 font-semibold text-warning">
                     <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                     O navegador bloqueou o microfone neste site.
                   </p>
-                  <ol className="flex list-decimal flex-col gap-1 pl-10 text-ink-muted">
+                  <ol className="flex list-decimal flex-col gap-1.5 pl-10 text-ink">
                     <li>
                       Clique no <strong className="text-ink">cadeado 🔒</strong> ao lado do endereço
                       do site, lá em cima.
@@ -372,7 +374,7 @@ export function PreJoin({
                     </li>
                     <li>Volte aqui: a barra de voz aparece sozinha.</li>
                   </ol>
-                  <p className="pl-6 text-xs text-ink-subtle">
+                  <p className="pl-6 text-sm text-ink-muted">
                     Se preferir, entre assim mesmo: você ouve tudo e liga o microfone depois.
                   </p>
                 </div>
@@ -391,14 +393,14 @@ export function PreJoin({
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-ink-subtle">
+                  <p className="text-sm text-ink-muted">
                     Fale algo: se a barra se mexer, seu microfone está funcionando.
                   </p>
                   {devices.length > 1 ? (
                     <div className="flex items-center gap-2.5">
                       <Label
                         htmlFor={deviceId}
-                        className="shrink-0 text-sm font-normal text-ink-muted"
+                        className="shrink-0 text-base font-normal text-ink-muted"
                       >
                         Usar
                       </Label>
@@ -410,7 +412,7 @@ export function PreJoin({
                           setChosenMic(id ?? null);
                           saveMicrophone(id);
                         }}
-                        className="h-9 min-w-0 flex-1 rounded-full border border-line bg-surface px-3.5 text-sm text-ink"
+                        className="h-11 min-w-0 flex-1 rounded-full border border-line bg-surface px-4 text-base text-ink"
                       >
                         <option value="">Padrão do sistema</option>
                         {devices.map((device, index) => (
@@ -421,19 +423,19 @@ export function PreJoin({
                       </select>
                     </div>
                   ) : null}
-                  <p className="flex items-start gap-2 text-xs text-ink-subtle">
-                    <Headphones className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+                  <p className="flex items-start gap-2 text-sm text-ink-muted">
+                    <Headphones className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                     Dica: com fone de ouvido, ninguém escuta eco.
                   </p>
                 </>
               ) : micError ? (
                 // Outro problema (sem microfone, em uso): o que fazer e tentar de novo.
                 <div className="flex flex-col gap-3">
-                  <p className="text-sm text-warning">{micError}</p>
+                  <p className="text-base text-warning">{micError}</p>
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    size="default"
                     className="self-start"
                     onClick={() => setMicError(undefined)}
                   >
@@ -444,7 +446,7 @@ export function PreJoin({
               ) : (
                 // Ainda não permitido: explicar antes que o navegador pergunte.
                 <div className="flex flex-col gap-3">
-                  <p className="text-sm text-ink-muted">
+                  <p className="text-base text-ink">
                     Para os outros te ouvirem, o navegador vai pedir para usar o microfone. Clique
                     em <strong className="text-ink">Permitir</strong> quando aparecer.
                   </p>
@@ -499,7 +501,7 @@ export function PreJoin({
       ) : null}
 
       {formError && !formError.field ? (
-        <p className="-mt-2 w-full text-center text-sm text-danger" role="alert">
+        <p className="-mt-2 w-full text-center text-base text-danger" role="alert">
           {formError.message}
         </p>
       ) : null}
@@ -510,10 +512,10 @@ export function PreJoin({
           {submitting ? "Entrando…" : joinsMuted ? "Entrar só ouvindo" : "Entrar na sala"}
           {submitting ? null : <ArrowRight aria-hidden="true" />}
         </Button>
-        <ShareSupportNote variant="badge" />
+        <ShareSupportNote variant="badge" className="text-sm" />
         <Link
           href="/"
-          className="rounded-md text-sm text-ink-subtle transition-colors hover:text-ink"
+          className="rounded-md py-1 text-base text-ink-muted transition-colors hover:text-ink"
         >
           Voltar ao início
         </Link>

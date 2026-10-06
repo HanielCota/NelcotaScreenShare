@@ -58,7 +58,7 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
   if (editing) {
     return (
       <div className="flex flex-col gap-2 px-4 py-3">
-        <label htmlFor={inputId} className="text-xs text-ink-subtle">
+        <label htmlFor={inputId} className="text-sm text-ink-muted">
           Seu nome na sala
         </label>
         <div className="flex items-center gap-2">
@@ -84,16 +84,16 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
                 setEditing(false);
               }
             }}
-            className="h-10 min-w-0 flex-1 rounded-full border border-line bg-surface-2 px-4 text-base text-ink outline-none focus:border-brand/60"
+            className="h-11 min-w-0 flex-1 rounded-full border border-line bg-surface-2 px-4 text-lg text-ink outline-none focus:border-brand/60"
           />
-          <Button type="button" size="sm" disabled={saving} onClick={() => void save()}>
+          <Button type="button" size="default" disabled={saving} onClick={() => void save()}>
             {saving ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
             Salvar
           </Button>
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            size="default"
             onClick={() => {
               setDraft(name);
               setError(undefined);
@@ -104,7 +104,7 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
           </Button>
         </div>
         {error ? (
-          <p id={errorId} role="alert" className="text-sm text-danger">
+          <p id={errorId} role="alert" className="text-base text-danger">
             {error}
           </p>
         ) : null}
@@ -121,19 +121,20 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
         {initialsOf(name) || "?"}
       </span>
       <p className="min-w-0 flex-1">
-        <span className="block text-xs text-ink-subtle">Você vai entrar como</span>
-        <strong className="block truncate font-semibold">{name}</strong>
+        <span className="block text-sm text-ink-muted">Você vai entrar como</span>
+        <strong className="block truncate text-lg font-semibold">{name}</strong>
       </p>
       <Button
         type="button"
         variant="ghost"
-        size="sm"
+        size="default"
         onClick={() => {
           setDraft(name);
           setEditing(true);
         }}
       >
-        Mudar nome
+        {/* No celular só "Mudar": com "nome", o texto ao lado quebrava a linha. */}
+        Mudar<span className="max-sm:sr-only"> nome</span>
       </Button>
     </div>
   );

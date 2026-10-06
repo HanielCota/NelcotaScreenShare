@@ -243,6 +243,13 @@
     opacity 180ms ease;
 }
 
+/* Botão padrão: alvo de toque confortável e texto de 16 px (leitura fácil). */
+.apple-buttons [data-slot="button"][data-size="default"] {
+  height: 2.5rem;
+  padding-inline: 1rem;
+  font-size: 1rem;
+}
+
 .apple-buttons [data-slot="button"][data-size="lg"] {
   height: 3rem;
   padding-inline: 1.5rem;

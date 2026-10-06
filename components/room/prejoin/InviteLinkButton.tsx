@@ -31,7 +31,7 @@ export function InviteLinkButton({ code }: { code: string }) {
 
   if (state === "manual") {
     return (
-      <p className="max-w-full text-center text-sm text-ink-muted">
+      <p className="max-w-full text-center text-base text-ink-muted">
         Copie e mande para o time:{" "}
         <span className="font-mono font-semibold break-all text-ink select-all">
           {`${window.location.origin}${roomPath(code)}`}
@@ -47,7 +47,7 @@ export function InviteLinkButton({ code }: { code: string }) {
       onClick={() => void copy()}
       aria-live="polite"
       className={cn(
-        "inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-[transform,background-color,color,border-color] active:scale-95",
+        "inline-flex h-11 items-center gap-2 rounded-full border px-5 text-base font-semibold transition-[transform,background-color,color,border-color] active:scale-95",
         copied
           ? "border-success/40 bg-success/10 text-success"
           : "border-line bg-surface-2 text-ink hover:bg-surface-3",
