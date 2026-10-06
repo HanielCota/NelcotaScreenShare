@@ -10,6 +10,12 @@ export const pageParsers = {
   ordem: parseAsStringLiteral(["asc", "desc"] as const).withDefault("desc"),
 };
 
+/** Período "de/até" em dias de São Paulo (AAAA-MM-DD), comum às tabelas do painel. */
+export const periodParsers = {
+  de: parseAsString,
+  ate: parseAsString,
+};
+
 /** Mudar filtro ou ordenação volta para a primeira página. */
 export const resetPage = { cursor: null, dir: null } as const;
 

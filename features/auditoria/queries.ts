@@ -1,7 +1,6 @@
 import "server-only";
-import { and, desc, eq, gte, lt, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, or, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
-import { endOfDayInSaoPaulo, startOfDayInSaoPaulo } from "@/lib/format";
 import type { DbExecutor } from "@/server/db";
 import { adminUsers, auditLogs, users } from "@/server/db/schema";
 import {
@@ -13,6 +12,8 @@ import {
   timestampKey,
   type KeysetQuery,
 } from "@/server/table/keyset";
+import { iterateAll } from "@/server/table/iterate";
+import { periodFilters } from "@/server/table/period-filter";
 import type { AuditParams } from "./search-params";
 
 export interface AuditRow {
@@ -44,10 +45,7 @@ function filtersFrom(params: AuditParams): SQL[] {
   if (resource.success) filters.push(eq(auditLogs.resourceType, resource.data));
   const actor = z.uuid().safeParse(params.autor);
   if (actor.success) filters.push(eq(auditLogs.actorAdminId, actor.data));
-  const from = params.de ? startOfDayInSaoPaulo(params.de) : undefined;
-  if (from) filters.push(gte(auditLogs.createdAt, from));
-  const until = params.ate ? endOfDayInSaoPaulo(params.ate) : undefined;
-  if (until) filters.push(lt(auditLogs.createdAt, until));
+  filters.push(...periodFilters(auditLogs.createdAt, params));
   const q = params.q.trim().slice(0, 100);
   if (q) {
     const search = or(eq(auditLogs.requestId, q), eq(auditLogs.resourceId, q));
@@ -166,16 +164,10 @@ export async function listAuditLogs(
 }
 
 /** Todas as linhas do filtro, em lotes keyset (exportação CSV em stream). */
-export async function* iterateAuditLogs(db: DbExecutor, params: AuditParams, batch = 1000) {
-  let cursor: string | null = null;
-  for (;;) {
-    const page = await listAuditLogs(db, { ...params, cursor, dir: "next" }, batch, {
-      count: false,
-    });
-    yield* page.items;
-    if (!page.nextCursor) return;
-    cursor = page.nextCursor;
-  }
+export function iterateAuditLogs(db: DbExecutor, params: AuditParams, batch = 1000) {
+  return iterateAll((cursor) =>
+    listAuditLogs(db, { ...params, cursor, dir: "next" }, batch, { count: false }),
+  );
 }
 
 /** Opções dos filtros: ações e tipos de recurso que existem e os admins. */

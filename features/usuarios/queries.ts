@@ -1,6 +1,5 @@
 import "server-only";
-import { and, desc, eq, gt, gte, isNotNull, isNull, lt, sql, type SQL } from "drizzle-orm";
-import { endOfDayInSaoPaulo, startOfDayInSaoPaulo } from "@/lib/format";
+import { and, desc, eq, gt, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
 import type { DbExecutor } from "@/server/db";
 import {
   auditLogs,
@@ -19,6 +18,8 @@ import {
   sortableColumn,
   type KeysetQuery,
 } from "@/server/table/keyset";
+import { iterateAll } from "@/server/table/iterate";
+import { periodFilters } from "@/server/table/period-filter";
 import { unaccentLike } from "@/server/table/search";
 import {
   loadParticipantParams,
@@ -66,10 +67,7 @@ function filtersFrom(params: ParticipantParams): SQL[] {
       // Sem filtro de status: excluídos ficam de fora.
       filters.push(isNull(users.deletedAt));
   }
-  const from = params.de ? startOfDayInSaoPaulo(params.de) : undefined;
-  if (from) filters.push(gte(users.createdAt, from));
-  const until = params.ate ? endOfDayInSaoPaulo(params.ate) : undefined;
-  if (until) filters.push(lt(users.createdAt, until));
+  filters.push(...periodFilters(users.createdAt, params));
   const q = params.q.trim().slice(0, 100);
   if (q) filters.push(unaccentLike(sql`${users.name} || ' ' || ${users.email}`, q));
   return filters;
@@ -137,16 +135,10 @@ export async function listParticipants(
 }
 
 /** Todas as linhas do filtro em lotes (CSV). */
-export async function* iterateParticipants(db: DbExecutor, params: ParticipantParams) {
-  let cursor: string | null = null;
-  for (;;) {
-    const page = await listParticipants(db, { ...params, cursor, dir: "next" }, 1000, {
-      count: false,
-    });
-    yield* page.items;
-    if (!page.nextCursor) return;
-    cursor = page.nextCursor;
-  }
+export function iterateParticipants(db: DbExecutor, params: ParticipantParams) {
+  return iterateAll((cursor) =>
+    listParticipants(db, { ...params, cursor, dir: "next" }, 1000, { count: false }),
+  );
 }
 
 /** IDs que batem com o filtro (ações em massa "todos os resultados"). */

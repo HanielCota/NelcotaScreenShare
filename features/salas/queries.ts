@@ -1,6 +1,5 @@
 import "server-only";
-import { and, desc, eq, gte, isNotNull, isNull, lt, sql, type SQL } from "drizzle-orm";
-import { endOfDayInSaoPaulo, startOfDayInSaoPaulo } from "@/lib/format";
+import { and, desc, eq, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
 import type { DbExecutor } from "@/server/db";
 import {
   adminUsers,
@@ -19,6 +18,8 @@ import {
   sortableColumn,
   type KeysetQuery,
 } from "@/server/table/keyset";
+import { iterateAll } from "@/server/table/iterate";
+import { periodFilters } from "@/server/table/period-filter";
 import { likeEscape } from "@/server/table/search";
 import { loadRoomParams, type RoomParams } from "./search-params";
 
@@ -42,10 +43,7 @@ function filtersFrom(params: RoomParams): SQL[] {
     if (params.status === "ativa") filters.push(eq(rooms.status, "active"));
     if (params.status === "encerrada") filters.push(eq(rooms.status, "finished"));
   }
-  const from = params.de ? startOfDayInSaoPaulo(params.de) : undefined;
-  if (from) filters.push(gte(rooms.startedAt, from));
-  const until = params.ate ? endOfDayInSaoPaulo(params.ate) : undefined;
-  if (until) filters.push(lt(rooms.startedAt, until));
+  filters.push(...periodFilters(rooms.startedAt, params));
   const q = params.q.trim().toLowerCase().slice(0, 40);
   if (q) filters.push(sql`${rooms.code} like ${`%${likeEscape(q)}%`}`);
   return filters;
@@ -121,14 +119,10 @@ export async function listRooms(
   };
 }
 
-export async function* iterateRooms(db: DbExecutor, params: RoomParams) {
-  let cursor: string | null = null;
-  for (;;) {
-    const page = await listRooms(db, { ...params, cursor, dir: "next" }, 1000, { count: false });
-    yield* page.items;
-    if (!page.nextCursor) return;
-    cursor = page.nextCursor;
-  }
+export function iterateRooms(db: DbExecutor, params: RoomParams) {
+  return iterateAll((cursor) =>
+    listRooms(db, { ...params, cursor, dir: "next" }, 1000, { count: false }),
+  );
 }
 
 export async function roomIdsForFilter(db: DbExecutor, search: URLSearchParams, limit: number) {

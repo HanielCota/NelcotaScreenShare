@@ -27,9 +27,14 @@ test("toda exportação do painel confere sessão e permissão", () => {
   const root = fileURLToPath(new URL("../../", import.meta.url));
   const routes = globSync("app/api/admin/exportar/**/route.ts", { cwd: root });
   assert.ok(routes.length >= 4, `encontrou ${routes.length} exportações`);
+  // A fábrica comum autoriza e registra a exportação antes de transmitir.
+  const factory = readFileSync(`${root}features/admin/csv-export-route.ts`, "utf8");
+  assert.match(factory, /await requireAdminApi\(spec\.permission\)/);
+  assert.match(factory, /await recordAudit\(/);
   for (const route of routes) {
     const source = readFileSync(`${root}${route}`, "utf8");
-    assert.match(source, /await requireAdminApi\(\{/, `${route} precisa chamar requireAdminApi`);
-    assert.match(source, /recordAudit\(/, `${route} precisa registrar a exportação`);
+    const viaFactory = /csvExportRoute\(\{\s*permission: \{/.test(source);
+    const direct = /await requireAdminApi\(\{/.test(source) && /recordAudit\(/.test(source);
+    assert.ok(viaFactory || direct, `${route} precisa conferir permissão e registrar a exportação`);
   }
 });
