@@ -56,6 +56,19 @@ Abra duas abas (ou uma janela anônima), entre na mesma sala e compartilhe a tel
 
 > Em produção o container roda `node server.js`: é o servidor mínimo gerado pelo próprio Next no modo `standalone` (não é um servidor customizado). Localmente, `pnpm start` usa `next start`.
 
+## Atalhos na sala
+
+| Tecla | Ação |
+|---|---|
+| `M` | Liga e desliga o microfone |
+| `S` | Abre o menu de compartilhar (ou para de compartilhar) |
+| `F` | Tela cheia no palco |
+| `P` | Apontar na tela de outra pessoa (todos veem o ponto) |
+| `H` | Levantar ou baixar a mão |
+| `C` | Abre e fecha o chat |
+
+Os atalhos não disparam enquanto você digita no chat ou em outro campo.
+
 ## Variáveis de ambiente
 
 | Variável                  | Obrigatória | Descrição                                                                    |
@@ -179,6 +192,14 @@ O TURN/UDP (3478) já vem ativo. O TURN/TLS na 5349 atravessa firewalls que só 
 3. Em `docker-compose.livekit.yml`, descomente o volume dos certificados.
 4. Libere `5349/tcp` e faça o redeploy.
 
+### 6. Webhook (opcional, registro de entradas e saídas)
+
+O app recebe os eventos do LiveKit em `POST /api/livekit/webhook` e grava uma linha JSON nos logs para cada sala aberta ou encerrada e cada pessoa que entra ou sai (`"source":"livekit-webhook"`). A assinatura do evento é conferida com `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET`; sem ela, a rota responde 401.
+
+1. Em `deploy/livekit/livekit.yaml`, descomente o bloco `webhook`.
+2. Troque `api_key` pelo valor de `LIVEKIT_API_KEY` e a URL pelo domínio do app.
+3. Faça o redeploy do LiveKit. Os eventos aparecem nos logs do recurso App no Coolify.
+
 ## Testando em produção
 
 ### Duas redes diferentes
@@ -215,13 +236,15 @@ app/
   page.tsx                # Home
   sala/[codigo]/page.tsx  # valida o código e renderiza a sessão
   api/token/route.ts      # JWT do LiveKit (Zod, senha, limite, rate limit)
+  api/livekit/webhook/route.ts  # log de entradas e saídas (assinado pelo LiveKit)
   api/health/route.ts     # healthcheck
 components/
   home/{HomeScene,JoinForm}.tsx
-  room/{RoomSession,PreJoin,RoomView,ScreenStage,ParticipantTile,ControlDock,DockButton,ShareMenu,StatusScreen}.tsx
+  room/{RoomSession,PreJoin,RoomView,ScreenStage,ParticipantTile,ControlDock,DockButton,ShareMenu,MicMenu,Reactions,Chat,StatusScreen}.tsx
   ui/                     # shadcn
 hooks/useRoomAnimations.ts  # entrada do dock, stagger dos tiles e Flip do layout
-lib/{gsap,livekit,env,rate-limit,copy-room-link,utils}.ts
+hooks/useShortcut.ts        # atalhos de uma tecla (M, S, F, P, H, C)
+lib/{gsap,livekit,env,rate-limit,csp,room-data,copy-room-link,utils}.ts
 instrumentation.ts        # valida o env no boot
 deploy/livekit/livekit.yaml
 docker-compose.livekit.yml

@@ -42,6 +42,14 @@ room:
   empty_timeout: 300
   departure_timeout: 20
 
+# Webhook (opcional): o LiveKit avisa o app quando alguém entra ou sai, e o app
+# grava uma linha JSON por evento nos logs. `api_key` é o mesmo valor de
+# LIVEKIT_API_KEY (só o nome da chave, não o segredo). Veja "Webhook" no README.
+# webhook:
+#   api_key: troque-pela-LIVEKIT_API_KEY
+#   urls:
+#     - https://app.seudominio.com/api/livekit/webhook
+
 logging:
   level: info
   pion_level: error
