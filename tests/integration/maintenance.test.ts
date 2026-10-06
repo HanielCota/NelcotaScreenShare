@@ -1,0 +1,110 @@
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import { afterAll, describe, expect, it } from "vitest";
+import * as schema from "@/server/db/schema";
+import { runMaintenance } from "@/server/maintenance";
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool, { schema });
+afterAll(() => pool.end());
+
+const DAY = 24 * 60 * 60 * 1000;
+const ago = (days: number) => new Date(Date.now() - days * DAY);
+
+async function participation(code: string, joinedDaysAgo: number) {
+  const [room] = await db.insert(schema.rooms).values({ code }).returning();
+  const [row] = await db
+    .insert(schema.roomParticipations)
+    .values({
+      roomId: room!.id,
+      livekitIdentity: "pessoa",
+      livekitSid: `PA_${crypto.randomUUID()}`,
+      displayName: "Nome",
+      ip: "203.0.113.5",
+      joinedAt: ago(joinedDaysAgo),
+      leftAt: ago(joinedDaysAgo),
+    })
+    .returning();
+  return row!.id;
+}
+
+describe("manutenção", () => {
+  it("aplica a retenção e preserva o que está dentro do prazo", async () => {
+    const [oldToken] = await db
+      .insert(schema.tokenRequests)
+      .values({ roomCode: "velha", result: "granted", createdAt: ago(200) })
+      .returning();
+    const [newToken] = await db
+      .insert(schema.tokenRequests)
+      .values({ roomCode: "nova", result: "granted" })
+      .returning();
+    const yearOld = await participation("sala-ano-velho", 400);
+    const halfYearOld = await participation("sala-meio-ano", 190);
+    const recent = await participation("sala-recente", 1);
+    await db.insert(schema.livekitEvents).values([
+      {
+        id: "EV_velho",
+        event: "room_started",
+        payload: {},
+        occurredAt: ago(40),
+        receivedAt: ago(40),
+        processedAt: ago(40),
+      },
+      {
+        id: "EV_novo",
+        event: "room_started",
+        payload: {},
+        occurredAt: ago(1),
+        processedAt: ago(1),
+      },
+    ]);
+
+    const report = await runMaintenance(db);
+
+    expect(report.tokenRequests).toBeGreaterThanOrEqual(1);
+    const tokens = await db.select({ id: schema.tokenRequests.id }).from(schema.tokenRequests);
+    expect(tokens.map((row) => row.id)).toContain(newToken!.id);
+    expect(tokens.map((row) => row.id)).not.toContain(oldToken!.id);
+
+    const byId = async (id: string) =>
+      (
+        await db
+          .select()
+          .from(schema.roomParticipations)
+          .where(eq(schema.roomParticipations.id, id))
+      )[0];
+    expect(await byId(yearOld)).toMatchObject({ ip: null, displayName: null });
+    expect(await byId(halfYearOld)).toMatchObject({ ip: null, displayName: "Nome" });
+    expect(await byId(recent)).toMatchObject({ ip: "203.0.113.5", displayName: "Nome" });
+
+    const events = await db.select({ id: schema.livekitEvents.id }).from(schema.livekitEvents);
+    expect(events.map((row) => row.id)).toEqual(["EV_novo"]);
+  });
+
+  it("reprocessa só eventos pendentes que não acabaram de chegar", async () => {
+    await db.insert(schema.livekitEvents).values([
+      {
+        id: "EV_pendente_antigo",
+        event: "room_started",
+        roomName: "sala-pendente",
+        payload: { event: "room_started", room: { name: "sala-pendente" } },
+        occurredAt: ago(1),
+        receivedAt: ago(1),
+      },
+      {
+        id: "EV_chegando",
+        event: "room_started",
+        roomName: "sala-chegando",
+        payload: { event: "room_started", room: { name: "sala-chegando" } },
+        occurredAt: new Date(),
+      },
+    ]);
+
+    await runMaintenance(db);
+
+    const rows = await db.select().from(schema.livekitEvents);
+    const state = Object.fromEntries(rows.map((row) => [row.id, row.processedAt !== null]));
+    expect(state).toMatchObject({ EV_pendente_antigo: true, EV_chegando: false });
+  });
+});

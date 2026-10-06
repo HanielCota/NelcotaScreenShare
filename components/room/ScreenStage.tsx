@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useShortcut } from "@/hooks/useShortcut";
 import {
   contentBox,
+  createReceiveThrottle,
   decodeMessage,
   encodeMessage,
   pointerSchema,
@@ -63,7 +64,10 @@ function usePointers() {
     setTimeout(() => setPings((list) => list.filter((ping) => ping.id !== id)), PING_MS);
   }
 
+  const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));
+
   const { send } = useDataChannel(TOPICS.pointer, (message) => {
+    if (!acceptFrom(message.from?.identity ?? "")) return;
     const received = decodeMessage(message.payload, pointerSchema);
     if (received) add(received, displayName(message.from));
   });

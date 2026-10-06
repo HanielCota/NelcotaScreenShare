@@ -363,12 +363,24 @@ export async function ingestEvent(
   return processStoredEvent(db, id, payload);
 }
 
-/** Reprocessa eventos pendentes (falhas), do mais antigo ao mais novo. */
-export async function reprocessPendingEvents(db: Database, limit = 500) {
+/**
+ * Reprocessa eventos pendentes (falhas), do mais antigo ao mais novo.
+ * `receivedBefore` deixa de fora os que acabaram de chegar e ainda estão
+ * sendo projetados pelo próprio webhook.
+ */
+export async function reprocessPendingEvents(
+  db: Database,
+  { limit = 500, receivedBefore }: { limit?: number; receivedBefore?: Date } = {},
+) {
   const pending = await db
     .select({ id: livekitEvents.id, payload: livekitEvents.payload })
     .from(livekitEvents)
-    .where(isNull(livekitEvents.processedAt))
+    .where(
+      and(
+        isNull(livekitEvents.processedAt),
+        receivedBefore ? lte(livekitEvents.receivedAt, receivedBefore) : undefined,
+      ),
+    )
     .orderBy(asc(livekitEvents.occurredAt))
     .limit(limit);
   const results: Record<IngestResult, number> = {

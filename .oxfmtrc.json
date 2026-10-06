@@ -12,7 +12,7 @@
     "pnpm-lock.yaml",
     ".next/**",
     "drizzle/meta/**",
-    "public/**/*.provenance.json",
+    "design/**/*.provenance.json",
     "coverage/**",
     "dist/**"
   ]
