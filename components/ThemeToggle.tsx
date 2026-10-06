@@ -1,16 +1,11 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useSyncExternalStore } from "react";
-import { prefersReducedMotion } from "@/lib/gsap";
-import { applyTheme, currentTheme, subscribeTheme, type Theme } from "@/lib/theme";
+import { useTheme } from "@/lib/hooks/use-theme";
+import { prefersReducedMotion } from "@/lib/motion";
+import { applyTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { navItemClass } from "./NavBar";
-
-/** Tema atual. No servidor é `undefined`: o script do <head> decide antes de pintar. */
-export function useTheme(): Theme | undefined {
-  return useSyncExternalStore(subscribeTheme, currentTheme, () => undefined);
-}
+import { navItemClass } from "./nav-item-class";
 
 /** Sol e lua: troca entre tema escuro e claro e lembra a escolha. */
 export function ThemeToggle({ className }: { className?: string }) {

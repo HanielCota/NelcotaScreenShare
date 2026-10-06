@@ -1,5 +1,5 @@
 import { readdirSync } from "node:fs";
-import { defineConfig } from "oxlint";
+import { defineConfig, type OxlintOverride } from "oxlint";
 
 /** Uma regra de UI por feature: dentro dela os imports são livres. */
 const FEATURES = readdirSync("features", { withFileTypes: true })
@@ -101,7 +101,7 @@ export default defineConfig({
     },
     // UI e hooks das features: dados por props/RSC, mutações por actions; da UI de
     // outra feature, só o que é público (mascote e aviso de compartilhamento).
-    ...FEATURES.map((feature) => ({
+    ...FEATURES.map((feature): OxlintOverride => ({
       files: [
         `features/${feature}/ui/**`,
         `features/${feature}/hooks/**`,
@@ -207,19 +207,6 @@ export default defineConfig({
     {
       // Vendor (shadcn) e testes ficam fora dos limites de tamanho.
       files: ["components/ui/**", "tests/**"],
-      rules: { "eslint/max-lines": "off", "eslint/complexity": "off" },
-    },
-    {
-      // CATRACA: arquivos que ainda estouram os limites. A lista só diminui:
-      // cada fase da refatoração tira daqui o que quebrou em partes menores.
-      files: [
-        "app/admin/(painel)/salas/[[]id]/page.tsx",
-        "app/admin/(painel)/usuarios/[[]id]/page.tsx",
-        "features/auth/ui/SignUpForm.tsx",
-        "components/data-table/DataTable.tsx",
-        "features/mascot/engine/avatar-frames.ts",
-        "features/admin/participants/ui/ParticipantActions.tsx",
-      ],
       rules: { "eslint/max-lines": "off", "eslint/complexity": "off" },
     },
     {

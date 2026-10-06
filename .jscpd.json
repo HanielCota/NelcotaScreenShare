@@ -2,7 +2,7 @@
   "minTokens": 50,
   "threshold": 2.5,
   "format": ["typescript", "tsx", "css"],
-  "path": ["app", "components", "features", "hooks", "lib", "server", "scripts"],
+  "path": ["app", "components", "features", "lib", "server", "scripts"],
   "ignore": ["**/components/ui/**", "**/node_modules/**"],
   "reporters": ["console"],
   "silent": false

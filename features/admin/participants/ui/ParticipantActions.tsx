@@ -17,6 +17,7 @@ import {
   unblockParticipantsAction,
 } from "@/features/admin/participants/actions";
 import type { ParticipantStatus } from "@/features/admin/participants/search-params";
+import { availableActions } from "@/features/admin/participants/available-actions";
 
 type Dialog = "block" | "delete" | "anonymize" | null;
 
@@ -88,27 +89,26 @@ export function ParticipantActions({
     ...fail("Não foi possível anonimizar."),
   });
 
-  const deleted = status === "excluido";
+  const show = availableActions({ status, verified, anonymized, sessions, can });
   return (
     <div className="flex flex-wrap gap-2">
-      {can.update && !deleted ? (
-        status === "bloqueado" ? (
-          <Button
-            variant="outline"
-            disabled={unblock.isPending}
-            onClick={() => unblock.execute({ selection })}
-          >
-            <LockOpen aria-hidden="true" />
-            Desbloquear
-          </Button>
-        ) : (
-          <Button variant="outline" onClick={() => setDialog("block")}>
-            <Ban aria-hidden="true" />
-            Bloquear
-          </Button>
-        )
+      {show.unblock ? (
+        <Button
+          variant="outline"
+          disabled={unblock.isPending}
+          onClick={() => unblock.execute({ selection })}
+        >
+          <LockOpen aria-hidden="true" />
+          Desbloquear
+        </Button>
       ) : null}
-      {can.update && sessions > 0 ? (
+      {show.block ? (
+        <Button variant="outline" onClick={() => setDialog("block")}>
+          <Ban aria-hidden="true" />
+          Bloquear
+        </Button>
+      ) : null}
+      {show.revokeSessions ? (
         <Button
           variant="outline"
           disabled={revoke.isPending}
@@ -118,7 +118,7 @@ export function ParticipantActions({
           Encerrar sessões
         </Button>
       ) : null}
-      {can.update && !verified && !deleted ? (
+      {show.resendVerification ? (
         <Button
           variant="outline"
           disabled={resend.isPending}
@@ -128,7 +128,7 @@ export function ParticipantActions({
           Reenviar verificação
         </Button>
       ) : null}
-      {can.delete && deleted && !anonymized ? (
+      {show.restore ? (
         <Button
           variant="outline"
           disabled={restore.isPending}
@@ -138,13 +138,13 @@ export function ParticipantActions({
           Restaurar
         </Button>
       ) : null}
-      {can.delete && !deleted ? (
+      {show.delete ? (
         <Button variant="destructive" onClick={() => setDialog("delete")}>
           <Trash2 aria-hidden="true" />
           Excluir
         </Button>
       ) : null}
-      {can.anonymize && !anonymized ? (
+      {show.anonymize ? (
         <Button variant="destructive" onClick={() => setDialog("anonymize")}>
           <ShieldX aria-hidden="true" />
           Anonimizar (LGPD)

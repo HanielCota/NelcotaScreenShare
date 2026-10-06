@@ -74,7 +74,24 @@ test("painel: convite, login com 2FA obrigatório, filtro de salas e exportaçã
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.csv$/);
 
+  // Detalhe da sala (Server Components): resumo, pessoas e compartilhamentos.
+  await page.getByRole("link", { name: roomCode }).click();
+  await expect(page.getByRole("heading", { name: roomCode })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Resumo" })).toBeVisible();
+  await expect(page.getByText("Ninguém entrou nesta sala.")).toBeVisible();
+  await expect(page.getByText("Ninguém compartilhou a tela.")).toBeVisible();
+
   const audit = await sql("select count(*)::int as n from audit_logs where action = 'room.export'");
   expect(audit.rows[0]).toEqual({ n: 1 });
+
+  // Detalhe de participante: conta, sessões, participações e histórico.
+  await sql(`insert into users (name, email, email_verified) values ('Pessoa Painel', $1, true)`, [
+    `pessoa.${Date.now()}@exemplo.dev`,
+  ]);
+  await page.goto("/admin/usuarios");
+  await page.getByRole("link", { name: "Pessoa Painel" }).click();
+  await expect(page.getByRole("heading", { name: "Pessoa Painel" })).toBeVisible();
+  await expect(page.getByText("Ainda não entrou em nenhuma sala.")).toBeVisible();
+  await expect(page.getByText("Nenhuma ação do painel nesta conta.")).toBeVisible();
   await context.close();
 });
