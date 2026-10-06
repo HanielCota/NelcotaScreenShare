@@ -2,15 +2,20 @@
 
 import { useLocalParticipant } from "@livekit/components-react";
 import { MediaDeviceFailure, ScreenSharePresets } from "livekit-client";
-import { Link2, Mic, MicOff, PhoneOff } from "lucide-react";
+import { Link2, MessageSquare, Mic, MicOff, PhoneOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useShortcut } from "@/hooks/useShortcut";
 import { copyRoomLink } from "@/lib/copy-room-link";
+import type { ChatState } from "./Chat";
 import { DockButton } from "./DockButton";
+import { MicMenu } from "./MicMenu";
+import { ReactionsMenu } from "./Reactions";
 import { ShareMenu, type ShareChoice } from "./ShareMenu";
 
 interface ControlDockProps {
   code: string;
+  chat: ChatState;
   onLeave: () => void;
 }
 
@@ -18,7 +23,7 @@ function canShareScreen(): boolean {
   return "getDisplayMedia" in (navigator.mediaDevices ?? {});
 }
 
-export function ControlDock({ code, onLeave }: ControlDockProps) {
+export function ControlDock({ code, chat, onLeave }: ControlDockProps) {
   const { localParticipant, isMicrophoneEnabled, isScreenShareEnabled } = useLocalParticipant();
   const [busy, setBusy] = useState<"mic" | "screen" | null>(null);
   const shareSupported = canShareScreen();
@@ -38,7 +43,13 @@ export function ControlDock({ code, onLeave }: ControlDockProps) {
     }
   }
 
+  useShortcut("m", () => void toggleMic(), busy !== "mic");
+
   async function startScreenShare({ surface, audio }: ShareChoice) {
+    // Texto (tela, janela): 15fps sobra banda para cada quadro sair nítido.
+    // Aba costuma ser vídeo ou slides animados: 30fps.
+    const preset =
+      surface === "browser" ? ScreenSharePresets.h1080fps30 : ScreenSharePresets.h1080fps15;
     setBusy("screen");
     try {
       await localParticipant.setScreenShareEnabled(
@@ -53,9 +64,9 @@ export function ControlDock({ code, onLeave }: ControlDockProps) {
           selfBrowserSurface: "exclude",
           surfaceSwitching: "include",
           contentHint: surface === "browser" ? "motion" : "detail",
-          resolution: ScreenSharePresets.h1080fps30.resolution,
+          resolution: preset.resolution,
         },
-        { screenShareEncoding: ScreenSharePresets.h1080fps30.encoding },
+        { screenShareEncoding: preset.encoding },
       );
     } catch (error) {
       if (error instanceof DOMException && error.name === "NotAllowedError") {
@@ -100,6 +111,7 @@ export function ControlDock({ code, onLeave }: ControlDockProps) {
           label={isMicrophoneEnabled ? "Desligar microfone" : "Ligar microfone"}
           tone={isMicrophoneEnabled ? "default" : "muted"}
           pressed={!isMicrophoneEnabled}
+          shortcut="M"
           disabled={busy === "mic"}
           onClick={() => void toggleMic()}
         >
@@ -109,6 +121,7 @@ export function ControlDock({ code, onLeave }: ControlDockProps) {
             <MicOff className="size-5" aria-hidden="true" />
           )}
         </DockButton>
+        <MicMenu />
 
         <ShareMenu
           isSharing={isScreenShareEnabled}
@@ -118,7 +131,37 @@ export function ControlDock({ code, onLeave }: ControlDockProps) {
           onStop={() => void stopScreenShare()}
         />
 
-        <DockButton label="Copiar link da sala" onClick={() => void copyRoomLink(code)}>
+        <ReactionsMenu />
+
+        <DockButton
+          label={
+            chat.unread > 0
+              ? `Chat (${chat.unread} ${chat.unread === 1 ? "nova" : "novas"})`
+              : "Chat"
+          }
+          tone={chat.open ? "active" : "default"}
+          pressed={chat.open}
+          shortcut="C"
+          onClick={() => chat.setOpen(!chat.open)}
+          className="relative"
+        >
+          <MessageSquare className="size-5" aria-hidden="true" />
+          {chat.unread > 0 ? (
+            <span
+              aria-hidden="true"
+              className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1 text-[0.7rem] font-bold text-brand-ink"
+            >
+              {chat.unread > 9 ? "9+" : chat.unread}
+            </span>
+          ) : null}
+        </DockButton>
+
+        {/* No celular o link fica só no topo da sala: o dock não cabe com tudo. */}
+        <DockButton
+          label="Copiar link da sala"
+          onClick={() => void copyRoomLink(code)}
+          className="max-sm:hidden"
+        >
           <Link2 className="size-5" aria-hidden="true" />
         </DockButton>
 

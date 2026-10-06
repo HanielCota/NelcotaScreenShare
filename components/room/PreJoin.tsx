@@ -3,7 +3,7 @@
 import { createAudioAnalyser, createLocalAudioTrack, MediaDeviceFailure } from "livekit-client";
 import { ArrowRight, Loader2, Lock, Mic, MicOff } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Mascot } from "@/components/Mascot";
 import { upsetMascot } from "@/components/mascot/events";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import { displayNameSchema, requestToken } from "@/lib/livekit";
+import { saveMicrophone, savedMicrophone } from "@/lib/room-data";
 import { cn, formText } from "@/lib/utils";
 
 export interface JoinChoices {
@@ -34,6 +35,11 @@ interface PreJoinProps {
 const NAME_KEY = "nelcota:nome";
 
 /** Nome usado da última vez neste navegador (conveniência; pode não existir). */
+/** O microfone salvo só muda por esta tela, que já guarda a escolha no estado. */
+function subscribeNothing(): () => void {
+  return () => {};
+}
+
 function savedName(): string {
   try {
     return localStorage.getItem(NAME_KEY) ?? "";
@@ -77,7 +83,11 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
   const [micEnabled, setMicEnabled] = useState(true);
   const [micError, setMicError] = useState<string>();
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [audioDeviceId, setAudioDeviceId] = useState<string>();
+  // Escolha feita nesta tela; antes disso vale o microfone da última vez.
+  // `null` é "Padrão do sistema" escolhido de propósito.
+  const [chosenMic, setChosenMic] = useState<string | null>();
+  const savedMic = useSyncExternalStore(subscribeNothing, savedMicrophone, () => undefined);
+  const audioDeviceId = chosenMic === undefined ? savedMic : (chosenMic ?? undefined);
   const [formError, setFormError] = useState<{ message: string; field?: "name" | "password" }>();
   const [submitting, setSubmitting] = useState(false);
 
@@ -132,7 +142,12 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
         const list = await navigator.mediaDevices.enumerateDevices();
         // Cancelado durante o await: a limpeza já rodou, então não inicia o medidor.
         if (cancelled) return;
-        setDevices(list.filter((d) => d.kind === "audioinput" && d.deviceId));
+        const inputs = list.filter((d) => d.kind === "audioinput" && d.deviceId);
+        setDevices(inputs);
+        // Microfone salvo que sumiu (desconectado): volta para o padrão do sistema.
+        if (audioDeviceId && !inputs.some((d) => d.deviceId === audioDeviceId)) {
+          setChosenMic(null);
+        }
 
         const tick = () => {
           const volume = Math.min(1, analyser.calculateVolume() * 2.5);
@@ -355,7 +370,11 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
             <select
               id={deviceId}
               value={audioDeviceId ?? ""}
-              onChange={(event) => setAudioDeviceId(event.target.value || undefined)}
+              onChange={(event) => {
+                const id = event.target.value || undefined;
+                setChosenMic(id ?? null);
+                saveMicrophone(id);
+              }}
               className="h-9 rounded-lg border border-line bg-surface-2 px-2.5 text-sm text-ink"
             >
               <option value="">Padrão do sistema</option>

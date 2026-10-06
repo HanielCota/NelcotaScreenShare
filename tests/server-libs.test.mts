@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+// oxlint-disable-next-line import/no-unassigned-import -- Só registra os hooks de resolução de módulos.
 import "./support/register.mts";
 
 const { createRateLimiter, getClientIp } = await import("../lib/rate-limit");

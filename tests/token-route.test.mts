@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import test from "node:test";
+// oxlint-disable-next-line import/no-unassigned-import -- Só registra os hooks de resolução de módulos.
 import "./support/register.mts";
 
 /**
@@ -89,6 +90,7 @@ await test("gera token com permissões só de microfone e tela", async () => {
   assert.equal(video.roomJoin, true);
   assert.deepEqual(video.canPublishSources, ["microphone", "screen_share", "screen_share_audio"]);
   assert.equal(video.canPublishData, true);
+  assert.equal(video.canUpdateOwnMetadata, true);
 });
 
 await test("sala que ainda não existe conta como vazia", async () => {

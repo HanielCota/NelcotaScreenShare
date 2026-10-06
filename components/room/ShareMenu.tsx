@@ -6,6 +6,7 @@ import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useShortcut } from "@/hooks/useShortcut";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";
@@ -72,29 +73,29 @@ export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: Share
       ? "Parar de compartilhar"
       : "Compartilhar tela";
 
+  function handleOpenChange(next: boolean) {
+    if (next && !supported) {
+      toast.info("Este navegador não compartilha tela. Use Chrome, Edge ou Firefox no computador.");
+      return;
+    }
+    // Compartilhando: o botão para na hora, sem abrir o menu.
+    if (next && isSharing) {
+      onStop();
+      return;
+    }
+    setOpen(next);
+  }
+
+  useShortcut("s", () => handleOpenChange(!open), !busy);
+
   return (
-    <Popover.Root
-      open={open}
-      onOpenChange={(next) => {
-        if (next && !supported) {
-          toast.info(
-            "Este navegador não compartilha tela. Use Chrome, Edge ou Firefox no computador.",
-          );
-          return;
-        }
-        // Compartilhando: o botão para na hora, sem abrir o menu.
-        if (next && isSharing) {
-          onStop();
-          return;
-        }
-        setOpen(next);
-      }}
-    >
+    <Popover.Root open={open} onOpenChange={handleOpenChange}>
       <Popover.Trigger asChild>
         <DockButton
           label={label}
           tone={isSharing ? "active" : "default"}
           pressed={isSharing}
+          shortcut="S"
           aria-disabled={!supported || undefined}
           disabled={busy}
         >

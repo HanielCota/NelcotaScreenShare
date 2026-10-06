@@ -35,9 +35,11 @@ import { Button } from "@/components/ui/button";
 import { useRoomAnimations } from "@/hooks/useRoomAnimations";
 import { copyRoomLink } from "@/lib/copy-room-link";
 import { cn } from "@/lib/utils";
+import { ChatPanel, useChatState } from "./Chat";
 import { ControlDock } from "./ControlDock";
 import { ParticipantTile } from "./ParticipantTile";
 import type { JoinChoices } from "./PreJoin";
+import { ReactionsProvider } from "./Reactions";
 import { ScreenStage } from "./ScreenStage";
 import { StatusScreen } from "./StatusScreen";
 
@@ -203,7 +205,9 @@ export function RoomView({ code, choices, maxParticipants, onLeave, onRetry }: R
 
   return (
     <RoomContext.Provider value={room}>
-      <RoomLayout code={code} maxParticipants={maxParticipants} onLeave={leave} />
+      <ReactionsProvider>
+        <RoomLayout code={code} maxParticipants={maxParticipants} onLeave={leave} />
+      </ReactionsProvider>
       <RoomAudioRenderer />
     </RoomContext.Provider>
   );
@@ -227,10 +231,14 @@ function RoomLayout({
     (ref) => ref.publication.track !== undefined,
   );
   const [focusedSid, setFocusedSid] = useState<string>();
+  const chat = useChatState();
 
-  // Palco: a tela escolhida, senão a mais recente.
+  // Palco: a tela escolhida, senão a mais recente dos outros. A sua só entra
+  // quando é a única (e o palco mostra uma prévia pequena, sem efeito espelho).
   const focused =
-    screenShares.find((ref) => ref.publication.trackSid === focusedSid) ?? screenShares.at(-1);
+    screenShares.find((ref) => ref.publication.trackSid === focusedSid) ??
+    screenShares.findLast((ref) => !ref.participant.isLocal) ??
+    screenShares.at(-1);
   const hasStage = focused !== undefined;
   const sharingIds = new Set(screenShares.map((ref) => ref.participant.identity));
 
@@ -305,6 +313,8 @@ function RoomLayout({
         className={cn(
           "relative z-10 flex min-h-0 flex-1 gap-4 px-4 pt-4 pb-28 sm:px-6",
           hasStage ? "flex-col lg:flex-row" : "flex-col items-center justify-center",
+          // Chat aberto em tela larga: o conteúdo abre espaço em vez de ficar por baixo.
+          chat.open && "lg:pr-[24.5rem]",
         )}
       >
         {focused ? (
@@ -347,7 +357,8 @@ function RoomLayout({
         ) : null}
       </main>
 
-      <ControlDock code={code} onLeave={onLeave} />
+      {chat.open ? <ChatPanel chat={chat} /> : null}
+      <ControlDock code={code} chat={chat} onLeave={onLeave} />
     </div>
   );
 }

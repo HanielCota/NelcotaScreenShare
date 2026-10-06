@@ -18,6 +18,8 @@ interface DockButtonProps extends Omit<ComponentProps<"button">, "aria-label"> {
   label: string;
   tone?: DockTone;
   pressed?: boolean;
+  /** Tecla de atalho, mostrada no tooltip (ex.: "M"). */
+  shortcut?: string;
 }
 
 /**
@@ -30,6 +32,7 @@ export function DockButton({
   label,
   tone = "default",
   pressed,
+  shortcut,
   className,
   children,
   onPointerEnter,
@@ -53,6 +56,7 @@ export function DockButton({
           data-anim="dock-item"
           aria-label={label}
           aria-pressed={pressed}
+          aria-keyshortcuts={shortcut}
           {...props}
           onPointerEnter={(e) => {
             onPointerEnter?.(e);
@@ -81,6 +85,14 @@ export function DockButton({
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={10}>
         {label}
+        {shortcut ? (
+          <kbd
+            data-slot="kbd"
+            className="bg-background/15 px-1.5 py-0.5 font-sans text-[0.7rem] font-semibold"
+          >
+            {shortcut}
+          </kbd>
+        ) : null}
       </TooltipContent>
     </Tooltip>
   );
