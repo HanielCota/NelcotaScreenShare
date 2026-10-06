@@ -28,8 +28,5 @@ export async function verifyPassword({
   }
 }
 
-/** Limites de senha (admins e participantes). */
-export const PASSWORD_LIMITS = {
-  admin: { min: 12, max: 128 },
-  user: { min: 10, max: 128 },
-} as const;
+/** Limites de senha: fonte única em lib/password-rules (também usada no navegador). */
+export { PASSWORD_LIMITS } from "@/lib/password-rules";

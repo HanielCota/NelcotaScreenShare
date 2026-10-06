@@ -1,16 +1,28 @@
 import type { ReactNode } from "react";
-import { NavBrand } from "@/components/NavBar";
+import { BrandPanel } from "@/components/account/BrandPanel";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { getEnv } from "@/server/env";
 
-/** Telas de acesso da conta de participante (fora da navbar da home). */
+/**
+ * Telas de acesso da conta de participante: mascote à esquerda (faixa no
+ * topo, no celular) e formulário à direita, sem cartão
+ * (`data-layout="split"` muda o AuthCard).
+ */
 export default function AccessLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 py-12">
-      <div className="flex w-full max-w-sm items-center justify-between">
-        <NavBrand href="/" />
-        <ThemeToggle />
-      </div>
-      {children}
-    </main>
+    <div className="grid min-h-dvh grid-rows-[auto_1fr] lg:grid-cols-2 lg:grid-rows-1">
+      <BrandPanel maxParticipants={getEnv().MAX_PARTICIPANTS} />
+      <main className="flex flex-col px-4 py-6 sm:px-8 lg:py-10">
+        <div className="flex justify-end">
+          <ThemeToggle />
+        </div>
+        <div
+          data-layout="split"
+          className="group/access flex flex-1 flex-col items-center pt-2 pb-8 lg:justify-center lg:py-8"
+        >
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }

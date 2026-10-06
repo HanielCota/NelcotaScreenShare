@@ -3,48 +3,75 @@
 import { Loader2, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
+import { AccessTabs, RoomContextNote } from "@/components/account/AccessTop";
+import { EmailField, forgetTypedEmail } from "@/components/account/EmailField";
 import { AuthCard, FormError } from "@/components/auth/AuthCard";
 import { PasswordInput } from "@/components/auth/PasswordInput";
+import { celebrateMascot, nodMascot, upsetMascot } from "@/components/mascot/events";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { AccessContext } from "@/lib/access-context";
 import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { formText } from "@/lib/utils";
 
+/** Erros que a pessoa causou (credenciais) deixam o mascote bravo; o resto, preocupado. */
+const OWN_FAULT = new Set(["INVALID_EMAIL_OR_PASSWORD", "FAILED_TO_CREATE_SESSION"]);
+
 export function SignInForm({
   returnTo,
+  context,
   notice,
 }: {
   returnTo: string;
+  context: AccessContext;
   notice?: string | undefined;
 }) {
   const router = useRouter();
   const emailId = useId();
   const passwordId = useId();
   const errorId = useId();
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
-  const back = encodeURIComponent(returnTo);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
     const data = new FormData(event.currentTarget);
+    const email = formText(data, "email").trim();
+    const password = formText(data, "password");
+    if (!email || !password) {
+      setError("Preencha e-mail e senha.");
+      upsetMascot("grumpy", (email ? passwordRef.current : null) ?? undefined);
+      return;
+    }
     setPending(true);
     setError(undefined);
     const { data: result, error: failure } = await authClient.signIn.email({
-      email: formText(data, "email"),
-      password: formText(data, "password"),
+      email,
+      password,
       callbackURL: returnTo,
     });
     if (failure) {
       setPending(false);
       setError(authErrorMessage(failure));
+      if (failure.code && OWN_FAULT.has(failure.code)) {
+        upsetMascot("grumpy", passwordRef.current ?? undefined);
+        passwordRef.current?.select();
+      } else {
+        upsetMascot("worried");
+      }
       return;
     }
-    if (result && "twoFactorRedirect" in result && result.twoFactorRedirect) return;
+    forgetTypedEmail();
+    // Com 2FA, o Better Auth leva para /entrar/2fa (onTwoFactorRedirect do cliente).
+    if (result && "twoFactorRedirect" in result && result.twoFactorRedirect) {
+      nodMascot();
+      return;
+    }
+    celebrateMascot();
     router.replace(returnTo);
     router.refresh();
   }
@@ -52,23 +79,17 @@ export function SignInForm({
   return (
     <AuthCard
       icon={LogIn}
-      title="Entrar"
-      description="Entre para criar salas e compartilhar a tela."
-      footer={
-        <span className="flex flex-col gap-2">
-          <span>
-            Ainda não tem conta?{" "}
-            <Link
-              href={`/cadastro?voltar=${back}`}
-              className="font-semibold text-brand-soft hover:underline"
-            >
-              Criar conta
-            </Link>
-          </span>
-          <Link href="/recuperar-senha" className="font-semibold text-brand-soft hover:underline">
-            Esqueci minha senha
-          </Link>
-        </span>
+      title="Entre na sua conta"
+      description={
+        context.kind === "room"
+          ? "Depois de entrar, você volta direto para a sala."
+          : "Para criar salas e compartilhar a tela."
+      }
+      top={
+        <>
+          <AccessTabs current="entrar" returnTo={returnTo} />
+          <RoomContextNote context={context} />
+        </>
       }
     >
       <form
@@ -81,22 +102,24 @@ export function SignInForm({
             {notice}
           </output>
         ) : null}
+        <EmailField
+          id={emailId}
+          autoComplete="username"
+          invalid={error !== undefined}
+          describedBy={error ? errorId : undefined}
+        />
         <div className="flex flex-col gap-2">
-          <Label htmlFor={emailId}>E-mail</Label>
-          <Input
-            id={emailId}
-            name="email"
-            type="email"
-            autoComplete="username"
-            required
-            className="h-11"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? errorId : undefined}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={passwordId}>Senha</Label>
+          <div className="flex items-baseline justify-between gap-2">
+            <Label htmlFor={passwordId}>Senha</Label>
+            <Link
+              href="/recuperar-senha"
+              className="text-sm font-semibold text-brand-soft hover:underline"
+            >
+              Esqueci a senha
+            </Link>
+          </div>
           <PasswordInput
+            ref={passwordRef}
             id={passwordId}
             name="password"
             autoComplete="current-password"

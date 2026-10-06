@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SignInForm } from "@/components/account/SignInForm";
+import { accessContext } from "@/lib/access-context";
 import { getUserSession, safeReturnPath } from "@/server/auth/user-session";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -18,6 +19,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/entrar">)
   return (
     <SignInForm
       returnTo={returnTo}
+      context={accessContext(returnTo)}
       notice={typeof aviso === "string" ? NOTICES[aviso] : undefined}
     />
   );
