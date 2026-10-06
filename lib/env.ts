@@ -4,30 +4,62 @@ import { z } from "zod";
 const emptyToUndefined = (value: unknown) =>
   typeof value === "string" && value.trim() === "" ? undefined : value;
 
-const envSchema = z.object({
-  LIVEKIT_API_KEY: z.string({ error: "LIVEKIT_API_KEY é obrigatória" }).min(1),
-  LIVEKIT_API_SECRET: z
-    .string({ error: "LIVEKIT_API_SECRET é obrigatória" })
-    .min(32, "LIVEKIT_API_SECRET precisa ter ao menos 32 caracteres"),
-  NEXT_PUBLIC_LIVEKIT_URL: z.url({
-    protocol: /^wss?$/,
-    error: "NEXT_PUBLIC_LIVEKIT_URL precisa ser uma URL ws:// ou wss://",
-  }),
-  ACCESS_PASSWORD: z.preprocess(
-    emptyToUndefined,
-    z.string().min(8, "ACCESS_PASSWORD precisa ter ao menos 8 caracteres").optional(),
-  ),
-  MAX_PARTICIPANTS: z.preprocess(
-    emptyToUndefined,
-    z.coerce.number().int().min(2).max(8).default(6),
-  ),
-  // Quantos proxies confiáveis acrescentam IPs ao X-Forwarded-For (Traefik = 1;
-  // Cloudflare na frente do Traefik = 2). Define qual IP o rate limit usa.
-  TRUSTED_PROXY_HOPS: z.preprocess(
-    emptyToUndefined,
-    z.coerce.number().int().min(1).max(5).default(1),
-  ),
-});
+const envSchema = z
+  .object({
+    LIVEKIT_API_KEY: z.string({ error: "LIVEKIT_API_KEY é obrigatória" }).min(1),
+    LIVEKIT_API_SECRET: z
+      .string({ error: "LIVEKIT_API_SECRET é obrigatória" })
+      .min(32, "LIVEKIT_API_SECRET precisa ter ao menos 32 caracteres"),
+    NEXT_PUBLIC_LIVEKIT_URL: z.url({
+      protocol: /^wss?$/,
+      error: "NEXT_PUBLIC_LIVEKIT_URL precisa ser uma URL ws:// ou wss://",
+    }),
+    ACCESS_PASSWORD: z.preprocess(
+      emptyToUndefined,
+      z.string().min(8, "ACCESS_PASSWORD precisa ter ao menos 8 caracteres").optional(),
+    ),
+    MAX_PARTICIPANTS: z.preprocess(
+      emptyToUndefined,
+      z.coerce.number().int().min(2).max(8).default(6),
+    ),
+    // Quantos proxies confiáveis acrescentam IPs ao X-Forwarded-For (Traefik = 1;
+    // Cloudflare na frente do Traefik = 2). Define qual IP o rate limit usa.
+    TRUSTED_PROXY_HOPS: z.preprocess(
+      emptyToUndefined,
+      z.coerce.number().int().min(1).max(5).default(1),
+    ),
+    // Postgres (configurações do admin e o que vier depois). Sem ele, o app roda
+    // com os valores padrão e o admin não consegue salvar.
+    DATABASE_URL: z.preprocess(
+      emptyToUndefined,
+      z
+        .url({
+          protocol: /^postgres(ql)?$/,
+          error: "DATABASE_URL precisa ser uma URL postgres:// ou postgresql://",
+        })
+        .optional(),
+    ),
+    // Painel /admin: só liga com as duas definidas.
+    ADMIN_PASSWORD: z.preprocess(
+      emptyToUndefined,
+      z.string().min(12, "ADMIN_PASSWORD precisa ter ao menos 12 caracteres").optional(),
+    ),
+    // Assina o cookie de sessão do admin. Separado da senha: vazar o cookie não
+    // permite descobrir a senha por força bruta.
+    ADMIN_SESSION_SECRET: z.preprocess(
+      emptyToUndefined,
+      z.string().min(32, "ADMIN_SESSION_SECRET precisa ter ao menos 32 caracteres").optional(),
+    ),
+  })
+  .superRefine((env, ctx) => {
+    if (Boolean(env.ADMIN_PASSWORD) !== Boolean(env.ADMIN_SESSION_SECRET)) {
+      ctx.addIssue({
+        code: "custom",
+        path: [env.ADMIN_PASSWORD ? "ADMIN_SESSION_SECRET" : "ADMIN_PASSWORD"],
+        message: "Para ligar o /admin, defina ADMIN_PASSWORD e ADMIN_SESSION_SECRET juntas",
+      });
+    }
+  });
 
 type Env = z.infer<typeof envSchema>;
 

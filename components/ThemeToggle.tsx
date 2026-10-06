@@ -1,0 +1,49 @@
+"use client";
+
+import { Moon, Sun } from "lucide-react";
+import { useSyncExternalStore } from "react";
+import { prefersReducedMotion } from "@/lib/gsap";
+import { applyTheme, currentTheme, subscribeTheme, type Theme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
+import { navItemClass } from "./NavBar";
+
+/** Tema atual. No servidor é `undefined`: o script do <head> decide antes de pintar. */
+export function useTheme(): Theme | undefined {
+  return useSyncExternalStore(subscribeTheme, currentTheme, () => undefined);
+}
+
+/** Sol e lua: troca entre tema escuro e claro e lembra a escolha. */
+export function ThemeToggle({ className }: { className?: string }) {
+  const theme = useTheme();
+  const next: Theme = theme === "light" ? "dark" : "light";
+  const label = theme === "light" ? "Ativar modo escuro" : "Ativar modo claro";
+
+  function toggle() {
+    // Transição suave de todas as cores de uma vez, onde o navegador suporta.
+    if (document.startViewTransition && !prefersReducedMotion()) {
+      document.startViewTransition(() => applyTheme(next));
+    } else {
+      applyTheme(next);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={label}
+      title={label}
+      className={cn(navItemClass, "relative w-9 justify-center px-0", className)}
+    >
+      {/* Os dois ícones ficam no DOM; o tema (data-theme) decide qual aparece. */}
+      <Sun
+        aria-hidden="true"
+        className="absolute size-4 scale-0 rotate-90 opacity-0 transition-all duration-300 ease-out-expo in-data-[theme=light]:scale-100 in-data-[theme=light]:rotate-0 in-data-[theme=light]:opacity-100 motion-reduce:transition-none"
+      />
+      <Moon
+        aria-hidden="true"
+        className="absolute size-4 scale-100 rotate-0 opacity-100 transition-all duration-300 ease-out-expo in-data-[theme=light]:scale-0 in-data-[theme=light]:-rotate-90 in-data-[theme=light]:opacity-0 motion-reduce:transition-none"
+      />
+    </button>
+  );
+}

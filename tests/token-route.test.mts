@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import type { AddressInfo } from "node:net";
 import test from "node:test";
+import { z } from "zod";
 // oxlint-disable-next-line import/no-unassigned-import -- Só registra os hooks de resolução de módulos.
 import "./support/register.mts";
 
@@ -11,12 +11,15 @@ import "./support/register.mts";
  */
 const PASSWORD = "senha-de-teste-123";
 const SECRET = "segredo-de-teste-0123456789abcdef0123456789";
+const jsonObjectSchema = z.record(z.string(), z.unknown());
+const errorResponseSchema = z.object({ error: z.string() });
+const tokenResponseSchema = z.object({ token: z.string(), serverUrl: z.string() });
 
 const fakeLiveKit = createServer((request, response) => {
   let body = "";
   request.on("data", (chunk: Buffer) => (body += chunk.toString()));
   request.on("end", () => {
-    const { room } = JSON.parse(body || "{}") as { room?: string };
+    const { room } = jsonObjectSchema.parse(JSON.parse(body || "{}"));
     response.setHeader("Content-Type", "application/json");
     if (room === "sala-nova") {
       response.statusCode = 404;
@@ -32,7 +35,9 @@ const fakeLiveKit = createServer((request, response) => {
   });
 });
 await new Promise<void>((resolve) => fakeLiveKit.listen(0, "127.0.0.1", resolve));
-const { port } = fakeLiveKit.address() as AddressInfo;
+const address = fakeLiveKit.address();
+assert.ok(address && typeof address !== "string", "LiveKit falso deve escutar em uma porta TCP");
+const { port } = address;
 
 Object.assign(process.env, {
   LIVEKIT_API_KEY: "chave-teste",
@@ -63,12 +68,12 @@ function post(body: unknown, ip: string) {
 }
 
 async function errorCode(response: Response): Promise<string> {
-  return ((await response.json()) as { error: string }).error;
+  return errorResponseSchema.parse(await response.json()).error;
 }
 
 function jwtPayload(token: string): Record<string, unknown> {
   const [, payload = ""] = token.split(".");
-  return JSON.parse(Buffer.from(payload, "base64url").toString()) as Record<string, unknown>;
+  return jsonObjectSchema.parse(JSON.parse(Buffer.from(payload, "base64url").toString()));
 }
 
 await test("gera token com permissões só de microfone e tela", async () => {
@@ -79,13 +84,13 @@ await test("gera token com permissões só de microfone e tela", async () => {
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store");
 
-  const { token, serverUrl } = (await response.json()) as { token: string; serverUrl: string };
+  const { token, serverUrl } = tokenResponseSchema.parse(await response.json());
   assert.equal(serverUrl, `ws://127.0.0.1:${port}`);
 
   const claims = jwtPayload(token);
   assert.equal(claims.name, "Ana Maria");
   assert.match(String(claims.sub), /^ana-maria-[0-9a-f]{8}$/);
-  const video = claims.video as Record<string, unknown>;
+  const video = jsonObjectSchema.parse(claims.video);
   assert.equal(video.room, "sala-teste");
   assert.equal(video.roomJoin, true);
   assert.deepEqual(video.canPublishSources, ["microphone", "screen_share", "screen_share_audio"]);

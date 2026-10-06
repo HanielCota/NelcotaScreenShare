@@ -1,3 +1,7 @@
+.root {
+  filter: saturate(var(--mascot-saturation, 1));
+}
+
 .body {
   transform-origin: 50% 85%;
 }

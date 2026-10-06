@@ -21,6 +21,7 @@ import {
 import {
   AlertTriangle,
   Copy,
+  Keyboard,
   Link2,
   Loader2,
   RotateCcw,
@@ -31,6 +32,8 @@ import {
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Mascot } from "@/components/Mascot";
+import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { useRoomAnimations } from "@/hooks/useRoomAnimations";
 import { copyRoomLink } from "@/lib/copy-room-link";
@@ -254,40 +257,61 @@ function RoomLayout({
 
   return (
     <div ref={scope} className="relative flex h-dvh flex-col overflow-hidden bg-canvas">
-      <header
-        data-anim="topbar"
-        className="relative z-20 flex items-center justify-between gap-3 px-4 pt-4 sm:px-6"
-      >
-        <button
-          type="button"
-          onClick={() => void copyRoomLink(code)}
-          aria-label={`Sala ${code}. Copiar link`}
-          className="glass group flex min-w-0 items-center gap-3 rounded-2xl px-4 py-2.5 transition-colors hover:bg-surface-2/80"
-        >
-          <span
-            className={cn(
-              "size-2 shrink-0 rounded-full",
-              reconnecting || connecting ? "bg-warning" : "bg-success",
-            )}
-            aria-hidden="true"
-          />
-          <span className="truncate text-sm font-semibold tracking-tight">
-            <span className="text-ink-subtle">Sala </span>
-            {code}
+      <header data-anim="topbar" className="relative z-20 px-4 pt-4 sm:px-6">
+        <NavBar aria-label="Sala" className="mx-auto max-w-5xl">
+          {/* No celular o espaço fica para o código da sala. */}
+          <NavBrand showName={false} className="max-sm:hidden" />
+          <NavDivider className="max-sm:hidden" />
+          <button
+            type="button"
+            onClick={() => void copyRoomLink(code)}
+            aria-label={`Sala ${code}. Copiar link`}
+            className="group flex h-9 min-w-0 items-center gap-2.5 rounded-xl px-3 transition-colors hover:bg-surface-3"
+          >
+            <span className="truncate text-sm font-semibold tracking-tight">
+              <span className="text-ink-subtle">Sala </span>
+              {code}
+            </span>
+            <Copy
+              className="size-3.5 shrink-0 text-ink-subtle transition-colors group-hover:text-ink"
+              aria-hidden="true"
+            />
+          </button>
+          <NavDivider className="max-sm:hidden" />
+          <span className="flex shrink-0 items-center gap-2 px-2 text-sm font-semibold text-ink-muted max-sm:px-1">
+            <span
+              className={cn(
+                "size-2 rounded-full",
+                reconnecting || connecting ? "bg-warning" : "bg-success",
+              )}
+              aria-hidden="true"
+            />
+            <span className="max-sm:sr-only">
+              {reconnecting ? "Reconectando" : connecting ? "Conectando" : "Conectado"}
+            </span>
           </span>
-          <Copy
-            className="size-3.5 shrink-0 text-ink-subtle transition-colors group-hover:text-ink"
-            aria-hidden="true"
-          />
-        </button>
-        <div
-          className="glass flex items-center gap-2 rounded-2xl px-3.5 py-2.5 text-sm font-semibold"
-          aria-label={`${participants.length} de ${maxParticipants} participantes`}
-        >
-          <Users className="size-4 text-brand-soft" aria-hidden="true" />
-          {participants.length}
-          <span className="text-ink-subtle">/ {maxParticipants}</span>
-        </div>
+
+          <NavDivider className="ml-auto max-sm:hidden" />
+          <NavPopover
+            trigger={<Keyboard className="size-4" aria-hidden="true" />}
+            label="Atalhos"
+            iconOnly
+            align="end"
+            className="px-2.5 max-sm:hidden"
+          >
+            <ShortcutsPanel />
+          </NavPopover>
+          <ThemeToggle className="max-sm:ml-auto" />
+          <NavDivider />
+          <span
+            className="flex shrink-0 items-center gap-2 px-2.5 text-sm font-semibold"
+            aria-label={`${participants.length} de ${maxParticipants} participantes`}
+          >
+            <Users className="size-4 text-brand-soft" aria-hidden="true" />
+            {participants.length}
+            <span className="text-ink-subtle">/ {maxParticipants}</span>
+          </span>
+        </NavBar>
       </header>
 
       {/* Avisos empilhados: reconexão e áudio bloqueado podem aparecer juntos. */}

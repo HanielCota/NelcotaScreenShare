@@ -1,10 +1,22 @@
 "use client";
 
+import { Keyboard, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useTransition } from "react";
 import { Mascot } from "@/components/Mascot";
+import { celebrateMascot } from "@/components/mascot/events";
+import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
+import { generateRoomCode, roomPath } from "@/lib/livekit";
 import { JoinForm } from "./JoinForm";
+
+const STEPS = [
+  "Crie uma sala e copie o link.",
+  "Mande para o time: cada pessoa entra pelo navegador, sem instalar nada.",
+  "Clique em compartilhar e escolha a tela inteira, uma janela ou uma aba.",
+];
 
 export function HomeScene({ invalidCode }: { invalidCode: boolean }) {
   const scope = useRef<HTMLElement>(null);
@@ -31,11 +43,60 @@ export function HomeScene({ invalidCode }: { invalidCode: boolean }) {
     startTransition(() => router.push(href));
   }
 
+  function createRoom() {
+    if (pending) return;
+    celebrateMascot();
+    navigate(roomPath(generateRoomCode()));
+  }
+
   return (
     <main
       ref={scope}
-      className="flex min-h-dvh flex-col items-center justify-center px-4 py-16 sm:px-8"
+      className="flex min-h-dvh flex-col items-center justify-center px-4 pt-28 pb-16 sm:px-8"
     >
+      <header data-anim="nav" className="fixed inset-x-0 top-0 z-30 px-4 pt-4 sm:px-6">
+        <NavBar aria-label="Principal" className="mx-auto max-w-5xl">
+          <NavBrand href="/" />
+          <NavDivider />
+          <NavPopover trigger="Como funciona" label="Como funciona">
+            <p className="text-sm font-semibold tracking-tight">Como funciona</p>
+            <ol className="mt-3 flex flex-col gap-2.5">
+              {STEPS.map((step, index) => (
+                <li key={step} className="flex gap-3 text-sm text-ink-muted">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-brand-ink">
+                    {index + 1}
+                  </span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </NavPopover>
+          <NavPopover
+            trigger={
+              <>
+                <Keyboard className="size-4" aria-hidden="true" />
+                Atalhos
+              </>
+            }
+            label="Atalhos"
+            className="max-sm:hidden"
+          >
+            <ShortcutsPanel />
+          </NavPopover>
+          {/* No celular o "Criar sala" do formulário já fica logo abaixo. */}
+          <ThemeToggle className="ml-auto" />
+          <NavDivider className="max-sm:hidden" />
+          <Button
+            disabled={pending}
+            onClick={createRoom}
+            className="h-9 rounded-xl px-3.5 max-sm:hidden"
+          >
+            <Plus aria-hidden="true" />
+            Criar sala
+          </Button>
+        </NavBar>
+      </header>
+
       <div className="flex w-full max-w-md flex-col items-center text-center">
         <div data-anim="mascot" className="mb-6">
           <Mascot className="size-44 sm:size-52" />
