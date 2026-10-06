@@ -29,6 +29,13 @@
       "when": 1791293672747,
       "tag": "0003_audit_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791296298479,
+      "tag": "0004_business",
+      "breakpoints": true
     }
   ]
 }

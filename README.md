@@ -47,6 +47,7 @@ cp .env.example .env.local
 # 4. App
 pnpm install
 pnpm db:migrate     # migrações com o usuário de migração
+pnpm db:seed        # opcional: participantes (senha senha-dev-1234), salas e auditoria de exemplo
 pnpm dev            # http://localhost:3000
 ```
 
@@ -54,23 +55,24 @@ Abra duas abas (ou uma janela anônima), entre na mesma sala e compartilhe a tel
 
 ### Scripts
 
-| Script                                     | O que faz                                                           |
-| ------------------------------------------ | ------------------------------------------------------------------- |
-| `pnpm dev` / `pnpm build` / `pnpm start`   | Desenvolvimento, build de produção e servidor de produção local     |
-| `pnpm typecheck`                           | `tsc --noEmit` (TypeScript 7 nativo)                                |
-| `pnpm lint` / `pnpm lint:fix`              | Oxlint completo com informação de tipos e correções seguras         |
-| `pnpm lint:fast` / `pnpm lint:fast:fix`    | Regras sintáticas do Oxlint, sem o motor de tipos                   |
-| `pnpm lint:config`                         | Mostra a configuração efetivamente carregada pelo Oxlint            |
-| `pnpm format`                              | Oxfmt (`.oxfmtrc.json`)                                             |
-| `pnpm format:check`                        | Confere a formatação do projeto sem alterar arquivos                |
-| `pnpm test`                                | Vitest: unitários + integração (esta só com `TEST_DATABASE_URL`)    |
-| `pnpm test:unit` / `pnpm test:integration` | Só um dos projetos do Vitest                                        |
-| `pnpm test:watch` / `pnpm test:coverage`   | Modo observação / cobertura (`coverage/`)                           |
-| `pnpm db:bootstrap:dev`                    | Sobe o Postgres local (`docker-compose.dev.yml`) com os papéis      |
-| `pnpm db:generate`                         | Gera a migração SQL em `drizzle/` a partir de `server/db/schema.ts` |
-| `pnpm db:migrate`                          | Aplica as migrações com `MIGRATOR_DATABASE_URL`                     |
-| `pnpm db:studio`                           | Abre o Drizzle Studio                                               |
-| `pnpm build:migrate`                       | Empacota o migrador em `dist/migrate.mjs` (usado na imagem Docker)  |
+| Script                                     | O que faz                                                                               |
+| ------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `pnpm dev` / `pnpm build` / `pnpm start`   | Desenvolvimento, build de produção e servidor de produção local                         |
+| `pnpm typecheck`                           | `tsc --noEmit` (TypeScript 7 nativo)                                                    |
+| `pnpm lint` / `pnpm lint:fix`              | Oxlint completo com informação de tipos e correções seguras                             |
+| `pnpm lint:fast` / `pnpm lint:fast:fix`    | Regras sintáticas do Oxlint, sem o motor de tipos                                       |
+| `pnpm lint:config`                         | Mostra a configuração efetivamente carregada pelo Oxlint                                |
+| `pnpm format`                              | Oxfmt (`.oxfmtrc.json`)                                                                 |
+| `pnpm format:check`                        | Confere a formatação do projeto sem alterar arquivos                                    |
+| `pnpm test`                                | Vitest: unitários + integração (esta só com `TEST_DATABASE_URL`)                        |
+| `pnpm test:unit` / `pnpm test:integration` | Só um dos projetos do Vitest                                                            |
+| `pnpm test:watch` / `pnpm test:coverage`   | Modo observação / cobertura (`coverage/`)                                               |
+| `pnpm db:bootstrap:dev`                    | Sobe o Postgres local (`docker-compose.dev.yml`) com os papéis                          |
+| `pnpm db:generate`                         | Gera a migração SQL em `drizzle/` a partir de `server/db/schema.ts`                     |
+| `pnpm db:migrate`                          | Aplica as migrações com `MIGRATOR_DATABASE_URL`                                         |
+| `pnpm db:studio`                           | Abre o Drizzle Studio                                                                   |
+| `pnpm db:seed`                             | Dados de exemplo (só banco local). `--perfil=carga --linhas=300000` para teste de carga |
+| `pnpm build:migrate`                       | Empacota o migrador em `dist/migrate.mjs` (usado na imagem Docker)                      |
 
 ### Formatação nas tarefas de IA
 
@@ -339,13 +341,17 @@ O TURN/UDP (3478) já vem ativo. O TURN/TLS na 5349 atravessa firewalls que só 
 3. Em `docker-compose.livekit.yml`, descomente o volume dos certificados.
 4. Libere `5349/tcp` e faça o redeploy.
 
-### 6. Webhook (opcional, registro de entradas e saídas)
+### 6. Webhook (salas e participações no painel)
 
-O app recebe os eventos do LiveKit em `POST /api/livekit/webhook` e grava uma linha JSON nos logs para cada sala aberta ou encerrada e cada pessoa que entra ou sai (`"source":"livekit-webhook"`). A assinatura do evento é conferida com `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET`; sem ela, a rota responde 401.
+O app recebe os eventos do LiveKit em `POST /api/livekit/webhook`. Cada evento é gravado em `livekit_events` (o id do evento impede duplicatas) e projetado em `rooms`, `room_participations` e `share_sessions`, que alimentam o painel admin. A projeção aceita eventos repetidos e fora de ordem. A assinatura é conferida com `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET`: sem ela, a rota responde 401. Com o banco fora do ar, responde 503 e o LiveKit tenta de novo.
 
-1. Em `deploy/livekit/livekit.yaml`, descomente o bloco `webhook`.
-2. Troque `api_key` pelo valor de `LIVEKIT_API_KEY` e a URL pelo domínio do app.
-3. Faça o redeploy do LiveKit. Os eventos aparecem nos logs do recurso App no Coolify.
+1. Em `deploy/livekit/livekit.yaml`, troque `api_key` no bloco `webhook` pelo valor de `LIVEKIT_API_KEY` e a URL pelo domínio do app.
+2. Faça o redeploy do LiveKit.
+3. Confira: entre numa sala e veja `select event, processed_at, error from livekit_events order by received_at desc limit 5;`.
+
+Em desenvolvimento, `deploy/livekit/livekit.dev.yaml` aponta o webhook para `http://host.docker.internal:3000` (veja o topo do arquivo).
+
+Cada pedido ao `/api/token` também fica em `token_requests` (resultado, conta e IP), que liga cada entrada ao IP de origem.
 
 ## Testando em produção
 
@@ -385,7 +391,7 @@ app/
   api/token/route.ts      # JWT do LiveKit (Zod, senha, limite, rate limit)
   api/health/route.ts     # liveness (HEALTHCHECK)
   api/ready/route.ts      # prontidão: banco + versão (smoke test do deploy)
-  api/livekit/webhook/route.ts  # log de entradas e saídas (assinado pelo LiveKit)
+  api/livekit/webhook/route.ts  # eventos do LiveKit → livekit_events → salas/participações
   admin/{page,actions,session}.ts(x)  # painel admin (senha, sessão, saturação do mascote)
   api/health/route.ts     # healthcheck
 components/

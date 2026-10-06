@@ -7,6 +7,7 @@ import { ActionError, userAction } from "@/server/actions/client";
 import { verifyPassword } from "@/server/auth/password";
 import { getDb } from "@/server/db";
 import {
+  roomParticipations,
   userAccounts,
   users,
   userSessions,
@@ -93,6 +94,12 @@ export const deleteMyAccount = userAction
           deletedAt: new Date(),
         })
         .where(eq(users.id, userId));
+      // Nome mostrado nas salas sai do histórico. O IP fica até a retenção de
+      // 6 meses (registro de acesso exigido pelo Marco Civil, art. 15).
+      await tx
+        .update(roomParticipations)
+        .set({ displayName: null })
+        .where(eq(roomParticipations.userId, userId));
       await tx.delete(userAccounts).where(eq(userAccounts.userId, userId));
       await tx.delete(userTwoFactors).where(eq(userTwoFactors.userId, userId));
       await tx.delete(userSessions).where(eq(userSessions.userId, userId));

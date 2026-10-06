@@ -503,6 +503,8 @@ CREATE TABLE rooms (
 );
 -- O mesmo código pode ser reaberto no futuro: só uma sala "viva" (não excluída) por código.
 CREATE UNIQUE INDEX rooms_code_live_key ON rooms (code) WHERE deleted_at IS NULL;
+-- (Implementado) o CHECK do código segue lib/livekit.ts: '^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$'.
+-- Reabrir um código reaproveita a linha: status volta a 'active', started_at guarda a 1ª abertura.
 
 -- Participantes (2ª instância do Better Auth; nomes mapeados com modelName/fields)
 CREATE TABLE users (
@@ -530,6 +532,7 @@ CREATE TABLE room_participations (
   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE RESTRICT,
   user_id uuid REFERENCES users(id) ON DELETE SET NULL,
   livekit_identity text NOT NULL,       -- = users.id no token
+  livekit_sid text NOT NULL UNIQUE,       -- sid da conexão (PA_…): vem em todos os eventos, inclusive de faixa
   display_name text CHECK (length(display_name) <= 32),   -- anonimizável
   ip inet,                                -- registro de acesso (Marco Civil, 6 meses), depois NULL
   joined_at timestamptz NOT NULL,
@@ -537,7 +540,6 @@ CREATE TABLE room_participations (
   leave_reason participant_leave_reason,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (room_id, livekit_identity, joined_at),
   CHECK (left_at IS NULL OR left_at >= joined_at)
 );
 
@@ -573,7 +575,7 @@ CREATE TABLE room_invites (               -- convite com validade/limite (substi
   CHECK (max_uses IS NULL OR uses <= max_uses)
 );
 
-CREATE TYPE token_result AS ENUM ('granted','wrong_password','room_full','rate_limited','blocked','unverified','invalid');
+CREATE TYPE token_result AS ENUM ('granted','wrong_password','room_full','rate_limited','blocked','unverified','unauthenticated','invalid','error');
 CREATE TABLE token_requests (             -- cada pedido ao /api/token (append-only)
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   room_code text NOT NULL,
@@ -589,6 +591,7 @@ CREATE TABLE livekit_events (             -- webhook bruto: idempotência + repr
   event text NOT NULL,
   room_name text,
   payload jsonb NOT NULL,
+  occurred_at timestamptz NOT NULL,       -- horário do evento no LiveKit (ordena o reprocessamento)
   received_at timestamptz NOT NULL DEFAULT now(),
   processed_at timestamptz,
   error text

@@ -13,6 +13,7 @@ import { clientIpFrom } from "@/server/client-ip";
 import { getEnv } from "@/server/env";
 import { requestLogger } from "@/server/request-log";
 import { tokenRequestSchema, type TokenErrorCode, type TokenResponse } from "@/lib/livekit";
+import { recordTokenRequest, type TokenResult } from "@/server/livekit/token-log";
 import { createRateLimiter } from "@/server/rate-limit";
 
 const TOKEN_TTL = "10m";
@@ -80,17 +81,38 @@ function tooManyAttempts(
 export async function POST(request: NextRequest) {
   const env = getEnv();
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();
-  const ip = clientIpFrom(request.headers) ?? "desconhecido";
+  const clientIp = clientIpFrom(request.headers) ?? null;
+  const ip = clientIp ?? "desconhecido";
+  // Excesso por IP não vai para o banco: uma enxurrada não vira enxurrada de escrita.
   const limit = rateLimit.hit(ip);
   if (!limit.ok) return tooManyAttempts(limit.retryAfterSeconds);
+
+  // Corpo lido antes das checagens só para registrar a sala pedida em cada resultado.
+  let body: unknown;
+  let readable = true;
+  try {
+    body = await request.json();
+  } catch {
+    readable = false;
+  }
+  const requestedRoom =
+    body && typeof body === "object" && "room" in body && typeof body.room === "string"
+      ? body.room.trim().toLowerCase()
+      : "";
+  let userId: string | null = null;
+  const log = (result: TokenResult) =>
+    recordTokenRequest({ roomCode: requestedRoom, userId, result, ip: clientIp });
 
   // Só participantes logados, com e-mail confirmado e conta ativa.
   const auth = await getUserAuth().api.getSession({ headers: request.headers });
   if (!auth) {
+    await log("unauthenticated");
     return errorResponse("unauthenticated", "Entre na sua conta para participar da sala.", 401);
   }
   const { user } = auth;
+  userId = user.id;
   if (user.blockedAt || user.deletedAt) {
+    await log("blocked");
     return errorResponse(
       "blocked",
       "Sua conta não pode entrar em salas. Fale com o suporte se achar que é um engano.",
@@ -98,6 +120,7 @@ export async function POST(request: NextRequest) {
     );
   }
   if (!user.emailVerified) {
+    await log("unverified");
     return errorResponse(
       "email_unverified",
       "Confirme seu e-mail para entrar em salas. Enviamos um link quando você criou a conta.",
@@ -105,12 +128,13 @@ export async function POST(request: NextRequest) {
     );
   }
   const userLimit = perUserLimit.hit(user.id);
-  if (!userLimit.ok) return tooManyAttempts(userLimit.retryAfterSeconds);
+  if (!userLimit.ok) {
+    await log("rate_limited");
+    return tooManyAttempts(userLimit.retryAfterSeconds);
+  }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
+  if (!readable) {
+    await log("invalid");
     return errorResponse(
       "invalid_request",
       "Não foi possível ler os dados de entrada. Atualize a página e tente novamente.",
@@ -120,6 +144,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = tokenRequestSchema.safeParse(body);
   if (!parsed.success) {
+    await log("invalid");
     const field = parsed.error.issues[0]?.path[0];
     const message =
       field === "password"
@@ -135,6 +160,7 @@ export async function POST(request: NextRequest) {
   if (env.ACCESS_PASSWORD) {
     const failures = passwordFailures.peek(ip);
     if (!failures.ok) {
+      await log("rate_limited");
       return tooManyAttempts(
         failures.retryAfterSeconds,
         "Muitas tentativas com a senha errada. Aguarde alguns minutos e tente de novo.",
@@ -144,6 +170,7 @@ export async function POST(request: NextRequest) {
       passwordFailures.reset(ip);
     } else {
       passwordFailures.hit(ip);
+      await log("wrong_password");
       return errorResponse(
         "invalid_password",
         "Essa senha não confere. Confira a senha com quem enviou o convite e tente novamente.",
@@ -154,6 +181,7 @@ export async function POST(request: NextRequest) {
 
   try {
     if ((await countParticipants(room)) >= env.MAX_PARTICIPANTS) {
+      await log("room_full");
       return errorResponse(
         "room_full",
         `A sala está cheia (máximo de ${env.MAX_PARTICIPANTS} pessoas). Aguarde alguém sair e tente novamente.`,
@@ -182,6 +210,7 @@ export async function POST(request: NextRequest) {
     // Rede de segurança: o próprio LiveKit recusa entradas acima do limite.
     token.roomConfig = new RoomConfiguration({ maxParticipants: env.MAX_PARTICIPANTS });
 
+    await log("granted");
     const response: TokenResponse = {
       token: await token.toJwt(),
       serverUrl: env.NEXT_PUBLIC_LIVEKIT_URL,
@@ -189,6 +218,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     (await requestLogger({ route: "api/token" })).error({ err: error }, "falha ao gerar token");
+    await log("error");
     return errorResponse(
       "server_error",
       "A sala está indisponível no momento. Aguarde alguns segundos e tente novamente.",

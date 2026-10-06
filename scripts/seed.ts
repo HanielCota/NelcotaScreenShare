@@ -153,15 +153,96 @@ async function seedLoad(total: number) {
   return { audit: Math.max(missing, 0), participants: people };
 }
 
+/**
+ * Salas, participações, compartilhamentos e pedidos de token, gerados no
+ * Postgres. Determinístico (hashtext) e idempotente (códigos e sids fixos).
+ * As 3 primeiras salas ficam ativas, com gente dentro.
+ */
+async function seedRooms(count: number, prefix: string, userPattern: string) {
+  const before = await db!.execute<{ total: number }>(
+    sql`select count(*)::int as total from rooms where code like ${`${prefix}%`}`,
+  );
+  await db!.execute(sql`
+    insert into rooms (code, status, started_at, finished_at, last_activity_at, created_by_user_id)
+    select code, case when g <= 3 then 'active' else 'finished' end::room_status,
+           started, case when g <= 3 then null else started + length end,
+           case when g <= 3 then now() else started + length end,
+           pool.ids[1 + abs(hashtext(code)) % pool.total]
+    from generate_series(1, ${count}) as g
+    cross join (select array_agg(id order by id) as ids, count(*)::int as total
+                from users where email like ${userPattern}) as pool
+    cross join lateral (select ${prefix} || lpad(g::text, 6, '0') as code) as c
+    cross join lateral (select
+      case when g <= 3 then now() - interval '25 minutes'
+           else now() - (abs(hashtext(c.code || 'd')) % 86400) * interval '1 minute' - interval '3 hours' end as started,
+      (20 + abs(hashtext(c.code || 'l')) % 100) * interval '1 minute' as length) as t
+    where pool.total > 0
+    on conflict do nothing
+  `);
+  await db!.execute(sql`
+    insert into room_participations
+      (room_id, user_id, livekit_identity, livekit_sid, display_name, ip, joined_at, left_at, leave_reason)
+    select r.id, u.id, u.id::text, 'PA_' || r.code || '_' || n, u.name,
+           ('10.1.' || n || '.' || abs(hashtext(r.code)) % 250)::inet,
+           r.started_at + n * interval '2 minutes',
+           case when r.status = 'finished' then r.finished_at - n * interval '1 minute' end,
+           case when r.status = 'finished'
+                then (array['left','left','disconnected','room_closed'])[1 + (abs(hashtext(r.code)) + n) % 4]
+           end::participant_leave_reason
+    from rooms r
+    cross join (select array_agg(id order by id) as ids, count(*)::int as total
+                from users where email like ${userPattern}) as pool
+    cross join lateral generate_series(1, 2 + abs(hashtext(r.code)) % 4) as n
+    join users u on u.id = pool.ids[1 + (abs(hashtext(r.code)) + n * 37) % pool.total]
+    where r.code like ${`${prefix}%`}
+    on conflict (livekit_sid) do nothing
+  `);
+  await db!.execute(sql`
+    insert into share_sessions (room_id, participation_id, track_sid, with_audio, started_at, ended_at)
+    select p.room_id, p.id, 'TR_' || p.livekit_sid, abs(hashtext(p.livekit_sid)) % 3 = 0,
+           p.joined_at + interval '1 minute',
+           case when p.left_at is not null then least(p.left_at,
+             p.joined_at + interval '1 minute' + (1 + abs(hashtext(p.livekit_sid)) % 15) * interval '1 minute') end
+    from room_participations p
+    where p.livekit_sid like ${`PA_${prefix}%`} and abs(hashtext(p.livekit_sid)) % 2 = 0
+    on conflict (track_sid) do nothing
+  `);
+  await db!.execute(sql`
+    update rooms r set peak_participants = (select count(*) from room_participations p where p.room_id = r.id)
+    where r.code like ${`${prefix}%`} and r.peak_participants = 0
+  `);
+  // Um pedido aceito por entrada e algumas recusas; só na primeira vez.
+  await db!.execute(sql`
+    insert into token_requests (room_code, room_id, user_id, result, ip, created_at)
+    select r.code, r.id, p.user_id,
+           case when abs(hashtext(p.livekit_sid)) % 10 = 0 then 'wrong_password'
+                when abs(hashtext(p.livekit_sid)) % 25 = 1 then 'room_full'
+                else 'granted' end::token_result,
+           p.ip, p.joined_at - interval '20 seconds'
+    from room_participations p join rooms r on r.id = p.room_id
+    where r.code like ${`${prefix}%`}
+      and not exists (select 1 from token_requests t where t.room_code like ${`${prefix}%`})
+  `);
+  const after = await db!.execute<{ total: number }>(
+    sql`select count(*)::int as total from rooms where code like ${`${prefix}%`}`,
+  );
+  return Number(after.rows[0]?.total ?? 0) - Number(before.rows[0]?.total ?? 0);
+}
+
 const started = Date.now();
 if (profile === "carga") {
   const result = await seedLoad(rows);
+  const loadRooms = await seedRooms(Math.ceil(rows / 15), "carga-", "carga%@exemplo.dev");
+  await db!.execute(sql`analyze rooms; analyze room_participations; analyze share_sessions;`);
+  console.info(`[seed] carga: +${loadRooms} salas com participações e compartilhamentos`);
   console.info(
     `[seed] carga: +${result.audit} auditoria, até ${result.participants} participantes (${Date.now() - started} ms)`,
   );
 } else {
   const participants = await seedParticipants(300);
   const audit = await seedAudit(2_000);
+  const devRooms = await seedRooms(60, "seed-", "participante%@exemplo.dev");
+  console.info(`[seed] dev: +${devRooms} salas com participações e compartilhamentos`);
   console.info(
     `[seed] dev: +${participants} participantes (senha "${SEED_PASSWORD}"), +${audit} registros de auditoria (${Date.now() - started} ms)`,
   );

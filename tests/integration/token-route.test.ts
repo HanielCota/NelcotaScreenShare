@@ -210,3 +210,57 @@ describe("token", () => {
     assert.equal(limited.status, 429);
   });
 });
+
+function requestsOf(roomCode: string) {
+  return db
+    .select()
+    .from(schema.tokenRequests)
+    .where(eq(schema.tokenRequests.roomCode, roomCode))
+    .orderBy(schema.tokenRequests.createdAt);
+}
+
+describe("registro em token_requests", () => {
+  test("cada resultado vira uma linha, com conta e IP", async () => {
+    const ivo = await verifiedParticipant(db, handler);
+    const cookie = ivo.jar.header();
+    const room = `sala-registro-${Date.now().toString(36)}`;
+    await post({ room, password: ACCESS });
+    await post({ room, password: "errada" }, { cookie, ip: "198.51.100.9" });
+    await post({ room: room.toUpperCase(), password: ACCESS }, { cookie, ip: "198.51.100.9" });
+
+    const rows = await requestsOf(room);
+    assert.deepEqual(
+      rows.map((row) => row.result),
+      ["unauthenticated", "wrong_password", "granted"],
+    );
+    assert.equal(rows[0]?.userId, null);
+    assert.equal(rows[2]?.userId, ivo.id);
+    assert.equal(rows[2]?.ip, "198.51.100.9");
+  });
+
+  test("sala cheia, erro do LiveKit e corpo inválido também ficam registrados", async () => {
+    const ju = await verifiedParticipant(db, handler);
+    const cookie = ju.jar.header();
+    const before = await db
+      .select()
+      .from(schema.tokenRequests)
+      .where(eq(schema.tokenRequests.userId, ju.id));
+    assert.equal(before.length, 0);
+    await post({ room: "sala-cheia", password: ACCESS }, { cookie });
+    await post({ room: "sala-quebrada", password: ACCESS }, { cookie });
+    await post("{não é json", { cookie });
+    const rows = await db
+      .select()
+      .from(schema.tokenRequests)
+      .where(eq(schema.tokenRequests.userId, ju.id))
+      .orderBy(schema.tokenRequests.createdAt);
+    assert.deepEqual(
+      rows.map((row) => [row.result, row.roomCode]),
+      [
+        ["room_full", "sala-cheia"],
+        ["error", "sala-quebrada"],
+        ["invalid", ""],
+      ],
+    );
+  });
+});

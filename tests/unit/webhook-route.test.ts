@@ -46,14 +46,15 @@ function post(payload: string, authorization?: string) {
   );
 }
 
-await test("aceita evento assinado e registra a entrada", async () => {
+await test("evento assinado com o banco fora do ar: registra no log e pede reenvio (503)", async () => {
   const logs: unknown[] = [];
   vi.spyOn(logger, "info").mockImplementation((entry: unknown) => {
     logs.push(entry);
   });
 
+  vi.spyOn(logger, "error").mockImplementation(() => {});
   const response = await post(body, await signature(body));
-  assert.equal(response.status, 204);
+  assert.equal(response.status, 503);
   assert.equal(logs.length, 1);
   const line = z.record(z.string(), z.unknown()).parse(logs[0]);
   assert.equal(line.event, "participant_joined");
