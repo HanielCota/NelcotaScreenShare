@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 /** Erro inesperado numa página do painel: mensagem sem detalhes internos + código para o suporte. */
 export default function AdminError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   return (
     <div role="alert" className="glass mx-auto mt-8 w-full max-w-md rounded-2xl p-8 text-center">
@@ -25,7 +25,7 @@ export default function AdminError({
           Código para o suporte: <code className="font-mono">{error.digest}</code>
         </p>
       ) : null}
-      <Button className="mt-6" onClick={reset}>
+      <Button className="mt-6" onClick={() => retry()}>
         <RotateCcw aria-hidden="true" />
         Tentar de novo
       </Button>

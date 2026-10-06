@@ -180,16 +180,22 @@ export function DataTable<TData extends RowData & { id: string }>({
         <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
           <span className="font-semibold">
             {allMatching
-              ? `Todos os ${page.capped ? "mais de " : ""}${formatNumber(page.total)} resultados`
+              ? `Todos os ${formatNumber(page.total)} resultados`
               : selected.length === 1
                 ? "1 selecionado"
                 : `${selected.length} selecionados`}
           </span>
           {!allMatching && selected.length === data.length && page.total > data.length ? (
-            <Button variant="link" size="sm" onClick={() => setAllFor(filterKey)}>
-              Selecionar todos os {page.capped ? "mais de " : ""}
-              {formatNumber(page.total)} resultados
-            </Button>
+            // Acima do limite o servidor sempre recusa a ação em massa (server/table/selection.ts).
+            page.capped ? (
+              <span className="text-ink-muted">
+                Mais de {formatNumber(page.total)} resultados: refine o filtro para agir em todos.
+              </span>
+            ) : (
+              <Button variant="link" size="sm" onClick={() => setAllFor(filterKey)}>
+                Selecionar todos os {formatNumber(page.total)} resultados
+              </Button>
+            )
           ) : null}
           {bulkActions(selection, clear, count)}
           <Button variant="ghost" size="sm" className="ml-auto" onClick={clear}>

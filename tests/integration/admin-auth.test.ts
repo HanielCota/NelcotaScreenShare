@@ -351,3 +351,43 @@ describe("rotas do plugin admin", () => {
     assert.equal(list.status, 404);
   });
 });
+
+describe("convite com falha no meio", () => {
+  test("falha ao gravar a senha desfaz a conta e devolve o convite", async () => {
+    const email = "falha-meio@exemplo.com";
+    const { token, invitation } = await createAdminInvitation(db, {
+      email,
+      role: "admin",
+      invitedBy: null,
+    });
+    const realContext = await auth.$context;
+    const broken = {
+      ...auth,
+      $context: Promise.resolve({
+        ...realContext,
+        internalAdapter: {
+          ...realContext.internalAdapter,
+          linkAccount: () => Promise.reject(new Error("queda no meio")),
+        },
+      }),
+    } as unknown as typeof auth;
+
+    await assert.rejects(
+      acceptAdminInvitation(db, broken, { token, name: "X", password: PASSWORD }),
+      /queda no meio/,
+    );
+    const users = await db
+      .select()
+      .from(schema.adminUsers)
+      .where(eq(schema.adminUsers.email, email));
+    assert.equal(users.length, 0, "conta desfeita");
+    const [row] = await db
+      .select()
+      .from(schema.adminInvitations)
+      .where(eq(schema.adminInvitations.id, invitation.id));
+    assert.equal(row?.status, "pending", "convite pode ser usado de novo");
+
+    const retry = await acceptAdminInvitation(db, auth, { token, name: "X", password: PASSWORD });
+    assert.equal(retry.ok, true);
+  });
+});

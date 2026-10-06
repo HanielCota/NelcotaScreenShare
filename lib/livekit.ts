@@ -123,6 +123,15 @@ export async function setHandRaised(room: string, raised: boolean): Promise<bool
   }
 }
 
+/** Segmento da URL decodificado; `undefined` se a codificação for inválida (ex.: "%E0"). */
+export function decodeRoomParam(segment: string): string | undefined {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return undefined;
+  }
+}
+
 export function roomPath(code: string): string {
   return `/sala/${encodeURIComponent(code)}`;
 }

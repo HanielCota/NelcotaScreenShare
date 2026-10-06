@@ -581,8 +581,10 @@ export function useMascot(
     };
 
     const syncContext = () => {
-      personality.cancel();
       const nextActivity = activityRef.current;
+      // Andar e ficar parado se alternam no par da home a cada poucos segundos:
+      // um carinho ou "toca aqui" em andamento continua; o resto interrompe.
+      if (nextActivity !== "idle" && nextActivity !== "walking") personality.cancel();
       if (nextActivity === "idle") clearReason("context");
       else {
         reasons.delete("sleep");

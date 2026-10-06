@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useShortcut } from "@/hooks/useShortcut";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
+import { participantName } from "@/lib/participant-label";
 import { CHAT_MAX_LENGTH } from "@/lib/room-data";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +23,7 @@ export interface ChatState {
 
 function author(message: ReceivedChatMessage): string {
   if (message.from?.isLocal) return "Você";
-  return message.from?.name || message.from?.identity || "Alguém";
+  return participantName(message.from);
 }
 
 const timeFormat = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });

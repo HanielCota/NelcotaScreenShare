@@ -125,6 +125,10 @@ export async function acceptAdminInvitation(
     return { ok: false, reason: "already_admin" };
   }
 
+  // O Better Auth cria a conta pela própria conexão (fora de uma transação
+  // nossa): se algo falhar depois, a conta criada é desfeita antes de liberar o
+  // convite, senão sobraria um admin sem senha e o convite seria revogado.
+  let createdUserId: string | undefined;
   try {
     const ctx = await auth.$context;
     const user = await ctx.internalAdapter.createUser(
@@ -136,6 +140,7 @@ export async function acceptAdminInvitation(
       },
       { method: "admin" },
     );
+    createdUserId = user.id;
     await ctx.internalAdapter.linkAccount({
       userId: user.id,
       providerId: "credential",
@@ -154,6 +159,7 @@ export async function acceptAdminInvitation(
       role: claimed.role,
     };
   } catch (error) {
+    if (createdUserId) await db.delete(adminUsers).where(eq(adminUsers.id, createdUserId));
     await release();
     throw error;
   }

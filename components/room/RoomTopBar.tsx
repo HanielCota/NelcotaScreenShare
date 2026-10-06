@@ -6,16 +6,8 @@ import { useEffect, useState } from "react";
 import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { roomPath } from "@/lib/livekit";
+import { initials, participantName } from "@/lib/participant-label";
 import { cn } from "@/lib/utils";
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return `${parts[0]?.[0] ?? "?"}${parts.length > 1 ? (parts.at(-1)?.[0] ?? "") : ""}`.toUpperCase();
-}
-
-function displayName(participant: Participant): string {
-  return participant.name || participant.identity;
-}
 
 /** "Sala abc-defg-hij" que copia o link; a confirmação aparece no próprio botão. */
 function RoomCodeButton({ code }: { code: string }) {
@@ -74,7 +66,7 @@ function PeopleButton({ participants, max }: { participants: Participant[]; max:
                 key={participant.identity}
                 className="grid size-8 place-items-center rounded-full bg-brand/20 text-sm font-bold text-brand-soft ring-2 ring-surface"
               >
-                {initials(displayName(participant))}
+                {initials(participantName(participant))}
               </span>
             ))}
           </span>
@@ -92,10 +84,10 @@ function PeopleButton({ participants, max }: { participants: Participant[]; max:
               aria-hidden="true"
               className="grid size-9 shrink-0 place-items-center rounded-full bg-brand/20 text-sm font-bold text-brand-soft"
             >
-              {initials(displayName(participant))}
+              {initials(participantName(participant))}
             </span>
             <span className="truncate">
-              {displayName(participant)}
+              {participantName(participant)}
               {participant.isLocal ? <span className="text-ink-muted"> (você)</span> : null}
             </span>
           </li>

@@ -35,8 +35,9 @@ import { ReactionsProvider } from "./Reactions";
 import { RoomTopBar } from "./RoomTopBar";
 import { ScreenStage } from "./ScreenStage";
 import { StatusScreen } from "./StatusScreen";
+import { MIC_ERROR_TOAST } from "./toast-ids";
 import { useRoomNotices } from "./use-room-notices";
-import { useScreenShare } from "./use-screen-share";
+import { useScreenShare, type ScreenShareControl } from "./use-screen-share";
 
 interface RoomViewProps {
   code: string;
@@ -115,15 +116,23 @@ export function RoomView({ code, choices, maxParticipants, onLeave, onRetry }: R
 
   useEffect(() => {
     let cancelled = false;
+    // Até o connect() terminar, quem trata a falha é o catch abaixo: o SDK
+    // também emite Disconnected quando a conexão nem chega a abrir, e isso
+    // levaria à tela "Você saiu da sala" em vez de "Tentar de novo".
+    let connected = false;
 
     const handleDisconnected = (reason?: DisconnectReason) => {
-      if (!cancelled) handleUnexpectedDisconnect(reason);
+      if (!cancelled && connected) handleUnexpectedDisconnect(reason);
     };
     const handleReconnected = () => toast.success("Conexão restabelecida.");
-    const handleMediaError = () =>
+    // Só falhas do microfone (o compartilhamento de tela tem os próprios avisos).
+    const handleMediaError = (_error: Error, kind?: MediaDeviceKind) => {
+      if (kind !== "audioinput") return;
       toast.error(
         "Não foi possível usar o microfone. Confira as permissões deste site e tente ligá-lo de novo.",
+        { id: MIC_ERROR_TOAST },
       );
+    };
 
     room
       .on(RoomEvent.Disconnected, handleDisconnected)
@@ -135,10 +144,12 @@ export function RoomView({ code, choices, maxParticipants, onLeave, onRetry }: R
       try {
         await connect(choices.serverUrl, choices.token);
         if (cancelled) return;
+        connected = true;
         if (choices.micEnabled) {
           await room.localParticipant.setMicrophoneEnabled(true).catch(() => {
             toast.error(
               "Você entrou com o microfone desligado. Confira as permissões deste site e tente ligá-lo nos controles da sala.",
+              { id: MIC_ERROR_TOAST },
             );
           });
         }
@@ -229,6 +240,7 @@ function RoomLayout({
   );
   const [focusedSid, setFocusedSid] = useState<string>();
   const chat = useChatState();
+  const share = useScreenShare();
   useRoomNotices();
 
   // Palco: a tela escolhida, senão a mais recente dos outros. A sua só entra
@@ -294,7 +306,7 @@ function RoomLayout({
         ) : null}
 
         {alone ? (
-          <AloneWelcome code={code} />
+          <AloneWelcome code={code} share={share} />
         ) : (
           <div
             className={cn(
@@ -328,7 +340,7 @@ function RoomLayout({
       </main>
 
       {chat.open ? <ChatPanel chat={chat} /> : null}
-      <ControlDock chat={chat} onLeave={onLeave} />
+      <ControlDock chat={chat} share={share} onLeave={onLeave} />
     </div>
   );
 }
@@ -337,8 +349,7 @@ function RoomLayout({
  * Sozinho na sala: em vez de um bloco vazio, as duas coisas que importam
  * agora (mostrar a tela e chamar o time), grandes e com nome.
  */
-function AloneWelcome({ code }: { code: string }) {
-  const share = useScreenShare();
+function AloneWelcome({ code, share }: { code: string; share: ScreenShareControl }) {
   const shareSupported = canShareScreen();
 
   return (
