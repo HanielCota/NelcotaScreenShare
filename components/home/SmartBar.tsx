@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Link2, Loader2, Plus } from "lucide-react";
+import { ArrowRight, ClipboardPaste, Link2, Loader2, Plus } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   celebrateMascot,
@@ -20,14 +20,39 @@ interface SmartBarProps {
   mascot?: ReactNode;
 }
 
-/**
- * Dica abaixo da barra: só quando ajuda (sala reconhecida ou algo errado).
- * Vazia, a barra e o botão já dizem o que fazer.
- */
-function hintFor(input: RoomInput): { text: ReactNode; tone: "none" | "ok" | "error" } {
+/** Tecla desenhada como tecla de verdade (borda de baixo mais grossa). */
+function Keycap({ children }: { children: ReactNode }) {
+  return (
+    <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-b-2 border-line-strong bg-surface-2 px-1.5 font-sans text-xs font-semibold text-ink">
+      {children}
+    </kbd>
+  );
+}
+
+/** Dica da barra vazia: dois atalhos curtos, lado a lado. */
+const EMPTY_HINT = (
+  <span className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
+    <span className="inline-flex items-center gap-1.5 max-sm:hidden">
+      <Keycap>Enter</Keycap>
+      cria uma sala
+    </span>
+    <span aria-hidden="true" className="size-1 rounded-full bg-line-strong max-sm:hidden" />
+    <span className="inline-flex items-center gap-1.5 max-sm:hidden">
+      <ClipboardPaste className="size-4 text-ink-subtle" aria-hidden="true" />
+      ou cole o link que recebeu
+    </span>
+    <span className="inline-flex items-center gap-1.5 sm:hidden">
+      <ClipboardPaste className="size-4 text-ink-subtle" aria-hidden="true" />
+      Toque em Criar sala ou cole o link que recebeu
+    </span>
+  </span>
+);
+
+/** Dica abaixo da barra: atalhos com a barra vazia; sala reconhecida; ou o erro. */
+function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "error" } {
   switch (input.kind) {
     case "empty":
-      return { text: null, tone: "none" };
+      return { text: EMPTY_HINT, tone: "muted" };
     case "room":
       return {
         text: (
@@ -172,7 +197,8 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
         id={hintId}
         aria-live="polite"
         className={cn(
-          "min-h-5 px-4 text-center text-sm",
+          "flex min-h-7 items-center justify-center px-4 text-center text-sm",
+          hint.tone === "muted" && "text-ink-muted",
           hint.tone === "ok" && "text-ink",
           hint.tone === "error" && "text-danger",
         )}
