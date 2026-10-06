@@ -1,6 +1,6 @@
 {
   "minTokens": 50,
-  "threshold": 2.5,
+  "threshold": 2,
   "format": ["typescript", "tsx", "css"],
   "path": ["app", "components", "features", "lib", "server", "scripts"],
   "ignore": ["**/components/ui/**", "**/node_modules/**"],

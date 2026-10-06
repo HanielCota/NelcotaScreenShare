@@ -1,5 +1,7 @@
 # 00 — Resumo executivo
 
+> **Status:** plano executado em 2026-10-06 (branch `refactor/arquitetura`). O resultado, as métricas antes → depois e os desvios do plano estão em [06-execucao.md](06-execucao.md).
+
 ## O diagnóstico em uma frase
 
 O projeto **não está bagunçado por inteiro**. O servidor é disciplinado: zero `any`, `strict`, Zod em todas as bordas, DAL com `server-only`, nenhum import circular e só 2,24% de duplicação. A dor está concentrada em **quatro focos**, e os guardrails que deveriam conter esses focos **não estão rodando**.
