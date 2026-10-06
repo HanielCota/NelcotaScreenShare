@@ -1,6 +1,15 @@
 "use client";
 
-import { ArrowRight, ClipboardPaste, Link2, Loader2, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  CircleAlert,
+  ClipboardPaste,
+  Link2,
+  Loader2,
+  Plus,
+  Ticket,
+  Video,
+} from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   celebrateMascot,
@@ -26,6 +35,16 @@ function Keycap({ children }: { children: ReactNode }) {
     <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-b-2 border-line-strong bg-surface-2 px-1.5 font-sans text-xs font-semibold text-ink">
       {children}
     </kbd>
+  );
+}
+
+/** Aviso de erro da barra: ícone + frase, alinhados mesmo quando quebra a linha. */
+function ErrorHint({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-start gap-1.5 text-left">
+      <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <span>{children}</span>
+    </span>
   );
 }
 
@@ -56,19 +75,35 @@ function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "e
     case "room":
       return {
         text: (
-          <>
-            Entrar na sala <strong className="font-mono font-semibold">{input.code}</strong>
-            {input.invite ? " com o convite" : ""}
-          </>
+          <span className="inline-flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1.5">
+            <span className="sr-only">Sala encontrada:</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 py-0.5 pr-2.5 pl-2">
+              <Video className="size-3.5 text-brand-soft" aria-hidden="true" />
+              <span className="font-mono font-semibold text-ink">{input.code}</span>
+            </span>
+            {input.invite ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface-2 py-0.5 pr-2.5 pl-2 text-xs font-medium">
+                <Ticket className="size-3.5 text-ink-subtle" aria-hidden="true" />
+                convite
+              </span>
+            ) : null}
+            <span className="inline-flex items-center gap-1.5 text-ink-muted max-sm:hidden">
+              <Keycap>Enter</Keycap>
+              para entrar
+            </span>
+          </span>
         ),
         tone: "ok",
       };
     case "invalid":
       return {
-        text:
-          input.reason === "not-a-room"
-            ? "Esse link não é de uma sala do Nelcota."
-            : "Confira o código: letras, números e hífens, como kfa-mtrx-q2p.",
+        text: (
+          <ErrorHint>
+            {input.reason === "not-a-room"
+              ? "Esse link não é de uma sala do Nelcota."
+              : "Confira o código: letras, números e hífens, como kfa-mtrx-q2p."}
+          </ErrorHint>
+        ),
         tone: "error",
       };
   }
@@ -87,7 +122,11 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
   const input = parseRoomInput(text);
   const hint = linkError
     ? {
-        text: "Esse convite não é válido. Confira o código ou peça um novo link a quem enviou.",
+        text: (
+          <ErrorHint>
+            Esse convite não é válido. Confira o código ou peça um novo link a quem enviou.
+          </ErrorHint>
+        ),
         tone: "error" as const,
       }
     : hintFor(input);
