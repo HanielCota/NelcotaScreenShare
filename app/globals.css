@@ -216,3 +216,60 @@
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Botões "estilo Apple" (telas de acesso): cápsula, preenchimento sem borda,
+ * peso semibold e um leve "apertar" ao clicar. Fora de @layer de propósito:
+ * vence as classes do componente Button sem mudar o botão do resto do app.
+ */
+.apple-buttons [data-slot="button"] {
+  border-radius: 9999px;
+  border-color: transparent;
+  letter-spacing: -0.01em;
+  transition:
+    transform 180ms var(--ease-out-expo),
+    background-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.apple-buttons [data-slot="button"][data-size="lg"] {
+  height: 3rem;
+  padding-inline: 1.5rem;
+  font-size: 1rem;
+}
+
+.apple-buttons [data-slot="button"]:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.apple-buttons [data-slot="button"]:disabled {
+  opacity: 0.4;
+}
+
+.apple-buttons [data-slot="button"]:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--color-brand) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/* Secundário: cinza translúcido, como os botões "gray" do iOS. */
+.apple-buttons [data-slot="button"][data-variant="outline"],
+.apple-buttons [data-slot="button"][data-variant="secondary"] {
+  background-color: color-mix(in oklch, var(--color-ink) 9%, transparent);
+  color: var(--color-ink);
+}
+
+.apple-buttons [data-slot="button"][data-variant="outline"]:hover:not(:disabled),
+.apple-buttons [data-slot="button"][data-variant="secondary"]:hover:not(:disabled) {
+  background-color: color-mix(in oklch, var(--color-ink) 14%, transparent);
+}
+
+/* Discreto: só o texto na cor da marca. */
+.apple-buttons [data-slot="button"][data-variant="ghost"] {
+  color: var(--color-brand-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apple-buttons [data-slot="button"]:active:not(:disabled) {
+    transform: none;
+  }
+}

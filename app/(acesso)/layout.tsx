@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
  */
 export default function AccessLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="apple-buttons flex min-h-dvh flex-col">
       {/* Mesma navbar da home; "Entrar | Criar conta" ficam nas abas do formulário. */}
       <header className="px-4 pt-4 sm:px-6">
         <NavBar aria-label="Principal" className="mx-auto max-w-5xl">
