@@ -12,15 +12,12 @@ import { DockButton } from "./DockButton";
 import { MicMenu } from "./MicMenu";
 import { ReactionsMenu } from "./Reactions";
 import { ShareMenu, type ShareChoice } from "./ShareMenu";
+import { canShareScreen } from "@/lib/share-support";
 
 interface ControlDockProps {
   code: string;
   chat: ChatState;
   onLeave: () => void;
-}
-
-function canShareScreen(): boolean {
-  return "getDisplayMedia" in (navigator.mediaDevices ?? {});
 }
 
 export function ControlDock({ code, chat, onLeave }: ControlDockProps) {

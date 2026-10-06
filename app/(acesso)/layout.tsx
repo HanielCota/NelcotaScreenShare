@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { BrandPanel } from "@/components/account/BrandPanel";
+import { ShareSupportNote } from "@/components/account/ShareSupportNote";
 import Link from "next/link";
 import { HowItWorks } from "@/components/HowItWorks";
 import { navItemClass } from "@/components/nav-item-class";
@@ -36,6 +37,8 @@ export default function AccessLayout({ children }: { children: ReactNode }) {
             className="group/access flex flex-col items-center justify-center px-5 py-7 sm:px-10 sm:py-10"
           >
             {children}
+            {/* No celular o aviso vem depois do formulário (no computador, no lado do mascote). */}
+            <ShareSupportNote className="mt-8 w-full max-w-sm border-t border-line pt-5 lg:hidden" />
           </div>
         </div>
       </main>

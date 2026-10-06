@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { ShareSupportNote } from "@/components/account/ShareSupportNote";
 import { Mascot } from "@/components/Mascot";
 import { mascotLine } from "@/lib/access-copy";
 
@@ -27,7 +28,8 @@ function BubbleText({ text }: { text: string }) {
 
 /**
  * Lado do mascote no painel de acesso. Ele reage ao formulário ao lado e
- * fala pelo balão; embaixo, só a informação que ajuda de fato.
+ * fala pelo balão; embaixo, o que o navegador de quem está vendo consegue
+ * fazer na sala.
  */
 export function BrandPanel() {
   return (
@@ -43,10 +45,7 @@ export function BrandPanel() {
           <SpeechBubble />
         </Suspense>
       </div>
-      <p className="max-w-72 text-xs leading-relaxed text-ink-subtle max-lg:hidden">
-        Para compartilhar a tela, use o Chrome, o Edge ou o Firefox no computador. Não precisa
-        instalar nada.
-      </p>
+      <ShareSupportNote className="max-w-80 max-lg:hidden" />
     </aside>
   );
 }
