@@ -53,7 +53,9 @@ export function RoomContextNote({ context }: { context: AccessContext }) {
       </span>
       <span className="min-w-0 text-ink-muted">
         {context.invited ? "Você foi convidado para a sala" : "Você vai entrar na sala"}{" "}
-        <strong className="font-mono font-semibold break-all text-ink">{context.code}</strong>
+        <strong className="font-mono font-semibold whitespace-nowrap text-ink">
+          {context.code}
+        </strong>
       </span>
     </p>
   );
