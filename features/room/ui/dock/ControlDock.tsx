@@ -5,15 +5,15 @@ import { MediaDeviceFailure } from "livekit-client";
 import { MessageSquare, Mic, MicOff, PhoneOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useShortcut } from "@/hooks/useShortcut";
-import { canShareScreen } from "@/lib/share-support";
+import { useShortcut } from "@/lib/hooks/use-shortcut";
+import { canShareScreen } from "@/features/room/domain/share-support";
 import type { ChatState } from "./Chat";
 import { DockButton } from "./DockButton";
 import { MicMenu } from "./MicMenu";
 import { ReactionsMenu } from "./Reactions";
 import { ShareMenu } from "./ShareMenu";
-import { MIC_ERROR_TOAST } from "./toast-ids";
-import type { ScreenShareControl } from "./use-screen-share";
+import { MIC_ERROR_TOAST } from "@/features/room/ui/toast-ids";
+import type { ScreenShareControl } from "@/features/room/hooks/use-screen-share";
 
 interface ControlDockProps {
   chat: ChatState;

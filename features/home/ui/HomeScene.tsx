@@ -5,7 +5,7 @@ import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/comp
 import { navItemClass } from "@/components/nav-item-class";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import type { RecentRoom } from "@/lib/recent-room";
+import type { RecentRoom } from "@/features/room/domain/recent-room";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { HomeEntrance } from "./HomeEntrance";
 import { HomeStart } from "./HomeStart";

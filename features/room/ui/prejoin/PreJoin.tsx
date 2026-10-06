@@ -23,12 +23,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { requestToken, roomLink } from "@/lib/livekit";
-import { saveMicrophone, savedMicrophone } from "@/lib/room-data";
+import { requestToken } from "@/features/room/client/api";
+import { roomLink } from "@/features/room/domain/room-code";
+import { saveMicrophone, savedMicrophone } from "@/features/room/client/saved-microphone";
 import { cn, formText } from "@/lib/utils";
-import { InviteLinkButton } from "./prejoin/InviteLinkButton";
-import { NameRow } from "./prejoin/NameRow";
-import { useMicPermission } from "./prejoin/use-mic-permission";
+import { InviteLinkButton } from "./InviteLinkButton";
+import { NameRow } from "./NameRow";
+import { useMicPermission } from "@/features/room/hooks/use-mic-permission";
 
 export interface JoinChoices {
   name: string;

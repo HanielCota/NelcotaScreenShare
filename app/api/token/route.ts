@@ -6,11 +6,15 @@ import { getUserAuth } from "@/features/auth/server/participant-auth";
 import { clientIpFrom } from "@/server/client-ip";
 import { getEnv } from "@/server/env";
 import { requestLogger } from "@/server/request-log";
-import { tokenRequestSchema, type TokenErrorCode, type TokenResponse } from "@/lib/livekit";
+import {
+  tokenRequestSchema,
+  type TokenErrorCode,
+  type TokenResponse,
+} from "@/features/room/domain/token-contract";
 import { getDb } from "@/server/db";
-import { roomService } from "@/server/livekit/room-service";
-import { recordTokenRequest, type TokenResult } from "@/server/livekit/token-log";
-import { redeemRoomInvite } from "@/server/rooms/invites";
+import { roomService } from "@/features/room/server/room-service";
+import { recordTokenRequest, type TokenResult } from "@/features/room/server/token-log";
+import { redeemRoomInvite } from "@/features/room/server/invites";
 import { createRateLimiter } from "@/server/rate-limit";
 
 const TOKEN_TTL = "10m";

@@ -5,7 +5,7 @@ import { Check, ChevronUp } from "lucide-react";
 import { Popover } from "radix-ui";
 import { useState } from "react";
 import { toast } from "sonner";
-import { saveMicrophone } from "@/lib/room-data";
+import { saveMicrophone } from "@/features/room/client/saved-microphone";
 import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";
 

@@ -2,7 +2,11 @@
 
 import { CircleCheck, Info, TriangleAlert } from "lucide-react";
 import { useSyncExternalStore } from "react";
-import { currentShareSupport, SHARE_SUPPORT_TEXT, type ShareSupport } from "@/lib/share-support";
+import {
+  currentShareSupport,
+  SHARE_SUPPORT_TEXT,
+  type ShareSupport,
+} from "@/features/room/domain/share-support";
 import { cn } from "@/lib/utils";
 
 const ICONS = { ok: CircleCheck, warn: TriangleAlert, info: Info } as const;

@@ -1,8 +1,8 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { formatRelative } from "@/lib/format";
-import { roomPath } from "@/lib/livekit";
-import type { RecentRoom } from "@/lib/recent-room";
+import { roomPath } from "@/features/room/domain/room-code";
+import type { RecentRoom } from "@/features/room/domain/recent-room";
 
 /** "Suas salas recentes": volta para uma sala com um clique. */
 export function RecentRooms({ rooms }: { rooms: RecentRoom[] }) {

@@ -11,17 +11,17 @@ import {
   type RefObject,
 } from "react";
 import { toast } from "sonner";
-import { useShortcut } from "@/hooks/useShortcut";
-import { participantName } from "@/lib/participant-label";
+import { useShortcut } from "@/lib/hooks/use-shortcut";
+import { participantName } from "@/features/room/domain/participant-label";
+import { contentBox } from "@/features/room/domain/content-box";
 import {
-  contentBox,
   createReceiveThrottle,
   decodeMessage,
   encodeMessage,
   pointerSchema,
   TOPICS,
   type PointerMessage,
-} from "@/lib/room-data";
+} from "@/features/room/domain/data-channel";
 import { cn } from "@/lib/utils";
 
 interface ScreenStageProps {

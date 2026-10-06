@@ -1,4 +1,4 @@
-import { roomCodeSchema } from "@/lib/livekit";
+import { roomCodeSchema } from "@/features/room/domain/room-code";
 
 /**
  * De onde a pessoa veio para a tela de acesso (pelo `voltar`): uma sala,

@@ -8,7 +8,7 @@ import { Pool } from "pg";
 import { afterAll, describe, test } from "vitest";
 import { POST } from "@/app/api/livekit/webhook/route";
 import * as schema from "@/server/db/schema";
-import { reprocessPendingEvents } from "@/server/livekit/webhook-projector";
+import { reprocessPendingEvents } from "@/features/room/server/webhook/projector";
 
 /**
  * Webhook do LiveKit de ponta a ponta: eventos assinados como o LiveKit envia

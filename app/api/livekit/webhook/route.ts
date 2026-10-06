@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getDb } from "@/server/db";
 import { getEnv } from "@/server/env";
-import { ingestEvent } from "@/server/livekit/webhook-projector";
+import { ingestEvent } from "@/features/room/server/webhook/projector";
 import { logger } from "@/server/logger";
 
 /** Eventos que viram linha de log. O resto (faixas, egress…) só vai para o banco. */

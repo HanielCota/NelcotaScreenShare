@@ -5,8 +5,8 @@ import { Check, Copy, MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { roomPath } from "@/lib/livekit";
-import { initials, participantName } from "@/lib/participant-label";
+import { roomPath } from "@/features/room/domain/room-code";
+import { initials, participantName } from "@/features/room/domain/participant-label";
 import { cn } from "@/lib/utils";
 
 /** "Sala abc-defg-hij" que copia o link; a confirmação aparece no próprio botão. */

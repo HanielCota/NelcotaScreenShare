@@ -4,7 +4,7 @@ import { useLocalParticipant } from "@livekit/components-react";
 import { ScreenSharePresets } from "livekit-client";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { ShareChoice } from "./ShareMenu";
+import type { ShareChoice } from "@/features/room/ui/dock/ShareMenu";
 
 /**
  * Começar e parar o compartilhamento de tela. Uma instância por sala

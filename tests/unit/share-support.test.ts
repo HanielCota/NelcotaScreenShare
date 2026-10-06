@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { classifyShareSupport } from "@/lib/share-support";
+import { classifyShareSupport } from "@/features/room/domain/share-support";
 
 const UA = {
   chrome:

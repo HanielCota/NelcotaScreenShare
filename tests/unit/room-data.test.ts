@@ -1,14 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { savedMicrophone, saveMicrophone } from "@/features/room/client/saved-microphone";
+import { contentBox } from "@/features/room/domain/content-box";
 import {
-  contentBox,
   createReceiveThrottle,
   decodeMessage,
   encodeMessage,
   pointerSchema,
   reactionSchema,
-  savedMicrophone,
-  saveMicrophone,
-} from "@/lib/room-data";
+} from "@/features/room/domain/data-channel";
 
 describe("mensagens do canal de dados", () => {
   it("ida e volta de uma reação válida", () => {

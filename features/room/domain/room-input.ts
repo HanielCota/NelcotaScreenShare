@@ -1,5 +1,5 @@
-import { INVITE_TOKEN_PATTERN } from "@/lib/invite";
-import { roomCodeSchema } from "@/lib/livekit";
+import { INVITE_TOKEN_PATTERN } from "./invite-token";
+import { roomCodeSchema } from "@/features/room/domain/room-code";
 
 /**
  * O que a pessoa digitou ou colou na barra da home: nada (cria uma sala),

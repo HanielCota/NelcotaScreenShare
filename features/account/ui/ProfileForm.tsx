@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
-import { displayNameSchema } from "@/lib/livekit";
+import { displayNameSchema } from "@/features/room/domain/participant-label";
 import { formText } from "@/lib/utils";
 
 /** Nome mostrado na sala. */

@@ -4,14 +4,14 @@ import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { BULK_FILTER_LIMIT } from "@/lib/table-params";
-import { roomLink } from "@/lib/livekit";
+import { roomLink } from "@/features/room/domain/room-code";
 import { adminAction } from "@/features/auth/server/action-clients";
 import { ActionError } from "@/server/actions/errors";
 import { diffChanges } from "@/server/audit/record";
 import { getDb } from "@/server/db";
 import { rooms } from "@/server/db/schema";
 import { appUrl } from "@/server/env";
-import { createRoomInvite, revokeRoomInvite } from "@/server/rooms/invites";
+import { createRoomInvite, revokeRoomInvite } from "@/features/room/server/invites";
 import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection";
 import { roomIdsForFilter } from "./queries";
 

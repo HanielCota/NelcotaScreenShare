@@ -2,7 +2,7 @@ import "server-only";
 import { and, desc, eq, isNull, max, sql } from "drizzle-orm";
 import type { DbExecutor } from "@/server/db";
 import { roomParticipations, rooms } from "@/server/db/schema";
-import type { RecentRoom } from "@/lib/recent-room";
+import type { RecentRoom } from "@/features/room/domain/recent-room";
 
 /**
  * Salas em que a pessoa esteve, da mais recente para a mais antiga, para

@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, test } from "vitest";
 import * as schema from "@/server/db/schema";
-import { recentRoomsFor } from "@/server/rooms/recent";
+import { recentRoomsFor } from "@/features/room/server/recent";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

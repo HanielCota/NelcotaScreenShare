@@ -1,7 +1,7 @@
 import { HomeScene } from "@/features/home/ui/HomeScene";
 import { getUserSession } from "@/features/auth/server/participant-session";
 import { getDb } from "@/server/db";
-import { recentRoomsFor } from "@/server/rooms/recent";
+import { recentRoomsFor } from "@/features/room/server/recent";
 
 const NOTICES: Record<string, string> = {
   "conta-excluida": "Sua conta foi excluída. Obrigado por usar o Nelcota.",

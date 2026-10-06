@@ -9,7 +9,7 @@ import {
 } from "livekit-client";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { participantName } from "@/lib/participant-label";
+import { participantName } from "@/features/room/domain/participant-label";
 
 /**
  * Avisos curtos do que acontece na sala: quem entrou, quem saiu e quem

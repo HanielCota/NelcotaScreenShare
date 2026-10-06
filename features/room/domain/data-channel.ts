@@ -60,37 +60,3 @@ export function createReceiveThrottle(minGapMs: number, now: () => number = Date
     return true;
   };
 }
-
-/** Área ocupada pela imagem dentro do elemento (`object-contain`), relativa a ele. */
-export function contentBox(
-  box: { width: number; height: number },
-  video: { width: number; height: number },
-): { left: number; top: number; width: number; height: number } {
-  if (!video.width || !video.height) {
-    return { left: 0, top: 0, width: box.width, height: box.height };
-  }
-  const scale = Math.min(box.width / video.width, box.height / video.height);
-  const width = video.width * scale;
-  const height = video.height * scale;
-  return { left: (box.width - width) / 2, top: (box.height - height) / 2, width, height };
-}
-
-const MIC_KEY = "nelcota:microfone";
-
-/** Microfone escolhido da última vez neste navegador (conveniência; pode não existir). */
-export function savedMicrophone(): string | undefined {
-  try {
-    return localStorage.getItem(MIC_KEY) ?? undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-export function saveMicrophone(deviceId: string | undefined) {
-  try {
-    if (deviceId) localStorage.setItem(MIC_KEY, deviceId);
-    else localStorage.removeItem(MIC_KEY);
-  } catch {
-    // Armazenamento bloqueado: só não lembra a escolha.
-  }
-}

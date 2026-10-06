@@ -2,7 +2,7 @@
 
 import { Check, Link2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { roomPath } from "@/lib/livekit";
+import { roomPath } from "@/features/room/domain/room-code";
 import { cn } from "@/lib/utils";
 
 /**

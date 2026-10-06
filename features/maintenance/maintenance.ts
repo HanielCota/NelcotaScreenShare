@@ -9,7 +9,7 @@ import {
   tokenRequests,
   userSessions,
 } from "@/server/db/schema";
-import { reprocessPendingEvents } from "@/server/livekit/webhook-projector";
+import { reprocessPendingEvents } from "@/features/room/server/webhook/projector";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

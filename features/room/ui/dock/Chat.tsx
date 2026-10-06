@@ -6,10 +6,10 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useShortcut } from "@/hooks/useShortcut";
+import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
-import { participantName } from "@/lib/participant-label";
-import { CHAT_MAX_LENGTH } from "@/lib/room-data";
+import { participantName } from "@/features/room/domain/participant-label";
+import { CHAT_MAX_LENGTH } from "@/features/room/domain/data-channel";
 import { cn } from "@/lib/utils";
 
 export interface ChatState {

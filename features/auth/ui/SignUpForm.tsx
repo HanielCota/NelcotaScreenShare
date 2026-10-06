@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import type { AccessContext } from "@/features/auth/domain/access-context";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
-import { displayNameSchema } from "@/lib/livekit";
+import { displayNameSchema } from "@/features/room/domain/participant-label";
 import {
   PASSWORD_LIMITS,
   passwordStrength,

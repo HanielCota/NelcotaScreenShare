@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { INVITE_TOKEN_PATTERN } from "@/lib/invite";
+import { INVITE_TOKEN_PATTERN } from "@/features/room/domain/invite-token";
 import type { Database, DbExecutor } from "@/server/db";
 import { roomInvites, roomInviteUses, rooms } from "@/server/db/schema";
 

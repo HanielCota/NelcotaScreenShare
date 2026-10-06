@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { celebrateMascot, nodMascot, setMascotDoubt, upsetMascot } from "@/features/mascot/events";
-import { generateRoomCode, roomLink, roomPath } from "@/lib/livekit";
+import { generateRoomCode, roomLink, roomPath } from "@/features/room/domain/room-code";
 import { parseRoomInput, type RoomInput } from "@/features/room/domain/room-input";
 import { cn } from "@/lib/utils";
 

@@ -6,7 +6,7 @@ import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useShortcut } from "@/hooks/useShortcut";
+import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";

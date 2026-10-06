@@ -4,9 +4,9 @@ import { DoorOpen, Home, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { requestToken } from "@/lib/livekit";
-import { PreJoin, type JoinChoices } from "./PreJoin";
-import { RoomView } from "./RoomView";
+import { requestToken } from "@/features/room/client/api";
+import { PreJoin, type JoinChoices } from "@/features/room/ui/prejoin/PreJoin";
+import { RoomView } from "@/features/room/ui/call/RoomView";
 import { StatusScreen } from "./StatusScreen";
 
 interface RoomSessionProps {

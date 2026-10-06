@@ -1,3 +1,12 @@
+import { z } from "zod";
+
+/** Nome que a pessoa usa nas salas (o da conta). */
+export const displayNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Digite seu nome para entrar na sala.")
+  .max(32, "Seu nome pode ter até 32 caracteres. Use um nome mais curto.");
+
 /** Iniciais do avatar: primeira letra do primeiro e do último nome ("Ana Maria Souza" → "AS"). */
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);

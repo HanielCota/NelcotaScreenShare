@@ -4,7 +4,8 @@ import { test } from "vitest";
 const { createRateLimiter } = await import("../../server/rate-limit");
 const { getClientIp } = await import("../../server/client-ip");
 const { buildCsp } = await import("../../server/csp");
-const { generateRoomCode, roomCodeSchema, roomPath } = await import("../../lib/livekit");
+const { generateRoomCode, roomCodeSchema, roomPath } =
+  await import("../../features/room/domain/room-code");
 
 test("rate limit: conta, bloqueia e libera quando a janela vira", () => {
   let now = 1_000;

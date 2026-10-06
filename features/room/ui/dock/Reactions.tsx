@@ -13,10 +13,10 @@ import { createContext, use, useEffect, useId, useRef, useState, type ReactNode 
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useShortcut } from "@/hooks/useShortcut";
-import { setHandRaised } from "@/lib/livekit";
+import { useShortcut } from "@/lib/hooks/use-shortcut";
+import { setHandRaised } from "@/features/room/client/api";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
-import { participantName } from "@/lib/participant-label";
+import { participantName } from "@/features/room/domain/participant-label";
 import {
   createReceiveThrottle,
   decodeMessage,
@@ -26,7 +26,7 @@ import {
   REACTIONS,
   TOPICS,
   type Reaction,
-} from "@/lib/room-data";
+} from "@/features/room/domain/data-channel";
 import { DockButton } from "./DockButton";
 
 interface FloatingReaction {
