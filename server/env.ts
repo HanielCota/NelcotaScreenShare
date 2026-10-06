@@ -39,17 +39,21 @@ const envSchema = z
         })
         .optional(),
     ),
-    // Painel /admin: só liga com as duas definidas.
-    ADMIN_PASSWORD: z.preprocess(
+    // Origem pública do app (links de e-mail, CSRF do Better Auth). Em dev: localhost.
+    APP_URL: z.preprocess(emptyToUndefined, z.url().optional()),
+    // Segredo da instância de admin do Better Auth (cookies, 2FA cifrado). Sem ele,
+    // o /admin fica desligado. Gere com: openssl rand -base64 48
+    ADMIN_AUTH_SECRET: z.preprocess(
       emptyToUndefined,
-      z.string().min(12, "ADMIN_PASSWORD precisa ter ao menos 12 caracteres").optional(),
+      z.string().min(32, "ADMIN_AUTH_SECRET precisa ter ao menos 32 caracteres").optional(),
     ),
-    // Assina o cookie de sessão do admin. Separado da senha: vazar o cookie não
-    // permite descobrir a senha por força bruta.
-    ADMIN_SESSION_SECRET: z.preprocess(
+    // E-mail transacional (convites, recuperação de senha, verificação).
+    // Sem SMTP_URL em desenvolvimento, os e-mails vão para o log.
+    SMTP_URL: z.preprocess(
       emptyToUndefined,
-      z.string().min(32, "ADMIN_SESSION_SECRET precisa ter ao menos 32 caracteres").optional(),
+      z.url({ protocol: /^smtps?$/, error: "SMTP_URL precisa ser smtp:// ou smtps://" }).optional(),
     ),
+    MAIL_FROM: z.preprocess(emptyToUndefined, z.string().min(3).optional()),
     // Observabilidade (opcionais). SENTRY_DSN liga o Sentry no servidor; o do
     // navegador vem de NEXT_PUBLIC_SENTRY_DSN no build.
     SENTRY_DSN: z.preprocess(emptyToUndefined, z.url().optional()),
@@ -61,14 +65,34 @@ const envSchema = z
     APP_VERSION: z.preprocess(emptyToUndefined, z.string().max(64).optional()),
   })
   .superRefine((env, ctx) => {
-    if (Boolean(env.ADMIN_PASSWORD) !== Boolean(env.ADMIN_SESSION_SECRET)) {
+    if (process.env.NODE_ENV !== "production") return;
+    if (env.ADMIN_AUTH_SECRET && !env.DATABASE_URL) {
       ctx.addIssue({
         code: "custom",
-        path: [env.ADMIN_PASSWORD ? "ADMIN_SESSION_SECRET" : "ADMIN_PASSWORD"],
-        message: "Para ligar o /admin, defina ADMIN_PASSWORD e ADMIN_SESSION_SECRET juntas",
+        path: ["DATABASE_URL"],
+        message: "O /admin precisa do banco: defina DATABASE_URL",
+      });
+    }
+    if (env.ADMIN_AUTH_SECRET && !env.APP_URL) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["APP_URL"],
+        message: "Defina APP_URL (ex.: https://app.seudominio.com) para os links de e-mail",
+      });
+    }
+    if (env.ADMIN_AUTH_SECRET && (!env.SMTP_URL || !env.MAIL_FROM)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["SMTP_URL"],
+        message: "Em produção, convites e recuperação de senha exigem SMTP_URL e MAIL_FROM",
       });
     }
   });
+
+/** Origem pública do app (sem barra no fim). */
+export function appUrl(): string {
+  return (getEnv().APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+}
 
 type Env = z.infer<typeof envSchema>;
 

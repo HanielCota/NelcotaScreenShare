@@ -25,7 +25,10 @@ const saturation = z
   .max(MASCOT_SATURATION.max)
   .transform((value) => Math.round(value * 100) / 100);
 
-export const mascotSettings: SettingGroup<{ saturationDark: number; saturationLight: number }> = {
+export const mascotSettings: SettingGroup<{
+  saturationDark: number;
+  saturationLight: number;
+}> = {
   key: "mascot",
   schema: z.object({ saturationDark: saturation, saturationLight: saturation }),
   defaults: { saturationDark: 1, saturationLight: 1 },
@@ -98,7 +101,10 @@ export async function saveSetting<T>(
   await db
     .insert(appSettings)
     .values({ key: group.key, value })
-    .onConflictDoUpdate({ target: appSettings.key, set: { value, updatedAt: sql`now()` } });
+    .onConflictDoUpdate({
+      target: appSettings.key,
+      set: { value, updatedAt: sql`now()` },
+    });
   cache.delete(group.key);
   return value;
 }

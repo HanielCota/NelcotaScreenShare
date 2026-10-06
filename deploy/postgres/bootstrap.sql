@@ -69,5 +69,8 @@ FROM pg_sequences WHERE schemaname = 'drizzle'
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nelcota_app;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nelcota_app;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO nelcota_readonly;
--- pg_stat_statements (tela "Saúde do banco", só leitura).
+-- pg_stat_statements não é extensão "trusted": só o superusuário cria.
+-- (Exige shared_preload_libraries = 'pg_stat_statements' no postgresql.conf.)
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+-- Tela "Saúde do banco" (só leitura) e diagnóstico.
 GRANT pg_read_all_stats TO nelcota_readonly;

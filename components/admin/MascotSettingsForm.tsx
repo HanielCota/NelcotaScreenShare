@@ -1,9 +1,10 @@
 "use client";
 
 import { Loader2, RotateCcw } from "lucide-react";
-import { useActionState, useEffect, useId, useState, type CSSProperties } from "react";
+import { useAction } from "next-safe-action/hooks";
+import { useId, useState, type CSSProperties } from "react";
 import { toast } from "sonner";
-import type { ActionState } from "@/app/admin/actions";
+import { saveMascotSettings } from "@/app/admin/(painel)/configuracoes/actions";
 import { Mascot } from "@/components/Mascot";
 import { Button } from "@/components/ui/button";
 import type { MascotSettings } from "@/server/settings";
@@ -36,28 +37,33 @@ function percent(value: number): string {
 export function MascotSettingsForm({
   initial,
   limits,
-  action,
+  canEdit,
 }: {
   initial: MascotSettings;
   limits: Limits;
-  action: (state: ActionState, formData: FormData) => Promise<ActionState>;
+  /** Sem `settings.update`, a tela mostra a prévia mas não salva. */
+  canEdit: boolean;
 }) {
   const [values, setValues] = useState(initial);
-  const [state, formAction, pending] = useActionState(action, {});
   const baseId = useId();
-
-  useEffect(() => {
-    if (!state.message) return;
-    if (state.ok) toast.success(state.message);
-    else toast.error(state.message);
-  }, [state]);
+  const save = useAction(saveMascotSettings, {
+    onSuccess: () => toast.success("Salvo. Novas páginas já abrem com a saturação nova."),
+    onError: ({ error }) => toast.error(error.serverError ?? "Confira os valores e tente de novo."),
+  });
+  const pending = save.isPending;
 
   const changed =
     values.saturationDark !== initial.saturationDark ||
     values.saturationLight !== initial.saturationLight;
 
   return (
-    <form action={formAction} className="glass w-full max-w-3xl rounded-2xl p-6 sm:p-8">
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        save.execute(values);
+      }}
+      className="glass w-full max-w-3xl rounded-2xl p-6 sm:p-8"
+    >
       <h2 className="text-xl font-bold tracking-tight">Saturação do mascote</h2>
       <p className="mt-1 text-sm text-ink-muted">
         0% deixa o mascote cinza, 100% é a arte original e 200% deixa as cores mais vivas. A prévia
@@ -107,16 +113,23 @@ export function MascotSettingsForm({
         })}
       </div>
 
+      {canEdit ? null : (
+        <p className="mt-6 text-sm text-ink-muted">
+          Só o dono do painel altera esta configuração. Você vê a prévia, mas não pode salvar.
+        </p>
+      )}
+
       <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Button
           type="button"
           variant="outline"
+          disabled={!canEdit}
           onClick={() => setValues({ saturationDark: 1, saturationLight: 1 })}
         >
           <RotateCcw aria-hidden="true" />
           Restaurar original
         </Button>
-        <Button type="submit" disabled={pending || !changed}>
+        <Button type="submit" disabled={!canEdit || pending || !changed}>
           {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           Salvar
         </Button>

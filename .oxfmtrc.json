@@ -8,5 +8,12 @@
     "stylesheet": "./app/globals.css",
     "functions": ["cn", "cva"]
   },
-  "ignorePatterns": ["components/ui/**", "pnpm-lock.yaml", ".next/**", "drizzle/meta/**", "public/**/*.provenance.json", "coverage/**", "dist/**"]
+  "ignorePatterns": [
+    "pnpm-lock.yaml",
+    ".next/**",
+    "drizzle/meta/**",
+    "public/**/*.provenance.json",
+    "coverage/**",
+    "dist/**"
+  ]
 }

@@ -1,0 +1,102 @@
+"use client";
+
+import { Loader2, Monitor } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { toast } from "sonner";
+import {
+  revokeOtherOwnSessions,
+  revokeOwnSession,
+} from "@/app/admin/(painel)/conta/sessoes/actions";
+import { Button } from "@/components/ui/button";
+import { formatDateTime, formatRelative } from "@/lib/format";
+import { describeUserAgent } from "@/lib/user-agent";
+
+interface SessionRow {
+  id: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function SessionList({
+  sessions,
+  currentId,
+}: {
+  sessions: SessionRow[];
+  currentId: string;
+}) {
+  const revokeOne = useAction(revokeOwnSession, {
+    onSuccess: () => toast.success("Sessão encerrada."),
+    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
+  });
+  const revokeOthers = useAction(revokeOtherOwnSessions, {
+    onSuccess: ({ data }) =>
+      toast.success(
+        data.revoked === 0
+          ? "Não havia outras sessões."
+          : `${data.revoked} sessão(ões) encerrada(s).`,
+      ),
+    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
+  });
+  const others = sessions.filter((session) => session.id !== currentId).length;
+
+  return (
+    <section className="glass rounded-2xl p-2 sm:p-3" aria-label="Lista de sessões">
+      <ul className="flex flex-col">
+        {sessions.map((session) => {
+          const current = session.id === currentId;
+          return (
+            <li
+              key={session.id}
+              className="flex flex-wrap items-center gap-3 rounded-xl px-3 py-3 [&+&]:border-t [&+&]:border-line"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-surface-2">
+                <Monitor className="size-5 text-brand-soft" aria-hidden="true" />
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="flex items-center gap-2 font-semibold">
+                  {describeUserAgent(session.userAgent)}
+                  {current ? (
+                    <span className="rounded-md bg-brand px-1.5 py-0.5 text-[0.7rem] font-bold text-brand-ink">
+                      Este dispositivo
+                    </span>
+                  ) : null}
+                </span>
+                <span className="text-sm text-ink-muted">
+                  {session.ipAddress ?? "IP desconhecido"} · entrou em{" "}
+                  {formatDateTime(session.createdAt)} · ativo{" "}
+                  <time dateTime={session.updatedAt}>{formatRelative(session.updatedAt)}</time>
+                </span>
+              </span>
+              {current ? null : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={revokeOne.isPending}
+                  onClick={() => revokeOne.execute({ sessionId: session.id })}
+                >
+                  Encerrar
+                </Button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {others > 0 ? (
+        <div className="flex justify-end border-t border-line px-3 pt-3 pb-1">
+          <Button
+            variant="outline"
+            disabled={revokeOthers.isPending}
+            onClick={() => revokeOthers.execute()}
+          >
+            {revokeOthers.isPending ? (
+              <Loader2 className="animate-spin" aria-hidden="true" />
+            ) : null}
+            Encerrar todas as outras
+          </Button>
+        </div>
+      ) : null}
+    </section>
+  );
+}

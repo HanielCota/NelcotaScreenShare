@@ -62,6 +62,7 @@ Abra duas abas (ou uma janela anônima), entre na mesma sala e compartilhe a tel
 | `pnpm lint:fast` / `pnpm lint:fast:fix`    | Regras sintáticas do Oxlint, sem o motor de tipos                   |
 | `pnpm lint:config`                         | Mostra a configuração efetivamente carregada pelo Oxlint            |
 | `pnpm format`                              | Oxfmt (`.oxfmtrc.json`)                                             |
+| `pnpm format:check`                        | Confere a formatação do projeto sem alterar arquivos                |
 | `pnpm test`                                | Vitest: unitários + integração (esta só com `TEST_DATABASE_URL`)    |
 | `pnpm test:unit` / `pnpm test:integration` | Só um dos projetos do Vitest                                        |
 | `pnpm test:watch` / `pnpm test:coverage`   | Modo observação / cobertura (`coverage/`)                           |
@@ -70,6 +71,13 @@ Abra duas abas (ou uma janela anônima), entre na mesma sala e compartilhe a tel
 | `pnpm db:migrate`                          | Aplica as migrações com `MIGRATOR_DATABASE_URL`                     |
 | `pnpm db:studio`                           | Abre o Drizzle Studio                                               |
 | `pnpm build:migrate`                       | Empacota o migrador em `dist/migrate.mjs` (usado na imagem Docker)  |
+
+### Formatação nas tarefas de IA
+
+`AGENTS.md` exige que agentes de IA executem `pnpm format` no projeto inteiro após
+qualquer alteração, incluindo `components/ui`, e confirmem com `pnpm format:check`
+antes de concluir a tarefa. O Oxfmt segue `.oxfmtrc.json` e mantém as exclusões de
+dependências, builds e metadados gerados. O CI também verifica a formatação.
 
 ### Oxlint
 
@@ -133,8 +141,9 @@ Os atalhos não disparam enquanto você digita no chat ou em outro campo.
 | `ACCESS_PASSWORD`         | não         | Se definida, todos precisam dela para entrar (comparação em tempo constante) |
 | `MAX_PARTICIPANTS`        | não         | Limite por sala, de 2 a 8 (padrão 6)                                         |
 | `DATABASE_URL`            | não         | Postgres (`postgres://…`). Sem ele, as configurações do admin usam o padrão  |
-| `ADMIN_PASSWORD`          | não         | Senha do `/admin` (12+ caracteres). Defina junto com a próxima               |
-| `ADMIN_SESSION_SECRET`    | não         | Assina o cookie do admin (32+ caracteres, `openssl rand -base64 32`)         |
+| `ADMIN_AUTH_SECRET`       | não         | Liga o `/admin` (32+ caracteres, `openssl rand -base64 48`). Exige banco     |
+| `APP_URL`                 | produção    | Origem pública do app (links de e-mail; obrigatória com o painel ligado)     |
+| `SMTP_URL` / `MAIL_FROM`  | produção    | E-mail transacional (convites, senha). Em dev, sem SMTP, o e-mail vai ao log |
 | `SENTRY_DSN`              | não         | Liga o Sentry no servidor (sem dados pessoais)                               |
 | `LOG_LEVEL`               | não         | Nível do log (padrão `info` em produção, `debug` em dev)                     |
 | `APP_VERSION`             | não         | Definida pela imagem (SHA do commit); aparece no `/api/ready` e no Sentry    |
@@ -169,12 +178,27 @@ Os papéis são criados uma vez com `deploy/postgres/bootstrap.sql` (idempotente
 
 ### Painel `/admin`
 
-Com `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` definidas, `/admin` pede a senha e libera a **saturação do mascote** por tema (0% = cinza, 100% = original, 200% = mais vivo), com prévia ao vivo. O valor é salvo no Postgres e aplicado como `filter: saturate()` no mascote.
+O painel usa uma **instância própria do [Better Auth](https://www.better-auth.com)** em `/api/admin/auth` (tabelas `admin_*`, cookie `nelcota-admin.*`), separada de qualquer conta de participante.
 
-- Sessão em cookie `httpOnly`, `SameSite=Strict`, restrito a `/admin`, assinado com HMAC e válido por 8 horas.
-- 5 senhas erradas por IP a cada 15 minutos.
-- Cada server action confere a sessão de novo (a página não basta).
-- O valor fica em cache por até 60 s no processo e é limpo ao salvar.
+- **Só por convite:** não existe cadastro público nem senha padrão. O primeiro dono é criado com o script abaixo; os demais admins são convidados pelo painel.
+- **Senha:** argon2id (OWASP: 19 MiB, 2 iterações), 12 a 128 caracteres.
+- **2FA TOTP obrigatório** para `owner` e `admin` (app autenticador + 10 códigos de backup de uso único). Sem 2FA, a sessão só acessa a tela de configurá-lo.
+- **Sessão no banco** (sem cache em cookie): expira em 12 h sem uso, máximo absoluto de 7 dias, cookie `HttpOnly` + `Secure` + `SameSite=Strict`. Ações críticas pedem login nos últimos 10 min.
+- **Bloqueio por tentativas:** 5 senhas erradas na mesma conta bloqueiam por 15 min (dobra a cada 5, até 24 h); 20 erros do mesmo IP em 15 min bloqueiam o IP. Mais o rate limit do Better Auth (5 logins/min por IP), guardado no banco.
+- **Sem enumeração:** login, recuperação de senha e convite respondem igual exista o e-mail ou não.
+- **CSRF:** o Better Auth confere a origem; além disso, a rota recusa qualquer requisição de outra origem (inclusive o primeiro login, sem cookie).
+- **Permissões:** papéis `owner`, `admin` e `viewer` em `server/auth/permissions.ts` (matriz em `docs/PLANO-ADMIN.md` §5.2). Toda página chama `requireAdmin(...)` e toda Server Action passa por `adminAction` (sessão, 2FA, permissão e sessão fresca conferidas **dentro** da action).
+
+**Criar o primeiro dono:**
+
+```bash
+# Dev
+pnpm admin:create-owner dono@exemplo.com
+# Produção (container do app no Coolify → Terminal, ou via SSH)
+docker exec -it <container-do-app> node create-owner.mjs dono@exemplo.com
+```
+
+O comando imprime um link de uso único, válido por 30 minutos. Se o único dono perder o 2FA e os códigos de backup, rode de novo com `--force` para gerar outro convite de dono.
 
 ## Deploy no Coolify
 

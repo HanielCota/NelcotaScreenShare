@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cn } from "cn"
-import { Switch as SwitchPrimitive } from "radix-ui"
+import * as React from "react";
+import { cn } from "cn";
+import { Switch as SwitchPrimitive } from "radix-ui";
 
 function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return (
@@ -10,7 +10,7 @@ function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimi
       data-slot="switch"
       className={cn(
         "peer inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-surface-3 p-0.5 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-brand",
-        className
+        className,
       )}
       {...props}
     >
@@ -19,7 +19,7 @@ function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimi
         className="pointer-events-none block size-5 rounded-full bg-white shadow transition-transform duration-300 ease-out-expo data-[state=checked]:translate-x-5"
       />
     </SwitchPrimitive.Root>
-  )
+  );
 }
 
-export { Switch }
+export { Switch };

@@ -106,8 +106,11 @@ export default defineConfig({
         "components/room/MicMenu.tsx",
         "components/room/Reactions.tsx",
         "components/room/ShareMenu.tsx",
+        "components/admin/auth/AdminTwoFactorForm.tsx",
+        "components/admin/account/TwoFactorSettings.tsx",
       ],
-      // Popovers abertos por ação da pessoa: foco inicial permite navegar pelo teclado.
+      // Popovers abertos por ação da pessoa e telas de um único campo (código do
+      // 2FA, que a pessoa acabou de pedir): o foco inicial ajuda quem usa teclado.
       rules: { "jsx-a11y/no-autofocus": "off" },
     },
   ],

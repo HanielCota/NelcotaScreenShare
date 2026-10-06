@@ -27,7 +27,7 @@ ARG APP_VERSION=dev
 ARG NEXT_PUBLIC_SENTRY_DSN=
 ENV NEXT_PUBLIC_APP_VERSION=$APP_VERSION \
     NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
-RUN pnpm build && pnpm build:migrate
+RUN pnpm build && pnpm build:scripts
 
 # 3) Runtime mínimo
 FROM node:24-alpine AS runner
@@ -49,6 +49,8 @@ COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 #     sh -c 'read -r DATABASE_URL && export DATABASE_URL && exec node migrate.mjs'
 # (veja .github/workflows/deploy.yml)
 COPY --from=build --chown=nextjs:nodejs /app/dist/migrate.mjs ./migrate.mjs
+# Bootstrap do primeiro dono do painel: docker exec -it <container> node create-owner.mjs email
+COPY --from=build --chown=nextjs:nodejs /app/dist/create-owner.mjs ./create-owner.mjs
 COPY --from=build --chown=nextjs:nodejs /app/drizzle ./drizzle
 
 USER nextjs

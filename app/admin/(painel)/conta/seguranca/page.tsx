@@ -1,0 +1,29 @@
+import type { Metadata } from "next";
+import { TwoFactorSettings } from "@/components/admin/account/TwoFactorSettings";
+import { needsTwoFactorSetup, requireAdmin } from "@/server/auth/admin-session";
+import { ROLES_REQUIRING_2FA } from "@/server/auth/roles";
+
+export const metadata: Metadata = { title: "Segurança da conta" };
+
+export default async function AccountSecurityPage() {
+  // Única página do painel acessível sem 2FA: é onde ele é configurado.
+  const admin = await requireAdmin(undefined, { allowWithoutTwoFactor: true });
+  const mustSetUp = needsTwoFactorSetup(admin);
+  return (
+    <>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Segurança da conta</h1>
+        <p className="mt-1 text-ink-muted">{admin.user.email}</p>
+      </div>
+      {mustSetUp ? (
+        <output className="block rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm">
+          Para usar o painel, ative a verificação em duas etapas. Leva um minuto.
+        </output>
+      ) : null}
+      <TwoFactorSettings
+        enabled={admin.user.twoFactorEnabled}
+        required={ROLES_REQUIRING_2FA.includes(admin.user.role)}
+      />
+    </>
+  );
+}

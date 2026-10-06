@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { buildCsp } from "@/server/csp";
+import { CLIENT_IP_HEADER } from "@/server/client-ip";
 import { getEnv } from "@/server/env";
+import { getClientIp } from "@/server/rate-limit";
 
 const REQUEST_ID = /^[A-Za-z0-9._-]{8,64}$/;
 
@@ -15,6 +17,11 @@ export function proxy(request: NextRequest) {
   const requestId = incoming && REQUEST_ID.test(incoming) ? incoming : crypto.randomUUID();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", requestId);
+  // Caminho atual para layouts (ex.: liberar a tela de configurar o 2FA).
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  // IP real do cliente (atrás de TRUSTED_PROXY_HOPS proxies), SEMPRE sobrescrito:
+  // um valor mandado pelo próprio cliente nunca chega ao app.
+  requestHeaders.set(CLIENT_IP_HEADER, getClientIp(request.headers, getEnv().TRUSTED_PROXY_HOPS));
 
   const isPage = !request.nextUrl.pathname.startsWith("/api/");
   let csp: string | undefined;
@@ -38,13 +45,8 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    {
-      // Tudo menos arquivos estáticos. Prefetch não precisa de nonce próprio.
-      source: "/((?!_next/static|_next/image|favicon.ico|icon.svg|mascot/|robots.txt).*)",
-      missing: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
-    },
+    // Tudo menos arquivos estáticos. Sem exceção para prefetch: o x-client-ip
+    // precisa ser sobrescrito em toda requisição que chega ao app.
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|mascot/|robots.txt).*)",
   ],
 };

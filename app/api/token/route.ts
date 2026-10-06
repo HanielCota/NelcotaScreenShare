@@ -8,7 +8,7 @@ import {
 } from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
 import { getEnv } from "@/server/env";
-import { requestLogger } from "@/server/logger";
+import { requestLogger } from "@/server/request-log";
 import { tokenRequestSchema, type TokenErrorCode, type TokenResponse } from "@/lib/livekit";
 import { createRateLimiter, getClientIp } from "@/server/rate-limit";
 

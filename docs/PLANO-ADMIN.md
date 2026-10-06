@@ -989,7 +989,7 @@ flowchart LR
 
 ### 9.2 Variáveis de ambiente (app)
 
-`DATABASE_URL` (papel `nelcota_app`), `BETTER_AUTH_SECRET` (32+ bytes), `BETTER_AUTH_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `NEXT_PUBLIC_LIVEKIT_URL`, `SMTP_*` (se houver), `SENTRY_DSN`, `LOG_LEVEL`, `TRUSTED_PROXY_HOPS`, `ACCESS_PASSWORD`, `MAX_PARTICIPANTS`. Todas validadas por Zod no boot. `ADMIN_PASSWORD`/`ADMIN_SESSION_SECRET` são **removidas** com a chegada do Better Auth.
+`DATABASE_URL` (papel `nelcota_app`), `ADMIN_AUTH_SECRET` e `AUTH_SECRET` (um segredo por instância do Better Auth, 32+ bytes), `APP_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `NEXT_PUBLIC_LIVEKIT_URL`, `SMTP_*` (se houver), `SENTRY_DSN`, `LOG_LEVEL`, `TRUSTED_PROXY_HOPS`, `ACCESS_PASSWORD`, `MAX_PARTICIPANTS`. Todas validadas por Zod no boot. `ADMIN_PASSWORD`/`ADMIN_SESSION_SECRET` são **removidas** com a chegada do Better Auth.
 
 **Não** ficam no app: `DATABASE_MIGRATOR_URL` (só nos segredos do GitHub) e a senha do superuser.
 

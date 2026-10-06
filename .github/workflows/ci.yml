@@ -24,7 +24,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec oxfmt --check .
+      - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
       - name: Dependências de produção sem vulnerabilidade alta/crítica
