@@ -124,7 +124,7 @@ export function HomeScene({
           Compartilhe sua tela em segundos.
         </h1>
 
-        <div data-anim="card" className="mt-28 w-full will-change-transform sm:mt-32">
+        <div data-anim="card" className="mt-8 w-full will-change-transform sm:mt-10">
           <SmartBar
             invalidCode={invalidCode}
             pending={pending}

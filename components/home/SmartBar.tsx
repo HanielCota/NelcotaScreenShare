@@ -27,7 +27,9 @@ function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "e
         text: (
           <>
             <span className="max-sm:hidden">
-              <kbd className="rounded-md border border-line px-1.5 font-sans text-xs">Enter</kbd>{" "}
+              <kbd className="inline-flex h-5 items-center rounded-md border border-line px-1.5 align-[-0.15em] font-sans text-[11px] leading-none">
+                Enter
+              </kbd>{" "}
               cria uma sala nova. Recebeu um link? Cole aqui.
             </span>
             <span className="sm:hidden">Toque em Criar sala ou cole o link que recebeu.</span>
@@ -129,16 +131,15 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col items-center gap-3">
       <div className="relative w-full">
         {mascot ? (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-[4.5rem] left-1/2 -translate-x-1/2 sm:-top-24"
-          >
+          // Inteiro, "sentado" na barra: só a sombra dos pés fica atrás dela.
+          // Continua clicável (ele reage a toques).
+          <div aria-hidden="true" className="relative z-0 -mb-3 flex justify-center">
             {mascot}
           </div>
         ) : null}
         <div
           className={cn(
-            "relative z-10 flex h-16 items-center gap-2 rounded-full border border-line bg-surface pr-2 pl-5 shadow-soft transition-colors focus-within:border-brand/60",
+            "relative z-10 flex h-16 items-center gap-2 rounded-full border border-line bg-surface pr-2 pl-5 shadow-[0_12px_32px_-20px_rgb(0_0_0/0.45)] transition-colors focus-within:border-brand/60",
             hint.tone === "error" && "border-danger/60 focus-within:border-danger/70",
           )}
         >
