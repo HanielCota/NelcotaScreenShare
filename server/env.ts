@@ -50,6 +50,15 @@ const envSchema = z
       emptyToUndefined,
       z.string().min(32, "ADMIN_SESSION_SECRET precisa ter ao menos 32 caracteres").optional(),
     ),
+    // Observabilidade (opcionais). SENTRY_DSN liga o Sentry no servidor; o do
+    // navegador vem de NEXT_PUBLIC_SENTRY_DSN no build.
+    SENTRY_DSN: z.preprocess(emptyToUndefined, z.url().optional()),
+    LOG_LEVEL: z.preprocess(
+      emptyToUndefined,
+      z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).optional(),
+    ),
+    // SHA do commit, definido pelo CI na imagem (aparece no /api/ready e no Sentry).
+    APP_VERSION: z.preprocess(emptyToUndefined, z.string().max(64).optional()),
   })
   .superRefine((env, ctx) => {
     if (Boolean(env.ADMIN_PASSWORD) !== Boolean(env.ADMIN_SESSION_SECRET)) {

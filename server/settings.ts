@@ -1,8 +1,9 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, type Database } from "@/lib/db";
-import { appSettings } from "@/lib/db/schema";
+import { getDb, type Database } from "@/server/db";
+import { appSettings } from "@/server/db/schema";
+import { logger } from "@/server/logger";
 
 /**
  * Configurações do app editadas no /admin. Cada grupo é uma linha em
@@ -72,7 +73,7 @@ export async function getSetting<T>(
     // Banco fora do ar não pode derrubar a página: segue com o padrão, sem cachear.
     if (Date.now() - lastReadErrorAt > 60_000) {
       lastReadErrorAt = Date.now();
-      console.error(`[settings] falha ao ler "${group.key}"`, error);
+      logger.error({ err: error, setting: group.key }, "falha ao ler configuração");
     }
     return group.defaults;
   }

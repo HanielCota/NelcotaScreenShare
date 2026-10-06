@@ -32,14 +32,21 @@ docker run -d --name lk-dev \
   --dev --bind 0.0.0.0 --node-ip 127.0.0.1 \
   --keys "devkey: devsecret-0123456789abcdef0123456789abcdef"
 
-# 2. Variáveis
+# 2. Postgres local (mesma configuração e papéis da produção)
+pnpm db:bootstrap:dev        # docker compose -f docker-compose.dev.yml up -d --wait
+
+# 3. Variáveis
 cp .env.example .env.local
 #   LIVEKIT_API_KEY=devkey
 #   LIVEKIT_API_SECRET=devsecret-0123456789abcdef0123456789abcdef
 #   NEXT_PUBLIC_LIVEKIT_URL=ws://localhost:7880
+#   DATABASE_URL=postgres://nelcota_app:app-dev@127.0.0.1:54329/nelcota
+#   MIGRATOR_DATABASE_URL=postgres://nelcota_migrator:migrator-dev@127.0.0.1:54329/nelcota
+#   TEST_DATABASE_URL=postgres://nelcota:nelcota-dev@127.0.0.1:54329/nelcota_test
 
-# 3. App
+# 4. App
 pnpm install
+pnpm db:migrate     # migrações com o usuário de migração
 pnpm dev            # http://localhost:3000
 ```
 
@@ -47,17 +54,22 @@ Abra duas abas (ou uma janela anônima), entre na mesma sala e compartilhe a tel
 
 ### Scripts
 
-| Script                                   | O que faz                                                        |
-| ---------------------------------------- | ---------------------------------------------------------------- |
-| `pnpm dev` / `pnpm build` / `pnpm start` | Desenvolvimento, build de produção e servidor de produção local  |
-| `pnpm typecheck`                         | `tsc --noEmit` (TypeScript 7 nativo)                             |
-| `pnpm lint` / `pnpm lint:fix`            | Oxlint completo com informação de tipos e correções seguras      |
-| `pnpm lint:fast` / `pnpm lint:fast:fix`  | Regras sintáticas do Oxlint, sem o motor de tipos                |
-| `pnpm lint:config`                       | Mostra a configuração efetivamente carregada pelo Oxlint         |
-| `pnpm format`                            | Oxfmt (`.oxfmtrc.json`)                                          |
-| `pnpm test`                              | Testes do mascote, bibliotecas de servidor e rotas de API        |
-| `pnpm db:generate`                       | Gera a migração SQL em `drizzle/` a partir de `lib/db/schema.ts` |
-| `pnpm db:migrate` / `pnpm db:studio`     | Aplica migrações na mão / abre o Drizzle Studio                  |
+| Script                                     | O que faz                                                           |
+| ------------------------------------------ | ------------------------------------------------------------------- |
+| `pnpm dev` / `pnpm build` / `pnpm start`   | Desenvolvimento, build de produção e servidor de produção local     |
+| `pnpm typecheck`                           | `tsc --noEmit` (TypeScript 7 nativo)                                |
+| `pnpm lint` / `pnpm lint:fix`              | Oxlint completo com informação de tipos e correções seguras         |
+| `pnpm lint:fast` / `pnpm lint:fast:fix`    | Regras sintáticas do Oxlint, sem o motor de tipos                   |
+| `pnpm lint:config`                         | Mostra a configuração efetivamente carregada pelo Oxlint            |
+| `pnpm format`                              | Oxfmt (`.oxfmtrc.json`)                                             |
+| `pnpm test`                                | Vitest: unitários + integração (esta só com `TEST_DATABASE_URL`)    |
+| `pnpm test:unit` / `pnpm test:integration` | Só um dos projetos do Vitest                                        |
+| `pnpm test:watch` / `pnpm test:coverage`   | Modo observação / cobertura (`coverage/`)                           |
+| `pnpm db:bootstrap:dev`                    | Sobe o Postgres local (`docker-compose.dev.yml`) com os papéis      |
+| `pnpm db:generate`                         | Gera a migração SQL em `drizzle/` a partir de `server/db/schema.ts` |
+| `pnpm db:migrate`                          | Aplica as migrações com `MIGRATOR_DATABASE_URL`                     |
+| `pnpm db:studio`                           | Abre o Drizzle Studio                                               |
+| `pnpm build:migrate`                       | Empacota o migrador em `dist/migrate.mjs` (usado na imagem Docker)  |
 
 ### Oxlint
 
@@ -123,33 +135,37 @@ Os atalhos não disparam enquanto você digita no chat ou em outro campo.
 | `DATABASE_URL`            | não         | Postgres (`postgres://…`). Sem ele, as configurações do admin usam o padrão  |
 | `ADMIN_PASSWORD`          | não         | Senha do `/admin` (12+ caracteres). Defina junto com a próxima               |
 | `ADMIN_SESSION_SECRET`    | não         | Assina o cookie do admin (32+ caracteres, `openssl rand -base64 32`)         |
+| `SENTRY_DSN`              | não         | Liga o Sentry no servidor (sem dados pessoais)                               |
+| `LOG_LEVEL`               | não         | Nível do log (padrão `info` em produção, `debug` em dev)                     |
+| `APP_VERSION`             | não         | Definida pela imagem (SHA do commit); aparece no `/api/ready` e no Sentry    |
 
-Tudo é validado com Zod em `lib/env.ts`. Se faltar algo, o container sai com código 1 no boot e lista o problema nos logs.
+Tudo é validado com Zod em `server/env.ts`. Se faltar algo, o container sai com código 1 no boot e lista o problema nos logs.
 
 `NEXT_PUBLIC_LIVEKIT_URL` é lida em runtime pelo servidor e devolvida ao navegador junto com o token. Por isso mudar a URL não exige rebuild, e nenhuma variável precisa existir no build.
 
 ## Banco de dados e painel admin
 
-O app usa **PostgreSQL** com **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + driver `pg`).
+O app usa **PostgreSQL 18** com **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + driver `pg`). O plano completo do painel está em [`docs/PLANO-ADMIN.md`](docs/PLANO-ADMIN.md).
 
-- O schema fica em `lib/db/schema.ts`. Depois de mudar o schema, rode `pnpm db:generate` e faça commit do SQL gerado em `drizzle/`.
-- As migrações pendentes são aplicadas **sozinhas quando o app sobe** (`instrumentation.ts`), com um advisory lock no Postgres. Se a migração falhar em produção, o container sai e o Coolify mostra o erro.
-- Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `lib/settings.ts`). Um grupo novo de configuração não precisa de migração.
+- O schema fica em `server/db/schema.ts`. Depois de mudar o schema, rode `pnpm db:generate`, revise o SQL e faça commit dele em `drizzle/`.
+- **Migrações nunca rodam no boot do app.** São um job separado (`scripts/migrate.ts`), com um usuário próprio do Postgres, advisory lock e `lock_timeout` de 5 s. Mudanças seguem _expand/contract_ (o código antigo continua funcionando com o schema novo).
+- Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `server/settings.ts`). Um grupo novo de configuração não precisa de migração.
 - Sem `DATABASE_URL` o app funciona normalmente, com os valores padrão.
 
-### Postgres local
+### Papéis do Postgres (privilégio mínimo)
 
-```bash
-docker run -d --name nelcota-screenshare-pg -p 127.0.0.1:54329:5432   -e POSTGRES_USER=nelcota -e POSTGRES_PASSWORD=nelcota-dev -e POSTGRES_DB=nelcota postgres:18-alpine
-# .env.local
-DATABASE_URL=postgres://nelcota:nelcota-dev@127.0.0.1:54329/nelcota
-```
+| Papel              | Pode                                        | Quem usa                           |
+| ------------------ | ------------------------------------------- | ---------------------------------- |
+| `nelcota_migrator` | dono do schema; DDL                         | job de migração (segredo só no CI) |
+| `nelcota_app`      | ler e escrever dados; **sem DDL**; timeouts | o app (`DATABASE_URL`)             |
+| `nelcota_readonly` | só leitura + estatísticas                   | diagnóstico e teste de restauração |
 
-Os testes que usam o banco só rodam com `TEST_DATABASE_URL` apontando para um banco **descartável** (eles apagam as tabelas):
+Os papéis são criados uma vez com `deploy/postgres/bootstrap.sql` (idempotente). Em dev, o `docker-compose.dev.yml` roda o bootstrap sozinho com senhas fixas de desenvolvimento.
 
-```bash
-TEST_DATABASE_URL=postgres://nelcota:nelcota-dev@127.0.0.1:54329/nelcota_test pnpm test
-```
+### Testes
+
+- `tests/unit`: sem banco.
+- `tests/integration`: Postgres real. Com `TEST_DATABASE_URL` (banco **descartável**; em dev ele é lido do `.env.local`), o Vitest recria um banco-modelo já migrado e cada arquivo de teste recebe uma cópia limpa (`CREATE DATABASE … TEMPLATE`).
 
 ### Painel `/admin`
 
@@ -238,32 +254,40 @@ ufw allow from 10.0.0.0/8 to any port 7880 proto tcp
 
 Para testar: `curl https://lk.seudominio.com` deve responder `OK`.
 
-### 4. Recurso App (Dockerfile)
+### 4. Recurso App (imagem do GHCR)
 
-1. - New Resource → Application a partir do repositório, com Build Pack: Dockerfile.
-2. Ports Exposes: `3000`. Domains: `https://app.seudominio.com`.
-3. Environment Variables (runtime; não precisam ser _build variables_):
+A imagem é construída no **GitHub Actions** (não na VPS, para não disputar CPU e memória com o app) e publicada no GHCR com duas tags: `:<sha>` (imutável) e `:main`.
+
+1. No Coolify: New Resource → **Docker Image** → `ghcr.io/<org>/<repo>:main` (com credencial de leitura do GHCR). Ports Exposes: `3000`. Domains: `https://app.seudominio.com`.
+2. Environment Variables (runtime):
 
    ```
+   DATABASE_URL=postgres://nelcota_app:<senha>@<host-interno-do-postgres>:5432/nelcota
    LIVEKIT_API_KEY=<mesma do LiveKit>
    LIVEKIT_API_SECRET=<mesmo do LiveKit>
    NEXT_PUBLIC_LIVEKIT_URL=wss://lk.seudominio.com
    ACCESS_PASSWORD=<opcional>
    MAX_PARTICIPANTS=6
+   SENTRY_DSN=<opcional>
    ```
 
-4. Deploy. O `HEALTHCHECK` do Dockerfile consulta `/api/health`, e o container roda como usuário não-root (`nextjs`).
+3. Mantenha o rolling update ligado (sem mapear porta do host nem nome fixo de container). O `HEALTHCHECK` do Dockerfile consulta `/api/health`; o container roda como usuário não-root (`nextjs`).
+
+**Pipeline** (`.github/workflows`): `ci.yml` roda formatação, lint, tipos, `pnpm audit`, testes (com Postgres 18.6) e build em todo PR. Na `main`, `deploy.yml` faz: imagem no GHCR → **migração** (SSH na VPS, `docker run` da imagem nova com o usuário de migração) → webhook do Coolify → espera o `/api/ready` responder com o SHA novo. Se a migração falhar, nada é deployado.
+
+Segredos do GitHub (environment `production`): `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`, `DEPLOY_USER`, `MIGRATOR_DATABASE_URL`, `COOLIFY_DEPLOY_WEBHOOK`, `COOLIFY_TOKEN`. Variáveis: `APP_URL`, `DEPLOY_DOCKER_NETWORK` (padrão `coolify`), `NEXT_PUBLIC_SENTRY_DSN` (opcional). No servidor, o usuário de deploy precisa de `docker login ghcr.io` uma vez.
 
 > O rate limit fica em memória: vale para uma réplica (o padrão no Coolify). Para escalar horizontalmente, troque por Redis.
 >
-> O IP usado no rate limit é o último do `X-Forwarded-For`, o que o Traefik acrescenta. Se o `app.` passar pelo proxy da Cloudflare, esse IP vira o da Cloudflare; nesse caso, leia o `CF-Connecting-IP` em `lib/rate-limit.ts`.
+> O IP usado no rate limit é o último do `X-Forwarded-For`, o que o Traefik acrescenta. Se o `app.` passar pelo proxy da Cloudflare, esse IP vira o da Cloudflare; nesse caso, leia o `CF-Connecting-IP` em `server/rate-limit.ts`.
 
-### 4.1. PostgreSQL (opcional, para o `/admin`)
+### 4.1. PostgreSQL
 
-1. No Coolify, crie um recurso **PostgreSQL** no mesmo projeto e servidor do app.
-2. Copie a **URL interna** (Postgres URL internal) para `DATABASE_URL` no recurso App. Não exponha a porta do Postgres na internet.
-3. Defina `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` no App e faça o redeploy. As tabelas são criadas no boot.
-4. Ative os backups agendados do PostgreSQL no Coolify.
+1. No Coolify, crie um recurso **PostgreSQL** com a imagem `postgres:18.6-alpine`, no mesmo projeto e servidor do app. **Não** torne a porta pública.
+2. Em "Custom PostgreSQL configuration", cole `deploy/postgres/postgresql.conf` (ele **substitui** o arquivo inteiro; os valores estão comentados para VPS de 4 e 8 GB). Reinicie o banco.
+3. Rode o bootstrap uma vez com o superusuário (instruções no topo de `deploy/postgres/bootstrap.sql`) e guarde as três senhas geradas.
+4. `DATABASE_URL` do App usa `nelcota_app`; `MIGRATOR_DATABASE_URL` (segredo do GitHub) usa `nelcota_migrator`. Ambas com o host **interno** do Postgres.
+5. Ative os backups agendados do Coolify para um S3 compatível (diário, 03:00).
 
 ### 5. TURN/TLS (opcional, para redes muito restritivas)
 
@@ -320,6 +344,8 @@ app/
   page.tsx                # Home
   sala/[codigo]/page.tsx  # valida o código e renderiza a sessão
   api/token/route.ts      # JWT do LiveKit (Zod, senha, limite, rate limit)
+  api/health/route.ts     # liveness (HEALTHCHECK)
+  api/ready/route.ts      # prontidão: banco + versão (smoke test do deploy)
   api/livekit/webhook/route.ts  # log de entradas e saídas (assinado pelo LiveKit)
   admin/{page,actions,session}.ts(x)  # painel admin (senha, sessão, saturação do mascote)
   api/health/route.ts     # healthcheck
@@ -329,9 +355,14 @@ components/
   ui/                     # shadcn
 hooks/useRoomAnimations.ts  # entrada do dock, stagger dos tiles e Flip do layout
 hooks/useShortcut.ts        # atalhos de uma tecla (M, S, F, P, H, C)
-lib/{gsap,livekit,env,rate-limit,csp,room-data,shortcuts,theme,settings,admin-auth,copy-room-link,utils}.ts
-lib/db/{schema,index,migrate}.ts  # Drizzle: tabelas, conexão e migrações no boot
+lib/{gsap,livekit,room-data,shortcuts,theme,copy-room-link,utils}.ts  # isomórfico, sem segredos
+server/                   # só servidor (import "server-only"): env, db, logger, csp, rate-limit, settings, auth
+server/db/{schema,index}.ts  # Drizzle: tabelas e pool de conexões
+scripts/migrate.ts        # migrador (job separado; empacotado como migrate.mjs na imagem)
 drizzle/                  # migrações SQL geradas (commitadas)
+deploy/postgres/          # postgresql.conf, bootstrap dos papéis, init de dev
+tests/{unit,integration}/ # Vitest
+.github/workflows/        # CI e deploy
 instrumentation.ts        # valida o env no boot
 deploy/livekit/livekit.yaml
 docker-compose.livekit.yml

@@ -1,0 +1,28 @@
+# Postgres local com a mesma configuração e os mesmos papéis da produção.
+#   docker compose -f docker-compose.dev.yml up -d
+# Usuários: nelcota (superusuário, só para testes), nelcota_migrator, nelcota_app, nelcota_readonly.
+name: nelcota-dev-db
+services:
+  postgres:
+    image: postgres:18.6-alpine
+    container_name: nelcota-screenshare-pg
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    environment:
+      POSTGRES_USER: nelcota
+      POSTGRES_PASSWORD: nelcota-dev
+      POSTGRES_DB: nelcota
+    ports:
+      - "127.0.0.1:54329:5432"
+    shm_size: 256mb
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./deploy/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./deploy/postgres/bootstrap.sql:/opt/nelcota/bootstrap.sql:ro
+      - ./deploy/postgres/dev-init.sh:/docker-entrypoint-initdb.d/10-dev-init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nelcota -d nelcota"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  pgdata:

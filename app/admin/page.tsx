@@ -5,8 +5,8 @@ import { MascotSettingsForm } from "@/components/admin/MascotSettingsForm";
 import { NavBar, NavBrand, NavDivider } from "@/components/NavBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { getEnv } from "@/lib/env";
-import { getSetting, MASCOT_SATURATION, mascotSettings } from "@/lib/settings";
+import { getEnv } from "@/server/env";
+import { getSetting, MASCOT_SATURATION, mascotSettings } from "@/server/settings";
 import { login, logout, saveMascot } from "./actions";
 import { adminCredentials, hasAdminSession } from "./session";
 

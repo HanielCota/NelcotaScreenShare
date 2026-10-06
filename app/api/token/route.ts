@@ -7,9 +7,10 @@ import {
   TrackSource,
 } from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/server/env";
+import { requestLogger } from "@/server/logger";
 import { tokenRequestSchema, type TokenErrorCode, type TokenResponse } from "@/lib/livekit";
-import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
+import { createRateLimiter, getClientIp } from "@/server/rate-limit";
 
 const TOKEN_TTL = "10m";
 const rateLimit = createRateLimiter({ limit: 20, windowMs: 60_000 });
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
     };
     return NextResponse.json(response, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    console.error("[api/token] falha ao gerar token", error);
+    (await requestLogger({ route: "api/token" })).error({ err: error }, "falha ao gerar token");
     return errorResponse(
       "server_error",
       "A sala está indisponível no momento. Aguarde alguns segundos e tente novamente.",

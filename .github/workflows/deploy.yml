@@ -1,0 +1,100 @@
+name: Deploy
+
+# Só depois do CI verde na main. Ordem: imagem → migração (job separado) → deploy → smoke.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  image:
+    name: Imagem no GHCR
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.vars.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - id: vars
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          build-args: |
+            APP_VERSION=${{ steps.vars.outputs.sha }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.vars.outputs.sha }}
+            ${{ env.IMAGE }}:main
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  migrate:
+    name: Migrações (usuário de migração)
+    needs: image
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Chave SSH do deploy
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - name: docker run da imagem nova com o migrador
+        env:
+          IMAGE_REF: ${{ env.IMAGE }}:${{ needs.image.outputs.sha }}
+          MIGRATOR_DATABASE_URL: ${{ secrets.MIGRATOR_DATABASE_URL }}
+          DOCKER_NETWORK: ${{ vars.DEPLOY_DOCKER_NETWORK || 'coolify' }}
+        # A URL do migrator vai pelo stdin e é lida dentro do container: não aparece
+        # em `ps`, nos argumentos do docker nem no histórico do servidor.
+        run: |
+          printf '%s\n' "$MIGRATOR_DATABASE_URL" | ssh -i ~/.ssh/deploy \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "docker pull -q '$IMAGE_REF' && docker run --rm -i --network '$DOCKER_NETWORK' \
+              '$IMAGE_REF' sh -c 'read -r DATABASE_URL && export DATABASE_URL && exec node migrate.mjs'"
+
+  deploy:
+    name: Deploy no Coolify + smoke test
+    needs: [image, migrate]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Webhook do Coolify (puxa :main)
+        run: |
+          curl --fail --silent --show-error -X POST "${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+      - name: Esperar a versão nova responder em /api/ready
+        env:
+          EXPECTED: ${{ needs.image.outputs.sha }}
+          URL: ${{ vars.APP_URL }}/api/ready
+        run: |
+          for _ in $(seq 1 60); do
+            body=$(curl -fsS "$URL" || true)
+            echo "$body" | grep -q "\"version\":\"$EXPECTED\"" && echo "$body" && exit 0
+            sleep 10
+          done
+          echo "A versão $EXPECTED não respondeu em 10 minutos: confira o deploy no Coolify." >&2
+          exit 1

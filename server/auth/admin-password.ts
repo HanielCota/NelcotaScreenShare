@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import { createRateLimiter } from "@/lib/rate-limit";
+import { createRateLimiter } from "@/server/rate-limit";
 
 export const ADMIN_COOKIE = "nelcota_admin";
 /** Sessão curta: o painel é usado de vez em quando, não fica aberto o dia todo. */

@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { connection } from "next/server";
+import { headers } from "next/headers";
 import type { CSSProperties } from "react";
 import { Manrope } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { getSetting, mascotSettings } from "@/lib/settings";
+import { getSetting, mascotSettings } from "@/server/settings";
 import { THEME_COLOR, THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
@@ -30,9 +30,9 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  // A configuração vem do banco a cada requisição (com cache em memória), não do
-  // build: lá não há banco nem variáveis de ambiente.
-  await connection();
+  // Nonce da CSP (proxy.ts). Ler os headers também deixa a renderização por
+  // requisição: a configuração vem do banco (com cache em memória), não do build.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const mascot = await getSetting(mascotSettings);
   const style = {
     "--mascot-saturation-dark": mascot.saturationDark,
@@ -43,7 +43,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     // O script abaixo põe data-theme no <html> antes da hidratação (sem JS: escuro).
     <html lang="pt-BR" className={manrope.variable} style={style} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-dvh bg-canvas font-sans text-ink">
         <TooltipProvider delayDuration={300}>{children}</TooltipProvider>

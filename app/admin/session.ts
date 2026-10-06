@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-auth";
-import { getEnv } from "@/lib/env";
+import { ADMIN_COOKIE, verifySessionToken } from "@/server/auth/admin-password";
+import { getEnv } from "@/server/env";
 
 /** Senha e segredo do admin, ou `undefined` com o painel desligado. */
 export function adminCredentials(): { password: string; secret: string } | undefined {

@@ -1,30 +1,14 @@
 import assert from "node:assert/strict";
-import { registerHooks } from "node:module";
-import test from "node:test";
+import { test } from "vitest";
 
-// Next resolve imports sem extensão. O runner nativo de Node precisa da extensão .ts.
-registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (
-      (context.parentURL?.includes("/components/mascot/") ||
-        context.parentURL?.includes("/tests/")) &&
-      specifier.startsWith(".") &&
-      !/\.(ts|mts)$/.test(specifier)
-    ) {
-      return nextResolve(`${specifier}.ts`, context);
-    }
-    return nextResolve(specifier, context);
-  },
-});
-
-const { createReasons } = await import("../components/mascot/reasons");
-const { EXPRESSIONS, toFaceState } = await import("../components/mascot/face");
-const { springStep } = await import("../components/mascot/spring");
-const { createHandMotions } = await import("../components/mascot/hand-motions");
-const { avatarFrame } = await import("../components/mascot/avatar-frames");
-const { idleSleep } = await import("../components/mascot/sleep");
+const { createReasons } = await import("../../components/mascot/reasons");
+const { EXPRESSIONS, toFaceState } = await import("../../components/mascot/face");
+const { springStep } = await import("../../components/mascot/spring");
+const { createHandMotions } = await import("../../components/mascot/hand-motions");
+const { avatarFrame } = await import("../../components/mascot/avatar-frames");
+const { idleSleep } = await import("../../components/mascot/sleep");
 const { gazeAt, pupilOffset, eyelidOffset, EYE_SHAPES, POSE_EYES, IDLE } =
-  await import("../components/mascot/eye-tracking");
+  await import("../../components/mascot/eye-tracking");
 
 await test("a curva e o traço da pálpebra ficam completamente fora do olho aberto", () => {
   for (const { ry } of EYE_SHAPES) {

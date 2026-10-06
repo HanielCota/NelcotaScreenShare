@@ -10,10 +10,11 @@ import {
   adminLoginLimit,
   createSessionToken,
   passwordMatches,
-} from "@/lib/admin-auth";
-import { getEnv } from "@/lib/env";
-import { getClientIp } from "@/lib/rate-limit";
-import { mascotSettings, saveSetting, SettingsUnavailableError } from "@/lib/settings";
+} from "@/server/auth/admin-password";
+import { getEnv } from "@/server/env";
+import { requestLogger } from "@/server/logger";
+import { getClientIp } from "@/server/rate-limit";
+import { mascotSettings, saveSetting, SettingsUnavailableError } from "@/server/settings";
 import { adminCredentials, hasAdminSession } from "./session";
 
 export interface ActionState {
@@ -74,7 +75,7 @@ export async function saveMascot(_previous: ActionState, formData: FormData): Pr
     if (error instanceof SettingsUnavailableError) {
       return { message: "Banco de dados não configurado: defina DATABASE_URL no servidor." };
     }
-    console.error("[admin] falha ao salvar o mascote", error);
+    (await requestLogger({ route: "admin" })).error({ err: error }, "falha ao salvar o mascote");
     return { message: "Não foi possível salvar agora. Tente de novo em instantes." };
   }
   // Páginas já abertas no navegador (cache do roteador) pegam o valor novo.

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import type { ActionState } from "@/app/admin/actions";
 import { Mascot } from "@/components/Mascot";
 import { Button } from "@/components/ui/button";
-import type { MascotSettings } from "@/lib/settings";
+import type { MascotSettings } from "@/server/settings";
 import { cn } from "@/lib/utils";
 
 interface Limits {

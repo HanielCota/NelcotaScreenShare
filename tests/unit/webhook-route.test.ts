@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import test from "node:test";
+import { test, vi } from "vitest";
 import { z } from "zod";
-// oxlint-disable-next-line import/no-unassigned-import -- Só registra os hooks de resolução de módulos.
-import "./support/register.mts";
 
 const KEY = "chave-teste";
 const SECRET = "segredo-de-teste-0123456789abcdef0123456789";
@@ -16,7 +14,8 @@ Object.assign(process.env, {
 
 const { AccessToken } = await import("livekit-server-sdk");
 const { NextRequest } = await import("next/server");
-const { POST } = await import("../app/api/livekit/webhook/route");
+const { POST } = await import("../../app/api/livekit/webhook/route");
+const { logger } = await import("../../server/logger");
 
 const body = JSON.stringify({
   event: "participant_joined",
@@ -45,14 +44,16 @@ function post(payload: string, authorization?: string) {
   );
 }
 
-await test("aceita evento assinado e registra a entrada", async (t) => {
-  const logs: string[] = [];
-  t.mock.method(console, "info", (line: string) => logs.push(line));
+await test("aceita evento assinado e registra a entrada", async () => {
+  const logs: unknown[] = [];
+  vi.spyOn(logger, "info").mockImplementation((entry: unknown) => {
+    logs.push(entry);
+  });
 
   const response = await post(body, await signature(body));
   assert.equal(response.status, 204);
   assert.equal(logs.length, 1);
-  const line = z.record(z.string(), z.unknown()).parse(JSON.parse(logs[0]!));
+  const line = z.record(z.string(), z.unknown()).parse(logs[0]);
   assert.equal(line.event, "participant_joined");
   assert.equal(line.room, "sala-teste");
   assert.deepEqual(line.participant, { identity: "ana-1234", name: "Ana" });

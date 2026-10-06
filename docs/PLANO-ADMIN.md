@@ -24,153 +24,153 @@
 
 ### 2.1 Versões verificadas (06/10/2026)
 
-| Pacote / serviço | Versão estável | Último release | Compatibilidade verificada |
-|---|---|---|---|
-| next | 16.3.8 | 05/10/2026 | peer `react ^19` |
-| react / react-dom | 19.3.0 | 02/10/2026 | atende "19.2+" |
-| typescript | 7.0.2 | 06/10/2026 | — |
-| zod | 4.6.5 | 02/10/2026 | Standard Schema |
-| drizzle-orm / drizzle-kit | 0.45.3 / 0.31.11 | 21/09/2026 | peer `pg >=8`; 1.0 ainda em **RC (1.0.0-rc.4)** |
-| pg | 8.23.1 | 30/09/2026 | Node ≥16 |
-| better-auth | 1.7.7 | 30/09/2026 | peers `next ^16`, `react ^19`, `drizzle-orm ^0.45.2` |
-| @node-rs/argon2 | 2.2.2 | 06/10/2026 | binários prontos para linux-musl x64/arm64 e Windows |
-| next-safe-action | 8.7.3 | 07/09/2026 | peers `next >=14`, `react >=18.2`; aceita Zod 4 |
-| @next-safe-action/adapter-react-hook-form | 2.1.0 | 18/07/2026 | peer `next-safe-action >=8.1.10` |
-| @tanstack/react-table | 9.2.6 | 04/10/2026 | **compatível com React Compiler** (v9) |
-| @tanstack/react-query | 5.104.1 | 02/10/2026 | peer `react ^19` |
-| nuqs | 2.10.1 | 28/08/2026 | peer `next >=14.2` |
-| react-hook-form / @hookform/resolvers | 7.89.0 / 5.9.1 | 26/09 e 17/08/2026 | resolvers aceita `zod ^4` |
-| recharts (via shadcn chart) | 3.10.1 | 03/10/2026 | peer `react ^19` |
-| cmdk (via shadcn command) | 1.1.1 | **27/08/2025** | peer `react ^19`; manutenção lenta (ver riscos) |
-| sonner | 2.0.8 | 09/08/2026 | já no projeto |
-| pino | 10.4.0 | 02/10/2026 | já está na lista de `serverExternalPackages` padrão do Next 16.3.8 |
-| @sentry/nextjs | 11.4.0 | 02/10/2026 | peer `next ^16`; Node 24 ok |
-| vitest | 5.0.3 | 30/09/2026 | Node `^24` |
-| @playwright/test | 1.63.0 | 06/10/2026 | Node ≥20 |
-| @axe-core/playwright | 4.13.0 | 06/10/2026 | — |
-| testcontainers / @testcontainers/postgresql | 12.2.0 | 28/09/2026 | Node ≥22.22 |
-| @faker-js/faker | 10.6.0 | 06/09/2026 | Node ≥24 ok |
-| date-fns / @date-fns/tz | 4.4.0 / 1.5.0 | 29/05 e 21/05/2026 | — |
-| livekit-server-sdk | 2.19.1 | 20/09/2026 | já no projeto |
-| PostgreSQL | **18.6** (`postgres:18.6-alpine`) | 13/08/2026 | EOL 14/11/2030; `uuidv7()` nativo |
-| Coolify | 4.3.23 | 18/09/2026 | oferece Postgres 18 (`postgres:18-alpine` é o padrão) |
-| Node.js | 24.21.0 LTS | 07/09/2026 | — |
+| Pacote / serviço                            | Versão estável                    | Último release           | Compatibilidade verificada                                                                                        |
+| ------------------------------------------- | --------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| next                                        | 16.3.8                            | 05/10/2026               | peer `react ^19`                                                                                                  |
+| react / react-dom                           | 19.3.0                            | 02/10/2026               | atende "19.2+"                                                                                                    |
+| typescript                                  | 7.0.2                             | 06/10/2026               | —                                                                                                                 |
+| zod                                         | 4.6.5                             | 02/10/2026               | Standard Schema                                                                                                   |
+| drizzle-orm / drizzle-kit                   | 0.45.3 / 0.31.11                  | 21/09/2026               | peer `pg >=8`; 1.0 ainda em **RC (1.0.0-rc.4)**                                                                   |
+| pg                                          | 8.23.1                            | 30/09/2026               | Node ≥16                                                                                                          |
+| better-auth                                 | 1.7.7                             | 30/09/2026               | peers `next ^16`, `react ^19`, `drizzle-orm ^0.45.2`                                                              |
+| @node-rs/argon2                             | **2.2.1** (10/09/2026)            | 2.2.2 saiu em 06/10/2026 | fixada na 2.2.1: a 2.2.2 ainda não passou do `minimumReleaseAge` do pnpm; binários linux-musl x64/arm64 e Windows |
+| next-safe-action                            | 8.7.3                             | 07/09/2026               | peers `next >=14`, `react >=18.2`; aceita Zod 4                                                                   |
+| @next-safe-action/adapter-react-hook-form   | 2.1.0                             | 18/07/2026               | peer `next-safe-action >=8.1.10`                                                                                  |
+| @tanstack/react-table                       | 9.2.6                             | 04/10/2026               | **compatível com React Compiler** (v9)                                                                            |
+| @tanstack/react-query                       | 5.104.1                           | 02/10/2026               | peer `react ^19`                                                                                                  |
+| nuqs                                        | 2.10.1                            | 28/08/2026               | peer `next >=14.2`                                                                                                |
+| react-hook-form / @hookform/resolvers       | 7.89.0 / 5.9.1                    | 26/09 e 17/08/2026       | resolvers aceita `zod ^4`                                                                                         |
+| recharts (via shadcn chart)                 | 3.10.1                            | 03/10/2026               | peer `react ^19`                                                                                                  |
+| cmdk (via shadcn command)                   | 1.1.1                             | **27/08/2025**           | peer `react ^19`; manutenção lenta (ver riscos)                                                                   |
+| sonner                                      | 2.0.8                             | 09/08/2026               | já no projeto                                                                                                     |
+| pino                                        | 10.4.0                            | 02/10/2026               | já está na lista de `serverExternalPackages` padrão do Next 16.3.8                                                |
+| @sentry/nextjs                              | 11.4.0                            | 02/10/2026               | peer `next ^16`; Node 24 ok                                                                                       |
+| vitest                                      | 5.0.3                             | 30/09/2026               | Node `^24`                                                                                                        |
+| @playwright/test                            | 1.63.0                            | 06/10/2026               | Node ≥20                                                                                                          |
+| @axe-core/playwright                        | 4.13.0                            | 06/10/2026               | —                                                                                                                 |
+| testcontainers / @testcontainers/postgresql | 12.2.0                            | 28/09/2026               | Node ≥22.22                                                                                                       |
+| @faker-js/faker                             | 10.6.0                            | 06/09/2026               | Node ≥24 ok                                                                                                       |
+| date-fns / @date-fns/tz                     | 4.4.0 / 1.5.0                     | 29/05 e 21/05/2026       | —                                                                                                                 |
+| livekit-server-sdk                          | 2.19.1                            | 20/09/2026               | já no projeto                                                                                                     |
+| PostgreSQL                                  | **18.6** (`postgres:18.6-alpine`) | 13/08/2026               | EOL 14/11/2030; `uuidv7()` nativo                                                                                 |
+| Coolify                                     | 4.3.23                            | 18/09/2026               | oferece Postgres 18 (`postgres:18-alpine` é o padrão)                                                             |
+| Node.js                                     | 24.21.0 LTS                       | 07/09/2026               | —                                                                                                                 |
 
 ### 2.2 ORM / acesso a dados
 
-| | Decisão |
-|---|---|
-| **Escolha** | **Drizzle ORM 0.45.x** (versão exata fixada) + drizzle-kit 0.31.x |
-| Alternativas | Prisma 7; Kysely 0.29 |
-| Motivo | Schema em TypeScript, sem etapa de geração de código. Consultas próximas do SQL, o que torna o keyset e os agregados previsíveis. Suporta tudo que o plano usa: `jsonb` tipado, `pgEnum`, `check()`, índices parciais (`.where`), GIN com `gin_trgm_ops`, `CREATE INDEX CONCURRENTLY`, identity e `default(sql\`uuidv7()\`)`. Gera SQL versionado. O Better Auth tem adaptador oficial para ele. Já está no projeto. |
-| Por que não Prisma | Em 06/10/2026 a tag `latest` do CLI `prisma` instala o **8.0.0-rc**, que não tem `generate` nem `migrate dev`. O Prisma 7 estável (7.10) exige fixar `^7`, usa _driver adapter_ e tem ciclo de manutenção de 18 meses após o v8. É risco de retrabalho logo no início. |
-| Por que não Kysely | Excelente _query builder_, mas as migrações são escritas à mão (sem diff a partir do schema) e os tipos dependem de codegen. Mais trabalho para o mesmo resultado. |
-| Riscos | (1) O Drizzle 1.0 ainda não tem data de GA e muda o formato da pasta de migrações (`drizzle-kit up` converte). Mitigação: usar a API de relações v2 (`defineRelations`) desde já e planejar a conversão como tarefa isolada. (2) Colunas geradas só no modo `STORED` (o PG18 usa `VIRTUAL` por padrão), então declarar sempre `STORED`. (3) Desempenho de tipos com TS 7 não verificado. Medir com `tsc --extendedDiagnostics` na Fase 0. |
+|                    | Decisão                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Escolha**        | **Drizzle ORM 0.45.x** (versão exata fixada) + drizzle-kit 0.31.x                                                                                                                                                                                                                                                                                                                                                                         |
+| Alternativas       | Prisma 7; Kysely 0.29                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Motivo             | Schema em TypeScript, sem etapa de geração de código. Consultas próximas do SQL, o que torna o keyset e os agregados previsíveis. Suporta tudo que o plano usa: `jsonb` tipado, `pgEnum`, `check()`, índices parciais (`.where`), GIN com `gin_trgm_ops`, `CREATE INDEX CONCURRENTLY`, identity e `default(sql\`uuidv7()\`)`. Gera SQL versionado. O Better Auth tem adaptador oficial para ele. Já está no projeto.                      |
+| Por que não Prisma | Em 06/10/2026 a tag `latest` do CLI `prisma` instala o **8.0.0-rc**, que não tem `generate` nem `migrate dev`. O Prisma 7 estável (7.10) exige fixar `^7`, usa _driver adapter_ e tem ciclo de manutenção de 18 meses após o v8. É risco de retrabalho logo no início.                                                                                                                                                                    |
+| Por que não Kysely | Excelente _query builder_, mas as migrações são escritas à mão (sem diff a partir do schema) e os tipos dependem de codegen. Mais trabalho para o mesmo resultado.                                                                                                                                                                                                                                                                        |
+| Riscos             | (1) O Drizzle 1.0 ainda não tem data de GA e muda o formato da pasta de migrações (`drizzle-kit up` converte). Mitigação: usar a API de relações v2 (`defineRelations`) desde já e planejar a conversão como tarefa isolada. (2) Colunas geradas só no modo `STORED` (o PG18 usa `VIRTUAL` por padrão), então declarar sempre `STORED`. (3) Desempenho de tipos com TS 7 não verificado. Medir com `tsc --extendedDiagnostics` na Fase 0. |
 
 ### 2.3 Driver e pool
 
-| | Decisão |
-|---|---|
-| **Escolha** | **`pg` 8.23** (`drizzle-orm/node-postgres`), um `Pool` por processo, `max: 10`, `idleTimeoutMillis: 30s`, `connectionTimeoutMillis: 5s`, `statement_timeout` de 15 s por conexão (30 s para exportações) |
-| Alternativas | postgres.js 3.4.9; `pg-native` |
-| Motivo | `pg` está ativo (release em 30/09/2026) e é o driver mais usado com Drizzle e Better Auth. O postgres.js não publica desde 04/2026 e tem _issues_ graves abertas sem resposta (conexão de transação entregue a outra transação, pool que não se recupera). `pg-native` exige toolchain nativo na imagem Alpine para ~10% de ganho. |
-| PgBouncer | **Não usar.** É um único processo Node de longa duração (não serverless): 10 conexões do app + 2 do job de migração + folga ficam muito abaixo de `max_connections = 50/100`. Reavaliar só com várias réplicas. |
-| Riscos | Pool por processo: ao escalar para N réplicas, recalcular `max × N`. |
+|              | Decisão                                                                                                                                                                                                                                                                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Escolha**  | **`pg` 8.23** (`drizzle-orm/node-postgres`), um `Pool` por processo, `max: 10`, `idleTimeoutMillis: 30s`, `connectionTimeoutMillis: 5s`, `statement_timeout` de 15 s por conexão (30 s para exportações)                                                                                                                           |
+| Alternativas | postgres.js 3.4.9; `pg-native`                                                                                                                                                                                                                                                                                                     |
+| Motivo       | `pg` está ativo (release em 30/09/2026) e é o driver mais usado com Drizzle e Better Auth. O postgres.js não publica desde 04/2026 e tem _issues_ graves abertas sem resposta (conexão de transação entregue a outra transação, pool que não se recupera). `pg-native` exige toolchain nativo na imagem Alpine para ~10% de ganho. |
+| PgBouncer    | **Não usar.** É um único processo Node de longa duração (não serverless): 10 conexões do app + 2 do job de migração + folga ficam muito abaixo de `max_connections = 50/100`. Reavaliar só com várias réplicas.                                                                                                                    |
+| Riscos       | Pool por processo: ao escalar para N réplicas, recalcular `max × N`.                                                                                                                                                                                                                                                               |
 
 ### 2.4 Autenticação e autorização
 
-| | Decisão |
-|---|---|
-| **Escolha** | **Better Auth 1.7.7+** com plugins `twoFactor`, `admin` + `createAccessControl`, `nextCookies` (último plugin), adaptador Drizzle, rate limit com `storage: "database"`, hash próprio **argon2id** via `@node-rs/argon2` (m=19456 KiB, t=2, p=1, mínimo OWASP) |
-| Alternativas | Auth.js (next-auth); solução própria (padrão Lucia) |
-| Motivo | Cobre e-mail + senha, recuperação, 2FA TOTP com _backup codes_, listagem e revogação de sessões, rate limit por rota, RBAC granular (recurso → ações), cadastro desligado (`disableSignUp`) e geração de schema Drizzle. Integra com Next 16 (`toNextJsHandler`, `auth.api.getSession({ headers })`). Os mantenedores do Auth.js recomendam Better Auth para projetos novos (anúncio de 22/09/2025). |
-| Por que não Auth.js | v5 continua em **beta** (5.0.0-beta.32) e o projeto agora é mantido pela equipe do Better Auth só com correções. |
-| Por que não solução própria | Exigiria escrever e auditar sessões, rotação, TOTP, _backup codes_, reset, rate limit e RBAC. O histórico de falhas sutis em bibliotecas maduras mostra o custo. |
-| Lacunas a cobrir | (1) **Bloqueio de conta por senhas erradas não é nativo** (só o 2FA tem bloqueio). Implementar tabela própria + _hook_ (ver §5.3). (2) O `sameSite` padrão do cookie não foi verificado: definir `SameSite=Strict` explicitamente e testar. (3) `cookieCache` **desligado** (sessão revogada deixaria de valer só no fim do cache). |
-| Riscos | Biblioteca com releases frequentes e _advisories_ públicos. Fixar versão exata, Renovate com revisão, ler o changelog de segurança a cada update. Não usar plugins OAuth/OIDC/organization (onde se concentraram os _advisories_ de 2026). |
+|                             | Decisão                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Escolha**                 | **Better Auth 1.7.7+** com plugins `twoFactor`, `admin` + `createAccessControl`, `nextCookies` (último plugin), adaptador Drizzle, rate limit com `storage: "database"`, hash próprio **argon2id** via `@node-rs/argon2` (m=19456 KiB, t=2, p=1, mínimo OWASP)                                                                                                                                       |
+| Alternativas                | Auth.js (next-auth); solução própria (padrão Lucia)                                                                                                                                                                                                                                                                                                                                                  |
+| Motivo                      | Cobre e-mail + senha, recuperação, 2FA TOTP com _backup codes_, listagem e revogação de sessões, rate limit por rota, RBAC granular (recurso → ações), cadastro desligado (`disableSignUp`) e geração de schema Drizzle. Integra com Next 16 (`toNextJsHandler`, `auth.api.getSession({ headers })`). Os mantenedores do Auth.js recomendam Better Auth para projetos novos (anúncio de 22/09/2025). |
+| Por que não Auth.js         | v5 continua em **beta** (5.0.0-beta.32) e o projeto agora é mantido pela equipe do Better Auth só com correções.                                                                                                                                                                                                                                                                                     |
+| Por que não solução própria | Exigiria escrever e auditar sessões, rotação, TOTP, _backup codes_, reset, rate limit e RBAC. O histórico de falhas sutis em bibliotecas maduras mostra o custo.                                                                                                                                                                                                                                     |
+| Lacunas a cobrir            | (1) **Bloqueio de conta por senhas erradas não é nativo** (só o 2FA tem bloqueio). Implementar tabela própria + _hook_ (ver §5.3). (2) O `sameSite` padrão do cookie não foi verificado: definir `SameSite=Strict` explicitamente e testar. (3) `cookieCache` **desligado** (sessão revogada deixaria de valer só no fim do cache).                                                                  |
+| Riscos                      | Biblioteca com releases frequentes e _advisories_ públicos. Fixar versão exata, Renovate com revisão, ler o changelog de segurança a cada update. Não usar plugins OAuth/OIDC/organization (onde se concentraram os _advisories_ de 2026).                                                                                                                                                           |
 
 ### 2.5 Mutações e validação
 
-| | Decisão |
-|---|---|
-| **Escolha** | **Server Actions com `next-safe-action` 8.7** para toda mutação. Schemas **Zod 4** em `features/*/schemas.ts`, importados pelo formulário (cliente) e pela action (servidor). |
-| Alternativas | Route Handlers REST; Server Actions puras |
-| Motivo | Um _client_ base aplica, nessa ordem: sessão → 2FA → permissão → rate limit → validação → execução → audit log → log. Fica impossível esquecer a autorização em uma action nova. Tipagem ponta a ponta e integração com RHF (`useHookFormAction`). |
-| Route Handlers só para | `/api/auth/[...all]` (Better Auth), `/api/livekit/webhook` (assinatura), `/api/health` e `/api/ready`, exportação CSV (`GET` em _stream_, com a mesma checagem de permissão). |
-| Riscos | Toda action é um endpoint POST público: o _middleware_ é obrigatório e há um teste que percorre **todas** as actions registradas e garante que nenhuma roda sem sessão e permissão (§8). |
+|                        | Decisão                                                                                                                                                                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Escolha**            | **Server Actions com `next-safe-action` 8.7** para toda mutação. Schemas **Zod 4** em `features/*/schemas.ts`, importados pelo formulário (cliente) e pela action (servidor).                                                                      |
+| Alternativas           | Route Handlers REST; Server Actions puras                                                                                                                                                                                                          |
+| Motivo                 | Um _client_ base aplica, nessa ordem: sessão → 2FA → permissão → rate limit → validação → execução → audit log → log. Fica impossível esquecer a autorização em uma action nova. Tipagem ponta a ponta e integração com RHF (`useHookFormAction`). |
+| Route Handlers só para | `/api/auth/[...all]` (Better Auth), `/api/livekit/webhook` (assinatura), `/api/health` e `/api/ready`, exportação CSV (`GET` em _stream_, com a mesma checagem de permissão).                                                                      |
+| Riscos                 | Toda action é um endpoint POST público: o _middleware_ é obrigatório e há um teste que percorre **todas** as actions registradas e garante que nenhuma roda sem sessão e permissão (§8).                                                           |
 
 ### 2.6 Tabelas de dados
 
-| | Decisão |
-|---|---|
-| **Escolha** | **TanStack Table v9** (headless, `manualPagination/Sorting/Filtering`) + componentes do shadcn Data Table (já em v9) + **nuqs 2.10** (`createLoader` no servidor, `shallow: false` + `useTransition` no cliente) |
-| Alternativas | AG Grid Community; tabela própria sem biblioteca |
-| Motivo | v9 é a primeira versão compatível com o React Compiler. Headless, então segue o design do app. O estado (filtros, ordenação, cursor, colunas) fica na URL: dá para compartilhar o link e voltar no histórico. |
-| Paginação | **Keyset** (`WHERE (col, id) < ($1, $2) ORDER BY col DESC, id DESC LIMIT n+1`) em todas as listas. Botões "Anterior / Próxima" e total **aproximado** (`count` limitado a 10.001 linhas: "mais de 10.000"). Ordenação só por colunas de uma _whitelist_, sempre com `id` como desempate. |
-| Seleção em massa | Por IDs (até 500) ou "todos os resultados do filtro" (o servidor reaplica o filtro, limite de 10.000, com confirmação). |
-| Exportação CSV | Route Handler em _stream_ (lotes keyset de 1.000 linhas), UTF-8 com BOM, separador `;` (Excel pt-BR), proteção contra **CSV injection** (prefixar `'` em células que começam com `= + - @ \t \r`), registrada no audit log. |
-| Riscos | API do v9 é nova (não desestruturar métodos de `row`). Validar o componente do shadcn na Fase 2. |
+|                  | Decisão                                                                                                                                                                                                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Escolha**      | **TanStack Table v9** (headless, `manualPagination/Sorting/Filtering`) + componentes do shadcn Data Table (já em v9) + **nuqs 2.10** (`createLoader` no servidor, `shallow: false` + `useTransition` no cliente)                                                                         |
+| Alternativas     | AG Grid Community; tabela própria sem biblioteca                                                                                                                                                                                                                                         |
+| Motivo           | v9 é a primeira versão compatível com o React Compiler. Headless, então segue o design do app. O estado (filtros, ordenação, cursor, colunas) fica na URL: dá para compartilhar o link e voltar no histórico.                                                                            |
+| Paginação        | **Keyset** (`WHERE (col, id) < ($1, $2) ORDER BY col DESC, id DESC LIMIT n+1`) em todas as listas. Botões "Anterior / Próxima" e total **aproximado** (`count` limitado a 10.001 linhas: "mais de 10.000"). Ordenação só por colunas de uma _whitelist_, sempre com `id` como desempate. |
+| Seleção em massa | Por IDs (até 500) ou "todos os resultados do filtro" (o servidor reaplica o filtro, limite de 10.000, com confirmação).                                                                                                                                                                  |
+| Exportação CSV   | Route Handler em _stream_ (lotes keyset de 1.000 linhas), UTF-8 com BOM, separador `;` (Excel pt-BR), proteção contra **CSV injection** (prefixar `'` em células que começam com `= + - @ \t \r`), registrada no audit log.                                                              |
+| Riscos           | API do v9 é nova (não desestruturar métodos de `row`). Validar o componente do shadcn na Fase 2.                                                                                                                                                                                         |
 
 ### 2.7 Formulários
 
-| | Decisão |
-|---|---|
-| **Escolha** | **React Hook Form 7.89 + `zodResolver` + `useHookFormAction`** (adapter do next-safe-action) + componentes `Field` do shadcn |
-| Alternativas | TanStack Form 1.33; Conform |
-| Motivo | Integração direta com next-safe-action (erros do servidor caem no campo certo), maior base de exemplos e o guia atual do shadcn usa `Field` + RHF. |
+|              | Decisão                                                                                                                                                                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Escolha**  | **React Hook Form 7.89 + `zodResolver` + `useHookFormAction`** (adapter do next-safe-action) + componentes `Field` do shadcn                                                                                                       |
+| Alternativas | TanStack Form 1.33; Conform                                                                                                                                                                                                        |
+| Motivo       | Integração direta com next-safe-action (erros do servidor caem no campo certo), maior base de exemplos e o guia atual do shadcn usa `Field` + RHF.                                                                                 |
 | Padrão único | Entidade com até ~6 campos (convite de admin, configurações, renomear sala) → **Dialog**. Entidade maior ou com histórico → **página** `/[id]/editar`. Os dois usam o mesmo componente `<EntityForm schema action defaultValues>`. |
-| Riscos | `watch()` é incompatível com o React Compiler: usar `useWatch`, com regra de lint `no-restricted-syntax` impedindo `watch(`. |
+| Riscos       | `watch()` é incompatível com o React Compiler: usar `useWatch`, com regra de lint `no-restricted-syntax` impedindo `watch(`.                                                                                                       |
 
 ### 2.8 Busca de dados no cliente
 
-| | Decisão |
-|---|---|
-| **Escolha** | **Server Components + DAL por padrão.** Depois de uma action: `refresh()` (atualiza o roteador) ou `revalidatePath`. **TanStack Query 5 só** em: (1) salas ativas do LiveKit (_polling_ a cada 5 s), (2) busca do command palette, (3) contadores do topo que se atualizam sozinhos. |
-| Alternativas | TanStack Query em tudo; só RSC (sem polling) |
-| Regra | "Precisa atualizar sem ação do usuário ou a cada tecla?" → Query. Senão → RSC. |
-| Cache | Painel 100% dinâmico (exigência do CSP com nonce). Sem `cacheComponents` nesta etapa: ligar mudaria o modelo de renderização do app público. Reavaliar depois do MVP. |
-| Riscos | Duas fontes de verdade se a regra não for seguida. Revisão de código checa. |
+|              | Decisão                                                                                                                                                                                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Escolha**  | **Server Components + DAL por padrão.** Depois de uma action: `refresh()` (atualiza o roteador) ou `revalidatePath`. **TanStack Query 5 só** em: (1) salas ativas do LiveKit (_polling_ a cada 5 s), (2) busca do command palette, (3) contadores do topo que se atualizam sozinhos. |
+| Alternativas | TanStack Query em tudo; só RSC (sem polling)                                                                                                                                                                                                                                         |
+| Regra        | "Precisa atualizar sem ação do usuário ou a cada tecla?" → Query. Senão → RSC.                                                                                                                                                                                                       |
+| Cache        | Painel 100% dinâmico (exigência do CSP com nonce). Sem `cacheComponents` nesta etapa: ligar mudaria o modelo de renderização do app público. Reavaliar depois do MVP.                                                                                                                |
+| Riscos       | Duas fontes de verdade se a regra não for seguida. Revisão de código checa.                                                                                                                                                                                                          |
 
 ### 2.9 Gráficos e dashboard
 
-| | Decisão |
-|---|---|
-| **Escolha** | **Charts do shadcn (Recharts 3.10)**, só em componentes cliente, com dados já agregados no servidor |
-| Alternativas | ECharts 6.1; visx 4 |
-| Motivo | Mesmo sistema visual do shadcn, tema por tokens CSS (claro/escuro), suficiente para séries diárias e barras. ECharts é mais pesado (~1 MB) e destoa do design. |
-| Consultas | Agregados por dia em `America/Sao_Paulo` (`date_trunc('day', started_at AT TIME ZONE 'America/Sao_Paulo')`), apoiados pelos índices por data. Acima de ~1 milhão de linhas: tabela de _rollup_ `metrics_daily` atualizada por job (Fase 9). |
-| Riscos | Recharts renderiza em SVG: limitar a ~366 pontos por série (1 ano por dia). |
+|              | Decisão                                                                                                                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Escolha**  | **Charts do shadcn (Recharts 3.10)**, só em componentes cliente, com dados já agregados no servidor                                                                                                                                         |
+| Alternativas | ECharts 6.1; visx 4                                                                                                                                                                                                                         |
+| Motivo       | Mesmo sistema visual do shadcn, tema por tokens CSS (claro/escuro), suficiente para séries diárias e barras. ECharts é mais pesado (~1 MB) e destoa do design.                                                                              |
+| Consultas    | Agregados por dia em `America/Sao_Paulo` (`date_trunc('day', started_at AT TIME ZONE 'America/Sao_Paulo')`), apoiados pelos índices por data. Acima de ~1 milhão de linhas: tabela de _rollup_ `metrics_daily` atualizada por job (Fase 9). |
+| Riscos       | Recharts renderiza em SVG: limitar a ~366 pontos por série (1 ano por dia).                                                                                                                                                                 |
 
 ### 2.10 Logs, auditoria e observabilidade
 
-| | Decisão |
-|---|---|
-| Logger | **Pino 10** em JSON no stdout (sem _transports_ em produção, sem _worker threads_). `pino-pretty` só em dev. `redact` para `password`, `token`, `cookie`, `authorization`, `*.secret`, `totp*`. Cada requisição recebe `x-request-id` gerado no `proxy.ts`. |
-| Audit log | Tabela `audit_logs` só de inserção: quem, ação, recurso, IP, user agent, `before`/`after` (só campos alterados, com dados sensíveis mascarados) e `request_id`. Gravado pelo _middleware_ do next-safe-action **na mesma transação** da mudança. O usuário do banco do app não tem `UPDATE`/`DELETE` nessa tabela. |
-| Erros | **Sentry SDK 11 → Sentry SaaS**, com `sendDefaultPii: false`, _scrubbing_ de IP e e-mail, `onRequestError` no `instrumentation.ts`. Alternativa: **GlitchTip 6** auto-hospedado (mesmo SDK, com `traceLifecycle: "static"`), se os dados precisarem ficar na VPS. Custa ~1 GB de RAM a mais. |
-| Saúde | `/api/health` (liveness, sem banco, usado pelo `HEALTHCHECK`) e `/api/ready` (`select 1` + versão da última migração, usado no _smoke test_ do deploy). |
-| Banco | `pg_stat_statements` + `log_min_duration_statement = 500ms` + `auto_explain` para consultas acima de 2 s. Tela "Consultas lentas" no admin (Fase 9, só `owner`). |
-| Alternativas | Winston (mais lento); OpenTelemetry completo (pesado para uma VPS) |
-| Riscos | Sentry SaaS envia dados de erro para fora do Brasil (LGPD: transferência internacional). Mitigado por não enviar PII. Ver a pergunta 5 da §11. |
+|              | Decisão                                                                                                                                                                                                                                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Logger       | **Pino 10** em JSON no stdout (sem _transports_ em produção, sem _worker threads_). `pino-pretty` só em dev. `redact` para `password`, `token`, `cookie`, `authorization`, `*.secret`, `totp*`. Cada requisição recebe `x-request-id` gerado no `proxy.ts`.                                                        |
+| Audit log    | Tabela `audit_logs` só de inserção: quem, ação, recurso, IP, user agent, `before`/`after` (só campos alterados, com dados sensíveis mascarados) e `request_id`. Gravado pelo _middleware_ do next-safe-action **na mesma transação** da mudança. O usuário do banco do app não tem `UPDATE`/`DELETE` nessa tabela. |
+| Erros        | **Sentry SDK 11 → Sentry SaaS**, com `sendDefaultPii: false`, _scrubbing_ de IP e e-mail, `onRequestError` no `instrumentation.ts`. Alternativa: **GlitchTip 6** auto-hospedado (mesmo SDK, com `traceLifecycle: "static"`), se os dados precisarem ficar na VPS. Custa ~1 GB de RAM a mais.                       |
+| Saúde        | `/api/health` (liveness, sem banco, usado pelo `HEALTHCHECK`) e `/api/ready` (`select 1` + versão da última migração, usado no _smoke test_ do deploy).                                                                                                                                                            |
+| Banco        | `pg_stat_statements` + `log_min_duration_statement = 500ms` + `auto_explain` para consultas acima de 2 s. Tela "Consultas lentas" no admin (Fase 9, só `owner`).                                                                                                                                                   |
+| Alternativas | Winston (mais lento); OpenTelemetry completo (pesado para uma VPS)                                                                                                                                                                                                                                                 |
+| Riscos       | Sentry SaaS envia dados de erro para fora do Brasil (LGPD: transferência internacional). Mitigado por não enviar PII. Ver a pergunta 5 da §11.                                                                                                                                                                     |
 
 ### 2.11 Testes
 
-| | Decisão |
-|---|---|
+|                       | Decisão                                                                                                                                                                                                                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Unitário + integração | **Vitest 5** (substitui o `node --test` atual, cujos testes serão migrados). Integração contra **Postgres 18.6 real**: no CI, _service container_; localmente, `docker compose`. Cada _worker_ do Vitest usa um banco clonado de um _template_ já migrado (`CREATE DATABASE ... TEMPLATE`), isolado e rápido. |
-| E2E | **Playwright 1.63** contra o build standalone, com Postgres e `livekit-server --dev` como serviços. Acessibilidade com `@axe-core/playwright`. |
-| Alternativa | Testcontainers 12 (descartado como padrão: exige Docker dentro do runner de testes e é mais lento; continua disponível para quem preferir localmente). |
-| Riscos | E2E lentos: rodar só os fluxos críticos no PR e a suíte completa diariamente. |
+| E2E                   | **Playwright 1.63** contra o build standalone, com Postgres e `livekit-server --dev` como serviços. Acessibilidade com `@axe-core/playwright`.                                                                                                                                                                |
+| Alternativa           | Testcontainers 12 (descartado como padrão: exige Docker dentro do runner de testes e é mais lento; continua disponível para quem preferir localmente).                                                                                                                                                        |
+| Riscos                | E2E lentos: rodar só os fluxos críticos no PR e a suíte completa diariamente.                                                                                                                                                                                                                                 |
 
 ### 2.12 CI/CD
 
-| | Decisão |
-|---|---|
-| **Escolha** | GitHub Actions: `lint` (`oxlint --type-aware`), `typecheck`, `test:unit`, `test:integration`, `test:e2e`, `build` → imagem no **GHCR** → **job de migração** → webhook de deploy do Coolify (com tag da imagem) → _smoke test_ em `/api/ready` |
-| Alternativas | Coolify buildando a partir do Git (o padrão de hoje) |
-| Motivo | (1) O _pre-deployment command_ do Coolify roda no container **antigo**, então não aplica migrações novas. (2) Buildar Next.js na VPS pequena compete com o app em produção por CPU e RAM. Buildar no CI e entregar a imagem resolve as duas coisas. |
-| Dependências | **Renovate** (o suporte do Dependabot a pnpm 12 ainda não está confirmado e há problemas conhecidos com `minimumReleaseAge`). `pnpm audit --prod` no CI, falhando em _high/critical_. |
-| Riscos | O job de migração precisa de acesso SSH à VPS (chave dedicada, usuário sem shell interativo, restrito a `docker run`). |
+|              | Decisão                                                                                                                                                                                                                                             |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Escolha**  | GitHub Actions: `lint` (`oxlint --type-aware`), `typecheck`, `test:unit`, `test:integration`, `test:e2e`, `build` → imagem no **GHCR** → **job de migração** → webhook de deploy do Coolify (com tag da imagem) → _smoke test_ em `/api/ready`      |
+| Alternativas | Coolify buildando a partir do Git (o padrão de hoje)                                                                                                                                                                                                |
+| Motivo       | (1) O _pre-deployment command_ do Coolify roda no container **antigo**, então não aplica migrações novas. (2) Buildar Next.js na VPS pequena compete com o app em produção por CPU e RAM. Buildar no CI e entregar a imagem resolve as duas coisas. |
+| Dependências | **Renovate** (o suporte do Dependabot a pnpm 12 ainda não está confirmado e há problemas conhecidos com `minimumReleaseAge`). `pnpm audit --prod` no CI, falhando em _high/critical_.                                                               |
+| Riscos       | O job de migração precisa de acesso SSH à VPS (chave dedicada, usuário sem shell interativo, restrito a `docker run`).                                                                                                                              |
 
 ---
 
@@ -266,14 +266,14 @@ tests/
 
 ### 3.3 Regras de dependência (verificadas por lint)
 
-| De → Para | Permitido? |
-|---|---|
+| De → Para                                                                                                      | Permitido?                                                      |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `components/**`, `features/*/components/**`, `features/*/columns.tsx` → `server/**` ou `features/*/queries.ts` | **Não.** Componentes recebem dados por props ou chamam actions. |
-| Componente cliente → `features/*/actions.ts` e `schemas.ts` | Sim |
-| `features/*/queries.ts` e `actions.ts` → `server/**` | Sim |
-| `features/a/**` → `features/b/queries.ts` | **Não.** O que for compartilhado sobe para `server/`. |
-| Qualquer código → `pg` ou `drizzle-orm` fora de `server/db` e `features/*/queries.ts` | **Não** |
-| `app/**` páginas → `features/*/queries.ts` | Sim (só Server Components) |
+| Componente cliente → `features/*/actions.ts` e `schemas.ts`                                                    | Sim                                                             |
+| `features/*/queries.ts` e `actions.ts` → `server/**`                                                           | Sim                                                             |
+| `features/a/**` → `features/b/queries.ts`                                                                      | **Não.** O que for compartilhado sobe para `server/`.           |
+| Qualquer código → `pg` ou `drizzle-orm` fora de `server/db` e `features/*/queries.ts`                          | **Não**                                                         |
+| `app/**` páginas → `features/*/queries.ts`                                                                     | Sim (só Server Components)                                      |
 
 Implementação: `import "server-only"` em todo `server/**` e `queries.ts` (erro de build se for parar no cliente) + `no-restricted-imports` do oxlint com `overrides` por pasta.
 
@@ -285,16 +285,16 @@ O código atual que muda: `lib/env.ts`, `lib/db/*`, `lib/settings.ts`, `lib/admi
 
 ### 4.1 Convenções
 
-| Tema | Decisão e motivo |
-|---|---|
-| Chave primária | **`uuid` com `DEFAULT uuidv7()`** (nativo no PG18) em todas as tabelas. É ordenado por tempo, então a inserção fica no fim do índice (sem a fragmentação do UUID v4) e o keyset por `id` acompanha a ordem de criação. Não é enumerável em URLs (`/admin/salas/<id>`) e é gerado no banco (o Better Auth usa `advanced.database.generateId: false` com `DEFAULT`). Custo: 16 bytes contra 8 do `bigint`, irrelevante nesta escala. O UUID v7 revela a data de criação, aceitável aqui. |
-| Tempo | `timestamptz` sempre (armazenado em UTC). Conversão para `America/Sao_Paulo` só na apresentação e nos agregados por dia. |
-| Auditoria de linha | `created_at`/`updated_at` `NOT NULL DEFAULT now()` + trigger genérico `set_updated_at()` (vale até para SQL manual, diferente do `$onUpdate` do ORM). |
-| Soft delete | `deleted_at timestamptz` em `rooms`, `users` e `room_invites`. Admins são **desativados** (`disabled_at`), nunca apagados (o audit log aponta para eles). Audit log e eventos brutos não têm exclusão. Pedidos de exclusão da LGPD fazem **anonimização definitiva**, não soft delete. |
-| Enums vs tabelas | `pgEnum` para conjuntos pequenos e estáveis, ligados a código (`room_status`, `participant_leave_reason`, `invite_status`, `dsr_type`, `dsr_status`). Papéis de admin: `text` com `CHECK` gerado da lista em código (ver §5.2). Tabelas de domínio só quando o usuário puder editar a lista. |
-| Nomes | `snake_case`, tabelas no plural, FKs `<entidade>_id`, índices `<tabela>_<colunas>_idx`, únicos `<tabela>_<colunas>_key`. Drizzle com `casing: "snake_case"`. |
-| Integridade | `NOT NULL` por padrão. FKs com `ON DELETE` explícito (`restrict` por padrão; `set null` só onde a anonimização exige). `CHECK` para faixas e formatos (código de sala, durações ≥ 0). `UNIQUE` parcial respeitando o soft delete. |
-| Texto e busca | Extensões `pg_trgm` e `unaccent`, com função `IMMUTABLE` `f_unaccent()` para usar em índice. Busca por nome/código com `ILIKE` + trigram (melhor que _full-text_ para nomes e códigos curtos em pt-BR). _Full-text_ (`tsvector` `portuguese`) fica reservado para texto longo (notas), se aparecer. |
+| Tema               | Decisão e motivo                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chave primária     | **`uuid` com `DEFAULT uuidv7()`** (nativo no PG18) em todas as tabelas. É ordenado por tempo, então a inserção fica no fim do índice (sem a fragmentação do UUID v4) e o keyset por `id` acompanha a ordem de criação. Não é enumerável em URLs (`/admin/salas/<id>`) e é gerado no banco (o Better Auth usa `advanced.database.generateId: false` com `DEFAULT`). Custo: 16 bytes contra 8 do `bigint`, irrelevante nesta escala. O UUID v7 revela a data de criação, aceitável aqui. |
+| Tempo              | `timestamptz` sempre (armazenado em UTC). Conversão para `America/Sao_Paulo` só na apresentação e nos agregados por dia.                                                                                                                                                                                                                                                                                                                                                               |
+| Auditoria de linha | `created_at`/`updated_at` `NOT NULL DEFAULT now()` + trigger genérico `set_updated_at()` (vale até para SQL manual, diferente do `$onUpdate` do ORM).                                                                                                                                                                                                                                                                                                                                  |
+| Soft delete        | `deleted_at timestamptz` em `rooms`, `users` e `room_invites`. Admins são **desativados** (`disabled_at`), nunca apagados (o audit log aponta para eles). Audit log e eventos brutos não têm exclusão. Pedidos de exclusão da LGPD fazem **anonimização definitiva**, não soft delete.                                                                                                                                                                                                 |
+| Enums vs tabelas   | `pgEnum` para conjuntos pequenos e estáveis, ligados a código (`room_status`, `participant_leave_reason`, `invite_status`, `dsr_type`, `dsr_status`). Papéis de admin: `text` com `CHECK` gerado da lista em código (ver §5.2). Tabelas de domínio só quando o usuário puder editar a lista.                                                                                                                                                                                           |
+| Nomes              | `snake_case`, tabelas no plural, FKs `<entidade>_id`, índices `<tabela>_<colunas>_idx`, únicos `<tabela>_<colunas>_key`. Drizzle com `casing: "snake_case"`.                                                                                                                                                                                                                                                                                                                           |
+| Integridade        | `NOT NULL` por padrão. FKs com `ON DELETE` explícito (`restrict` por padrão; `set null` só onde a anonimização exige). `CHECK` para faixas e formatos (código de sala, durações ≥ 0). `UNIQUE` parcial respeitando o soft delete.                                                                                                                                                                                                                                                      |
+| Texto e busca      | Extensões `pg_trgm` e `unaccent`, com função `IMMUTABLE` `f_unaccent()` para usar em índice. Busca por nome/código com `ILIKE` + trigram (melhor que _full-text_ para nomes e códigos curtos em pt-BR). _Full-text_ (`tsvector` `portuguese`) fica reservado para texto longo (notas), se aparecer.                                                                                                                                                                                    |
 
 ### 4.2 Diagrama
 
@@ -636,22 +636,22 @@ CREATE TABLE data_subject_requests (
 
 ### 4.4 Índices (por consulta real)
 
-| Consulta (tela) | Índice |
-|---|---|
-| Salas: filtro status + ordem por atividade | `rooms (status, last_activity_at DESC, id DESC) WHERE deleted_at IS NULL` |
-| Salas: busca por código | `rooms USING gin (code gin_trgm_ops) WHERE deleted_at IS NULL` |
-| Usuários: busca por nome ou e-mail (sem acento) | `users USING gin (f_unaccent(lower(name || ' ' || email)) gin_trgm_ops) WHERE deleted_at IS NULL` |
-| Usuários: ordem por cadastro / último acesso | `users (created_at DESC, id DESC)` e `users (last_seen_at DESC NULLS LAST, id DESC)`, ambos `WHERE deleted_at IS NULL` |
-| Detalhe da sala: participações | `room_participations (room_id, joined_at DESC)` |
-| Histórico do usuário | `room_participations (user_id, joined_at DESC)` |
-| "Online agora" | `room_participations (room_id) WHERE left_at IS NULL` |
-| Compartilhamentos: lista e período | `share_sessions (started_at DESC, id DESC)` e `share_sessions (room_id, started_at DESC)` |
-| Compartilhamentos ativos | `share_sessions (room_id) WHERE ended_at IS NULL` |
-| Audit: lista geral | `audit_logs (created_at DESC, id DESC)` |
-| Audit: por autor, por recurso, por ação | `(actor_admin_id, created_at DESC)`, `(resource_type, resource_id, created_at DESC)`, `(action, created_at DESC)` |
-| Pedidos de token: segurança e retenção | `token_requests USING brin (created_at)` + `(ip, created_at DESC)` |
-| Eventos LiveKit pendentes | `livekit_events (received_at) WHERE processed_at IS NULL` |
-| Retenção (jobs de limpeza) | BRIN em `created_at` nas tabelas append-only (baratíssimo e eficaz para faixas de data) |
+| Consulta (tela)                                 | Índice                                                                                                                 |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Salas: filtro status + ordem por atividade      | `rooms (status, last_activity_at DESC, id DESC) WHERE deleted_at IS NULL`                                              |
+| Salas: busca por código                         | `rooms USING gin (code gin_trgm_ops) WHERE deleted_at IS NULL`                                                         |
+| Usuários: busca por nome ou e-mail (sem acento) | `users USING gin (f_unaccent(lower(name                                                                                |     | ' ' |     | email)) gin_trgm_ops) WHERE deleted_at IS NULL` |
+| Usuários: ordem por cadastro / último acesso    | `users (created_at DESC, id DESC)` e `users (last_seen_at DESC NULLS LAST, id DESC)`, ambos `WHERE deleted_at IS NULL` |
+| Detalhe da sala: participações                  | `room_participations (room_id, joined_at DESC)`                                                                        |
+| Histórico do usuário                            | `room_participations (user_id, joined_at DESC)`                                                                        |
+| "Online agora"                                  | `room_participations (room_id) WHERE left_at IS NULL`                                                                  |
+| Compartilhamentos: lista e período              | `share_sessions (started_at DESC, id DESC)` e `share_sessions (room_id, started_at DESC)`                              |
+| Compartilhamentos ativos                        | `share_sessions (room_id) WHERE ended_at IS NULL`                                                                      |
+| Audit: lista geral                              | `audit_logs (created_at DESC, id DESC)`                                                                                |
+| Audit: por autor, por recurso, por ação         | `(actor_admin_id, created_at DESC)`, `(resource_type, resource_id, created_at DESC)`, `(action, created_at DESC)`      |
+| Pedidos de token: segurança e retenção          | `token_requests USING brin (created_at)` + `(ip, created_at DESC)`                                                     |
+| Eventos LiveKit pendentes                       | `livekit_events (received_at) WHERE processed_at IS NULL`                                                              |
+| Retenção (jobs de limpeza)                      | BRIN em `created_at` nas tabelas append-only (baratíssimo e eficaz para faixas de data)                                |
 
 **Evitar N+1:** listagens fazem **uma** consulta com `JOIN`/`LEFT JOIN LATERAL` (ex.: sala + contagem de participantes via subquery agregada), nunca consulta por linha. Detalhes usam a API relacional v2 do Drizzle (gera um único SQL com `json_agg`). Em dev, o logger do Drizzle conta queries por requisição e avisa acima de 10.
 
@@ -678,12 +678,12 @@ CREATE TABLE data_subject_requests (
 
 ### 4.7 Segurança do banco
 
-| Papel do Postgres | Privilégios | Usado por |
-|---|---|---|
-| `postgres` (superuser do Coolify) | tudo | **só** bootstrap manual (criar os papéis abaixo) |
-| `nelcota_migrator` | dono do schema `public`; DDL | job de migração |
-| `nelcota_app` | `SELECT/INSERT/UPDATE/DELETE` nas tabelas; em `audit_logs`, `livekit_events` e `token_requests` só `SELECT/INSERT` (+ `UPDATE` de `processed_at`/`error` em `livekit_events`); nada de DDL | o app |
-| `nelcota_readonly` | `SELECT` (sem tabelas de auth) | diagnóstico e teste de restore |
+| Papel do Postgres                 | Privilégios                                                                                                                                                                                | Usado por                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `postgres` (superuser do Coolify) | tudo                                                                                                                                                                                       | **só** bootstrap manual (criar os papéis abaixo) |
+| `nelcota_migrator`                | dono do schema `public`; DDL                                                                                                                                                               | job de migração                                  |
+| `nelcota_app`                     | `SELECT/INSERT/UPDATE/DELETE` nas tabelas; em `audit_logs`, `livekit_events` e `token_requests` só `SELECT/INSERT` (+ `UPDATE` de `processed_at`/`error` em `livekit_events`); nada de DDL | o app                                            |
+| `nelcota_readonly`                | `SELECT` (sem tabelas de auth)                                                                                                                                                             | diagnóstico e teste de restore                   |
 
 - `ALTER DEFAULT PRIVILEGES FOR ROLE nelcota_migrator` concede os acessos do app a tabelas futuras automaticamente.
 - Senhas `scram-sha-256` (md5 está obsoleto no PG18), longas e aleatórias, e cada uma só existe no ambiente onde é usada (a do migrator fica **só** nos segredos do GitHub Actions).
@@ -704,20 +704,21 @@ CREATE TABLE data_subject_requests (
   5. Registrar data, duração e resultado numa tabela no próprio doc.
 
   Se falhar, abre-se um incidente.
+
 - O Coolify não registra backups que falharam se o banco estiver parado: alerta por e-mail/Discord do Coolify ligado + checagem semanal manual da data do último objeto no bucket (Fase 9: verificação automática).
 
 ### 4.9 Tuning e monitoramento (Postgres dividindo a VPS com o app)
 
-| Parâmetro | VPS 4 GB (~2 GB p/ PG) | VPS 8 GB (~4 GB p/ PG) |
-|---|---|---|
-| `shared_buffers` | 512MB | 1GB |
-| `effective_cache_size` | 1536MB | 3GB |
-| `work_mem` | 8MB | 12MB |
-| `maintenance_work_mem` | 128MB | 256MB |
-| `max_connections` | 50 | 100 |
-| `wal_buffers` | 16MB | 16MB |
-| `min_wal_size` / `max_wal_size` | 512MB / 2GB | 1GB / 4GB |
-| Comuns | `random_page_cost=1.1`, `effective_io_concurrency=200`, `checkpoint_completion_target=0.9`, `shared_preload_libraries='pg_stat_statements,auto_explain'`, `log_min_duration_statement=500ms`, `auto_explain.log_min_duration=2s`, `listen_addresses='*'` | |
+| Parâmetro                       | VPS 4 GB (~2 GB p/ PG)                                                                                                                                                                                                                                   | VPS 8 GB (~4 GB p/ PG) |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `shared_buffers`                | 512MB                                                                                                                                                                                                                                                    | 1GB                    |
+| `effective_cache_size`          | 1536MB                                                                                                                                                                                                                                                   | 3GB                    |
+| `work_mem`                      | 8MB                                                                                                                                                                                                                                                      | 12MB                   |
+| `maintenance_work_mem`          | 128MB                                                                                                                                                                                                                                                    | 256MB                  |
+| `max_connections`               | 50                                                                                                                                                                                                                                                       | 100                    |
+| `wal_buffers`                   | 16MB                                                                                                                                                                                                                                                     | 16MB                   |
+| `min_wal_size` / `max_wal_size` | 512MB / 2GB                                                                                                                                                                                                                                              | 1GB / 4GB              |
+| Comuns                          | `random_page_cost=1.1`, `effective_io_concurrency=200`, `checkpoint_completion_target=0.9`, `shared_preload_libraries='pg_stat_statements,auto_explain'`, `log_min_duration_statement=500ms`, `auto_explain.log_min_duration=2s`, `listen_addresses='*'` |                        |
 
 - A configuração customizada do Coolify **substitui** o `postgresql.conf` inteiro, então o arquivo completo fica versionado em `deploy/postgres/postgresql.conf`.
 - Limite de memória no container do banco. `/dev/shm` de 256 MB se o Coolify aceitar `--shm-size` (não verificado; testar na Fase 0).
@@ -729,43 +730,43 @@ CREATE TABLE data_subject_requests (
 
 ### 5.1 Fluxos
 
-| Fluxo | Como funciona |
-|---|---|
-| **Primeiro owner** | `scripts/create-owner.ts` no servidor → link de convite de uso único (30 min) → define senha → configura 2FA obrigatoriamente → entra. |
-| **Convite de admin** | Owner convida e-mail + papel → token aleatório de 32 bytes (guardado só o SHA-256), válido por 48 h → e-mail com link **ou** link copiado na tela, se não houver SMTP (§11) → a pessoa define nome e senha → setup do 2FA → aceito. Cadastro público **desligado** (`disableSignUp: true`). |
-| **Login** | E-mail + senha → se tem 2FA, tela de código TOTP (ou _backup code_) → sessão criada. Resposta e tempo de resposta **iguais** para "e-mail não existe" e "senha errada". |
-| **2FA** | TOTP (RFC 6238, 30 s, 6 dígitos), QR code + chave manual, 10 _backup codes_ de uso único (mostrados uma vez, com opção de baixar). **Obrigatório para `owner` e `admin`**: sem 2FA, a sessão só acessa a tela de configurar 2FA. `trustDevice` **desligado**. Desativar 2FA exige senha + código atual e fica no audit log. |
-| **Recuperar senha** | Mensagem sempre "Se o e-mail existir, enviamos um link". Token de 30 min, uso único. Trocar a senha **revoga todas as sessões** (`revokeSessionsOnPasswordReset`). O 2FA continua exigido depois do reset. |
-| **Sessões** | No banco. Expira em **12 h** de inatividade (`expiresIn` 12 h, `updateAge` 1 h), máximo absoluto de 7 dias. **Sessão "fresca" (10 min)** para ações críticas: trocar senha, mudar papel, desativar 2FA, excluir, exportar dados pessoais. Fora dessa janela, pede a senha de novo. Tela "Sessões ativas": dispositivo, IP, último uso, "encerrar" e "encerrar todas as outras". |
-| **Cookie** | Prefixo `__Secure-`, `HttpOnly`, `Secure`, **`SameSite=Strict`**, `Path=/`, sem `Domain`. `cookieCache` desligado. |
-| **Impersonação** | **Desligada** (o plugin admin oferece; não faz sentido aqui e é um vetor de abuso). |
+| Fluxo                | Como funciona                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Primeiro owner**   | `scripts/create-owner.ts` no servidor → link de convite de uso único (30 min) → define senha → configura 2FA obrigatoriamente → entra.                                                                                                                                                                                                                                          |
+| **Convite de admin** | Owner convida e-mail + papel → token aleatório de 32 bytes (guardado só o SHA-256), válido por 48 h → e-mail com link **ou** link copiado na tela, se não houver SMTP (§11) → a pessoa define nome e senha → setup do 2FA → aceito. Cadastro público **desligado** (`disableSignUp: true`).                                                                                     |
+| **Login**            | E-mail + senha → se tem 2FA, tela de código TOTP (ou _backup code_) → sessão criada. Resposta e tempo de resposta **iguais** para "e-mail não existe" e "senha errada".                                                                                                                                                                                                         |
+| **2FA**              | TOTP (RFC 6238, 30 s, 6 dígitos), QR code + chave manual, 10 _backup codes_ de uso único (mostrados uma vez, com opção de baixar). **Obrigatório para `owner` e `admin`**: sem 2FA, a sessão só acessa a tela de configurar 2FA. `trustDevice` **desligado**. Desativar 2FA exige senha + código atual e fica no audit log.                                                     |
+| **Recuperar senha**  | Mensagem sempre "Se o e-mail existir, enviamos um link". Token de 30 min, uso único. Trocar a senha **revoga todas as sessões** (`revokeSessionsOnPasswordReset`). O 2FA continua exigido depois do reset.                                                                                                                                                                      |
+| **Sessões**          | No banco. Expira em **12 h** de inatividade (`expiresIn` 12 h, `updateAge` 1 h), máximo absoluto de 7 dias. **Sessão "fresca" (10 min)** para ações críticas: trocar senha, mudar papel, desativar 2FA, excluir, exportar dados pessoais. Fora dessa janela, pede a senha de novo. Tela "Sessões ativas": dispositivo, IP, último uso, "encerrar" e "encerrar todas as outras". |
+| **Cookie**           | Prefixo `__Secure-`, `HttpOnly`, `Secure`, **`SameSite=Strict`**, `Path=/`, sem `Domain`. `cookieCache` desligado.                                                                                                                                                                                                                                                              |
+| **Impersonação**     | **Desligada** (o plugin admin oferece; não faz sentido aqui e é um vetor de abuso).                                                                                                                                                                                                                                                                                             |
 
 ### 5.2 Papéis e permissões (fonte única em `server/auth/permissions.ts`)
 
 Os papéis ficam **em código** (`createAccessControl`) e não numa tabela editável: ficam versionados e revisados no Git, são tipados (`requirePermission("room", "close")` não compila com ação inexistente) e não há escalada de privilégio pela UI. A coluna `admin_users.role` tem `CHECK` gerado da mesma lista. Papéis customizáveis pela tela ficam como evolução futura (§10, fase extra), se aparecer necessidade real.
 
-| Recurso → ação | owner | admin | viewer |
-|---|:-:|:-:|:-:|
-| `dashboard.read` | ✅ | ✅ | ✅ |
-| `user.read` | ✅ | ✅ | ✅ |
-| `user.update` (bloquear/desbloquear, encerrar sessões, reenviar verificação) | ✅ | ✅ | — |
-| `user.delete` (soft delete / restaurar) | ✅ | ✅ | — |
-| `user.export` (CSV) | ✅ | ✅ | — |
-| `user.anonymize` (LGPD, irreversível) | ✅ | — | — |
-| `room.read` | ✅ | ✅ | ✅ |
-| `room.update` (nota) / `room.delete` (soft delete) | ✅ | ✅ | — |
-| `room.export` | ✅ | ✅ | — |
-| `share_session.read` / `share_session.export` | ✅ / ✅ | ✅ / ✅ | ✅ / — |
-| `live.read` (salas ativas no LiveKit) | ✅ | ✅ | ✅ |
-| `live.kick` (remover participante) / `live.close` (encerrar sala) | ✅ | ✅ | — |
-| `invite.create` / `invite.revoke` (convites de sala) | ✅ | ✅ | — |
-| `audit.read` | ✅ | ✅ | — |
-| `audit.export` | ✅ | — | — |
-| `admin.read` | ✅ | ✅ | — |
-| `admin.invite` / `admin.update_role` / `admin.disable` / `admin.revoke_sessions` | ✅ | — | — |
-| `settings.read` / `settings.update` | ✅ / ✅ | ✅ / — | — |
-| `lgpd.read` / `lgpd.handle` | ✅ / ✅ | ✅ / — | — |
-| `system.db_health` | ✅ | — | — |
+| Recurso → ação                                                                   |  owner  |  admin  | viewer |
+| -------------------------------------------------------------------------------- | :-----: | :-----: | :----: |
+| `dashboard.read`                                                                 |   ✅    |   ✅    |   ✅   |
+| `user.read`                                                                      |   ✅    |   ✅    |   ✅   |
+| `user.update` (bloquear/desbloquear, encerrar sessões, reenviar verificação)     |   ✅    |   ✅    |   —    |
+| `user.delete` (soft delete / restaurar)                                          |   ✅    |   ✅    |   —    |
+| `user.export` (CSV)                                                              |   ✅    |   ✅    |   —    |
+| `user.anonymize` (LGPD, irreversível)                                            |   ✅    |    —    |   —    |
+| `room.read`                                                                      |   ✅    |   ✅    |   ✅   |
+| `room.update` (nota) / `room.delete` (soft delete)                               |   ✅    |   ✅    |   —    |
+| `room.export`                                                                    |   ✅    |   ✅    |   —    |
+| `share_session.read` / `share_session.export`                                    | ✅ / ✅ | ✅ / ✅ | ✅ / — |
+| `live.read` (salas ativas no LiveKit)                                            |   ✅    |   ✅    |   ✅   |
+| `live.kick` (remover participante) / `live.close` (encerrar sala)                |   ✅    |   ✅    |   —    |
+| `invite.create` / `invite.revoke` (convites de sala)                             |   ✅    |   ✅    |   —    |
+| `audit.read`                                                                     |   ✅    |   ✅    |   —    |
+| `audit.export`                                                                   |   ✅    |    —    |   —    |
+| `admin.read`                                                                     |   ✅    |   ✅    |   —    |
+| `admin.invite` / `admin.update_role` / `admin.disable` / `admin.revoke_sessions` |   ✅    |    —    |   —    |
+| `settings.read` / `settings.update`                                              | ✅ / ✅ | ✅ / —  |   —    |
+| `lgpd.read` / `lgpd.handle`                                                      | ✅ / ✅ | ✅ / —  |   —    |
+| `system.db_health`                                                               |   ✅    |    —    |   —    |
 
 Regras extras (com teste): não é possível rebaixar ou desativar o **último owner** ativo. Ninguém altera o próprio papel. Transferir owner exige sessão fresca + 2FA e fica no audit log.
 
@@ -782,14 +783,14 @@ Regras extras (com teste): não é possível rebaixar ou desativar o **último o
 
 ### 5.4 Contas de participantes (2ª instância do Better Auth)
 
-| Tema | Decisão |
-|---|---|
-| Isolamento | Instância própria em `/api/auth`, cookie `__Secure-nelcota.*` (`SameSite=Lax`, para links de e-mail e convites funcionarem), tabelas `users*`. Uma sessão de participante **nunca** autoriza nada no `/admin` e vice-versa. O mesmo e-mail pode ter conta de participante e de admin, sem relação entre elas. |
-| Cadastro | E-mail + nome de exibição + senha (10 a 128 caracteres, argon2id). **Verificação de e-mail obrigatória** antes de entrar em salas. Resposta de cadastro igual para e-mail novo ou já cadastrado (`customSyntheticUser`: quem já tem conta recebe um e-mail avisando, e ninguém descobre pela tela). |
-| Login e recuperação | Iguais aos dos admins (mensagens genéricas, bloqueio por tentativas com `scope = 'user'`, reset de 30 min que encerra as sessões). 2FA TOTP **opcional**. Sessão de 30 dias com renovação diária e sessão fresca de 10 min para trocar e-mail, senha ou excluir a conta. |
-| Entrada na sala | `/api/token` passa a exigir sessão de participante com e-mail verificado e conta não bloqueada. `identity` = `users.id`, `name` = nome de exibição. A senha de acesso à sala (`ACCESS_PASSWORD`) continua opcional. A sala guarda quem a criou. |
-| E-mail | `nodemailer` com SMTP via variáveis (`SMTP_URL`, `MAIL_FROM`). Em desenvolvimento, sem SMTP, o link é escrito no log do servidor. **Em produção, o app recusa subir sem SMTP** (cadastro sem verificação não é permitido). |
-| Autoatendimento (LGPD) | `/conta`: editar nome, trocar e-mail (com verificação) e senha, 2FA, sessões ativas, **baixar meus dados** (JSON) e **excluir minha conta** (anonimização imediata, mantendo só os registros de acesso exigidos por lei pelo prazo legal). |
+| Tema                   | Decisão                                                                                                                                                                                                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Isolamento             | Instância própria em `/api/auth`, cookie `__Secure-nelcota.*` (`SameSite=Lax`, para links de e-mail e convites funcionarem), tabelas `users*`. Uma sessão de participante **nunca** autoriza nada no `/admin` e vice-versa. O mesmo e-mail pode ter conta de participante e de admin, sem relação entre elas. |
+| Cadastro               | E-mail + nome de exibição + senha (10 a 128 caracteres, argon2id). **Verificação de e-mail obrigatória** antes de entrar em salas. Resposta de cadastro igual para e-mail novo ou já cadastrado (`customSyntheticUser`: quem já tem conta recebe um e-mail avisando, e ninguém descobre pela tela).           |
+| Login e recuperação    | Iguais aos dos admins (mensagens genéricas, bloqueio por tentativas com `scope = 'user'`, reset de 30 min que encerra as sessões). 2FA TOTP **opcional**. Sessão de 30 dias com renovação diária e sessão fresca de 10 min para trocar e-mail, senha ou excluir a conta.                                      |
+| Entrada na sala        | `/api/token` passa a exigir sessão de participante com e-mail verificado e conta não bloqueada. `identity` = `users.id`, `name` = nome de exibição. A senha de acesso à sala (`ACCESS_PASSWORD`) continua opcional. A sala guarda quem a criou.                                                               |
+| E-mail                 | `nodemailer` com SMTP via variáveis (`SMTP_URL`, `MAIL_FROM`). Em desenvolvimento, sem SMTP, o link é escrito no log do servidor. **Em produção, o app recusa subir sem SMTP** (cadastro sem verificação não é permitido).                                                                                    |
+| Autoatendimento (LGPD) | `/conta`: editar nome, trocar e-mail (com verificação) e senha, 2FA, sessões ativas, **baixar meus dados** (JSON) e **excluir minha conta** (anonimização imediata, mantendo só os registros de acesso exigidos por lei pelo prazo legal).                                                                    |
 
 ## 6. Telas e fluxos
 
@@ -798,6 +799,7 @@ Comum a todas as telas: sidebar recolhível (estado salvo em cookie), breadcrumb
 ### 6.1 Acesso (`/admin/entrar`, `/verificar-2fa`, `/recuperar-senha`, `/redefinir-senha`, `/convite/[token]`, `/conta`)
 
 Critérios de aceite:
+
 - [ ] Login errado mostra "E-mail ou senha incorretos" para e-mail existente ou não, com tempo de resposta equivalente (diferença < 50 ms no teste).
 - [ ] 6ª tentativa errada no mesmo e-mail em 15 min é recusada com "Muitas tentativas. Tente em X min." e gera audit `auth.lockout`.
 - [ ] Admin sem 2FA, ao entrar, só acessa `/admin/conta/2fa` até concluir.
@@ -898,36 +900,36 @@ Critérios de aceite:
 
 ### 7.1 Checklist de segurança
 
-| Item | Como é tratado |
-|---|---|
-| **A01 Controle de acesso** | Permissão verificada em toda página, action e Route Handler (§5.3). Teste que percorre todas as actions. Nada de IDs sequenciais. Admin desativado perde as sessões na hora. |
-| **A02 Configuração** | Headers já existentes + CSP com nonce no `/admin`. `poweredByHeader: false`. Banco sem porta pública. Coolify com API restrita. Erros sem stack para o usuário. |
-| **A03 Cadeia de suprimentos** | Lockfile congelado, `pnpm audit --prod` no CI, Renovate com `minimumReleaseAge` de 3 dias, `allowBuilds` do pnpm restrito, imagem base fixada por versão. |
-| **A04 Criptografia** | argon2id (OWASP), tokens com `crypto.randomBytes(32)` guardados como hash SHA-256, segredos TOTP cifrados pelo Better Auth, HTTPS obrigatório (Traefik + HSTS). |
-| **A05 Injeção / SQL injection** | Só Drizzle (parametrizado). `sql\`\`` com interpolação parametrizada e **proibido** `sql.raw` com entrada do usuário (lint + revisão). Ordenação só por _whitelist_. |
-| **XSS** | React escapa por padrão. `dangerouslySetInnerHTML` só no script de tema (conteúdo fixo, com nonce). **CSP no `/admin`**: `script-src 'self' 'nonce-…' 'strict-dynamic'`, `style-src 'self' 'unsafe-inline'` (necessário para atributos `style` do React e Radix; nonce não cobre atributo), `connect-src 'self' <livekit>`, `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `object-src 'none'`. O app público migra para nonce também (já é dinâmico). |
-| **CSRF** | Server Actions comparam `Origin` com `Host` (nativo do Next). Better Auth valida `trustedOrigins`. Cookie `SameSite=Strict`. Nenhuma mutação via `GET`. |
-| **Rate limiting** | Login e reset (Better Auth + bloqueio próprio). Actions sensíveis (exportar, anonimizar, encerrar sala) com limite por admin no _middleware_. `/api/token` (já existe). Storage no banco (vale entre reinícios). |
-| **Enumeração** | Login, reset e convite com mensagens e tempos iguais. Convites e tokens não revelam se o e-mail já é admin. |
-| **Validação** | Zod em **toda** entrada no servidor (actions, Route Handlers, webhooks, query string via nuqs `createLoader` estrito). Tamanhos máximos em todos os textos. |
-| **A07 Autenticação** | 2FA obrigatório para quem altera dados, sessões revogáveis, sessão fresca para ações críticas, sem senha padrão. |
-| **A08 Integridade** | Webhook do LiveKit com assinatura verificada e idempotência por `id`. Imagem produzida só pelo CI. |
-| **A09 Logs e alertas** | Audit log imutável. Alertas: rajada de bloqueios de login, backup sem objeto novo em 26 h, erro 5xx > 1% em 5 min (Sentry). |
-| **A10 Condições excepcionais** | `error.tsx` por segmento, actions retornam erro tipado, falha do banco não vaza mensagem interna, timeouts em todas as chamadas externas (LiveKit 5 s). |
-| **Segredos** | Só em variáveis do Coolify e segredos do GitHub, validados por Zod no boot. Separados por ambiente. `.env*` fora do Git (já está). |
-| **Rotação** | `BETTER_AUTH_SECRET`: rotacionar derruba as sessões (aceitável; procedimento documentado). LiveKit: `LIVEKIT_KEYS` aceita duas chaves durante a troca. Senhas do Postgres: `ALTER ROLE` → atualizar o Coolify → redeploy. Revisão semestral. |
-| **Dependências** | Renovate (agrupado por ecossistema, _automerge_ só em patch de devDependencies com CI verde). |
+| Item                            | Como é tratado                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A01 Controle de acesso**      | Permissão verificada em toda página, action e Route Handler (§5.3). Teste que percorre todas as actions. Nada de IDs sequenciais. Admin desativado perde as sessões na hora.                                                                                                                                                                                                                                                                                               |
+| **A02 Configuração**            | Headers já existentes + CSP com nonce no `/admin`. `poweredByHeader: false`. Banco sem porta pública. Coolify com API restrita. Erros sem stack para o usuário.                                                                                                                                                                                                                                                                                                            |
+| **A03 Cadeia de suprimentos**   | Lockfile congelado, `pnpm audit --prod` no CI, Renovate com `minimumReleaseAge` de 3 dias, `allowBuilds` do pnpm restrito, imagem base fixada por versão.                                                                                                                                                                                                                                                                                                                  |
+| **A04 Criptografia**            | argon2id (OWASP), tokens com `crypto.randomBytes(32)` guardados como hash SHA-256, segredos TOTP cifrados pelo Better Auth, HTTPS obrigatório (Traefik + HSTS).                                                                                                                                                                                                                                                                                                            |
+| **A05 Injeção / SQL injection** | Só Drizzle (parametrizado). `sql\`\``com interpolação parametrizada e **proibido**`sql.raw` com entrada do usuário (lint + revisão). Ordenação só por _whitelist_.                                                                                                                                                                                                                                                                                                         |
+| **XSS**                         | React escapa por padrão. `dangerouslySetInnerHTML` só no script de tema (conteúdo fixo, com nonce). **CSP no `/admin`**: `script-src 'self' 'nonce-…' 'strict-dynamic'`, `style-src 'self' 'unsafe-inline'` (necessário para atributos `style` do React e Radix; nonce não cobre atributo), `connect-src 'self' <livekit>`, `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `object-src 'none'`. O app público migra para nonce também (já é dinâmico). |
+| **CSRF**                        | Server Actions comparam `Origin` com `Host` (nativo do Next). Better Auth valida `trustedOrigins`. Cookie `SameSite=Strict`. Nenhuma mutação via `GET`.                                                                                                                                                                                                                                                                                                                    |
+| **Rate limiting**               | Login e reset (Better Auth + bloqueio próprio). Actions sensíveis (exportar, anonimizar, encerrar sala) com limite por admin no _middleware_. `/api/token` (já existe). Storage no banco (vale entre reinícios).                                                                                                                                                                                                                                                           |
+| **Enumeração**                  | Login, reset e convite com mensagens e tempos iguais. Convites e tokens não revelam se o e-mail já é admin.                                                                                                                                                                                                                                                                                                                                                                |
+| **Validação**                   | Zod em **toda** entrada no servidor (actions, Route Handlers, webhooks, query string via nuqs `createLoader` estrito). Tamanhos máximos em todos os textos.                                                                                                                                                                                                                                                                                                                |
+| **A07 Autenticação**            | 2FA obrigatório para quem altera dados, sessões revogáveis, sessão fresca para ações críticas, sem senha padrão.                                                                                                                                                                                                                                                                                                                                                           |
+| **A08 Integridade**             | Webhook do LiveKit com assinatura verificada e idempotência por `id`. Imagem produzida só pelo CI.                                                                                                                                                                                                                                                                                                                                                                         |
+| **A09 Logs e alertas**          | Audit log imutável. Alertas: rajada de bloqueios de login, backup sem objeto novo em 26 h, erro 5xx > 1% em 5 min (Sentry).                                                                                                                                                                                                                                                                                                                                                |
+| **A10 Condições excepcionais**  | `error.tsx` por segmento, actions retornam erro tipado, falha do banco não vaza mensagem interna, timeouts em todas as chamadas externas (LiveKit 5 s).                                                                                                                                                                                                                                                                                                                    |
+| **Segredos**                    | Só em variáveis do Coolify e segredos do GitHub, validados por Zod no boot. Separados por ambiente. `.env*` fora do Git (já está).                                                                                                                                                                                                                                                                                                                                         |
+| **Rotação**                     | `BETTER_AUTH_SECRET`: rotacionar derruba as sessões (aceitável; procedimento documentado). LiveKit: `LIVEKIT_KEYS` aceita duas chaves durante a troca. Senhas do Postgres: `ALTER ROLE` → atualizar o Coolify → redeploy. Revisão semestral.                                                                                                                                                                                                                               |
+| **Dependências**                | Renovate (agrupado por ecossistema, _automerge_ só em patch de devDependencies com CI verde).                                                                                                                                                                                                                                                                                                                                                                              |
 
 ### 7.2 LGPD
 
-| Tema | Decisão |
-|---|---|
-| Inventário de dados pessoais | Participante: e-mail, nome de exibição, hash da senha, segredo de 2FA (cifrado), IP e user agent das sessões, IP e horários de participação. Admin: nome, e-mail, IP, user agent. |
-| Minimização | Conta de participante só com e-mail, nome e senha (sem telefone, CPF ou foto obrigatória). IP só nas tabelas de registro de acesso e sessões. Sentry sem PII. |
-| Base legal | Execução do serviço (participação), cumprimento de obrigação legal (registros de acesso, **Marco Civil art. 15: guarda de 6 meses**), legítimo interesse (segurança e audit). |
-| Retenção (job diário, Fase 8) | `token_requests`: 6 meses → excluir. `room_participations.ip`: 6 meses → `NULL`. `display_name` de participações: 12 meses → anonimizar. `livekit_events`: 30 dias → excluir. `audit_logs`: 5 anos. `admin_login_failures`: 30 dias. Sessões expiradas: 7 dias. |
-| Direitos do titular | **Autoatendimento** em `/conta`: baixar os dados (JSON) e excluir a conta (anonimização: e-mail vira `removido+<id>@invalid`, nome "Pessoa removida", sessões e credenciais apagadas). Pedidos por outros canais entram em `data_subject_requests` (prazo de 15 dias) e o owner executa pelo painel. |
-| Transparência | Atualizar o aviso de privacidade do app (texto jurídico fora do escopo técnico; ver §11). |
+| Tema                          | Decisão                                                                                                                                                                                                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inventário de dados pessoais  | Participante: e-mail, nome de exibição, hash da senha, segredo de 2FA (cifrado), IP e user agent das sessões, IP e horários de participação. Admin: nome, e-mail, IP, user agent.                                                                                                                    |
+| Minimização                   | Conta de participante só com e-mail, nome e senha (sem telefone, CPF ou foto obrigatória). IP só nas tabelas de registro de acesso e sessões. Sentry sem PII.                                                                                                                                        |
+| Base legal                    | Execução do serviço (participação), cumprimento de obrigação legal (registros de acesso, **Marco Civil art. 15: guarda de 6 meses**), legítimo interesse (segurança e audit).                                                                                                                        |
+| Retenção (job diário, Fase 8) | `token_requests`: 6 meses → excluir. `room_participations.ip`: 6 meses → `NULL`. `display_name` de participações: 12 meses → anonimizar. `livekit_events`: 30 dias → excluir. `audit_logs`: 5 anos. `admin_login_failures`: 30 dias. Sessões expiradas: 7 dias.                                      |
+| Direitos do titular           | **Autoatendimento** em `/conta`: baixar os dados (JSON) e excluir a conta (anonimização: e-mail vira `removido+<id>@invalid`, nome "Pessoa removida", sessões e credenciais apagadas). Pedidos por outros canais entram em `data_subject_requests` (prazo de 15 dias) e o owner executa pelo painel. |
+| Transparência                 | Atualizar o aviso de privacidade do app (texto jurídico fora do escopo técnico; ver §11).                                                                                                                                                                                                            |
 
 ### 7.3 Observabilidade
 
@@ -942,12 +944,12 @@ Critérios de aceite:
 
 ### 8.1 O que é obrigatório testar
 
-| Nível | Obrigatório |
-|---|---|
-| **Unitário** (Vitest) | Matriz de permissões (cada papel × cada ação, contra uma tabela esperada). Schemas Zod. Formatação pt-BR (datas no fuso de SP, inclusive na virada de dia). Escape de CSV injection. Codificação/decodificação de cursor keyset. Cálculo do bloqueio por tentativas. |
+| Nível                                        | Obrigatório                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Unitário** (Vitest)                        | Matriz de permissões (cada papel × cada ação, contra uma tabela esperada). Schemas Zod. Formatação pt-BR (datas no fuso de SP, inclusive na virada de dia). Escape de CSV injection. Codificação/decodificação de cursor keyset. Cálculo do bloqueio por tentativas.                                                                                                                                                                       |
 | **Integração** (Vitest + Postgres 18.6 real) | Migrações do zero até a última. Toda action: sem sessão → recusa; sem permissão → recusa; com permissão → efeito + **1 linha de audit** (teste gerado a partir do registro de actions). Keyset sem repetir ou pular linhas com empates na ordenação. Projeção dos webhooks do LiveKit (eventos fora de ordem, duplicados). Retenção e anonimização. `nelcota_app` não consegue alterar `audit_logs` nem fazer DDL. Último owner protegido. |
-| **E2E** (Playwright, fluxos críticos) | Login + 2FA + logout. Bloqueio após tentativas. Convite de admin até o primeiro login. Listar, filtrar e ordenar salas pela URL, com voltar do navegador. Exportar CSV. Encerrar sala ao vivo (com LiveKit dev). Audit log mostrando a ação. `viewer` sem botões de alteração. Axe sem violações sérias nas telas principais. |
-| **Manual por release** | Teste de restauração mensal (§4.8). Revisão do checklist de migração. |
+| **E2E** (Playwright, fluxos críticos)        | Login + 2FA + logout. Bloqueio após tentativas. Convite de admin até o primeiro login. Listar, filtrar e ordenar salas pela URL, com voltar do navegador. Exportar CSV. Encerrar sala ao vivo (com LiveKit dev). Audit log mostrando a ação. `viewer` sem botões de alteração. Axe sem violações sérias nas telas principais.                                                                                                              |
+| **Manual por release**                       | Teste de restauração mensal (§4.8). Revisão do checklist de migração.                                                                                                                                                                                                                                                                                                                                                                      |
 
 Cobertura mínima: 80% de linhas em `server/` e `features/*/queries.ts|actions.ts`. Em componentes não há meta (cobertos pelo E2E).
 
@@ -978,12 +980,12 @@ flowchart LR
 
 ### 9.1 Recursos
 
-| Recurso | Configuração |
-|---|---|
-| **PostgreSQL** | Imagem `postgres:18.6-alpine` (fixada). Volume persistente (o Coolify monta `/var/lib/postgresql` no 18+). Sem acesso público. `postgresql.conf` customizado (§4.9). Limite de memória. Backups agendados para S3. |
+| Recurso           | Configuração                                                                                                                                                                                                                                                                                          |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PostgreSQL**    | Imagem `postgres:18.6-alpine` (fixada). Volume persistente (o Coolify monta `/var/lib/postgresql` no 18+). Sem acesso público. `postgresql.conf` customizado (§4.9). Limite de memória. Backups agendados para S3.                                                                                    |
 | **App (Next.js)** | Tipo **imagem Docker** (`ghcr.io/<org>/nelcota:<sha>`, puxada com token de leitura do GHCR), não build no servidor. Domínio com HTTPS automático (Let's Encrypt via Traefik). Healthcheck do Dockerfile (`/api/health`). Rolling update ligado (sem mapear porta do host nem nome fixo de container). |
-| **LiveKit** | Como hoje (compose próprio). Webhook apontando para `https://<app>/api/livekit/webhook`. |
-| **Rede** | App e Postgres na mesma rede do Coolify. `DATABASE_URL` usa o host interno (`<uuid-do-container>:5432`). |
+| **LiveKit**       | Como hoje (compose próprio). Webhook apontando para `https://<app>/api/livekit/webhook`.                                                                                                                                                                                                              |
+| **Rede**          | App e Postgres na mesma rede do Coolify. `DATABASE_URL` usa o host interno (`<uuid-do-container>:5432`).                                                                                                                                                                                              |
 
 ### 9.2 Variáveis de ambiente (app)
 
@@ -1001,10 +1003,11 @@ flowchart LR
 O _pre-deployment command_ do Coolify roda no container antigo, e o _post-deployment_ roda depois que o tráfego já mudou e não aborta o deploy. Nenhum dos dois serve. Por isso:
 
 1. O CI publica a imagem `:sha`, que contém `scripts/migrate.js` (migrator programático do Drizzle) e a pasta `drizzle/`.
-2. O job `migrate` entra via SSH na VPS (usuário `deploy`, chave dedicada, `command=` restrito no `authorized_keys`) e roda:
-   `docker run --rm --network coolify -e DATABASE_URL="$MIGRATOR_URL" ghcr.io/<org>/nelcota:<sha> node scripts/migrate.js`
+2. O job `migrate` entra via SSH na VPS (usuário `deploy`, chave dedicada, `command=` restrito no `authorized_keys`) e roda a imagem nova com o migrador empacotado (`migrate.mjs`). A URL do migrator vai **pelo stdin** e é lida dentro do container (não aparece em `ps` nem nos argumentos do docker):
+   `printf '%s
+' "$MIGRATOR_URL" | ssh deploy@vps "docker run --rm -i --network coolify ghcr.io/<org>/nelcota:<sha> sh -c 'read -r DATABASE_URL && export DATABASE_URL && exec node migrate.mjs'"`
    - O script usa `lock_timeout`/advisory lock, aplica as pendentes e sai com código ≠ 0 em erro.
-3. Só se o passo 2 passar, o CI chama o webhook do Coolify com a tag `:sha`.
+3. Só se o passo 2 passar, o CI chama o webhook do Coolify. O app no Coolify aponta para a tag `:main` (o parâmetro `tag` do webhook filtra tags de recurso do Coolify, não a tag da imagem), que o CI move junto com a `:<sha>` imutável. O smoke test confere que o `/api/ready` responde com o SHA novo.
 4. Se a migração falhar, nada é deployado. Como as migrações são _expand-only_ por padrão, o container em produção continua compatível.
 
 **Alternativa registrada** (se não for aceitável abrir SSH para o CI): um passo separado no início do container (`node scripts/migrate.js && node server.js`), com a credencial de migração só nesse processo. Funciona com o rolling update (falhou → container novo não fica saudável → o antigo continua), mas mistura o ciclo de vida do app com o da migração. Por isso fica como plano B.
@@ -1021,22 +1024,22 @@ O _pre-deployment command_ do Coolify roda no container antigo, e o _post-deploy
 
 Estimativas em dias úteis para 1 pessoa em tempo integral, já incluindo testes.
 
-| Fase | Entregas | Dias | Depende de | Riscos |
-|---|---|:-:|---|---|
-| **0. Fundação** | Estrutura `server/` + `features/`. Mover o código existente (env, db, settings). Remover a migração no boot. Papéis do Postgres (bootstrap SQL). Vitest (migrar os testes `node --test`). Postgres de teste por _template_. Pino + request-id. CSP com nonce. Sentry. CI completo (lint, typecheck, testes, build da imagem, GHCR). Job de migração via SSH. Medir TS 7 + Drizzle. | 4 | — | SSH/GHCR no Coolify. Desempenho de tipos. |
-| **1. Autenticação** | Better Auth (tabelas `admin_*`, argon2id). Login, logout, 2FA obrigatório, _backup codes_. Recuperação de senha. Bloqueio por tentativas. Convite e `create-owner`. Sessões ativas. Cookie e CSRF verificados. | 6 | 0 | Lacunas do Better Auth (lockout próprio, `sameSite`). E-mail (§11). |
-| **1b. Contas de participantes** | 2ª instância do Better Auth (`users*`). Cadastro, verificação de e-mail (nodemailer + log em dev), login, recuperação, 2FA opcional, `/conta` (perfil, senha, sessões, exportar, excluir). Navbar com sessão. `/api/token` exige conta verificada. | 5 | 1 | Mudança de fluxo para quem já usa o app (agora precisa de conta). SMTP em produção. |
-| **2. RBAC + audit + shell** | `permissions.ts` + `adminAction` (next-safe-action). Audit log na mesma transação. Teste que percorre as actions. Layout com sidebar, breadcrumbs, `cmdk`, toasts, estados vazios e erro. Tela de Auditoria. | 4 | 1 | Desenho do _middleware_ (base de tudo). |
-| **3. Kit de tabela** | TanStack Table v9 + nuqs + keyset + total aproximado + seleção em massa + CSV em stream + cards no mobile. Seed `dev` e `carga` (300 mil). | 4 | 2 | API nova do v9. |
-| **MVP ✅** | Participantes com conta. Admin entra com 2FA, vê e audita. Base pronta para os CRUDs. | **23** | | |
-| **4. Ingestão de dados** | Tabelas de negócio. Webhook LiveKit → `livekit_events` → projeção idempotente, ligando participações a `users`. `token_requests` registrado no `/api/token`. | 4 | 1b | Eventos fora de ordem. Sem dados antes do deploy (histórico começa do zero). |
-| **5. CRUDs** | Usuários (contas), salas, compartilhamentos (listas, filtros, detalhes, ações em massa, desfazer, exportação). Convites de sala. | 6 | 3, 4 | Volume de telas. |
-| **6. Ao vivo** | Salas ativas e participantes (polling), remover e encerrar com confirmação e audit. | 2 | 2, 4 | Limites da API do LiveKit. |
-| **7. Dashboard** | Cards, gráficos, período na URL, comparação, atividade recente, `EXPLAIN` revisado. | 3 | 4 | Consultas lentas com volume: _rollup_ fica para a Fase 9 se preciso. |
-| **8. Admins, configurações e LGPD** | Gestão de admins e matriz de papéis. Configurações do app e da conta. Pedidos LGPD (export e anonimização). Jobs de retenção. | 4 | 2, 4 | Texto jurídico (fora do escopo técnico). |
-| **9. Operação e endurecimento** | Backups no S3 + primeiro teste de restore documentado. Tuning do `postgresql.conf`. `pg_stat_statements` + tela de saúde. Alertas. RUNBOOK. Revisão de segurança (checklist §7.1). Teste de carga com 300 mil linhas. | 5 | todas | Limites da VPS. |
-| **Total** | | **~47** | | |
-| _Extra (opcional)_ | Papéis customizáveis pela UI. WAL archiving (RPO 5 min). _Rollup_ `metrics_daily`. Migrar para Drizzle 1.0 quando sair do RC. | 3–6 cada | | |
+| Fase                                | Entregas                                                                                                                                                                                                                                                                                                                                                                           |   Dias   | Depende de | Riscos                                                                              |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------: | ---------- | ----------------------------------------------------------------------------------- |
+| **0. Fundação**                     | Estrutura `server/` + `features/`. Mover o código existente (env, db, settings). Remover a migração no boot. Papéis do Postgres (bootstrap SQL). Vitest (migrar os testes `node --test`). Postgres de teste por _template_. Pino + request-id. CSP com nonce. Sentry. CI completo (lint, typecheck, testes, build da imagem, GHCR). Job de migração via SSH. Medir TS 7 + Drizzle. |    4     | —          | SSH/GHCR no Coolify. Desempenho de tipos.                                           |
+| **1. Autenticação**                 | Better Auth (tabelas `admin_*`, argon2id). Login, logout, 2FA obrigatório, _backup codes_. Recuperação de senha. Bloqueio por tentativas. Convite e `create-owner`. Sessões ativas. Cookie e CSRF verificados.                                                                                                                                                                     |    6     | 0          | Lacunas do Better Auth (lockout próprio, `sameSite`). E-mail (§11).                 |
+| **1b. Contas de participantes**     | 2ª instância do Better Auth (`users*`). Cadastro, verificação de e-mail (nodemailer + log em dev), login, recuperação, 2FA opcional, `/conta` (perfil, senha, sessões, exportar, excluir). Navbar com sessão. `/api/token` exige conta verificada.                                                                                                                                 |    5     | 1          | Mudança de fluxo para quem já usa o app (agora precisa de conta). SMTP em produção. |
+| **2. RBAC + audit + shell**         | `permissions.ts` + `adminAction` (next-safe-action). Audit log na mesma transação. Teste que percorre as actions. Layout com sidebar, breadcrumbs, `cmdk`, toasts, estados vazios e erro. Tela de Auditoria.                                                                                                                                                                       |    4     | 1          | Desenho do _middleware_ (base de tudo).                                             |
+| **3. Kit de tabela**                | TanStack Table v9 + nuqs + keyset + total aproximado + seleção em massa + CSV em stream + cards no mobile. Seed `dev` e `carga` (300 mil).                                                                                                                                                                                                                                         |    4     | 2          | API nova do v9.                                                                     |
+| **MVP ✅**                          | Participantes com conta. Admin entra com 2FA, vê e audita. Base pronta para os CRUDs.                                                                                                                                                                                                                                                                                              |  **23**  |            |                                                                                     |
+| **4. Ingestão de dados**            | Tabelas de negócio. Webhook LiveKit → `livekit_events` → projeção idempotente, ligando participações a `users`. `token_requests` registrado no `/api/token`.                                                                                                                                                                                                                       |    4     | 1b         | Eventos fora de ordem. Sem dados antes do deploy (histórico começa do zero).        |
+| **5. CRUDs**                        | Usuários (contas), salas, compartilhamentos (listas, filtros, detalhes, ações em massa, desfazer, exportação). Convites de sala.                                                                                                                                                                                                                                                   |    6     | 3, 4       | Volume de telas.                                                                    |
+| **6. Ao vivo**                      | Salas ativas e participantes (polling), remover e encerrar com confirmação e audit.                                                                                                                                                                                                                                                                                                |    2     | 2, 4       | Limites da API do LiveKit.                                                          |
+| **7. Dashboard**                    | Cards, gráficos, período na URL, comparação, atividade recente, `EXPLAIN` revisado.                                                                                                                                                                                                                                                                                                |    3     | 4          | Consultas lentas com volume: _rollup_ fica para a Fase 9 se preciso.                |
+| **8. Admins, configurações e LGPD** | Gestão de admins e matriz de papéis. Configurações do app e da conta. Pedidos LGPD (export e anonimização). Jobs de retenção.                                                                                                                                                                                                                                                      |    4     | 2, 4       | Texto jurídico (fora do escopo técnico).                                            |
+| **9. Operação e endurecimento**     | Backups no S3 + primeiro teste de restore documentado. Tuning do `postgresql.conf`. `pg_stat_statements` + tela de saúde. Alertas. RUNBOOK. Revisão de segurança (checklist §7.1). Teste de carga com 300 mil linhas.                                                                                                                                                              |    5     | todas      | Limites da VPS.                                                                     |
+| **Total**                           |                                                                                                                                                                                                                                                                                                                                                                                    | **~47**  |            |                                                                                     |
+| _Extra (opcional)_                  | Papéis customizáveis pela UI. WAL archiving (RPO 5 min). _Rollup_ `metrics_daily`. Migrar para Drizzle 1.0 quando sair do RC.                                                                                                                                                                                                                                                      | 3–6 cada |            |                                                                                     |
 
 ---
 

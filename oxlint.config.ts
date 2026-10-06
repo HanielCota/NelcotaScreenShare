@@ -66,6 +66,36 @@ export default defineConfig({
   },
   overrides: [
     {
+      // Camadas (docs/PLANO-ADMIN.md §3.3): UI e código isomórfico não tocam o banco
+      // nem o servidor. Dados chegam por props/Server Components; mutações por actions.
+      files: [
+        "components/**",
+        "hooks/**",
+        "lib/**",
+        "features/*/components/**",
+        "features/*/columns.tsx",
+      ],
+      rules: {
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["@/server", "@/server/*", "pg", "drizzle-orm", "drizzle-orm/*"],
+                allowTypeImports: true,
+                message: "Componentes não acessam o servidor/banco: use props ou uma action.",
+              },
+              {
+                group: ["@/features/*/queries"],
+                allowTypeImports: true,
+                message: "Consultas são server-only: chame-as num Server Component.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
       files: ["components/room/PreJoin.tsx"],
       // Oxlint 1.86 omite o token HTML válido `nickname` da lista desta regra.
       // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill-field

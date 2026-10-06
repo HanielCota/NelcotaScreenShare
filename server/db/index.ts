@@ -1,7 +1,8 @@
 import "server-only";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/server/env";
+import { logger } from "@/server/logger";
 import * as schema from "./schema";
 
 export type Database = NodePgDatabase<typeof schema>;
@@ -24,7 +25,7 @@ export function getDb(): Database | undefined {
     connectionTimeoutMillis: 5_000,
   });
   // Conexão ociosa que cai (restart do Postgres) não pode derrubar o processo.
-  pool.on("error", (error) => console.error("[db] conexão ociosa falhou", error.message));
+  pool.on("error", (error) => logger.error({ err: error }, "conexão ociosa do Postgres falhou"));
 
   globalForDb.nelcotaDb = drizzle(pool, { schema });
   return globalForDb.nelcotaDb;

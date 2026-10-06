@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
-import test from "node:test";
-// oxlint-disable-next-line import/no-unassigned-import -- Só registra os hooks de resolução de módulos.
-import "./support/register.mts";
+import { test } from "vitest";
 
-const { createRateLimiter, getClientIp } = await import("../lib/rate-limit");
-const { buildCsp } = await import("../lib/csp");
-const { generateRoomCode, roomCodeSchema, roomPath } = await import("../lib/livekit");
+const { createRateLimiter, getClientIp } = await import("../../server/rate-limit");
+const { buildCsp } = await import("../../server/csp");
+const { generateRoomCode, roomCodeSchema, roomPath } = await import("../../lib/livekit");
 
 await test("rate limit: conta, bloqueia e libera quando a janela vira", () => {
   let now = 1_000;
@@ -38,17 +36,27 @@ await test("IP do cliente respeita o número de proxies confiáveis", () => {
 });
 
 await test("CSP libera só o próprio app e o LiveKit", () => {
-  const prod = buildCsp({ livekitUrl: "wss://lk.exemplo.com", dev: false });
+  const prod = buildCsp({ livekitUrl: "wss://lk.exemplo.com", dev: false, nonce: "bm9uY2U=" });
+  assert.match(prod, /script-src 'self' 'nonce-bm9uY2U=' 'strict-dynamic';/);
+  assert.doesNotMatch(prod, /script-src[^;]*'unsafe-inline'/, "nonce substitui unsafe-inline");
   assert.match(prod, /connect-src 'self' wss:\/\/lk\.exemplo\.com https:\/\/lk\.exemplo\.com;/);
   assert.match(prod, /frame-ancestors 'none'/);
   assert.match(prod, /object-src 'none'/);
   assert.match(prod, /upgrade-insecure-requests$/);
   assert.doesNotMatch(prod, /unsafe-eval/);
 
-  const dev = buildCsp({ livekitUrl: "ws://localhost:7880", dev: true });
+  const dev = buildCsp({ livekitUrl: "ws://localhost:7880", dev: true, nonce: "bm9uY2U=" });
   assert.match(dev, /connect-src 'self' ws:\/\/localhost:7880 http:\/\/localhost:7880;/);
   assert.match(dev, /'unsafe-eval'/);
   assert.doesNotMatch(dev, /upgrade-insecure-requests/, "quebraria o ws:// local");
+
+  const withSentry = buildCsp({
+    livekitUrl: "wss://lk.exemplo.com",
+    dev: false,
+    nonce: "bm9uY2U=",
+    sentryDsn: "https://chave@o123.ingest.sentry.io/456",
+  });
+  assert.match(withSentry, /connect-src [^;]*https:\/\/o123\.ingest\.sentry\.io/);
 });
 
 await test("código de sala: normaliza e recusa formatos inválidos", () => {

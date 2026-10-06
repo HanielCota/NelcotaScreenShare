@@ -14,3 +14,7 @@ README.md
 .claude
 output
 .playwright-cli
+dist
+coverage
+docs
+tests

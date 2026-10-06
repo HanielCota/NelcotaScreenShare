@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { RoomSession } from "@/components/room/RoomSession";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/server/env";
 import { roomCodeSchema, roomPath } from "@/lib/livekit";
 
 export async function generateMetadata({ params }: PageProps<"/sala/[codigo]">): Promise<Metadata> {

@@ -1,28 +1,46 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { buildCsp } from "@/lib/csp";
-import { getEnv } from "@/lib/env";
+import { buildCsp } from "@/server/csp";
+import { getEnv } from "@/server/env";
 
-let cachedCsp: string | undefined;
+const REQUEST_ID = /^[A-Za-z0-9._-]{8,64}$/;
 
-function csp(): string {
-  cachedCsp ??= buildCsp({
-    livekitUrl: getEnv().NEXT_PUBLIC_LIVEKIT_URL,
-    dev: process.env.NODE_ENV === "development",
-  });
-  return cachedCsp;
-}
+/**
+ * Toda requisição ganha um `x-request-id` (reaproveita o do proxy reverso se
+ * vier válido), que liga logs, erros e audit. Páginas recebem também uma CSP
+ * com nonce novo: o Next aplica o nonce nos próprios scripts ao ler o
+ * cabeçalho da requisição, e o layout aplica no script do tema.
+ */
+export function proxy(request: NextRequest) {
+  const incoming = request.headers.get("x-request-id");
+  const requestId = incoming && REQUEST_ID.test(incoming) ? incoming : crypto.randomUUID();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-request-id", requestId);
 
-export function proxy(_request: NextRequest) {
-  const response = NextResponse.next();
-  response.headers.set("Content-Security-Policy", csp());
+  const isPage = !request.nextUrl.pathname.startsWith("/api/");
+  let csp: string | undefined;
+  if (isPage) {
+    const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+    csp = buildCsp({
+      livekitUrl: getEnv().NEXT_PUBLIC_LIVEKIT_URL,
+      dev: process.env.NODE_ENV === "development",
+      nonce,
+      sentryDsn: getEnv().SENTRY_DSN,
+    });
+    requestHeaders.set("x-nonce", nonce);
+    requestHeaders.set("Content-Security-Policy", csp);
+  }
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("x-request-id", requestId);
+  if (csp) response.headers.set("Content-Security-Policy", csp);
   return response;
 }
 
 export const config = {
   matcher: [
-    // Só páginas: APIs (JSON) e arquivos estáticos não precisam de CSP.
     {
-      source: "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|mascot|robots.txt).*)",
+      // Tudo menos arquivos estáticos. Prefetch não precisa de nonce próprio.
+      source: "/((?!_next/static|_next/image|favicon.ico|icon.svg|mascot/|robots.txt).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

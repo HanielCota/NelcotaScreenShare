@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
-import test from "node:test";
-// oxlint-disable-next-line import/no-unassigned-import -- Só registra os hooks de resolução de módulos.
-import "./support/register.mts";
+import { test } from "vitest";
 
 const { ADMIN_SESSION_MS, createSessionToken, passwordMatches, verifySessionToken } =
-  await import("../lib/admin-auth");
+  await import("../../server/auth/admin-password");
 
 const SECRET = "segredo-de-sessao-0123456789abcdef0123456789";
 const NOW = 1_800_000_000_000;

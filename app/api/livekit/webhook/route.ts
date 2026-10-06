@@ -1,6 +1,7 @@
 import { WebhookReceiver } from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/server/env";
+import { logger } from "@/server/logger";
 
 /** Eventos que viram linha de log. O resto (faixas, egress…) é ignorado. */
 const LOGGED_EVENTS = new Set([
@@ -30,8 +31,8 @@ export async function POST(request: NextRequest) {
   }
 
   if (LOGGED_EVENTS.has(event.event)) {
-    console.info(
-      JSON.stringify({
+    logger.info(
+      {
         source: "livekit-webhook",
         event: event.event,
         room: event.room?.name,
@@ -39,7 +40,8 @@ export async function POST(request: NextRequest) {
           ? { identity: event.participant.identity, name: event.participant.name }
           : undefined,
         at: new Date(Number(event.createdAt) * 1000).toISOString(),
-      }),
+      },
+      "evento do LiveKit",
     );
   }
 

@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import test from "node:test";
+import { afterAll, test } from "vitest";
 import { z } from "zod";
-// oxlint-disable-next-line import/no-unassigned-import -- Só registra os hooks de resolução de módulos.
-import "./support/register.mts";
 
 /**
  * Testa o POST /api/token de ponta a ponta, com um LiveKit falso que responde
@@ -36,6 +34,7 @@ const fakeLiveKit = createServer((request, response) => {
 });
 await new Promise<void>((resolve) => fakeLiveKit.listen(0, "127.0.0.1", resolve));
 const address = fakeLiveKit.address();
+afterAll(() => fakeLiveKit.close());
 assert.ok(address && typeof address !== "string", "LiveKit falso deve escutar em uma porta TCP");
 const { port } = address;
 
@@ -49,7 +48,7 @@ Object.assign(process.env, {
 });
 
 const { NextRequest } = await import("next/server");
-const { POST } = await import("../app/api/token/route");
+const { POST } = await import("../../app/api/token/route");
 
 let nextIp = 1;
 /** Cada teste usa um IP próprio para não herdar contagens do rate limit. */
@@ -168,5 +167,3 @@ await test("limite geral de 20 requisições por minuto por IP", async () => {
   assert.equal(limited.status, 429);
   assert.ok(Number(limited.headers.get("retry-after")) > 0);
 });
-
-fakeLiveKit.close();

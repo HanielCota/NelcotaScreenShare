@@ -1,0 +1,48 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommitsDisabled", "helpers:pinGitHubActionDigests"],
+  "timezone": "America/Sao_Paulo",
+  "schedule": ["before 7am on monday"],
+  "minimumReleaseAge": "3 days",
+  "rangeStrategy": "pin",
+  "labels": ["dependências"],
+  "lockFileMaintenance": { "enabled": true, "schedule": ["before 7am on monday"] },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "minimumReleaseAge": null,
+    "schedule": ["at any time"]
+  },
+  "packageRules": [
+    {
+      "description": "Segurança: auth e banco sempre em PR separado e revisado",
+      "matchPackageNames": [
+        "better-auth",
+        "@better-auth/**",
+        "drizzle-orm",
+        "drizzle-kit",
+        "pg",
+        "@node-rs/argon2"
+      ],
+      "groupName": null,
+      "automerge": false
+    },
+    {
+      "description": "Next, React e tipos andam juntos",
+      "matchPackageNames": ["next", "react", "react-dom", "@types/react", "@types/react-dom"],
+      "groupName": "next e react"
+    },
+    {
+      "description": "Ferramentas de dev: patch entra sozinho com CI verde",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
+      "description": "Postgres da imagem: só minor/patch automaticamente (major exige pg_upgrade)",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}
