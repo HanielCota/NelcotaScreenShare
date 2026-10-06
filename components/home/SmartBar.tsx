@@ -203,7 +203,8 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
           hint.tone === "error" && "text-danger",
         )}
       >
-        {hint.text}
+        {/* Um filho só: no flex, texto e <strong> virariam itens e o espaço entre eles sumiria. */}
+        <span>{hint.text}</span>
       </p>
     </form>
   );
