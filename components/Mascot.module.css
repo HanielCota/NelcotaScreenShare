@@ -1,0 +1,80 @@
+.body {
+  transform-origin: 50% 85%;
+}
+
+.dreams {
+  position: absolute;
+  top: 8%;
+  left: 72%;
+  display: flex;
+  align-items: baseline;
+  gap: 0.12em;
+  color: var(--color-brand-soft);
+  font-size: clamp(12px, 1.4vw, 20px);
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease-out;
+}
+
+.dreams span:nth-child(2) {
+  font-size: 0.8em;
+  animation-delay: 650ms;
+}
+
+.dreams span:nth-child(3) {
+  font-size: 0.65em;
+  animation-delay: 1300ms;
+}
+
+.root[data-expression="asleep"] .body {
+  animation: breathe 3800ms ease-in-out infinite;
+}
+
+.root[data-expression="asleep"] .dreams {
+  opacity: 1;
+}
+
+.root[data-expression="asleep"] .dreams span {
+  animation-name: dream;
+  animation-duration: 3200ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.root[data-motion="paused"] .body,
+.root[data-motion="paused"] .dreams span {
+  animation-play-state: paused;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.012, 1.025);
+  }
+}
+
+@keyframes dream {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-0.3em);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root[data-expression="asleep"] .body,
+  .root[data-expression="asleep"] .dreams span {
+    animation: none;
+  }
+  .dreams {
+    transition: none;
+  }
+}

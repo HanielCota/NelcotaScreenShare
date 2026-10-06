@@ -1,0 +1,47 @@
+# Configuração do LiveKit Server (self-hosted).
+# As chaves NÃO ficam aqui: vêm da variável de ambiente LIVEKIT_KEYS
+# (definida no docker-compose.livekit.yml a partir de LIVEKIT_API_KEY/SECRET).
+
+# Sinalização HTTP/WebSocket. Fica atrás do proxy HTTPS do Coolify
+# (lk.seudominio.com -> 127.0.0.1:7880). NÃO abra a 7880 no firewall.
+port: 7880
+bind_addresses:
+  - ""
+
+rtc:
+  # Fallback ICE/TCP para redes que bloqueiam UDP. Firewall: 7881/tcp.
+  tcp_port: 7881
+  # Faixa de mídia WebRTC (UDP). Firewall: 50000-50100/udp.
+  # 101 portas sobram para ~5-8 pessoas (cada participante usa poucas portas).
+  port_range_start: 50000
+  port_range_end: 50100
+  # Descobre o IP público via STUN e anuncia nos candidatos ICE.
+  use_external_ip: true
+
+turn:
+  # TURN embutido: essencial para quem está atrás de NAT simétrico / firewall corporativo.
+  enabled: true
+  # Domínio que aponta (registro A, SEM proxy da Cloudflare) para o IP da VPS.
+  domain: lk.seudominio.com
+  # TURN/UDP. Firewall: 3478/udp.
+  udp_port: 3478
+  # Portas que o TURN aloca para retransmitir mídia (padrão seria 30000-40000).
+  # Firewall: 30000-30100/udp.
+  relay_range_start: 30000
+  relay_range_end: 30100
+  # TURN/TLS (opcional, atravessa firewalls que só liberam TLS). Firewall: 5349/tcp.
+  # Exige certificado válido para o domínio acima; veja "TURN/TLS" no README.
+  # Para ativar, descomente as 3 linhas abaixo e o volume de certificados no compose.
+  # tls_port: 5349
+  # cert_file: /etc/livekit/certs/fullchain.pem
+  # key_file: /etc/livekit/certs/privkey.pem
+
+room:
+  # Rede de segurança: o app já limita via token (MAX_PARTICIPANTS).
+  max_participants: 8
+  empty_timeout: 300
+  departure_timeout: 20
+
+logging:
+  level: info
+  pion_level: error

@@ -1,0 +1,140 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* App é dark-only: a variante `dark:` sempre se aplica. */
+@custom-variant dark (&:where(:root, :root *));
+
+/*
+ * Tokens de design. Fundo grafite escuro #17181A, superfícies #1F2023 / #26272B,
+ * bordas white/8% e destaques verde-menta em harmonia com o mascote.
+ */
+@theme {
+  --color-canvas: #17181a;
+  --color-surface: #1f2023;
+  --color-surface-2: #26272b;
+  --color-surface-3: #2e2f34;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-line-strong: rgb(255 255 255 / 0.14);
+
+  --color-ink: #fafafa;
+  --color-ink-muted: #a1a1aa;
+  --color-ink-subtle: #9696a0;
+
+  /* Menta com texto verde-escuro e uma versão clara para texto, ícones e foco. */
+  --color-brand: #a2e1b2;
+  --color-brand-hover: #b8ebc5;
+  --color-brand-soft: #cdf2d6;
+  --color-brand-ink: #14281c;
+
+  --color-danger: #f87171;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 20px 50px -20px rgb(0 0 0 / 0.7);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Ponte com as variáveis que os componentes do shadcn esperam. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+:root {
+  color-scheme: dark;
+  --radius: 0.75rem;
+  --background: #17181a;
+  --foreground: #fafafa;
+  --card: #1f2023;
+  --card-foreground: #fafafa;
+  --popover: #26272b;
+  --popover-foreground: #fafafa;
+  --primary: var(--color-brand);
+  --primary-foreground: var(--color-brand-ink);
+  --secondary: #26272b;
+  --secondary-foreground: #fafafa;
+  --muted: #26272b;
+  --muted-foreground: #a1a1aa;
+  --accent: #2e2f34;
+  --accent-foreground: #fafafa;
+  --destructive: #f87171;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.1);
+  --ring: var(--color-brand-soft);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-canvas font-sans text-ink antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply min-h-dvh bg-canvas;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight text-balance;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-soft;
+  }
+
+  ::selection {
+    @apply bg-brand/35 text-ink;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  /* Superfície "vidro" usada nas barras flutuantes. */
+  .glass {
+    @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl backdrop-saturate-150;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

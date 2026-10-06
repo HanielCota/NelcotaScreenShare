@@ -1,0 +1,36 @@
+# LiveKit Server self-hosted (recurso separado no Coolify: "Docker Compose").
+#
+# Portas a liberar no firewall da VPS (ufw / painel do provedor):
+#   7881/tcp          -> WebRTC via TCP (fallback quando UDP é bloqueado)
+#   50000-50100/udp   -> mídia WebRTC (RTP/RTCP)
+#   3478/udp          -> TURN/UDP
+#   30000-30100/udp   -> portas de relay do TURN (turn.relay_range_* no livekit.yaml)
+#   5349/tcp          -> TURN/TLS (somente se ativado no livekit.yaml)
+#
+# A porta 7880 (sinalização HTTP/WebSocket) NÃO deve ser aberta no firewall:
+# ela passa pelo proxy HTTPS do Coolify em https://lk.seudominio.com
+# (o app conecta em wss://lk.seudominio.com). Veja o README.
+#
+# network_mode: host é obrigatório para WebRTC: evita NAT do Docker na faixa UDP
+# e permite que o LiveKit anuncie o IP público correto nos candidatos ICE.
+
+services:
+  livekit:
+    image: livekit/livekit-server:v1.13.7
+    restart: unless-stopped
+    network_mode: host
+    command: --config /etc/livekit/livekit.yaml
+    environment:
+      # Formato "chave: segredo". Defina LIVEKIT_API_KEY e LIVEKIT_API_SECRET
+      # nas variáveis do recurso no Coolify (iguais às do app Next.js).
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:?defina LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET:?defina LIVEKIT_API_SECRET}"
+    volumes:
+      - ./deploy/livekit/livekit.yaml:/etc/livekit/livekit.yaml:ro
+      # TURN/TLS: descomente e aponte para o certificado do domínio do TURN.
+      # - /etc/letsencrypt/live/lk.seudominio.com:/etc/livekit/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:7880 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

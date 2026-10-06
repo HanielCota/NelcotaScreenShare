@@ -1,0 +1,17 @@
+{
+  "reference": "C:/Users/Fialho/.codex/generated_images/01a10eca-b597-76e0-acc2-3679e6c487df/exec-ee2ff4a0-77ce-4776-8826-f0cdd85dac9b.png",
+  "generator": "image_gen.imagegen",
+  "prompt": "Use case: stylized-concept.\nAsset type: transparent web mascot animation atlas.\nInput image 1: approved mascot identity and exact art style reference. Preserve this SAME cute mint-green pear-shaped creature, two rounded leaf tufts, dark oval eyes with cream rims, tiny curved brows, tiny smile, small flipper arms, stubby feet, soft flat 2D illustration with subtle green shading. No redesign. Keep the reference's adorable proportions and slightly tilted face.\nCreate exactly SIX full-body poses of this same mascot, arranged in EXACTLY 3 columns and 2 rows of EQUAL SQUARE CELLS, on a landscape 3:2 canvas. Each character occupies about 84% of its cell height, centered horizontally, identical size and identical head, face, torso and foot baseline coordinates in every cell. Each entire silhouette fits inside its own cell with at least 6% transparent margins. No cropping. All gaps and background are genuinely transparent alpha=0. No white background, no floor shadows, no ambient haze, no borders, no text, no labels, no props, no added objects.\nPose order left to right, top to bottom: TOP LEFT: friendly default, open eyes and reference's tiny smile, arms relaxed. TOP MIDDLE: happy wave A, same exact body and face alignment as default, one flipper on viewer's LEFT raised to greet, bright friendly smile. TOP RIGHT: wave B, pixel-aligned exact same pose as top middle except raised flipper rotates slightly outward for two-frame waving, same smile. BOTTOM LEFT: both eyes peacefully closed with curved dark lid lines, small smile, arms relaxed. BOTTOM MIDDLE: gently concerned, eyes open, eyebrows slightly knitted, tiny worried mouth, arms relaxed, still adorable. BOTTOM RIGHT: surprised, eyes open wider, slightly raised brows, tiny round mouth, arms relaxed.\nCritical: uniform scale and position across all six cells; only expression and waving arm change. Exact same approved mascot, rounded mint body and leaves, simple cream and dark eyes. Transparent background without any glow or shadow around silhouettes. Crisp clean antialiased edges.",
+  "output": "nelcota-mint-atlas.png",
+  "columns": 3,
+  "rows": 2,
+  "cellSize": 512,
+  "frames": [
+    "neutral",
+    "wave-a",
+    "wave-b",
+    "eyes-closed",
+    "worried",
+    "surprised"
+  ]
+}
