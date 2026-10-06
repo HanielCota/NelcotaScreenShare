@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { nodMascot, setMascotDoubt } from "@/components/mascot/events";
+import { nodMascot, setMascotDoubt } from "@/features/mascot/events";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { suggestEmail } from "@/features/auth/domain/email-suggest";

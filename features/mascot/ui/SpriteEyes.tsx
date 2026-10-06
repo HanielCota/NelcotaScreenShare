@@ -1,5 +1,10 @@
 import { useId } from "react";
-import { EYE_ANGLE, EYE_SHAPES, POSE_EYES, eyelidOffset } from "./eye-tracking";
+import {
+  EYE_ANGLE,
+  EYE_SHAPES,
+  POSE_EYES,
+  eyelidOffset,
+} from "@/features/mascot/engine/eye-tracking";
 
 /** Camada vetorial sobre os olhos fixos, movida junto com cada quadro do atlas. */
 export function SpriteEyes() {

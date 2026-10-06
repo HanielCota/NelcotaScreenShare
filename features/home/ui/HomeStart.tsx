@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { MascotPair } from "@/components/home/MascotPair";
+import { MascotPair } from "@/features/mascot/ui/MascotPair";
 import { SmartBar } from "./SmartBar";
 
 /** Barra "link ou código" com o par de mascotes, que reage enquanto a sala abre. */

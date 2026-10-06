@@ -1,26 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Mascot } from "@/components/Mascot";
-import { onMascotSignal } from "@/components/mascot/events";
-import type { MascotActivity } from "@/components/mascot/personality";
+import { Mascot } from "./Mascot";
+import { onMascotSignal } from "@/features/mascot/events";
+import { pairActivity, PAIR_STEP_MS, type PairPhase } from "@/features/mascot/engine/pair";
+import { PAIR_BUSY_SELECTOR } from "@/features/mascot/engine/rules";
+import { SLEEPY_AFTER_MS } from "@/features/mascot/engine/sleep";
+import { MOTION_QUERIES } from "@/lib/motion";
 import styles from "./MascotPair.module.css";
 
-type Phase = "rest" | "approach" | "ready" | "hit" | "cheer" | "return";
-const WALK_MS = 3200;
-const TURN_MS = 250;
-const IDLE_MS = 30_000;
+const { walk: WALK_MS, turn: TURN_MS } = PAIR_STEP_MS;
+/** Sem atividade, o par para de andar junto com o sono do mascote. */
+const IDLE_MS = SLEEPY_AFTER_MS;
 
 /** Os dois percorrem a barra juntos; um relógio só mantém o encontro sincronizado. */
 export function MascotPair({ pending }: { pending: boolean }) {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const [phase, setPhase] = useState<Phase>("rest");
+  const [phase, setPhase] = useState<PairPhase>("rest");
 
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let current: Phase = "rest";
+    const motion = window.matchMedia(MOTION_QUERIES.reduced);
+    scene.style.setProperty("--walk-duration", `${WALK_MS}ms`);
+    let current: PairPhase = "rest";
     let timer = 0;
     let idleTimer = 0;
     let lastActivity = performance.now();
@@ -28,7 +31,7 @@ export function MascotPair({ pending }: { pending: boolean }) {
     let visible = true;
     let disposed = false;
 
-    function change(next: Phase) {
+    function change(next: PairPhase) {
       current = next;
       setPhase(next);
     }
@@ -50,9 +53,7 @@ export function MascotPair({ pending }: { pending: boolean }) {
         !document.activeElement?.matches(
           "input, textarea, [contenteditable=true], [data-mascot-action]",
         ) &&
-        !scene?.querySelector(
-          '[data-gesture]:not([data-gesture="highFive"]), [data-expression="asleep"], [data-expression="sleepy"], [data-expression="yawning"], [data-expression="grumpy"], [data-expression="worried"], [data-expression="skeptical"]',
-        )
+        !scene?.querySelector(PAIR_BUSY_SELECTOR)
       );
     }
 
@@ -75,11 +76,11 @@ export function MascotPair({ pending }: { pending: boolean }) {
       change("approach");
       later(WALK_MS, () => {
         change("ready");
-        later(450, () => {
+        later(PAIR_STEP_MS.ready, () => {
           change("hit");
-          later(450, () => {
+          later(PAIR_STEP_MS.hit, () => {
             change("cheer");
-            later(800, retreat);
+            later(PAIR_STEP_MS.cheer, retreat);
           });
         });
       });
@@ -182,14 +183,7 @@ export function MascotPair({ pending }: { pending: boolean }) {
     };
   }, [pending]);
 
-  const together = phase === "ready" || phase === "hit" || phase === "cheer";
-  const activity: MascotActivity = pending
-    ? "waiting"
-    : together
-      ? "greeting"
-      : phase === "approach" || phase === "return"
-        ? "walking"
-        : "idle";
+  const activity = pairActivity(phase, pending);
 
   return (
     <div

@@ -32,7 +32,8 @@
 
 .visitor,
 .resident {
-  transition: transform 3200ms linear;
+  /* Duração definida no componente (WALK_MS), para o relógio e a animação baterem. */
+  transition: transform var(--walk-duration, 3200ms) linear;
 }
 
 .visitor {

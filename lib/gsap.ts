@@ -11,15 +11,6 @@ gsap.registerPlugin(useGSAP, Flip, CustomEase);
 CustomEase.create("smooth", "M0,0 C0.16,1 0.3,1 1,1");
 gsap.defaults({ ease: "smooth", duration: 0.6 });
 
-/** Condições do `gsap.matchMedia()` usadas em todo o app. */
-export const MOTION_QUERIES = {
-  motion: "(prefers-reduced-motion: no-preference)",
-  reduced: "(prefers-reduced-motion: reduce)",
-} as const;
-
-/** Para animações disparadas por evento, fora de um `gsap.matchMedia()`. */
-export function prefersReducedMotion(): boolean {
-  return window.matchMedia(MOTION_QUERIES.reduced).matches;
-}
-
 export { gsap, useGSAP, Flip };
+// As condições de movimento ficam em lib/motion (o mascote as usa sem carregar o GSAP).
+export { MOTION_QUERIES, prefersReducedMotion } from "./motion";

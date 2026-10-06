@@ -1,6 +1,6 @@
-import { gazeAt, IDLE, type Gaze, type Point } from "./eye-tracking";
+import { gazeAt, IDLE, type Gaze, type Point } from "@/features/mascot/engine/eye-tracking";
 
-export { IDLE, type Gaze } from "./eye-tracking";
+export { IDLE, type Gaze } from "@/features/mascot/engine/eye-tracking";
 
 /** Vira o rosto enquanto a senha está sendo digitada. */
 const LOOK_AWAY: Gaze = {

@@ -21,7 +21,7 @@ import {
 import { AlertTriangle, Loader2, MonitorUp, RotateCcw, Volume2, WifiOff } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Mascot } from "@/components/Mascot";
+import { Mascot } from "@/features/mascot/ui/Mascot";
 import { Button } from "@/components/ui/button";
 import { useRoomAnimations } from "@/hooks/useRoomAnimations";
 import { canShareScreen } from "@/lib/share-support";

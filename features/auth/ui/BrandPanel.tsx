@@ -3,7 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
-import { Mascot } from "@/components/Mascot";
+import { Mascot } from "@/features/mascot/ui/Mascot";
 import { mascotLine } from "@/features/auth/domain/access-copy";
 
 /** Balão do mascote: a fala muda com a tela e com a sala de destino. */

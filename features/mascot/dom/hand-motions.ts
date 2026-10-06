@@ -1,4 +1,5 @@
-import { AVATAR_WAVE } from "./avatar-frames";
+import { AVATAR_WAVE } from "@/features/mascot/engine/avatar-frames";
+import { prefersReducedMotion } from "@/lib/motion";
 
 /** Gestos finitos; o mascote usa duas poses completas do mesmo braço. */
 export function createHandMotions(root: HTMLElement) {
@@ -11,7 +12,7 @@ export function createHandMotions(root: HTMLElement) {
   return {
     hold() {
       cancelSprite();
-      if (!sprite || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (!sprite || prefersReducedMotion()) return;
       // Com movimento reduzido, a expressão já usa a pose estática de mão levantada.
       animation = sprite.animate([{ transform: "translate(-66.666667%, 0)" }], {
         duration: 1,
@@ -20,7 +21,7 @@ export function createHandMotions(root: HTMLElement) {
     },
     wave(celebrating = false) {
       cancelSprite();
-      if (!sprite || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (!sprite || prefersReducedMotion()) return;
       animation = sprite.animate(AVATAR_WAVE, {
         duration: celebrating ? 1100 : 900,
         easing: "linear",

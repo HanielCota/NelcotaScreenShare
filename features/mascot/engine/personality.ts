@@ -1,6 +1,6 @@
 import { JUMP, PET, SNEEZE, STRETCH, type Motion } from "./body-motions";
 import type { Expression } from "./face";
-import type { createHandMotions } from "./hand-motions";
+import type { createHandMotions } from "@/features/mascot/dom/hand-motions";
 
 export type MascotActivity =
   | "idle"

@@ -11,12 +11,7 @@ import {
   Video,
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
-import {
-  celebrateMascot,
-  nodMascot,
-  setMascotDoubt,
-  upsetMascot,
-} from "@/components/mascot/events";
+import { celebrateMascot, nodMascot, setMascotDoubt, upsetMascot } from "@/features/mascot/events";
 import { generateRoomCode, roomLink, roomPath } from "@/lib/livekit";
 import { parseRoomInput, type RoomInput } from "@/features/room/domain/room-input";
 import { cn } from "@/lib/utils";

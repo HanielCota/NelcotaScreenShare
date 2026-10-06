@@ -1,4 +1,5 @@
-const SLEEPY_AFTER_MS = 30_000;
+/** Sem atividade por este tempo, o mascote fica sonolento (o par da home para de andar). */
+export const SLEEPY_AFTER_MS = 30_000;
 const ASLEEP_AFTER_MS = 45_000;
 
 /** Reavalia a última atividade, inclusive se um timer disparar atrasado. */

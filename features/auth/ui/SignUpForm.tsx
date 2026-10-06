@@ -8,7 +8,7 @@ import { AccessTabs } from "./AccessTabs";
 import { EmailField, forgetTypedEmail } from "./EmailField";
 import { AuthCard, FormError } from "./AuthCard";
 import { PasswordInput } from "./PasswordInput";
-import { celebrateMascot, upsetMascot } from "@/components/mascot/events";
+import { celebrateMascot, upsetMascot } from "@/features/mascot/events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -4,12 +4,12 @@ import Image from "next/image";
 import { useId, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { cn } from "@/lib/utils";
 import atlas from "@/public/mascot/nelcota-mint-atlas.png";
-import { avatarFrame } from "./mascot/avatar-frames";
-import type { Expression } from "./mascot/face";
-import { useMascot } from "./mascot/use-mascot";
-import { SpriteEyes } from "./mascot/SpriteEyes";
+import { avatarFrame } from "@/features/mascot/engine/avatar-frames";
+import type { Expression } from "@/features/mascot/engine/face";
+import { useMascot } from "./use-mascot";
+import { SpriteEyes } from "./SpriteEyes";
 import styles from "./Mascot.module.css";
-import type { MascotActivity } from "./mascot/personality";
+import type { MascotActivity } from "@/features/mascot/engine/personality";
 
 interface MascotProps {
   className?: string;

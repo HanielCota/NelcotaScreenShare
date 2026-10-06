@@ -5,7 +5,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { saveMascotSettings } from "@/features/admin/settings/actions";
-import { Mascot } from "@/components/Mascot";
+import { Mascot } from "@/features/mascot/ui/Mascot";
 import { Button } from "@/components/ui/button";
 import type { MascotSettings } from "@/server/settings";
 import { cn } from "@/lib/utils";

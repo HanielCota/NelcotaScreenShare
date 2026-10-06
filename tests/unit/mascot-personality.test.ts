@@ -1,9 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
-import { createPersonality, voiceAmount } from "@/components/mascot/personality";
-import { createReasons } from "@/components/mascot/reasons";
-import type { Expression } from "@/components/mascot/face";
-import { createHandMotions } from "@/components/mascot/hand-motions";
-import { EYE_SHAPES, pupilOffset } from "@/components/mascot/eye-tracking";
+import { createPersonality, voiceAmount } from "@/features/mascot/engine/personality";
+import { createReasons } from "@/features/mascot/engine/reasons";
+import type { Expression } from "@/features/mascot/engine/face";
+import { createHandMotions } from "@/features/mascot/dom/hand-motions";
+import { EYE_SHAPES, pupilOffset } from "@/features/mascot/engine/eye-tracking";
 
 function fixture() {
   let time = 0;

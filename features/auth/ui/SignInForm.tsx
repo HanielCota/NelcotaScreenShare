@@ -8,7 +8,7 @@ import { AccessTabs } from "./AccessTabs";
 import { EmailField, forgetTypedEmail } from "./EmailField";
 import { AuthCard, FormError } from "./AuthCard";
 import { PasswordInput } from "./PasswordInput";
-import { celebrateMascot, nodMascot, upsetMascot } from "@/components/mascot/events";
+import { celebrateMascot, nodMascot, upsetMascot } from "@/features/mascot/events";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { AccessContext } from "@/features/auth/domain/access-context";

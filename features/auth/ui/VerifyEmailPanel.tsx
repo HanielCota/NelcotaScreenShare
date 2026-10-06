@@ -4,7 +4,7 @@ import { ExternalLink, Loader2, MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AuthCard } from "./AuthCard";
-import { celebrateMascot, upsetMascot } from "@/components/mascot/events";
+import { celebrateMascot, upsetMascot } from "@/features/mascot/events";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { inboxLink } from "@/features/auth/domain/email-suggest";

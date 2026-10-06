@@ -16,8 +16,8 @@ import {
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
-import { Mascot } from "@/components/Mascot";
-import { upsetMascot } from "@/components/mascot/events";
+import { Mascot } from "@/features/mascot/ui/Mascot";
+import { upsetMascot } from "@/features/mascot/events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
