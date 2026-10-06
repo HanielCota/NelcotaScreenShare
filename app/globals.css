@@ -38,9 +38,20 @@
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
-  --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 20px 50px -20px rgb(0 0 0 / 0.7);
-
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/*
+ * Sombra suave das superfícies de vidro. Fica fora do @theme de propósito:
+ * o Tailwind copia o valor de sombras do @theme no build, e aí a versão do
+ * tema claro (abaixo) nunca era usada. Com @utility, a classe lê a variável.
+ */
+:root {
+  --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 20px 50px -20px rgb(0 0 0 / 0.7);
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
 }
 
 /* Ponte com as variáveis que os componentes do shadcn esperam. */

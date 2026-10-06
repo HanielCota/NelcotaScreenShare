@@ -27,10 +27,8 @@ function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "e
         text: (
           <>
             <span className="max-sm:hidden">
-              <kbd className="inline-flex h-5 items-center rounded-md border border-line px-1.5 align-[-0.15em] font-sans text-[11px] leading-none">
-                Enter
-              </kbd>{" "}
-              cria uma sala nova. Recebeu um link? Cole aqui.
+              Aperte <kbd className="font-sans font-semibold text-ink-muted">Enter</kbd> para criar
+              uma sala nova. Recebeu um link? Cole aqui.
             </span>
             <span className="sm:hidden">Toque em Criar sala ou cole o link que recebeu.</span>
           </>

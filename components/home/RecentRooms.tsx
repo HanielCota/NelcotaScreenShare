@@ -9,15 +9,16 @@ export function RecentRooms({ rooms }: { rooms: RecentRoom[] }) {
   if (rooms.length === 0) return null;
   return (
     <section aria-labelledby="recent-rooms" className="w-full">
-      <h2 id="recent-rooms" className="mb-3 px-1 text-sm font-semibold text-ink-muted">
+      <h2 id="recent-rooms" className="mb-3 text-center text-sm font-semibold text-ink-muted">
         Suas salas recentes
       </h2>
-      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
+      {/* Centralizado como o resto da página; no celular, duas por linha (nada corta). */}
+      <ul className="flex flex-wrap justify-center gap-3">
         {rooms.map((room) => (
-          <li key={room.code} className="shrink-0 snap-start">
+          <li key={room.code} className="w-[calc(50%-0.375rem)] sm:w-52">
             <Link
               href={roomPath(room.code)}
-              className="group flex w-52 flex-col gap-1 rounded-2xl border border-line bg-surface px-4 py-3 transition-[transform,border-color] duration-200 hover:border-brand/50 active:scale-[0.98] sm:w-auto"
+              className="group flex h-full flex-col gap-1 rounded-2xl border border-line bg-surface px-4 py-3 transition-[transform,border-color] duration-200 hover:border-brand/50 active:scale-[0.98]"
             >
               <span className="flex items-center justify-between gap-2">
                 <span className="truncate font-mono text-sm font-semibold">{room.code}</span>
