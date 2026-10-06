@@ -33,7 +33,12 @@ export function MicMenu() {
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-        <DockButton label="Escolher microfone" pressed={open} className="w-8! max-sm:hidden">
+        <DockButton
+          label="Escolher microfone"
+          pressed={open}
+          iconClassName="w-7"
+          className="-ml-1 max-sm:hidden"
+        >
           <ChevronUp className="size-4" aria-hidden="true" />
         </DockButton>
       </Popover.Trigger>

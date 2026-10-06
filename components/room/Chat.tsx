@@ -109,22 +109,22 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
     <aside
       ref={scope}
       aria-label="Chat da sala"
-      className="glass fixed top-20 right-4 bottom-28 z-40 flex w-[min(22rem,calc(100vw-2rem))] flex-col rounded-2xl sm:right-6"
+      className="glass fixed top-20 right-3 bottom-32 z-40 flex w-[min(24rem,calc(100vw-1.5rem))] flex-col rounded-3xl sm:right-6"
     >
       <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
-        <h2 className="text-sm font-semibold tracking-tight">Chat</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Chat</h2>
         <button
           type="button"
           onClick={() => chat.setOpen(false)}
           aria-label="Fechar chat"
-          className="grid size-8 place-items-center rounded-lg text-ink-muted transition-colors hover:bg-surface-3 hover:text-ink"
+          className="grid size-10 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface-3 hover:text-ink"
         >
-          <X className="size-4" aria-hidden="true" />
+          <X className="size-5" aria-hidden="true" />
         </button>
       </header>
 
       {chat.messages.length === 0 ? (
-        <p className="flex flex-1 items-center px-6 text-center text-sm text-ink-subtle">
+        <p className="flex flex-1 items-center px-6 text-center text-base text-ink-muted">
           Nenhuma mensagem ainda. As mensagens não ficam salvas: somem quando você sai da sala.
         </p>
       ) : (
@@ -135,7 +135,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
         >
           {chat.messages.map((message) => (
             <li key={message.id} className="flex flex-col gap-0.5">
-              <span className="flex items-baseline gap-2 text-xs">
+              <span className="flex items-baseline gap-2 text-sm">
                 <span
                   className={cn(
                     "font-semibold",
@@ -146,12 +146,12 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
                 </span>
                 <time
                   dateTime={new Date(message.timestamp).toISOString()}
-                  className="text-ink-subtle"
+                  className="text-ink-muted"
                 >
                   {timeFormat.format(message.timestamp)}
                 </time>
               </span>
-              <p className="text-sm break-words whitespace-pre-wrap text-ink-muted">
+              <p className="text-base break-words whitespace-pre-wrap text-ink">
                 {message.message}
               </p>
             </li>
@@ -175,14 +175,14 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
           onKeyDown={(event) => {
             if (event.key === "Escape") chat.setOpen(false);
           }}
-          className="h-10"
+          className="h-11 rounded-full px-4 text-base"
         />
         <Button
           type="submit"
           size="icon"
           disabled={chat.isSending}
           aria-label="Enviar mensagem"
-          className="size-10 shrink-0 rounded-xl"
+          className="size-11 shrink-0 rounded-full"
         >
           <Send aria-hidden="true" />
         </Button>

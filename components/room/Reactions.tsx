@@ -172,6 +172,8 @@ export function ReactionsMenu() {
         <DockButton
           label={handRaised ? "Reações (mão levantada)" : "Reações"}
           tone={handRaised ? "active" : "default"}
+          caption={handRaised ? "Mão erguida" : "Reações"}
+          shortCaption={handRaised ? "Mão" : "Reações"}
           pressed={open}
         >
           {handRaised ? (

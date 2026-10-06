@@ -5,13 +5,23 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
-type DockTone = "default" | "active" | "danger" | "muted";
+type DockTone = "default" | "active" | "primary" | "danger" | "muted";
 
 const toneClasses: Record<DockTone, string> = {
-  default: "bg-surface-2 text-ink hover:bg-surface-3",
-  active: "bg-brand text-brand-ink hover:bg-brand-hover",
-  danger: "bg-danger/90 text-canvas hover:bg-danger",
-  muted: "bg-danger/15 text-danger hover:bg-danger/25",
+  default: "bg-surface-2 text-ink group-hover:bg-surface-3",
+  active: "bg-brand text-brand-ink group-hover:bg-brand-hover",
+  // Ação principal da sala (compartilhar): verde mesmo sem estar ativa.
+  primary: "bg-brand text-brand-ink group-hover:bg-brand-hover",
+  danger: "bg-danger text-canvas group-hover:bg-danger/90",
+  muted: "bg-danger/15 text-danger group-hover:bg-danger/25",
+};
+
+const captionClasses: Record<DockTone, string> = {
+  default: "text-ink-muted",
+  active: "text-ink",
+  primary: "text-ink",
+  danger: "text-danger",
+  muted: "text-danger",
 };
 
 interface DockButtonProps extends Omit<ComponentProps<"button">, "aria-label"> {
@@ -20,19 +30,29 @@ interface DockButtonProps extends Omit<ComponentProps<"button">, "aria-label"> {
   pressed?: boolean;
   /** Tecla de atalho, mostrada no tooltip (ex.: "M"). */
   shortcut?: string;
+  /** Nome visível embaixo do ícone (leigo não adivinha ícone; celular não tem tooltip). */
+  caption?: string;
+  /** Versão curta do nome para o celular (ex.: "Tela" em vez de "Compartilhar"). */
+  shortCaption?: string;
+  /** Ajuste do círculo do ícone (ex.: mais estreito para a setinha do microfone). */
+  iconClassName?: string;
 }
 
 /**
- * Botão do dock com tooltip e microinterações (hover/press) via GSAP.
- * Repassa props e ref ao <button>, então pode ser usado como gatilho
- * de outros primitivos Radix (ex.: `<Popover.Trigger asChild>`).
- * Para indisponível, use `aria-disabled`: com `disabled` o tooltip não abre.
+ * Botão do dock: ícone num círculo e, com `caption`, o nome embaixo (estilo
+ * FaceTime). Tooltip com o atalho e microinterações via GSAP. Repassa props e
+ * ref ao <button>, então serve de gatilho de primitivos Radix
+ * (`<Popover.Trigger asChild>`). Para indisponível, use `aria-disabled`: com
+ * `disabled` o tooltip não abre.
  */
 export function DockButton({
   label,
   tone = "default",
   pressed,
   shortcut,
+  caption,
+  shortCaption,
+  iconClassName,
   className,
   children,
   onPointerEnter,
@@ -60,7 +80,7 @@ export function DockButton({
           {...props}
           onPointerEnter={(e) => {
             onPointerEnter?.(e);
-            animate(e.currentTarget, { y: -3, scale: 1.06 });
+            animate(e.currentTarget, { y: -2 });
           }}
           onPointerLeave={(e) => {
             onPointerLeave?.(e);
@@ -72,15 +92,41 @@ export function DockButton({
           }}
           onPointerUp={(e) => {
             onPointerUp?.(e);
-            animate(e.currentTarget, { scale: 1.06 });
+            animate(e.currentTarget, { scale: 1 });
           }}
           className={cn(
-            "grid size-12 place-items-center rounded-2xl transition-colors disabled:cursor-not-allowed disabled:opacity-40 aria-disabled:cursor-not-allowed aria-disabled:opacity-40 sm:size-13",
-            toneClasses[tone],
+            "group flex shrink-0 flex-col items-center gap-1.5 rounded-2xl outline-none disabled:cursor-not-allowed disabled:opacity-40 aria-disabled:cursor-not-allowed aria-disabled:opacity-40",
+            caption ? "min-w-14 px-1 sm:min-w-16" : "",
             className,
           )}
         >
-          {children}
+          <span
+            className={cn(
+              "grid size-12 place-items-center rounded-full transition-colors group-focus-visible:ring-3 group-focus-visible:ring-brand/60",
+              toneClasses[tone],
+              iconClassName,
+            )}
+          >
+            {children}
+          </span>
+          {caption ? (
+            <span
+              aria-hidden="true"
+              className={cn(
+                "text-sm leading-none font-semibold whitespace-nowrap",
+                captionClasses[tone],
+              )}
+            >
+              {shortCaption ? (
+                <>
+                  <span className="sm:hidden">{shortCaption}</span>
+                  <span className="max-sm:hidden">{caption}</span>
+                </>
+              ) : (
+                caption
+              )}
+            </span>
+          ) : null}
         </button>
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={10}>

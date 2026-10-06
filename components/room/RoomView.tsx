@@ -18,33 +18,25 @@ import {
   RoomEvent,
   Track,
 } from "livekit-client";
-import {
-  AlertTriangle,
-  Copy,
-  Keyboard,
-  Link2,
-  Loader2,
-  RotateCcw,
-  Users,
-  Volume2,
-  WifiOff,
-} from "lucide-react";
+import { AlertTriangle, Loader2, MonitorUp, RotateCcw, Volume2, WifiOff } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Mascot } from "@/components/Mascot";
-import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { useRoomAnimations } from "@/hooks/useRoomAnimations";
-import { copyRoomLink } from "@/lib/copy-room-link";
+import { canShareScreen } from "@/lib/share-support";
 import { cn } from "@/lib/utils";
 import { ChatPanel, useChatState } from "./Chat";
 import { ControlDock } from "./ControlDock";
 import { ParticipantTile } from "./ParticipantTile";
 import type { JoinChoices } from "./PreJoin";
+import { InviteLinkButton } from "./prejoin/InviteLinkButton";
 import { ReactionsProvider } from "./Reactions";
+import { RoomTopBar } from "./RoomTopBar";
 import { ScreenStage } from "./ScreenStage";
 import { StatusScreen } from "./StatusScreen";
+import { useRoomNotices } from "./use-room-notices";
+import { useScreenShare } from "./use-screen-share";
 
 interface RoomViewProps {
   code: string;
@@ -237,6 +229,7 @@ function RoomLayout({
   );
   const [focusedSid, setFocusedSid] = useState<string>();
   const chat = useChatState();
+  useRoomNotices();
 
   // Palco: a tela escolhida, senão a mais recente dos outros. A sua só entra
   // quando é a única (e o palco mostra uma prévia pequena, sem efeito espelho).
@@ -247,9 +240,6 @@ function RoomLayout({
   const hasStage = focused !== undefined;
   const sharingIds = new Set(screenShares.map((ref) => ref.participant.identity));
 
-  const layoutKey = `${hasStage ? "stage" : "grid"}|${participants.map((p) => p.identity).join(",")}`;
-  useRoomAnimations(scope, layoutKey);
-
   const reconnecting =
     connectionState === ConnectionState.Reconnecting ||
     connectionState === ConnectionState.SignalReconnecting;
@@ -257,78 +247,33 @@ function RoomLayout({
   const alone =
     !hasStage && participants.length === 1 && connectionState === ConnectionState.Connected;
 
+  const layoutKey = `${hasStage ? "stage" : alone ? "alone" : "grid"}|${participants.map((p) => p.identity).join(",")}`;
+  useRoomAnimations(scope, layoutKey);
+
   return (
     <div ref={scope} className="relative flex h-dvh flex-col overflow-hidden bg-canvas">
-      <header data-anim="topbar" className="relative z-20 px-4 pt-4 sm:px-6">
-        <NavBar aria-label="Sala" className="mx-auto max-w-5xl">
-          {/* No celular o espaço fica para o código da sala. */}
-          <NavBrand showName={false} className="max-sm:hidden" />
-          <NavDivider className="max-sm:hidden" />
-          <button
-            type="button"
-            onClick={() => void copyRoomLink(code)}
-            aria-label={`Sala ${code}. Copiar link`}
-            className="group flex h-9 min-w-0 items-center gap-2.5 rounded-xl px-3 transition-colors hover:bg-surface-3"
-          >
-            <span className="truncate text-sm font-semibold tracking-tight">
-              <span className="text-ink-subtle">Sala </span>
-              {code}
-            </span>
-            <Copy
-              className="size-3.5 shrink-0 text-ink-subtle transition-colors group-hover:text-ink"
-              aria-hidden="true"
-            />
-          </button>
-          <NavDivider className="max-sm:hidden" />
-          <span className="flex shrink-0 items-center gap-2 px-2 text-sm font-semibold text-ink-muted max-sm:px-1">
-            <span
-              className={cn(
-                "size-2 rounded-full",
-                reconnecting || connecting ? "bg-warning" : "bg-success",
-              )}
-              aria-hidden="true"
-            />
-            <span className="max-sm:sr-only">
-              {reconnecting ? "Reconectando" : connecting ? "Conectando" : "Conectado"}
-            </span>
-          </span>
-
-          <NavDivider className="ml-auto max-sm:hidden" />
-          <NavPopover
-            trigger={<Keyboard className="size-4" aria-hidden="true" />}
-            label="Atalhos"
-            iconOnly
-            align="end"
-            className="px-2.5 max-sm:hidden"
-          >
-            <ShortcutsPanel />
-          </NavPopover>
-          <ThemeToggle className="max-sm:ml-auto" />
-          <NavDivider />
-          <span
-            className="flex shrink-0 items-center gap-2 px-2.5 text-sm font-semibold"
-            aria-label={`${participants.length} de ${maxParticipants} participantes`}
-          >
-            <Users className="size-4 text-brand-soft" aria-hidden="true" />
-            {participants.length}
-            <span className="text-ink-subtle">/ {maxParticipants}</span>
-          </span>
-        </NavBar>
+      <header data-anim="topbar" className="relative z-20 px-3 pt-3 sm:px-6 sm:pt-4">
+        <RoomTopBar
+          code={code}
+          participants={participants}
+          maxParticipants={maxParticipants}
+          connection={reconnecting ? "reconnecting" : connecting ? "connecting" : "connected"}
+        />
       </header>
 
       {/* Avisos empilhados: reconexão e áudio bloqueado podem aparecer juntos. */}
       <div className="absolute top-20 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2">
         {reconnecting || connecting ? (
           <output aria-live="polite">
-            <span className="glass flex items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-semibold">
-              {reconnecting ? <WifiOff className="size-4 text-warning" aria-hidden="true" /> : null}
-              <Loader2 className="size-4 animate-spin text-ink-muted" aria-hidden="true" />
+            <span className="glass flex items-center gap-2.5 rounded-full px-5 py-3 text-base font-semibold">
+              {reconnecting ? <WifiOff className="size-5 text-warning" aria-hidden="true" /> : null}
+              <Loader2 className="size-5 animate-spin text-ink-muted" aria-hidden="true" />
               {reconnecting ? "Conexão instável. Reconectando…" : "Conectando…"}
             </span>
           </output>
         ) : null}
         {!canPlayAudio ? (
-          <Button onClick={() => void startAudio()} className="h-10 rounded-xl px-3.5">
+          <Button onClick={() => void startAudio()} size="lg">
             <Volume2 aria-hidden="true" />
             Ativar áudio da sala
           </Button>
@@ -337,54 +282,88 @@ function RoomLayout({
 
       <main
         className={cn(
-          "relative z-10 flex min-h-0 flex-1 gap-4 px-4 pt-4 pb-28 sm:px-6",
+          "relative z-10 flex min-h-0 flex-1 gap-4 px-3 pt-4 pb-32 sm:px-6",
           hasStage ? "flex-col lg:flex-row" : "flex-col items-center justify-center",
           // Chat aberto em tela larga: o conteúdo abre espaço em vez de ficar por baixo.
-          chat.open && "lg:pr-[24.5rem]",
+          chat.open && "lg:pr-[26.5rem]",
         )}
       >
         {focused ? (
           <ScreenStage shares={screenShares} focused={focused} onFocus={setFocusedSid} />
         ) : null}
 
-        <div
-          className={cn(
-            hasStage
-              ? "flex shrink-0 gap-3 overflow-x-auto pb-1 lg:w-64 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:pb-0"
-              : "grid w-full max-w-5xl content-center gap-4",
-            !hasStage && participants.length === 1 && "max-w-md grid-cols-1",
-            !hasStage && participants.length === 2 && "grid-cols-1 sm:grid-cols-2",
-            !hasStage && participants.length >= 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-          )}
-        >
-          {participants.map((participant) => (
-            <ParticipantTile
-              key={participant.identity}
-              participant={participant}
-              isSharing={sharingIds.has(participant.identity)}
-              compact={hasStage}
-            />
-          ))}
-        </div>
-
         {alone ? (
-          <div className="flex flex-col items-center gap-3 text-center">
-            <Mascot className="size-20" sizes="240px" canSleep={false} />
-            <p className="text-sm text-ink-subtle">Só você por aqui. Mande o link para o time.</p>
-            <Button
-              variant="outline"
-              onClick={() => void copyRoomLink(code)}
-              className="h-10 rounded-xl px-3.5"
-            >
-              <Link2 aria-hidden="true" />
-              Copiar link da sala
-            </Button>
+          <AloneWelcome code={code} />
+        ) : (
+          <div
+            className={cn(
+              hasStage
+                ? "flex shrink-0 gap-3 overflow-x-auto p-1 lg:w-48 lg:flex-col lg:gap-4 lg:overflow-x-visible lg:overflow-y-auto"
+                : "grid w-full max-w-5xl content-center gap-4",
+              !hasStage && participants.length <= 2 && "max-w-4xl grid-cols-1 sm:grid-cols-2",
+              !hasStage && participants.length >= 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+            )}
+          >
+            {participants.map((participant) => (
+              <ParticipantTile
+                key={participant.identity}
+                participant={participant}
+                isSharing={sharingIds.has(participant.identity)}
+                compact={hasStage}
+              />
+            ))}
           </div>
-        ) : null}
+        )}
       </main>
 
       {chat.open ? <ChatPanel chat={chat} /> : null}
-      <ControlDock code={code} chat={chat} onLeave={onLeave} />
+      <ControlDock chat={chat} onLeave={onLeave} />
     </div>
+  );
+}
+
+/**
+ * Sozinho na sala: em vez de um bloco vazio, as duas coisas que importam
+ * agora (mostrar a tela e chamar o time), grandes e com nome.
+ */
+function AloneWelcome({ code }: { code: string }) {
+  const share = useScreenShare();
+  const shareSupported = canShareScreen();
+
+  return (
+    <section
+      data-flip-id="alone"
+      aria-labelledby="alone-title"
+      className="flex max-w-lg flex-col items-center gap-5 text-center"
+    >
+      <Mascot className="size-28" sizes="336px" canSleep={false} />
+      <div className="flex flex-col gap-2">
+        <h1 id="alone-title" className="text-3xl font-semibold tracking-tight text-balance">
+          Você é a primeira pessoa aqui
+        </h1>
+        <p className="text-lg text-pretty text-ink-muted">
+          {shareSupported
+            ? "Mostre sua tela agora ou chame o time para entrar."
+            : "Chame o time para entrar. Para mostrar sua tela, use o Chrome, Edge ou Firefox no computador."}
+        </p>
+      </div>
+      <div className="apple-buttons flex flex-wrap items-center justify-center gap-3">
+        {shareSupported ? (
+          <Button
+            size="lg"
+            disabled={share.busy}
+            onClick={() => void share.start({ surface: "monitor", audio: true })}
+          >
+            {share.busy ? (
+              <Loader2 className="animate-spin" aria-hidden="true" />
+            ) : (
+              <MonitorUp aria-hidden="true" />
+            )}
+            Compartilhar minha tela
+          </Button>
+        ) : null}
+        <InviteLinkButton code={code} />
+      </div>
+    </section>
   );
 }

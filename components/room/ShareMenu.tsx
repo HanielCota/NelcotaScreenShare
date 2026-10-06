@@ -93,7 +93,10 @@ export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: Share
       <Popover.Trigger asChild>
         <DockButton
           label={label}
-          tone={isSharing ? "active" : "default"}
+          // Ação principal da sala: verde para começar, vermelho para parar.
+          tone={isSharing ? "muted" : "primary"}
+          caption={isSharing ? "Parar" : "Compartilhar"}
+          shortCaption={isSharing ? "Parar" : "Tela"}
           pressed={isSharing}
           shortcut="S"
           aria-disabled={!supported || undefined}
