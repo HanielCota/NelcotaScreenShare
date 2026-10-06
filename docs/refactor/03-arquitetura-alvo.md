@@ -12,10 +12,10 @@ O projeto já faz metade disso: `features/*/queries.ts` com `server-only` é exa
 
 ### Alternativas descartadas
 
-| Alternativa | Por que foi descartada |
-|---|---|
+| Alternativa                                                                                                                              | Por que foi descartada                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Clean Architecture completa** (entities / use-cases / ports / adapters, repositório por agregado, interface para DB, e-mail e LiveKit) | Com 1 dev e cerca de 5 usuários, dobraria o número de arquivos sem benefício. O Drizzle já é a abstração de dados, e os testes de integração com **Postgres real** (`tests/integration/*`, banco-modelo clonado por worker) já são melhores que fakes de repositório: testam SQL, constraints e triggers de verdade. Uma interface `UserRepository` com uma única implementação é exatamente o over-engineering que a regra 2 proíbe. |
-| **Manter a organização por tipo técnico** (`components/`, `lib/`, `hooks/`) e só quebrar os arquivos grandes | Resolve o tamanho, mas não resolve `components → app`, as três pastas de auth nem `lib/` como gaveta. E não permite escrever **uma** regra de lint que diga "UI não importa servidor da feature". |
+| **Manter a organização por tipo técnico** (`components/`, `lib/`, `hooks/`) e só quebrar os arquivos grandes                             | Resolve o tamanho, mas não resolve `components → app`, as três pastas de auth nem `lib/` como gaveta. E não permite escrever **uma** regra de lint que diga "UI não importa servidor da feature".                                                                                                                                                                                                                                     |
 
 ## 2. Camadas e regra de dependência
 
@@ -45,40 +45,40 @@ graph TD
   S --> L
 ```
 
-| Camada | Pode importar | **Não pode** importar |
-|---|---|---|
-| `app/**` | qualquer coisa | — (deve continuar fina: lê params, chama DAL/use case, renderiza) |
+| Camada                                    | Pode importar                                                                       | **Não pode** importar                                                                                                                                                                               |
+| ----------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/**`                                  | qualquer coisa                                                                      | — (deve continuar fina: lê params, chama DAL/use case, renderiza)                                                                                                                                   |
 | `features/X/ui/**`, `features/X/hooks/**` | `features/X/{domain,actions}`, `components`, `lib`, `import type` de qualquer lugar | `features/*/server/**`, `@/server/**`, `drizzle-orm`, `pg`, `livekit-server-sdk`, UI de **outra** feature (exceto `features/mascot/**` e `features/room/ui/ShareSupportNote.tsx`, que são públicos) |
-| `features/X/actions.ts` | `features/X/{server,domain}`, `@/server/actions/client` | `features/X/ui` |
-| `features/X/server/**` | `features/X/domain`, `features/Y/server` (sem ciclos), `@/server/**`, drizzle, SDKs | `ui`, `react` |
-| `features/X/domain/**` | `zod`, `lib/**`, `features/Y/domain` | `react`, `next/*`, `drizzle-orm`, `pg`, `livekit-*`, `better-auth`, `@/server/**` |
-| `components/**`, `lib/**` | `components`, `lib` | `@/features/**`, `@/app/**`, `@/server/**` (exceto `import type`) |
-| `server/**` (infra) | `lib`, `server`, drizzle, pg, SDKs | `@/features/**`, `@/app/**`, `@/components/**` |
+| `features/X/actions.ts`                   | `features/X/{server,domain}`, `@/server/actions/client`                             | `features/X/ui`                                                                                                                                                                                     |
+| `features/X/server/**`                    | `features/X/domain`, `features/Y/server` (sem ciclos), `@/server/**`, drizzle, SDKs | `ui`, `react`                                                                                                                                                                                       |
+| `features/X/domain/**`                    | `zod`, `lib/**`, `features/Y/domain`                                                | `react`, `next/*`, `drizzle-orm`, `pg`, `livekit-*`, `better-auth`, `@/server/**`                                                                                                                   |
+| `components/**`, `lib/**`                 | `components`, `lib`                                                                 | `@/features/**`, `@/app/**`, `@/server/**` (exceto `import type`)                                                                                                                                   |
+| `server/**` (infra)                       | `lib`, `server`, drizzle, pg, SDKs                                                  | `@/features/**`, `@/app/**`, `@/components/**`                                                                                                                                                      |
 
 Por que a regra é imposta por oxlint e não por dependency-cruiser: ver a tabela de decisões (§7).
 
 ## 3. Diretrizes do pedido que foram questionadas
 
-| Diretriz | Decisão | Motivo |
-|---|---|---|
-| Camada `repositories` separada | **Não.** `server/queries.ts` (leitura) e `server/commands.ts` (escrita) usam Drizzle direto | O Drizzle já é o repositório. Uma camada extra só repassaria chamadas. O teste é de integração com Postgres real, como já é feito hoje. |
-| Camada `services/use-cases` em toda feature | **Só onde há regra**: token, webhook, mascote, participantes (block, anonymize), convites | Em listagens do painel o "use case" seria `return listRooms(db, params)`. Isso é cerimônia. |
-| Porta para banco, e-mail e storage | **Não.** Só para o LiveKit server SDK no token | O banco é testado de verdade. O e-mail já cai para log sem SMTP (`server/mail.ts`). Storage não existe no projeto. |
-| `shared/` estrito e `lib/` só infra | **Manter os nomes atuais, mudar o conteúdo**: `lib/` = genérico isomórfico (o papel de `shared/`), `server/` = infra do servidor (o papel de `lib/` infra) | Renomear `lib → shared` mexeria em cerca de 150 imports sem ganho. O que importa é a regra de dependência, e ela fica imposta pelo lint. O domínio sai de `lib/` e de `server/` para `features/`. |
-| `Result` tipado | **Já existe e basta**: união discriminada `{ ok: true … } \| { ok: false; code }` no domínio, `ActionError` + next-safe-action nas actions, mapa `code → {status, message}` nos handlers | Uma biblioteca (`neverthrow@8.2.0`) espalharia `.map/.andThen` por um código que hoje lê de forma linear. |
-| Logger estruturado | **Já existe** (pino com `redact`, `requestLogger` com request_id) | Só falta padronizar: ler `LOG_LEVEL` via `getEnv` e nunca engolir `catch` sem log. |
+| Diretriz                                    | Decisão                                                                                                                                                                                  | Motivo                                                                                                                                                                                            |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Camada `repositories` separada              | **Não.** `server/queries.ts` (leitura) e `server/commands.ts` (escrita) usam Drizzle direto                                                                                              | O Drizzle já é o repositório. Uma camada extra só repassaria chamadas. O teste é de integração com Postgres real, como já é feito hoje.                                                           |
+| Camada `services/use-cases` em toda feature | **Só onde há regra**: token, webhook, mascote, participantes (block, anonymize), convites                                                                                                | Em listagens do painel o "use case" seria `return listRooms(db, params)`. Isso é cerimônia.                                                                                                       |
+| Porta para banco, e-mail e storage          | **Não.** Só para o LiveKit server SDK no token                                                                                                                                           | O banco é testado de verdade. O e-mail já cai para log sem SMTP (`server/mail.ts`). Storage não existe no projeto.                                                                                |
+| `shared/` estrito e `lib/` só infra         | **Manter os nomes atuais, mudar o conteúdo**: `lib/` = genérico isomórfico (o papel de `shared/`), `server/` = infra do servidor (o papel de `lib/` infra)                               | Renomear `lib → shared` mexeria em cerca de 150 imports sem ganho. O que importa é a regra de dependência, e ela fica imposta pelo lint. O domínio sai de `lib/` e de `server/` para `features/`. |
+| `Result` tipado                             | **Já existe e basta**: união discriminada `{ ok: true … } \| { ok: false; code }` no domínio, `ActionError` + next-safe-action nas actions, mapa `code → {status, message}` nos handlers | Uma biblioteca (`neverthrow@8.2.0`) espalharia `.map/.andThen` por um código que hoje lê de forma linear.                                                                                         |
+| Logger estruturado                          | **Já existe** (pino com `redact`, `requestLogger` com request_id)                                                                                                                        | Só falta padronizar: ler `LOG_LEVEL` via `getEnv` e nunca engolir `catch` sem log.                                                                                                                |
 
 ## 4. Convenções
 
-| Tema | Regra |
-|---|---|
-| Idioma | **Código em inglês** (identificadores, pastas, arquivos, chaves de payload internas). **Português**: textos de UI, mensagens de erro ao usuário, comentários, **URLs e query params** (`/sala`, `?convite`, `?voltar`, `de`/`ate`) e **valores persistidos** (metadados de auditoria já gravados). Os dois últimos são contrato e não mudam. |
-| Nomes de arquivo | Componente React: `PascalCase.tsx` (o padrão atual da maioria). Todo o resto: `kebab-case.ts`. Hooks: `use-*.ts`. Os arquivos de rota do Next seguem a convenção do framework. |
-| Nomes de domínio | `participant` = pessoa que entra em sala (tabela `users`); `admin`/`adminUser` = conta do painel. `user` não aparece sozinho em código novo. |
-| Barrel files | Proibidos (exceto `server/db/schema/index.ts`, que já existe e é exigido pelo drizzle-kit). Import direto do arquivo. |
-| Alias | `@/` (como já é). Import relativo só dentro da mesma pasta. |
-| Limites (lint) | Arquivo ≤ **300** linhas úteis; função de lógica (fora de JSX) ≤ **60** linhas; complexidade ≤ **15**. Começa como `error` com lista de exceções nomeadas, que diminui a cada fase (catraca). |
-| Server/Client | RSC por padrão. `"use client"` só no componente que usa estado, efeito ou API do navegador. Todo arquivo em `features/*/server/**` e `server/**` começa com `import "server-only"`. |
+| Tema             | Regra                                                                                                                                                                                                                                                                                                                                        |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Idioma           | **Código em inglês** (identificadores, pastas, arquivos, chaves de payload internas). **Português**: textos de UI, mensagens de erro ao usuário, comentários, **URLs e query params** (`/sala`, `?convite`, `?voltar`, `de`/`ate`) e **valores persistidos** (metadados de auditoria já gravados). Os dois últimos são contrato e não mudam. |
+| Nomes de arquivo | Componente React: `PascalCase.tsx` (o padrão atual da maioria). Todo o resto: `kebab-case.ts`. Hooks: `use-*.ts`. Os arquivos de rota do Next seguem a convenção do framework.                                                                                                                                                               |
+| Nomes de domínio | `participant` = pessoa que entra em sala (tabela `users`); `admin`/`adminUser` = conta do painel. `user` não aparece sozinho em código novo.                                                                                                                                                                                                 |
+| Barrel files     | Proibidos (exceto `server/db/schema/index.ts`, que já existe e é exigido pelo drizzle-kit). Import direto do arquivo.                                                                                                                                                                                                                        |
+| Alias            | `@/` (como já é). Import relativo só dentro da mesma pasta.                                                                                                                                                                                                                                                                                  |
+| Limites (lint)   | Arquivo ≤ **300** linhas úteis; função de lógica (fora de JSX) ≤ **60** linhas; complexidade ≤ **15**. Começa como `error` com lista de exceções nomeadas, que diminui a cada fase (catraca).                                                                                                                                                |
+| Server/Client    | RSC por padrão. `"use client"` só no componente que usa estado, efeito ou API do navegador. Todo arquivo em `features/*/server/**` e `server/**` começa com `import "server-only"`.                                                                                                                                                          |
 
 ## 5. Árvore de pastas alvo
 
@@ -218,12 +218,12 @@ export async function POST(request) {
 export async function POST(request: NextRequest) {
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();
   const ip = clientIpFrom(request.headers);
-  const body = await readJson(request);                  // { ok, value } — não lança
+  const body = await readJson(request); // { ok, value } — não lança
   const session = await getParticipantSessionFromHeaders(request.headers);
   const result = await issueRoomToken({ ip, body, session }); // features/room/server
   return result.ok
     ? NextResponse.json(result.data, { headers: NO_STORE })
-    : tokenErrorResponse(result.code, result);           // domain/token-errors: code → {status, message, retryAfter}
+    : tokenErrorResponse(result.code, result); // domain/token-errors: code → {status, message, retryAfter}
 }
 ```
 
@@ -253,11 +253,16 @@ export type TokenDecision =
   | { ok: false; code: TokenErrorCode; logResult: TokenLogResult | null; retryAfter?: number };
 
 export async function decideTokenRequest(input, deps): Promise<TokenDecision> {
-  if (!deps.limits.perIp.hit(input.ip).ok) return fail("rate_limited", null /* não loga, como hoje */);
+  if (!deps.limits.perIp.hit(input.ip).ok)
+    return fail("rate_limited", null /* não loga, como hoje */);
   if (!input.session) return fail("unauthenticated");
   if (isBlocked(input.session.user)) return fail("blocked");
   // … e-mail, perUser, body ilegível, schema, senha, lotação, convite — mesma ordem de hoje
-  return { ok: true, grant: buildGrant(user, room, deps.config.maxParticipants), logResult: "granted" };
+  return {
+    ok: true,
+    grant: buildGrant(user, room, deps.config.maxParticipants),
+    logResult: "granted",
+  };
 }
 ```
 
@@ -272,6 +277,7 @@ export const liveKitGateway: LiveKitGateway = { … };   // implementação úni
 ```
 
 **Testes que essa estrutura destrava:**
+
 - `decideTokenRequest`: um teste Vitest por ramo (cerca de 15), com fakes em objeto literal, sem rede e sem banco.
 - `tests/integration/token-route.test.ts` (já existe, 15 casos) continua **sem alteração** como teste de caracterização da borda HTTP. Se ele passar antes e depois, o comportamento foi preservado.
 
@@ -281,22 +287,22 @@ export const liveKitGateway: LiveKitGateway = { … };   // implementação úni
 
 Versões verificadas com `npm view` em 2026-10-06.
 
-| Padrão | Escolha | Alternativa | Motivo | Risco |
-|---|---|---|---|---|
-| Organização | Pastas por feature (`features/*`) + `components`/`lib`/`server` genéricos | Por tipo técnico | Coesão; permite regra de lint por pasta | Muitos `git mv`. Mitigação: uma feature por PR, sem mudar código no mesmo commit do `mv` |
-| Dados | DAL: `queries.ts`/`commands.ts` com Drizzle direto | Repositórios + interfaces | Recomendado pelo Next; testes com Postgres real já existem | Nenhum novo |
-| Regras | `domain/` puro **só** onde há regra (token, webhook, mascote, sala) | Use case em toda feature | Evita cerimônia em listagens | Linha cinzenta sobre o que é "regra"; resolver no PR |
-| Inversão de dependência | Um gateway em objeto de funções para o LiveKit server SDK | Portas para DB, e-mail e storage | É o único ponto em que um teste precisa de servidor HTTP falso | Nenhum |
-| Erros | União discriminada + `ActionError` (já existe) + mapa código→HTTP | `neverthrow@8.2.0` | Já funciona, sem dependência nova | — |
-| Validação | Zod 4.6.5 (já instalado), tipos com `z.infer`; tipos de enum do banco via `$inferSelect`/`enumValues` | — | Já é o padrão; só remover as redeclarações (D-037) | — |
-| Fronteiras de camada | **oxlint `no-restricted-imports` por override** + `import/no-cycle` (já configurados, só estender) | `dependency-cruiser@18.5.0` | O depcruise precisa do compilador TypeScript para ler `.ts`, e o TypeScript 7.0.2 instalado **não expõe a API JS** (`require("typescript").createSourceFile` → `undefined`, verificado). Exigiria instalar SWC e manter um segundo sistema de regras | Precisão menor que o depcruise (é por padrão de caminho), suficiente aqui |
-| Fronteiras (alt.) | — | `eslint-plugin-boundaries@7.2.0` | Exige ESLint (10.12.0) como **segundo linter** ao lado do oxlint | — |
-| Código morto | `knip@6.40.0` no CI (já rodou com sucesso neste projeto) | `ts-prune` (abandonado) | Pega arquivos, exports e deps; funciona com a stack | Falso positivo do `pino-pretty`: ignorar na config |
-| Duplicação | `jscpd@5.4.0` no CI, com `threshold` de 2% | — | Já roda em 1,8 s; o baseline é 2,24% | Duplicação de vendor e testes: ignorar |
-| Tamanho | oxlint `eslint/max-lines` (300), `max-lines-per-function` (60, só `.ts`), `complexity` (15) | — | Regras nativas (testadas aqui com config temporária) | Exceções iniciais nomeadas (catraca) |
-| E2E | `@playwright/test@1.63.0` (Node ≥ 20 ✓) com fake media do Chromium; `@axe-core/playwright@4.13.0` opcional | Cypress | Multi-contexto (2 participantes) e flags de mídia falsa | Precisa do LiveKit dev (`docker-compose.livekit.yml`) no CI |
-| Testes de componente | **Não adicionar** jsdom/happy-dom/Testing Library | `@testing-library/react@16.3.3` + `happy-dom@20.14.5` | Extrair a lógica para `domain/` (Vitest node) + Playwright cobre o resto com menos manutenção | Hooks finos ficam sem teste unitário (aceito) |
-| Idioma | Código em inglês; UI, URLs e dados persistidos em português | Tudo em português | Bate com o SDK e as libs; URLs e dados são contrato | Renomear `features/salas` → `admin/rooms` mexe em imports (só isso) |
+| Padrão                  | Escolha                                                                                                    | Alternativa                                           | Motivo                                                                                                                                                                                                                                               | Risco                                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Organização             | Pastas por feature (`features/*`) + `components`/`lib`/`server` genéricos                                  | Por tipo técnico                                      | Coesão; permite regra de lint por pasta                                                                                                                                                                                                              | Muitos `git mv`. Mitigação: uma feature por PR, sem mudar código no mesmo commit do `mv` |
+| Dados                   | DAL: `queries.ts`/`commands.ts` com Drizzle direto                                                         | Repositórios + interfaces                             | Recomendado pelo Next; testes com Postgres real já existem                                                                                                                                                                                           | Nenhum novo                                                                              |
+| Regras                  | `domain/` puro **só** onde há regra (token, webhook, mascote, sala)                                        | Use case em toda feature                              | Evita cerimônia em listagens                                                                                                                                                                                                                         | Linha cinzenta sobre o que é "regra"; resolver no PR                                     |
+| Inversão de dependência | Um gateway em objeto de funções para o LiveKit server SDK                                                  | Portas para DB, e-mail e storage                      | É o único ponto em que um teste precisa de servidor HTTP falso                                                                                                                                                                                       | Nenhum                                                                                   |
+| Erros                   | União discriminada + `ActionError` (já existe) + mapa código→HTTP                                          | `neverthrow@8.2.0`                                    | Já funciona, sem dependência nova                                                                                                                                                                                                                    | —                                                                                        |
+| Validação               | Zod 4.6.5 (já instalado), tipos com `z.infer`; tipos de enum do banco via `$inferSelect`/`enumValues`      | —                                                     | Já é o padrão; só remover as redeclarações (D-037)                                                                                                                                                                                                   | —                                                                                        |
+| Fronteiras de camada    | **oxlint `no-restricted-imports` por override** + `import/no-cycle` (já configurados, só estender)         | `dependency-cruiser@18.5.0`                           | O depcruise precisa do compilador TypeScript para ler `.ts`, e o TypeScript 7.0.2 instalado **não expõe a API JS** (`require("typescript").createSourceFile` → `undefined`, verificado). Exigiria instalar SWC e manter um segundo sistema de regras | Precisão menor que o depcruise (é por padrão de caminho), suficiente aqui                |
+| Fronteiras (alt.)       | —                                                                                                          | `eslint-plugin-boundaries@7.2.0`                      | Exige ESLint (10.12.0) como **segundo linter** ao lado do oxlint                                                                                                                                                                                     | —                                                                                        |
+| Código morto            | `knip@6.40.0` no CI (já rodou com sucesso neste projeto)                                                   | `ts-prune` (abandonado)                               | Pega arquivos, exports e deps; funciona com a stack                                                                                                                                                                                                  | Falso positivo do `pino-pretty`: ignorar na config                                       |
+| Duplicação              | `jscpd@5.4.0` no CI, com `threshold` de 2%                                                                 | —                                                     | Já roda em 1,8 s; o baseline é 2,24%                                                                                                                                                                                                                 | Duplicação de vendor e testes: ignorar                                                   |
+| Tamanho                 | oxlint `eslint/max-lines` (300), `max-lines-per-function` (60, só `.ts`), `complexity` (15)                | —                                                     | Regras nativas (testadas aqui com config temporária)                                                                                                                                                                                                 | Exceções iniciais nomeadas (catraca)                                                     |
+| E2E                     | `@playwright/test@1.63.0` (Node ≥ 20 ✓) com fake media do Chromium; `@axe-core/playwright@4.13.0` opcional | Cypress                                               | Multi-contexto (2 participantes) e flags de mídia falsa                                                                                                                                                                                              | Precisa do LiveKit dev (`docker-compose.livekit.yml`) no CI                              |
+| Testes de componente    | **Não adicionar** jsdom/happy-dom/Testing Library                                                          | `@testing-library/react@16.3.3` + `happy-dom@20.14.5` | Extrair a lógica para `domain/` (Vitest node) + Playwright cobre o resto com menos manutenção                                                                                                                                                        | Hooks finos ficam sem teste unitário (aceito)                                            |
+| Idioma                  | Código em inglês; UI, URLs e dados persistidos em português                                                | Tudo em português                                     | Bate com o SDK e as libs; URLs e dados são contrato                                                                                                                                                                                                  | Renomear `features/salas` → `admin/rooms` mexe em imports (só isso)                      |
 
 ## 8. Como impedir regressão (CI)
 
@@ -304,38 +310,105 @@ Proposta para o `oxlint.config.ts`, estendendo o override que já existe:
 
 ```ts
 overrides: [
-  { files: ["components/**", "lib/**"],                       // genérico
-    rules: { "eslint/no-restricted-imports": ["error", { patterns: [
-      { group: ["@/features/*", "@/app/*"], message: "Genérico não conhece features nem rotas." },
-      { group: ["@/server/*", "pg", "drizzle-orm*"], allowTypeImports: true, message: "…" } ] }] } },
-  { files: ["features/*/ui/**", "features/*/hooks/**", "features/admin/*/ui/**"],
-    rules: { "eslint/no-restricted-imports": ["error", { patterns: [
-      { group: ["@/features/*/server/*", "@/features/admin/*/queries", "@/server/*", "drizzle-orm*", "pg", "livekit-server-sdk"],
-        allowTypeImports: true, message: "UI não acessa servidor: use props ou action." } ] }] } },
-  { files: ["features/*/domain/**"],
-    rules: { "eslint/no-restricted-imports": ["error", { patterns: [
-      { group: ["react", "next/*", "drizzle-orm*", "pg", "livekit-*", "better-auth*", "@/server/*", "@/features/*/server/*"],
-        message: "domain/ é TypeScript puro." } ] }] } },
-  { files: ["server/**"],
-    rules: { "eslint/no-restricted-imports": ["error", { patterns: [
-      { group: ["@/features/*", "@/app/*", "@/components/*"], message: "Infra não conhece features." } ] }] } },
-]
+  {
+    files: ["components/**", "lib/**"], // genérico
+    rules: {
+      "eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/features/*", "@/app/*"],
+              message: "Genérico não conhece features nem rotas.",
+            },
+            { group: ["@/server/*", "pg", "drizzle-orm*"], allowTypeImports: true, message: "…" },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["features/*/ui/**", "features/*/hooks/**", "features/admin/*/ui/**"],
+    rules: {
+      "eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@/features/*/server/*",
+                "@/features/admin/*/queries",
+                "@/server/*",
+                "drizzle-orm*",
+                "pg",
+                "livekit-server-sdk",
+              ],
+              allowTypeImports: true,
+              message: "UI não acessa servidor: use props ou action.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["features/*/domain/**"],
+    rules: {
+      "eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "react",
+                "next/*",
+                "drizzle-orm*",
+                "pg",
+                "livekit-*",
+                "better-auth*",
+                "@/server/*",
+                "@/features/*/server/*",
+              ],
+              message: "domain/ é TypeScript puro.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["server/**"],
+    rules: {
+      "eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/features/*", "@/app/*", "@/components/*"],
+              message: "Infra não conhece features.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+];
 ```
 
 Passos novos no job `quality` do `ci.yml`: `pnpm knip`, `pnpm dlx jscpd@5.4.0 --threshold 2 …`, `drizzle-kit check`. No job `test`: `coverage.thresholds` e aplicar `bootstrap.sql` para rodar a integração como `nelcota_app`. Job novo `e2e`: Playwright com o LiveKit dev como service. No job `build`: `docker build`.
 
 ## 9. Onde NÃO vamos aplicar SOLID nem camadas
 
-| Parte | Fica como está | Por quê |
-|---|---|---|
-| `components/ui/*` (shadcn) | Só apagar os 2 arquivos mortos e tirar o import da app em `sonner.tsx` | É vendor. Os 18 erros de `no-unsafe-type-assertion` que vêm daí se resolvem com um override do lint, não com reescrita |
-| `server/env.ts`, `logger.ts`, `rate-limit.ts` (em memória), `csp.ts`, `proxy.ts`, `mail.ts` | Sem interfaces | Simples, corretos e testados. Redis para o rate limit seria over-engineering com uma réplica |
-| `server/settings.ts` | Não generalizar | Um único grupo (mascote). Zod + cache de 60 s basta |
-| As duas instâncias do Better Auth | Continuam separadas; extrair só **constantes** comuns (limites, fresh) | A separação (tabelas, cookies, segredos) é uma decisão de segurança. Unificar seria risco |
-| `server/table/keyset.ts`, `csv-export.ts`, `lib/csv.ts`, `audit/record.ts` | Mantidos | Bem desenhados e testados |
-| `webhook-projector`: idempotência, `greatest`/`least`, evento bruto | Mantidos | Só dividir o `switch` em funções por evento. O desenho é bom |
-| Listagens do painel | Sem use case: page → `queries.ts` | Não há regra; extrair só os helpers (`list-page`, `period-filter`, `csv-route`) |
-| `RoomSession` (máquina de fases com `key={attempt}`), `useRoomAnimations` (Flip), padrão `useGSAP` | Intocados | Corretos, e reescrever é risco sem ganho |
-| Prop drilling da sala | Sem contexto novo | No máximo 5 níveis, e só para 2 valores |
-| `RoomServiceClient`/`AccessToken` no webhook | Sem porta | O receiver do webhook já é testado com assinatura real (`tests/unit/webhook-route.test.ts`) |
-| Migrações e schema | Nenhuma mudança de schema no refactor | Ver o plano: o refactor não toca o banco |
+| Parte                                                                                              | Fica como está                                                         | Por quê                                                                                                                |
+| -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `components/ui/*` (shadcn)                                                                         | Só apagar os 2 arquivos mortos e tirar o import da app em `sonner.tsx` | É vendor. Os 18 erros de `no-unsafe-type-assertion` que vêm daí se resolvem com um override do lint, não com reescrita |
+| `server/env.ts`, `logger.ts`, `rate-limit.ts` (em memória), `csp.ts`, `proxy.ts`, `mail.ts`        | Sem interfaces                                                         | Simples, corretos e testados. Redis para o rate limit seria over-engineering com uma réplica                           |
+| `server/settings.ts`                                                                               | Não generalizar                                                        | Um único grupo (mascote). Zod + cache de 60 s basta                                                                    |
+| As duas instâncias do Better Auth                                                                  | Continuam separadas; extrair só **constantes** comuns (limites, fresh) | A separação (tabelas, cookies, segredos) é uma decisão de segurança. Unificar seria risco                              |
+| `server/table/keyset.ts`, `csv-export.ts`, `lib/csv.ts`, `audit/record.ts`                         | Mantidos                                                               | Bem desenhados e testados                                                                                              |
+| `webhook-projector`: idempotência, `greatest`/`least`, evento bruto                                | Mantidos                                                               | Só dividir o `switch` em funções por evento. O desenho é bom                                                           |
+| Listagens do painel                                                                                | Sem use case: page → `queries.ts`                                      | Não há regra; extrair só os helpers (`list-page`, `period-filter`, `csv-route`)                                        |
+| `RoomSession` (máquina de fases com `key={attempt}`), `useRoomAnimations` (Flip), padrão `useGSAP` | Intocados                                                              | Corretos, e reescrever é risco sem ganho                                                                               |
+| Prop drilling da sala                                                                              | Sem contexto novo                                                      | No máximo 5 níveis, e só para 2 valores                                                                                |
+| `RoomServiceClient`/`AccessToken` no webhook                                                       | Sem porta                                                              | O receiver do webhook já é testado com assinatura real (`tests/unit/webhook-route.test.ts`)                            |
+| Migrações e schema                                                                                 | Nenhuma mudança de schema no refactor                                  | Ver o plano: o refactor não toca o banco                                                                               |

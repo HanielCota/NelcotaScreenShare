@@ -23,6 +23,7 @@ O projeto **não está bagunçado por inteiro**. O servidor é disciplinado: zer
 6. **O banco "opcional" é falso**: 27 desvios `if (!db)` que nunca rodam, com tipos que mentem.
 
 Em paralelo, a leitura achou **achados fora do escopo, a corrigir em PRs próprios**:
+
 - **Open redirect** pós-login via `?voltar=/%09/evil.com` (S-01, confirmado no código).
 - **Endpoints do plugin admin do Better Auth expostos** sem 2FA nem auditoria (S-02).
 - **Exclusão de conta sem rate limit** (S-03).
@@ -42,27 +43,27 @@ Em paralelo, a leitura achou **achados fora do escopo, a corrigir em PRs própri
 
 ## Esforço e ordem recomendada
 
-| Ordem | Fase | Horas | Risco |
-|---|---|---|---|
-| 0 | Correções de segurança S-01..S-03 (PRs próprios, fora do refactor) | ~3 | baixo |
-| 1 | **Fase 0**: lint verde, CI real, código morto, knip/jscpd, **Playwright com 8 fluxos** e testes de caracterização | 22 | baixo |
-| 2 | **Fase 1**: transversais (banco não opcional, env único, constantes, `server-only`) | 6 | baixo |
-| 3 | **Fase 2**: helpers do painel (CSV, períodos, iterate) e DAL fora das páginas | 7 | baixo |
-| 4 | **Fase 3**: features nesta ordem: settings/busca → painel → auth/conta → home → mascote → **sala ao vivo** (por último, a mais crítica) | 58 | baixo → alto |
-| 5 | **Fase 4**: quebrar os componentes grandes e ajustar a fronteira server/client | 8 | médio |
-| 6 | **Fase 5**: README, ADRs, apertar a catraca do lint | 5 | baixo |
-| | **Total do refactor** | **≈ 106 h** | |
+| Ordem | Fase                                                                                                                                    | Horas       | Risco        |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------ |
+| 0     | Correções de segurança S-01..S-03 (PRs próprios, fora do refactor)                                                                      | ~3          | baixo        |
+| 1     | **Fase 0**: lint verde, CI real, código morto, knip/jscpd, **Playwright com 8 fluxos** e testes de caracterização                       | 22          | baixo        |
+| 2     | **Fase 1**: transversais (banco não opcional, env único, constantes, `server-only`)                                                     | 6           | baixo        |
+| 3     | **Fase 2**: helpers do painel (CSV, períodos, iterate) e DAL fora das páginas                                                           | 7           | baixo        |
+| 4     | **Fase 3**: features nesta ordem: settings/busca → painel → auth/conta → home → mascote → **sala ao vivo** (por último, a mais crítica) | 58          | baixo → alto |
+| 5     | **Fase 4**: quebrar os componentes grandes e ajustar a fronteira server/client                                                          | 8           | médio        |
+| 6     | **Fase 5**: README, ADRs, apertar a catraca do lint                                                                                     | 5           | baixo        |
+|       | **Total do refactor**                                                                                                                   | **≈ 106 h** |              |
 
 Cada fase é deployável e entrega valor sozinha, então dá para **parar depois de qualquer uma** com o projeto melhor do que antes. O refactor **não tem nenhuma migração de banco**. Os quick wins (menos de 1 h cada) estão no doc 04 §3.
 
 ## Documentos
 
-| Doc | Conteúdo |
-|---|---|
-| [01-inventario.md](01-inventario.md) | Árvore anotada, grafo de imports, rotas e actions, fluxos, dependências e métricas |
-| [02-diagnostico.md](02-diagnostico.md) | 55 problemas com evidência, achados fora do escopo (11 de segurança e 14 bugs) e ranking dos 10 que mais custam |
-| [03-arquitetura-alvo.md](03-arquitetura-alvo.md) | Camadas, regra de dependência, árvore alvo, exemplo ponta a ponta, decisões e onde não aplicar SOLID |
-| [04-plano-de-migracao.md](04-plano-de-migracao.md) | Rede de segurança, fases com critérios e rollback, quick wins, métricas e riscos |
-| [05-decisoes-em-aberto.md](05-decisoes-em-aberto.md) | 5 perguntas, 9 premissas e as limitações da análise |
+| Doc                                                  | Conteúdo                                                                                                        |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [01-inventario.md](01-inventario.md)                 | Árvore anotada, grafo de imports, rotas e actions, fluxos, dependências e métricas                              |
+| [02-diagnostico.md](02-diagnostico.md)               | 55 problemas com evidência, achados fora do escopo (11 de segurança e 14 bugs) e ranking dos 10 que mais custam |
+| [03-arquitetura-alvo.md](03-arquitetura-alvo.md)     | Camadas, regra de dependência, árvore alvo, exemplo ponta a ponta, decisões e onde não aplicar SOLID            |
+| [04-plano-de-migracao.md](04-plano-de-migracao.md)   | Rede de segurança, fases com critérios e rollback, quick wins, métricas e riscos                                |
+| [05-decisoes-em-aberto.md](05-decisoes-em-aberto.md) | 5 perguntas, 9 premissas e as limitações da análise                                                             |
 
 **Próximo passo:** aprovar a arquitetura-alvo (doc 03) e a ordem das fases (doc 04) e responder Q1–Q5 do doc 05. Nada será implementado antes disso.
