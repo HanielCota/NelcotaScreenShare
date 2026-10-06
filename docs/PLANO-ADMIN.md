@@ -1,6 +1,6 @@
 # Plano técnico: painel admin do Nelcota
 
-> Status: **proposta para aprovação**. Nenhum código, pacote ou migração deste plano foi criado.
+> Status: **aprovado em 06/10/2026**, com uma mudança: **participantes têm conta com e-mail e senha** (§5.4). As demais premissas da §11 seguem a recomendação.
 > Versões e documentação verificadas em **06/10/2026** (npm registry, docs oficiais, GitHub, Docker Hub).
 
 ---
@@ -9,14 +9,14 @@
 
 1. O painel vive **no mesmo app Next.js** (rota `/admin`), na mesma imagem Docker, com código organizado por _feature_ para ser reaproveitável.
 2. Dados em **PostgreSQL 18.6** com **Drizzle ORM 0.45** + driver **`pg`**; chaves **UUID v7** geradas pelo próprio Postgres (`uuidv7()`).
-3. Autenticação com **Better Auth 1.7** (e-mail + senha com **argon2id**, **2FA TOTP** obrigatório para quem altera dados, sessões no banco). **RBAC** definido em código com matriz `owner` / `admin` / `viewer`.
+3. Autenticação com **Better Auth 1.7** em **duas instâncias separadas**: admins (`/api/admin/auth`, 2FA obrigatório, só por convite) e participantes (`/api/auth`, cadastro com e-mail verificado, 2FA opcional). Senhas em **argon2id**, sessões no banco. **RBAC** de admins definido em código (`owner` / `admin` / `viewer`).
 4. Mutações só por **Server Actions via `next-safe-action`**, com permissão + validação Zod + **audit log** aplicados em um único _middleware_.
 5. Listagens **server-side** com TanStack Table v9 (headless), estado na URL com **nuqs**, paginação **keyset** e exportação CSV em _stream_.
 6. Os dados de negócio (salas, participações, compartilhamentos) vêm dos **webhooks do LiveKit**, gravados de forma idempotente.
 7. Migrações em **job separado** no deploy (CI → imagem no GHCR → `migrate` com usuário próprio → deploy no Coolify), padrão **expand/contract**.
 8. Observabilidade: Pino (JSON no stdout), Sentry SDK 11 (SaaS, sem PII), `pg_stat_statements`, health checks.
 9. Backup diário do Coolify para S3 com restauração **testada mensalmente**. RPO 24 h / RTO 2 h no MVP.
-10. Roadmap em 10 fases, **~42 dias úteis** até o painel completo, com MVP utilizável ao fim da Fase 3 (~18 dias).
+10. Roadmap em 11 fases, **~47 dias úteis** até o painel completo, com MVP utilizável ao fim da Fase 3 (~23 dias).
 
 ---
 
@@ -290,7 +290,7 @@ O código atual que muda: `lib/env.ts`, `lib/db/*`, `lib/settings.ts`, `lib/admi
 | Chave primária | **`uuid` com `DEFAULT uuidv7()`** (nativo no PG18) em todas as tabelas. É ordenado por tempo, então a inserção fica no fim do índice (sem a fragmentação do UUID v4) e o keyset por `id` acompanha a ordem de criação. Não é enumerável em URLs (`/admin/salas/<id>`) e é gerado no banco (o Better Auth usa `advanced.database.generateId: false` com `DEFAULT`). Custo: 16 bytes contra 8 do `bigint`, irrelevante nesta escala. O UUID v7 revela a data de criação, aceitável aqui. |
 | Tempo | `timestamptz` sempre (armazenado em UTC). Conversão para `America/Sao_Paulo` só na apresentação e nos agregados por dia. |
 | Auditoria de linha | `created_at`/`updated_at` `NOT NULL DEFAULT now()` + trigger genérico `set_updated_at()` (vale até para SQL manual, diferente do `$onUpdate` do ORM). |
-| Soft delete | `deleted_at timestamptz` em `rooms`, `end_users` e `room_invites`. Admins são **desativados** (`disabled_at`), nunca apagados (o audit log aponta para eles). Audit log e eventos brutos não têm exclusão. Pedidos de exclusão da LGPD fazem **anonimização definitiva**, não soft delete. |
+| Soft delete | `deleted_at timestamptz` em `rooms`, `users` e `room_invites`. Admins são **desativados** (`disabled_at`), nunca apagados (o audit log aponta para eles). Audit log e eventos brutos não têm exclusão. Pedidos de exclusão da LGPD fazem **anonimização definitiva**, não soft delete. |
 | Enums vs tabelas | `pgEnum` para conjuntos pequenos e estáveis, ligados a código (`room_status`, `participant_leave_reason`, `invite_status`, `dsr_type`, `dsr_status`). Papéis de admin: `text` com `CHECK` gerado da lista em código (ver §5.2). Tabelas de domínio só quando o usuário puder editar a lista. |
 | Nomes | `snake_case`, tabelas no plural, FKs `<entidade>_id`, índices `<tabela>_<colunas>_idx`, únicos `<tabela>_<colunas>_key`. Drizzle com `casing: "snake_case"`. |
 | Integridade | `NOT NULL` por padrão. FKs com `ON DELETE` explícito (`restrict` por padrão; `set null` só onde a anonimização exige). `CHECK` para faixas e formatos (código de sala, durações ≥ 0). `UNIQUE` parcial respeitando o soft delete. |
@@ -303,17 +303,18 @@ erDiagram
   admin_users ||--o{ admin_sessions : "tem"
   admin_users ||--o{ admin_accounts : "credenciais"
   admin_users ||--o| admin_two_factors : "TOTP"
-  admin_users ||--o{ admin_login_failures : "tentativas"
   admin_users ||--o{ admin_invitations : "convidou"
   admin_users ||--o{ audit_logs : "executou"
-  end_users ||--o{ room_participations : "participou"
+  users ||--o{ room_participations : "participou"
+  users ||--o{ user_sessions : "tem"
+  users ||--o{ rooms : "criou"
   rooms ||--o{ room_participations : "recebeu"
   rooms ||--o{ share_sessions : "teve"
   room_participations ||--o{ share_sessions : "compartilhou"
   rooms ||--o{ room_invites : "convites"
   rooms ||--o{ token_requests : "pedidos de entrada"
-  end_users ||--o{ token_requests : "pediu"
-  end_users ||--o{ data_subject_requests : "titular"
+  users ||--o{ token_requests : "pediu"
+  users ||--o{ data_subject_requests : "titular"
   livekit_events }o--|| rooms : "projeta em"
 
   admin_users {
@@ -331,17 +332,18 @@ erDiagram
     timestamptz last_activity_at
     timestamptz deleted_at
   }
-  end_users {
+  users {
     uuid id PK
-    uuid client_id UK "id anônimo do navegador"
-    text last_display_name
-    timestamptz last_seen_at
+    text email UK
+    text name "nome de exibição"
+    bool email_verified
+    timestamptz blocked_at
     timestamptz anonymized_at
   }
   room_participations {
     uuid id PK
     uuid room_id FK
-    uuid end_user_id FK
+    uuid user_id FK
     text livekit_identity
     timestamptz joined_at
     timestamptz left_at
@@ -371,7 +373,7 @@ erDiagram
   }
 ```
 
-> **Premissa importante (§11):** hoje o app **não tem conta de usuário final**: a pessoa entra só com um nome. "Usuários finais" passam a ser **identificados por um ID anônimo do navegador** (`client_id`, cookie primário `HttpOnly` de 1 ano, criado no `/api/token`). Assim dá para agrupar participações sem coletar e-mail.
+> **Decisão (aprovação de 06/10/2026):** participantes têm **conta própria** (e-mail + senha), separada dos admins: tabelas `users`, `user_sessions`, `user_accounts`, `user_verifications`, `user_two_factors`, `user_rate_limits`, geradas pela segunda instância do Better Auth. Entrar numa sala e criar uma sala exigem login com e-mail verificado.
 
 ### 4.3 Schema proposto (SQL de referência)
 
@@ -452,14 +454,16 @@ CREATE TABLE admin_rate_limits (         -- storage "database" do rate limit do 
 );
 
 -- Bloqueio por tentativas (não é nativo do Better Auth)
-CREATE TABLE admin_login_failures (
+CREATE TYPE auth_scope AS ENUM ('admin','user');
+CREATE TABLE login_failures (             -- admins e participantes, separados por scope
   id uuid PRIMARY KEY DEFAULT uuidv7(),
+  scope auth_scope NOT NULL,
   email_hash bytea NOT NULL,              -- HMAC do e-mail normalizado: não guarda e-mail de quem nem é admin
   ip inet NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX admin_login_failures_email_idx ON admin_login_failures (email_hash, created_at DESC);
-CREATE INDEX admin_login_failures_ip_idx ON admin_login_failures (ip, created_at DESC);
+CREATE INDEX login_failures_email_idx ON login_failures (scope, email_hash, created_at DESC);
+CREATE INDEX login_failures_ip_idx ON login_failures (scope, ip, created_at DESC);
 
 CREATE TYPE invite_status AS ENUM ('pending','accepted','revoked','expired');
 CREATE TABLE admin_invitations (
@@ -489,6 +493,7 @@ CREATE TABLE rooms (
   finished_at timestamptz,
   last_activity_at timestamptz NOT NULL DEFAULT now(),
   peak_participants smallint NOT NULL DEFAULT 0 CHECK (peak_participants >= 0),
+  created_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
   closed_by_admin_id uuid REFERENCES admin_users(id),
   note text CHECK (length(note) <= 500),
   deleted_at timestamptz,
@@ -499,26 +504,32 @@ CREATE TABLE rooms (
 -- O mesmo código pode ser reaberto no futuro: só uma sala "viva" (não excluída) por código.
 CREATE UNIQUE INDEX rooms_code_live_key ON rooms (code) WHERE deleted_at IS NULL;
 
-CREATE TABLE end_users (
+-- Participantes (2ª instância do Better Auth; nomes mapeados com modelName/fields)
+CREATE TABLE users (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
-  client_id uuid NOT NULL UNIQUE,         -- cookie anônimo do navegador
-  last_display_name text CHECK (length(last_display_name) <= 32),
-  first_seen_at timestamptz NOT NULL DEFAULT now(),
-  last_seen_at timestamptz NOT NULL DEFAULT now(),
-  blocked_at timestamptz,                 -- bloqueado pelo admin: /api/token recusa
-  block_reason text,
-  anonymized_at timestamptz,              -- LGPD: nome apagado, vínculos mantidos sem PII
+  email text NOT NULL,
+  email_verified boolean NOT NULL DEFAULT false,
+  name text NOT NULL CHECK (length(name) BETWEEN 1 AND 32),   -- nome mostrado na sala
+  image text,
+  two_factor_enabled boolean NOT NULL DEFAULT false,
+  last_seen_at timestamptz,
+  blocked_at timestamptz,                 -- bloqueado por admin: login e /api/token recusam
+  block_reason text CHECK (length(block_reason) <= 300),
+  anonymized_at timestamptz,              -- LGPD: e-mail/nome trocados por valores sem PII
   deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE UNIQUE INDEX users_email_key ON users (lower(email));
+-- user_sessions, user_accounts, user_verifications, user_two_factors, user_rate_limits:
+-- mesma estrutura das tabelas admin_* acima, com FK para users(id) ON DELETE CASCADE.
 
 CREATE TYPE participant_leave_reason AS ENUM ('left','disconnected','removed_by_admin','room_closed','unknown');
 CREATE TABLE room_participations (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE RESTRICT,
-  end_user_id uuid REFERENCES end_users(id) ON DELETE SET NULL,
-  livekit_identity text NOT NULL,
+  user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  livekit_identity text NOT NULL,       -- = users.id no token
   display_name text CHECK (length(display_name) <= 32),   -- anonimizável
   ip inet,                                -- registro de acesso (Marco Civil, 6 meses), depois NULL
   joined_at timestamptz NOT NULL,
@@ -562,12 +573,12 @@ CREATE TABLE room_invites (               -- convite com validade/limite (substi
   CHECK (max_uses IS NULL OR uses <= max_uses)
 );
 
-CREATE TYPE token_result AS ENUM ('granted','wrong_password','room_full','rate_limited','blocked','invalid');
+CREATE TYPE token_result AS ENUM ('granted','wrong_password','room_full','rate_limited','blocked','unverified','invalid');
 CREATE TABLE token_requests (             -- cada pedido ao /api/token (append-only)
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   room_code text NOT NULL,
   room_id uuid REFERENCES rooms(id) ON DELETE SET NULL,
-  end_user_id uuid REFERENCES end_users(id) ON DELETE SET NULL,
+  user_id uuid REFERENCES users(id) ON DELETE SET NULL,
   result token_result NOT NULL,
   ip inet,
   created_at timestamptz NOT NULL DEFAULT now()
@@ -610,7 +621,7 @@ CREATE TYPE dsr_type AS ENUM ('export','anonymize');
 CREATE TYPE dsr_status AS ENUM ('open','done','rejected');
 CREATE TABLE data_subject_requests (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
-  end_user_id uuid REFERENCES end_users(id) ON DELETE SET NULL,
+  user_id uuid REFERENCES users(id) ON DELETE SET NULL,
   type dsr_type NOT NULL,
   status dsr_status NOT NULL DEFAULT 'open',
   requester_contact text NOT NULL,         -- como respondemos ao titular
@@ -629,10 +640,10 @@ CREATE TABLE data_subject_requests (
 |---|---|
 | Salas: filtro status + ordem por atividade | `rooms (status, last_activity_at DESC, id DESC) WHERE deleted_at IS NULL` |
 | Salas: busca por código | `rooms USING gin (code gin_trgm_ops) WHERE deleted_at IS NULL` |
-| Usuários: busca por nome (sem acento) | `end_users USING gin (f_unaccent(lower(last_display_name)) gin_trgm_ops) WHERE deleted_at IS NULL` |
-| Usuários: ordem por último acesso | `end_users (last_seen_at DESC, id DESC) WHERE deleted_at IS NULL` |
+| Usuários: busca por nome ou e-mail (sem acento) | `users USING gin (f_unaccent(lower(name || ' ' || email)) gin_trgm_ops) WHERE deleted_at IS NULL` |
+| Usuários: ordem por cadastro / último acesso | `users (created_at DESC, id DESC)` e `users (last_seen_at DESC NULLS LAST, id DESC)`, ambos `WHERE deleted_at IS NULL` |
 | Detalhe da sala: participações | `room_participations (room_id, joined_at DESC)` |
-| Histórico do usuário | `room_participations (end_user_id, joined_at DESC)` |
+| Histórico do usuário | `room_participations (user_id, joined_at DESC)` |
 | "Online agora" | `room_participations (room_id) WHERE left_at IS NULL` |
 | Compartilhamentos: lista e período | `share_sessions (started_at DESC, id DESC)` e `share_sessions (room_id, started_at DESC)` |
 | Compartilhamentos ativos | `share_sessions (room_id) WHERE ended_at IS NULL` |
@@ -736,11 +747,11 @@ Os papéis ficam **em código** (`createAccessControl`) e não numa tabela edit�
 | Recurso → ação | owner | admin | viewer |
 |---|:-:|:-:|:-:|
 | `dashboard.read` | ✅ | ✅ | ✅ |
-| `end_user.read` | ✅ | ✅ | ✅ |
-| `end_user.update` (renomear nota, bloquear/desbloquear) | ✅ | ✅ | — |
-| `end_user.delete` (soft delete / restaurar) | ✅ | ✅ | — |
-| `end_user.export` (CSV) | ✅ | ✅ | — |
-| `end_user.anonymize` (LGPD, irreversível) | ✅ | — | — |
+| `user.read` | ✅ | ✅ | ✅ |
+| `user.update` (bloquear/desbloquear, encerrar sessões, reenviar verificação) | ✅ | ✅ | — |
+| `user.delete` (soft delete / restaurar) | ✅ | ✅ | — |
+| `user.export` (CSV) | ✅ | ✅ | — |
+| `user.anonymize` (LGPD, irreversível) | ✅ | — | — |
 | `room.read` | ✅ | ✅ | ✅ |
 | `room.update` (nota) / `room.delete` (soft delete) | ✅ | ✅ | — |
 | `room.export` | ✅ | ✅ | — |
@@ -769,6 +780,17 @@ Regras extras (com teste): não é possível rebaixar ou desativar o **último o
 
 ---
 
+### 5.4 Contas de participantes (2ª instância do Better Auth)
+
+| Tema | Decisão |
+|---|---|
+| Isolamento | Instância própria em `/api/auth`, cookie `__Secure-nelcota.*` (`SameSite=Lax`, para links de e-mail e convites funcionarem), tabelas `users*`. Uma sessão de participante **nunca** autoriza nada no `/admin` e vice-versa. O mesmo e-mail pode ter conta de participante e de admin, sem relação entre elas. |
+| Cadastro | E-mail + nome de exibição + senha (10 a 128 caracteres, argon2id). **Verificação de e-mail obrigatória** antes de entrar em salas. Resposta de cadastro igual para e-mail novo ou já cadastrado (`customSyntheticUser`: quem já tem conta recebe um e-mail avisando, e ninguém descobre pela tela). |
+| Login e recuperação | Iguais aos dos admins (mensagens genéricas, bloqueio por tentativas com `scope = 'user'`, reset de 30 min que encerra as sessões). 2FA TOTP **opcional**. Sessão de 30 dias com renovação diária e sessão fresca de 10 min para trocar e-mail, senha ou excluir a conta. |
+| Entrada na sala | `/api/token` passa a exigir sessão de participante com e-mail verificado e conta não bloqueada. `identity` = `users.id`, `name` = nome de exibição. A senha de acesso à sala (`ACCESS_PASSWORD`) continua opcional. A sala guarda quem a criou. |
+| E-mail | `nodemailer` com SMTP via variáveis (`SMTP_URL`, `MAIL_FROM`). Em desenvolvimento, sem SMTP, o link é escrito no log do servidor. **Em produção, o app recusa subir sem SMTP** (cadastro sem verificação não é permitido). |
+| Autoatendimento (LGPD) | `/conta`: editar nome, trocar e-mail (com verificação) e senha, 2FA, sessões ativas, **baixar meus dados** (JSON) e **excluir minha conta** (anonimização imediata, mantendo só os registros de acesso exigidos por lei pelo prazo legal). |
+
 ## 6. Telas e fluxos
 
 Comum a todas as telas: sidebar recolhível (estado salvo em cookie), breadcrumbs, command palette (`Ctrl/⌘ K`: navegação + busca de sala/usuário por código ou nome), toasts (sonner), _skeletons_ do tamanho real, estado vazio com ação ("Nenhuma sala ainda"), estado de erro com "Tentar de novo" e `request_id` copiável. Datas em pt-BR, fuso `America/Sao_Paulo` (`Intl.DateTimeFormat`), relativas ("há 5 min") com `Intl.RelativeTimeFormat`, números com `Intl.NumberFormat("pt-BR")`. Tabelas: no celular, rolagem horizontal com a primeira coluna fixa; nas listas principais, **cards** abaixo de 640 px.
@@ -791,13 +813,24 @@ Critérios de aceite:
 - **Atividade recente:** últimas 10 ações do audit log (se tiver `audit.read`) e últimas salas encerradas.
 - **Aceite:** carrega em < 1 s com 300 mil participações (seed de carga). Cada card é uma consulta agregada com índice (verificado com `EXPLAIN`, sem _seq scan_ em tabela grande).
 
-### 6.3 Usuários finais (`/admin/usuarios`, `/admin/usuarios/[id]`)
+### 6.0 Conta do participante (app público: `/entrar`, `/cadastro`, `/verificar-email`, `/recuperar-senha`, `/redefinir-senha`, `/conta`)
 
-- **Lista:** nome mais recente, primeira e última visita, nº de participações, status (ativo / bloqueado / anonimizado).
-- **Filtros:** status, período da última visita, busca por nome (sem acento).
+- Navbar: "Entrar" / "Criar conta" para visitante; menu com nome, "Minha conta" e "Sair" para quem está logado.
+- Criar sala e entrar numa sala levam para `/entrar?voltar=/sala/<código>` quando não há sessão. Depois do login, a pessoa volta para onde estava.
+- A pré-entrada da sala deixa de pedir nome: usa o nome da conta (editável em `/conta`).
+- **Aceite:**
+  - [ ] Cadastro com e-mail já existente mostra a mesma tela de "verifique seu e-mail".
+  - [ ] Sem verificar o e-mail, a pessoa vê "Confirme seu e-mail para entrar em salas" com botão de reenviar (limitado a 1 por minuto).
+  - [ ] Conta bloqueada por admin não entra em sala nem faz login (mensagem genérica).
+  - [ ] "Excluir minha conta" pede a senha e encerra todas as sessões.
+
+### 6.3 Usuários (`/admin/usuarios`, `/admin/usuarios/[id]`)
+
+- **Lista:** nome, e-mail, e-mail verificado, cadastro, último acesso, nº de participações, status (ativo / não verificado / bloqueado / anonimizado).
+- **Filtros:** status, verificado, período de cadastro ou último acesso, busca por nome ou e-mail (sem acento).
 - **Ordenação:** última visita, participações.
 - **Ações em massa:** bloquear, desbloquear, excluir (soft), exportar CSV.
-- **Detalhe:** linha do tempo de participações (sala, entrada, saída, duração, compartilhamentos) e ações "Bloquear" (motivo obrigatório; o `/api/token` passa a recusar) e "Anonimizar (LGPD)", irreversível, que pede digitar `ANONIMIZAR` e só aparece para o owner.
+- **Detalhe:** dados da conta, sessões ativas, linha do tempo de participações (sala, entrada, saída, duração, compartilhamentos) e ações "Bloquear" (motivo obrigatório; encerra as sessões, e login e `/api/token` passam a recusar), "Encerrar sessões", "Reenviar verificação" e "Anonimizar (LGPD)", irreversível, que pede digitar `ANONIMIZAR` e só aparece para o owner. Admin **nunca** vê nem define a senha de um participante.
 - **Aceite:**
   - [ ] Excluir mostra toast "Usuário excluído · Desfazer" por 10 s, e "Desfazer" restaura.
   - [ ] Busca "joao" encontra "João".
@@ -889,11 +922,11 @@ Critérios de aceite:
 
 | Tema | Decisão |
 |---|---|
-| Inventário de dados pessoais | Participante: nome de exibição, `client_id` (pseudônimo), IP, horários. Admin: nome, e-mail, IP, user agent. |
-| Minimização | Sem e-mail ou conta para participantes. IP só nas tabelas de registro de acesso. User agent só para sessões de admin. Sentry sem PII. |
+| Inventário de dados pessoais | Participante: e-mail, nome de exibição, hash da senha, segredo de 2FA (cifrado), IP e user agent das sessões, IP e horários de participação. Admin: nome, e-mail, IP, user agent. |
+| Minimização | Conta de participante só com e-mail, nome e senha (sem telefone, CPF ou foto obrigatória). IP só nas tabelas de registro de acesso e sessões. Sentry sem PII. |
 | Base legal | Execução do serviço (participação), cumprimento de obrigação legal (registros de acesso, **Marco Civil art. 15: guarda de 6 meses**), legítimo interesse (segurança e audit). |
 | Retenção (job diário, Fase 8) | `token_requests`: 6 meses → excluir. `room_participations.ip`: 6 meses → `NULL`. `display_name` de participações: 12 meses → anonimizar. `livekit_events`: 30 dias → excluir. `audit_logs`: 5 anos. `admin_login_failures`: 30 dias. Sessões expiradas: 7 dias. |
-| Direitos do titular | Export JSON (tudo ligado ao `client_id`) e anonimização (o nome vira "Pessoa removida", o IP é apagado, o `client_id` é substituído), registrados em `data_subject_requests` com prazo de 15 dias. O titular identifica-se pelo `client_id` mostrado numa página "Meus dados" do app (Fase 8). |
+| Direitos do titular | **Autoatendimento** em `/conta`: baixar os dados (JSON) e excluir a conta (anonimização: e-mail vira `removido+<id>@invalid`, nome "Pessoa removida", sessões e credenciais apagadas). Pedidos por outros canais entram em `data_subject_requests` (prazo de 15 dias) e o owner executa pelo painel. |
 | Transparência | Atualizar o aviso de privacidade do app (texto jurídico fora do escopo técnico; ver §11). |
 
 ### 7.3 Observabilidade
@@ -992,16 +1025,17 @@ Estimativas em dias úteis para 1 pessoa em tempo integral, já incluindo testes
 |---|---|:-:|---|---|
 | **0. Fundação** | Estrutura `server/` + `features/`. Mover o código existente (env, db, settings). Remover a migração no boot. Papéis do Postgres (bootstrap SQL). Vitest (migrar os testes `node --test`). Postgres de teste por _template_. Pino + request-id. CSP com nonce. Sentry. CI completo (lint, typecheck, testes, build da imagem, GHCR). Job de migração via SSH. Medir TS 7 + Drizzle. | 4 | — | SSH/GHCR no Coolify. Desempenho de tipos. |
 | **1. Autenticação** | Better Auth (tabelas `admin_*`, argon2id). Login, logout, 2FA obrigatório, _backup codes_. Recuperação de senha. Bloqueio por tentativas. Convite e `create-owner`. Sessões ativas. Cookie e CSRF verificados. | 6 | 0 | Lacunas do Better Auth (lockout próprio, `sameSite`). E-mail (§11). |
+| **1b. Contas de participantes** | 2ª instância do Better Auth (`users*`). Cadastro, verificação de e-mail (nodemailer + log em dev), login, recuperação, 2FA opcional, `/conta` (perfil, senha, sessões, exportar, excluir). Navbar com sessão. `/api/token` exige conta verificada. | 5 | 1 | Mudança de fluxo para quem já usa o app (agora precisa de conta). SMTP em produção. |
 | **2. RBAC + audit + shell** | `permissions.ts` + `adminAction` (next-safe-action). Audit log na mesma transação. Teste que percorre as actions. Layout com sidebar, breadcrumbs, `cmdk`, toasts, estados vazios e erro. Tela de Auditoria. | 4 | 1 | Desenho do _middleware_ (base de tudo). |
 | **3. Kit de tabela** | TanStack Table v9 + nuqs + keyset + total aproximado + seleção em massa + CSV em stream + cards no mobile. Seed `dev` e `carga` (300 mil). | 4 | 2 | API nova do v9. |
-| **MVP ✅** | Admin entra com 2FA, vê e audita. Base pronta para os CRUDs. | **18** | | |
-| **4. Ingestão de dados** | Tabelas de negócio. Webhook LiveKit → `livekit_events` → projeção idempotente. `client_id` anônimo no app. `token_requests` registrado no `/api/token`. Bloqueio de usuário recusando token. | 4 | 0 | Eventos fora de ordem. Sem dados antes do deploy (histórico começa do zero). |
-| **5. CRUDs** | Usuários finais, salas, compartilhamentos (listas, filtros, detalhes, ações em massa, desfazer, exportação). Convites de sala. | 6 | 3, 4 | Volume de telas. |
+| **MVP ✅** | Participantes com conta. Admin entra com 2FA, vê e audita. Base pronta para os CRUDs. | **23** | | |
+| **4. Ingestão de dados** | Tabelas de negócio. Webhook LiveKit → `livekit_events` → projeção idempotente, ligando participações a `users`. `token_requests` registrado no `/api/token`. | 4 | 1b | Eventos fora de ordem. Sem dados antes do deploy (histórico começa do zero). |
+| **5. CRUDs** | Usuários (contas), salas, compartilhamentos (listas, filtros, detalhes, ações em massa, desfazer, exportação). Convites de sala. | 6 | 3, 4 | Volume de telas. |
 | **6. Ao vivo** | Salas ativas e participantes (polling), remover e encerrar com confirmação e audit. | 2 | 2, 4 | Limites da API do LiveKit. |
 | **7. Dashboard** | Cards, gráficos, período na URL, comparação, atividade recente, `EXPLAIN` revisado. | 3 | 4 | Consultas lentas com volume: _rollup_ fica para a Fase 9 se preciso. |
 | **8. Admins, configurações e LGPD** | Gestão de admins e matriz de papéis. Configurações do app e da conta. Pedidos LGPD (export e anonimização). Jobs de retenção. | 4 | 2, 4 | Texto jurídico (fora do escopo técnico). |
 | **9. Operação e endurecimento** | Backups no S3 + primeiro teste de restore documentado. Tuning do `postgresql.conf`. `pg_stat_statements` + tela de saúde. Alertas. RUNBOOK. Revisão de segurança (checklist §7.1). Teste de carga com 300 mil linhas. | 5 | todas | Limites da VPS. |
-| **Total** | | **~42** | | |
+| **Total** | | **~47** | | |
 | _Extra (opcional)_ | Papéis customizáveis pela UI. WAL archiving (RPO 5 min). _Rollup_ `metrics_daily`. Migrar para Drizzle 1.0 quando sair do RC. | 3–6 cada | | |
 
 ---
@@ -1010,13 +1044,13 @@ Estimativas em dias úteis para 1 pessoa em tempo integral, já incluindo testes
 
 Não encontrei nada que bloqueie a Fase 0. Assumi as premissas abaixo; confirme ou corrija ao aprovar.
 
-**Perguntas (respostas mudam partes do plano):**
+**Respostas da aprovação (06/10/2026):**
 
-1. **Usuários finais terão conta (e-mail/login) no futuro?** Premissa: **não**. Identificação por ID anônimo do navegador (`client_id`). Se sim, `end_users` ganha e-mail e autenticação própria, e a LGPD fica mais pesada.
-2. **Há serviço de e-mail (SMTP, Resend, SES)?** Premissa: SMTP genérico via variáveis. Sem ele, convites e reset mostram um **link para copiar** na tela do owner, e a recuperação de senha fica restrita ao owner (via servidor).
-3. **Cor de fundo:** o pedido cita `#0A0A0B`, mas o app atual usa `#17181A` e já tem tema claro. Premissa: o admin usa **os mesmos tokens do app** (consistência), e trocar o fundo para `#0A0A0B` vale para os dois juntos, numa mudança à parte.
-4. **Domínio do admin:** premissa: mesmo domínio, em `/admin`. Alternativa: subdomínio `admin.` com restrição por IP no Traefik (mais isolado, um pouco mais de configuração).
-5. **Erros no Sentry SaaS (dados fora do Brasil, sem PII) é aceitável?** Premissa: sim. Senão, GlitchTip na VPS (+~1 GB de RAM).
+1. Participantes **têm conta** com e-mail e senha (§5.4).
+2. E-mail: SMTP genérico via variáveis; link no log em desenvolvimento; obrigatório em produção.
+3. Cores: o admin usa os mesmos tokens do app; mudar o fundo vale para os dois numa mudança à parte.
+4. Domínio: `/admin` no mesmo domínio.
+5. Erros: Sentry SaaS sem PII (desligado enquanto `SENTRY_DSN` não estiver definido).
 
 **Premissas assumidas:**
 
@@ -1027,5 +1061,6 @@ Não encontrei nada que bloqueie a Fase 0. Assumi as premissas abaixo; confirme 
 - Painel só em pt-BR, sem i18n.
 - Sem moeda no domínio atual. Utilitário `formatBRL` previsto para quando houver.
 - O trabalho já feito (Drizzle, `app_settings`, saturação do mascote, `/admin` com senha única) é reaproveitado e migrado na Fase 0/1, não descartado.
+- Quem usa o app hoje (sem conta) precisará criar uma conta a partir da Fase 1b. Não há dados antigos de participantes para migrar.
 - Drizzle fica em 0.45 até o 1.0 sair do RC. A conversão será uma tarefa separada.
 - `cmdk` (sem release desde 08/2025) é aceitável por ser estável e usado pelo shadcn. Se virar problema, o command palette é trocado sem afetar o resto.
