@@ -114,11 +114,16 @@ function CreateInviteDialog({
             onSubmit={(event) => {
               event.preventDefault();
               const data = new FormData(event.currentTarget);
-              const uses = String(data.get("uses") ?? "").trim();
-              const validity = String(data.get("validity") ?? "");
+              // Campos de texto: um File aqui só viria de um formulário adulterado.
+              const field = (name: string) => {
+                const value = data.get(name);
+                return typeof value === "string" ? value : "";
+              };
+              const uses = field("uses").trim();
+              const validity = field("validity");
               create.execute({
                 roomId,
-                label: String(data.get("label") ?? ""),
+                label: field("label"),
                 maxUses: uses ? Number(uses) : null,
                 validityHours: validity ? Number(validity) : null,
               });
