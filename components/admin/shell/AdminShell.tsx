@@ -3,6 +3,7 @@
 import { ChevronsUpDown, LogOut, Search, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Fragment, useState, type ReactNode } from "react";
 import { NavBrand } from "@/components/NavBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -220,7 +221,7 @@ export function AdminShell({
           </span>
         </header>
         <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
-          {children}
+          <NuqsAdapter>{children}</NuqsAdapter>
         </main>
       </SidebarInset>
       <CommandPalette

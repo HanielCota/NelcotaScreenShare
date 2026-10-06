@@ -1,3 +1,5 @@
+import { TZDate } from "@date-fns/tz";
+
 /** Formatação pt-BR, sempre no fuso de São Paulo (docs/PLANO-ADMIN.md §6). */
 export const TIME_ZONE = "America/Sao_Paulo";
 
@@ -28,4 +30,22 @@ export function formatRelative(value: Date | string | number, now = Date.now()):
   if (abs < 2_592_000) return relative.format(Math.round(seconds / 86_400), "day");
   if (abs < 31_536_000) return relative.format(Math.round(seconds / 2_592_000), "month");
   return relative.format(Math.round(seconds / 31_536_000), "year");
+}
+
+/** "2026-10-06" → início do dia em São Paulo (como Date em UTC). */
+export function startOfDayInSaoPaulo(day: string): Date | undefined {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
+  if (!match) return undefined;
+  const [, y, m, d] = match.map(Number);
+  if (!y || !m || !d) return undefined;
+  return new Date(new TZDate(y, m - 1, d, 0, 0, 0, TIME_ZONE).getTime());
+}
+
+/** Fim do dia em São Paulo (início do dia seguinte), para filtros "até". */
+export function endOfDayInSaoPaulo(day: string): Date | undefined {
+  const start = startOfDayInSaoPaulo(day);
+  if (!start) return undefined;
+  const [y, m, d] = day.split("-").map(Number);
+  if (!y || !m || !d) return undefined;
+  return new Date(new TZDate(y, m - 1, d + 1, 0, 0, 0, TIME_ZONE).getTime());
 }

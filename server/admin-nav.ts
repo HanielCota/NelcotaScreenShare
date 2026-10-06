@@ -33,6 +33,18 @@ const NAV: { label: string; items: NavItemDefinition[] }[] = [
     items: [{ href: "/admin", label: "Início", icon: "home", permission: { dashboard: ["read"] } }],
   },
   {
+    label: "Governança",
+    items: [
+      {
+        href: "/admin/auditoria",
+        label: "Auditoria",
+        icon: "audit",
+        permission: { audit: ["read"] },
+        keywords: ["log", "histórico", "quem fez"],
+      },
+    ],
+  },
+  {
     label: "Sistema",
     items: [
       {
