@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { parseRoomInput } from "@/lib/room-input";
+import { parseRoomInput } from "@/features/room/domain/room-input";
 
 const INVITE = "a".repeat(43);
 

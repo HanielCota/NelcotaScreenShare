@@ -18,7 +18,7 @@ import {
   upsetMascot,
 } from "@/components/mascot/events";
 import { generateRoomCode, roomLink, roomPath } from "@/lib/livekit";
-import { parseRoomInput, type RoomInput } from "@/lib/room-input";
+import { parseRoomInput, type RoomInput } from "@/features/room/domain/room-input";
 import { cn } from "@/lib/utils";
 
 interface SmartBarProps {

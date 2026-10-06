@@ -1,4 +1,4 @@
-import { HomeScene } from "@/components/home/HomeScene";
+import { HomeScene } from "@/features/home/ui/HomeScene";
 import { getUserSession } from "@/features/auth/server/participant-session";
 import { getDb } from "@/server/db";
 import { recentRoomsFor } from "@/server/rooms/recent";

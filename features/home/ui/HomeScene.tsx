@@ -1,27 +1,17 @@
-"use client";
-
 import { Keyboard, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useRef, useTransition } from "react";
 import { HowItWorks } from "@/components/HowItWorks";
-import { MascotPair } from "@/components/home/MascotPair";
-import {
-  NavBar,
-  NavBrand,
-  NavDivider,
-  navItemClass,
-  NavPopover,
-  ShortcutsPanel,
-} from "@/components/NavBar";
+import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
+import { navItemClass } from "@/components/nav-item-class";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import type { RecentRoom } from "@/lib/recent-room";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
+import { HomeEntrance } from "./HomeEntrance";
+import { HomeStart } from "./HomeStart";
 import { RecentRooms } from "./RecentRooms";
-import { SmartBar } from "./SmartBar";
 
+/** Página inicial (Server Component); só a barra de entrada e a animação rodam no navegador. */
 export function HomeScene({
   invalidCode,
   account,
@@ -35,41 +25,8 @@ export function HomeScene({
   /** Salas em que a pessoa já esteve (vazio sem conta). */
   recentRooms: RecentRoom[];
 }) {
-  const scope = useRef<HTMLElement>(null);
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-
-      mm.add(MOTION_QUERIES.motion, () => {
-        gsap.from("[data-anim]", {
-          y: 24,
-          opacity: 0,
-          duration: 0.9,
-          stagger: 0.09,
-          ease: "expo.out",
-        });
-      });
-
-      mm.add(MOTION_QUERIES.reduced, () => {
-        gsap.from("[data-anim]", { opacity: 0, duration: 0.3 });
-      });
-    },
-    { scope },
-  );
-
-  // Mantém o conteúdo visível enquanto a rota carrega. O pending termina também ao voltar.
-  function navigate(href: string) {
-    startTransition(() => router.push(href));
-  }
-
   return (
-    <main
-      ref={scope}
-      className="apple-buttons flex min-h-dvh flex-col items-center px-4 pt-28 pb-8 sm:px-8"
-    >
+    <HomeEntrance className="apple-buttons flex min-h-dvh flex-col items-center px-4 pt-28 pb-8 sm:px-8">
       <header data-anim="nav" className="fixed inset-x-0 top-0 z-30 px-4 pt-4 sm:px-6">
         <NavBar aria-label="Principal" className="mx-auto max-w-5xl">
           <NavBrand href="/" />
@@ -125,12 +82,7 @@ export function HomeScene({
         </h1>
 
         <div data-anim="card" className="mt-8 w-full will-change-transform sm:mt-10">
-          <SmartBar
-            invalidCode={invalidCode}
-            pending={pending}
-            onNavigate={navigate}
-            mascot={<MascotPair pending={pending} />}
-          />
+          <HomeStart invalidCode={invalidCode} />
         </div>
 
         <div data-anim="recent" className="mt-10 w-full">
@@ -150,6 +102,6 @@ export function HomeScene({
           <span className="text-ink-subtle">© Nelcota</span>
         </nav>
       </footer>
-    </main>
+    </HomeEntrance>
   );
 }
