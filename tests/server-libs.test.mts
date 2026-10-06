@@ -1,0 +1,68 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import "./support/register.mts";
+
+const { createRateLimiter, getClientIp } = await import("../lib/rate-limit");
+const { buildCsp } = await import("../lib/csp");
+const { generateRoomCode, roomCodeSchema, roomPath } = await import("../lib/livekit");
+
+await test("rate limit: conta, bloqueia e libera quando a janela vira", () => {
+  let now = 1_000;
+  const limiter = createRateLimiter({ limit: 2, windowMs: 10_000, now: () => now });
+
+  assert.equal(limiter.peek("a").ok, true);
+  assert.equal(limiter.hit("a").ok, true);
+  assert.equal(limiter.hit("a").ok, true);
+  assert.equal(limiter.peek("a").ok, false);
+  const blocked = limiter.hit("a");
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.retryAfterSeconds, 10);
+  assert.equal(limiter.hit("b").ok, true, "chaves são independentes");
+
+  now += 10_000;
+  assert.equal(limiter.hit("a").ok, true, "janela nova");
+
+  limiter.hit("a");
+  limiter.reset("a");
+  assert.equal(limiter.peek("a").ok, true);
+});
+
+await test("IP do cliente respeita o número de proxies confiáveis", () => {
+  const headers = new Headers({ "x-forwarded-for": "6.6.6.6, 203.0.113.9, 172.70.1.1" });
+  assert.equal(getClientIp(headers), "172.70.1.1");
+  assert.equal(getClientIp(headers, 2), "203.0.113.9");
+  assert.equal(getClientIp(headers, 5), "6.6.6.6", "nunca passa do começo da lista");
+  assert.equal(getClientIp(new Headers({ "x-real-ip": " 198.51.100.7 " })), "198.51.100.7");
+  assert.equal(getClientIp(new Headers()), "unknown");
+});
+
+await test("CSP libera só o próprio app e o LiveKit", () => {
+  const prod = buildCsp({ livekitUrl: "wss://lk.exemplo.com", dev: false });
+  assert.match(prod, /connect-src 'self' wss:\/\/lk\.exemplo\.com https:\/\/lk\.exemplo\.com;/);
+  assert.match(prod, /frame-ancestors 'none'/);
+  assert.match(prod, /object-src 'none'/);
+  assert.match(prod, /upgrade-insecure-requests$/);
+  assert.doesNotMatch(prod, /unsafe-eval/);
+
+  const dev = buildCsp({ livekitUrl: "ws://localhost:7880", dev: true });
+  assert.match(dev, /connect-src 'self' ws:\/\/localhost:7880 http:\/\/localhost:7880;/);
+  assert.match(dev, /'unsafe-eval'/);
+  assert.doesNotMatch(dev, /upgrade-insecure-requests/, "quebraria o ws:// local");
+});
+
+await test("código de sala: normaliza e recusa formatos inválidos", () => {
+  assert.equal(roomCodeSchema.parse("  ABC-Defg-H1J "), "abc-defg-h1j");
+  for (const bad of ["a", "-abc", "abc-", "ab c", "sala_1", "á-bc", "a".repeat(33)]) {
+    assert.equal(roomCodeSchema.safeParse(bad).success, false, bad);
+  }
+  assert.equal(roomPath("abc-defg-hij"), "/sala/abc-defg-hij");
+});
+
+await test("códigos gerados são válidos e evitam caracteres ambíguos", () => {
+  for (let i = 0; i < 500; i++) {
+    const code = generateRoomCode();
+    assert.match(code, /^[a-z2-9]{3}-[a-z2-9]{4}-[a-z2-9]{3}$/);
+    assert.doesNotMatch(code, /[l01]/);
+    assert.equal(roomCodeSchema.parse(code), code);
+  }
+});

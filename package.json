@@ -11,7 +11,7 @@
     "lint:fix": "oxlint --type-aware --fix",
     "format": "oxfmt .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.mts"
+    "test": "node --conditions=react-server --test tests/*.test.mts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

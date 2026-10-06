@@ -1,5 +1,11 @@
 import { timingSafeEqual, createHash, randomUUID } from "node:crypto";
-import { AccessToken, RoomConfiguration, RoomServiceClient, ServerError } from "livekit-server-sdk";
+import {
+  AccessToken,
+  RoomConfiguration,
+  RoomServiceClient,
+  ServerError,
+  TrackSource,
+} from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
 import { getEnv } from "@/lib/env";
 import { tokenRequestSchema, type TokenErrorCode, type TokenResponse } from "@/lib/livekit";
@@ -7,6 +13,15 @@ import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 
 const TOKEN_TTL = "10m";
 const rateLimit = createRateLimiter({ limit: 20, windowMs: 60_000 });
+// Senha errada: poucas chances por IP, com janela longa, contra força bruta.
+const passwordFailures = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
+
+/** O app só usa microfone e tela: o token não deixa publicar câmera. */
+const PUBLISH_SOURCES = [
+  TrackSource.MICROPHONE,
+  TrackSource.SCREEN_SHARE,
+  TrackSource.SCREEN_SHARE_AUDIO,
+];
 
 function errorResponse(
   error: TokenErrorCode,
@@ -47,16 +62,20 @@ async function countParticipants(room: string): Promise<number> {
   }
 }
 
+function tooManyAttempts(
+  retryAfterSeconds: number,
+  message = "Muitas tentativas. Aguarde um pouco e tente de novo.",
+) {
+  return errorResponse("rate_limited", message, 429, {
+    "Retry-After": String(retryAfterSeconds),
+  });
+}
+
 export async function POST(request: NextRequest) {
-  const limit = rateLimit(getClientIp(request.headers));
-  if (!limit.ok) {
-    return errorResponse(
-      "rate_limited",
-      "Muitas tentativas. Aguarde um pouco e tente de novo.",
-      429,
-      { "Retry-After": String(limit.retryAfterSeconds) },
-    );
-  }
+  const env = getEnv();
+  const ip = getClientIp(request.headers, env.TRUSTED_PROXY_HOPS);
+  const limit = rateLimit.hit(ip);
+  if (!limit.ok) return tooManyAttempts(limit.retryAfterSeconds);
 
   let body: unknown;
   try {
@@ -83,15 +102,26 @@ export async function POST(request: NextRequest) {
     return errorResponse("invalid_request", message, 400);
   }
 
-  const env = getEnv();
   const { room, name, password } = parsed.data;
 
-  if (env.ACCESS_PASSWORD && !safeEqual(password ?? "", env.ACCESS_PASSWORD)) {
-    return errorResponse(
-      "invalid_password",
-      "Essa senha não confere. Confira a senha com quem enviou o convite e tente novamente.",
-      401,
-    );
+  if (env.ACCESS_PASSWORD) {
+    const failures = passwordFailures.peek(ip);
+    if (!failures.ok) {
+      return tooManyAttempts(
+        failures.retryAfterSeconds,
+        "Muitas tentativas com a senha errada. Aguarde alguns minutos e tente de novo.",
+      );
+    }
+    if (safeEqual(password ?? "", env.ACCESS_PASSWORD)) {
+      passwordFailures.reset(ip);
+    } else {
+      passwordFailures.hit(ip);
+      return errorResponse(
+        "invalid_password",
+        "Essa senha não confere. Confira a senha com quem enviou o convite e tente novamente.",
+        401,
+      );
+    }
   }
 
   try {
@@ -112,8 +142,12 @@ export async function POST(request: NextRequest) {
       room,
       roomJoin: true,
       canPublish: true,
+      canPublishSources: PUBLISH_SOURCES,
       canSubscribe: true,
+      // Chat, reações e apontador usam o canal de dados.
       canPublishData: true,
+      // "Levantar a mão" fica nos atributos do participante.
+      canUpdateOwnMetadata: true,
     });
     // Rede de segurança: o próprio LiveKit recusa entradas acima do limite.
     token.roomConfig = new RoomConfiguration({ maxParticipants: env.MAX_PARTICIPANTS });

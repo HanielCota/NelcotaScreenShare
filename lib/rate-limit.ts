@@ -5,50 +5,92 @@ interface Bucket {
   resetAt: number;
 }
 
-interface RateLimitResult {
+export interface RateLimitResult {
   ok: boolean;
   retryAfterSeconds: number;
+}
+
+export interface RateLimiter {
+  /** Conta uma tentativa e diz se ela ainda cabe no limite. */
+  hit(key: string): RateLimitResult;
+  /** Diz se mais uma tentativa caberia, sem contar nada. */
+  peek(key: string): RateLimitResult;
+  /** Esquece a chave (ex.: senha certa zera as tentativas erradas). */
+  reset(key: string): void;
 }
 
 /**
  * Rate limit de janela fixa, em memória. Suficiente para uma única instância
  * (o caso deste app no Coolify). Para várias réplicas, troque por Redis.
  */
-export function createRateLimiter({ limit, windowMs }: { limit: number; windowMs: number }) {
+export function createRateLimiter({
+  limit,
+  windowMs,
+  now = Date.now,
+}: {
+  limit: number;
+  windowMs: number;
+  now?: () => number;
+}): RateLimiter {
   const buckets = new Map<string, Bucket>();
 
   const sweep = setInterval(() => {
-    const now = Date.now();
+    const time = now();
     for (const [key, bucket] of buckets) {
-      if (bucket.resetAt <= now) buckets.delete(key);
+      if (bucket.resetAt <= time) buckets.delete(key);
     }
   }, windowMs);
   sweep.unref();
 
-  return function check(key: string): RateLimitResult {
-    const now = Date.now();
+  function current(key: string, time: number): Bucket | undefined {
     const bucket = buckets.get(key);
+    return bucket && bucket.resetAt > time ? bucket : undefined;
+  }
 
-    if (!bucket || bucket.resetAt <= now) {
-      buckets.set(key, { count: 1, resetAt: now + windowMs });
-      return { ok: true, retryAfterSeconds: 0 };
-    }
-
-    bucket.count += 1;
-    return {
-      ok: bucket.count <= limit,
-      retryAfterSeconds: Math.ceil((bucket.resetAt - now) / 1000),
-    };
+  return {
+    hit(key) {
+      const time = now();
+      const bucket = current(key, time);
+      if (!bucket) {
+        buckets.set(key, { count: 1, resetAt: time + windowMs });
+        return { ok: limit >= 1, retryAfterSeconds: 0 };
+      }
+      bucket.count += 1;
+      return {
+        ok: bucket.count <= limit,
+        retryAfterSeconds: Math.ceil((bucket.resetAt - time) / 1000),
+      };
+    },
+    peek(key) {
+      const time = now();
+      const bucket = current(key, time);
+      if (!bucket) return { ok: true, retryAfterSeconds: 0 };
+      return {
+        ok: bucket.count < limit,
+        retryAfterSeconds: Math.ceil((bucket.resetAt - time) / 1000),
+      };
+    },
+    reset(key) {
+      buckets.delete(key);
+    },
   };
 }
 
 /**
- * IP do cliente atrás do proxy do Coolify (Traefik). O primeiro valor do
- * X-Forwarded-For vem do próprio cliente e pode ser forjado; o último foi
- * acrescentado pelo proxy e é o único confiável.
+ * IP do cliente atrás de proxies confiáveis. Cada proxy acrescenta ao fim do
+ * X-Forwarded-For o IP de quem falou com ele; os valores à esquerda vêm do
+ * cliente e podem ser forjados. Com `trustedHops` proxies na frente do app
+ * (Traefik = 1; Cloudflare + Traefik = 2), o IP real é o `trustedHops`-ésimo
+ * a partir do fim.
  */
-export function getClientIp(headers: Headers): string {
-  const lastHop = headers.get("x-forwarded-for")?.split(",").at(-1)?.trim();
-  if (lastHop) return lastHop;
-  return headers.get("x-real-ip")?.trim() ?? "unknown";
+export function getClientIp(headers: Headers, trustedHops = 1): string {
+  const hops =
+    headers
+      .get("x-forwarded-for")
+      ?.split(",")
+      .map((ip) => ip.trim())
+      .filter(Boolean) ?? [];
+  const ip = hops.at(Math.max(0, hops.length - trustedHops));
+  if (ip) return ip;
+  return headers.get("x-real-ip")?.trim() || "unknown";
 }

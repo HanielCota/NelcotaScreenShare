@@ -13,10 +13,19 @@ const envSchema = z.object({
     protocol: /^wss?$/,
     error: "NEXT_PUBLIC_LIVEKIT_URL precisa ser uma URL ws:// ou wss://",
   }),
-  ACCESS_PASSWORD: z.preprocess(emptyToUndefined, z.string().min(4).optional()),
+  ACCESS_PASSWORD: z.preprocess(
+    emptyToUndefined,
+    z.string().min(8, "ACCESS_PASSWORD precisa ter ao menos 8 caracteres").optional(),
+  ),
   MAX_PARTICIPANTS: z.preprocess(
     emptyToUndefined,
     z.coerce.number().int().min(2).max(8).default(6),
+  ),
+  // Quantos proxies confiáveis acrescentam IPs ao X-Forwarded-For (Traefik = 1;
+  // Cloudflare na frente do Traefik = 2). Define qual IP o rate limit usa.
+  TRUSTED_PROXY_HOPS: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(1).max(5).default(1),
   ),
 });
 
