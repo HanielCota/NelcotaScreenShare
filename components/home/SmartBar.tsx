@@ -20,21 +20,14 @@ interface SmartBarProps {
   mascot?: ReactNode;
 }
 
-function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "error" } {
+/**
+ * Dica abaixo da barra: só quando ajuda (sala reconhecida ou algo errado).
+ * Vazia, a barra e o botão já dizem o que fazer.
+ */
+function hintFor(input: RoomInput): { text: ReactNode; tone: "none" | "ok" | "error" } {
   switch (input.kind) {
     case "empty":
-      return {
-        text: (
-          <>
-            <span className="max-sm:hidden">
-              Aperte <kbd className="font-sans font-semibold text-ink-muted">Enter</kbd> para criar
-              uma sala nova. Recebeu um link? Cole aqui.
-            </span>
-            <span className="sm:hidden">Toque em Criar sala ou cole o link que recebeu.</span>
-          </>
-        ),
-        tone: "muted",
-      };
+      return { text: null, tone: "none" };
     case "room":
       return {
         text: (
@@ -180,7 +173,6 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
         aria-live="polite"
         className={cn(
           "min-h-5 px-4 text-center text-sm",
-          hint.tone === "muted" && "text-ink-subtle",
           hint.tone === "ok" && "text-ink",
           hint.tone === "error" && "text-danger",
         )}
