@@ -22,6 +22,15 @@ const envSchema = z
       emptyToUndefined,
       z.coerce.number().int().min(2).max(8).default(6),
     ),
+    // Confirmação de e-mail dos participantes. Desligada por enquanto: a conta
+    // entra na hora, sem o link. "true" volta a exigir o link para entrar em salas.
+    REQUIRE_EMAIL_VERIFICATION: z.preprocess(
+      emptyToUndefined,
+      z
+        .enum(["true", "false"])
+        .default("false")
+        .transform((value) => value === "true"),
+    ),
     // Quantos proxies confiáveis acrescentam IPs ao X-Forwarded-For (Traefik = 1;
     // Cloudflare na frente do Traefik = 2). Define qual IP o rate limit usa.
     TRUSTED_PROXY_HOPS: z.preprocess(

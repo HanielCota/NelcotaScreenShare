@@ -68,7 +68,16 @@ function PasswordGuide({
   );
 }
 
-export function SignUpForm({ returnTo, context }: { returnTo: string; context: AccessContext }) {
+export function SignUpForm({
+  returnTo,
+  context,
+  verificationRequired,
+}: {
+  returnTo: string;
+  context: AccessContext;
+  /** Com a confirmação desligada, o cadastro já entra na conta. */
+  verificationRequired: boolean;
+}) {
   const router = useRouter();
   const ids = { name: useId(), email: useId(), password: useId(), guide: useId(), error: useId() };
   const nameRef = useRef<HTMLInputElement>(null);
@@ -110,8 +119,10 @@ export function SignUpForm({ returnTo, context }: { returnTo: string; context: A
       password,
       callbackURL: returnTo,
     });
-    // E-mail já cadastrado responde igual (o dono do e-mail é avisado por e-mail).
-    if (failure && failure.status !== 422 && failure.code !== "USER_ALREADY_EXISTS") {
+    // Com confirmação, e-mail já cadastrado responde igual (o dono é avisado por e-mail).
+    const genericDuplicate =
+      verificationRequired && (failure?.status === 422 || failure?.code === "USER_ALREADY_EXISTS");
+    if (failure && !genericDuplicate) {
       setPending(false);
       setError(authErrorMessage(failure));
       upsetMascot(failure.status && failure.status < 500 ? "grumpy" : "worried");
@@ -119,7 +130,13 @@ export function SignUpForm({ returnTo, context }: { returnTo: string; context: A
     }
     forgetTypedEmail();
     celebrateMascot();
-    router.replace(`/verificar-email?email=${encodeURIComponent(email)}&voltar=${back}`);
+    if (verificationRequired) {
+      router.replace(`/verificar-email?email=${encodeURIComponent(email)}&voltar=${back}`);
+      return;
+    }
+    // Sem confirmação, o Better Auth já abriu a sessão: segue para onde a pessoa ia.
+    router.replace(returnTo);
+    router.refresh();
   }
 
   return (
@@ -128,7 +145,9 @@ export function SignUpForm({ returnTo, context }: { returnTo: string; context: A
       title="Crie sua conta"
       description={
         context.kind === "room"
-          ? "Depois de confirmar o e-mail, você entra direto na sala."
+          ? verificationRequired
+            ? "Depois de confirmar o e-mail, você entra direto na sala."
+            : "Assim que criar a conta, você entra direto na sala."
           : "Para criar salas, entrar nas salas do time e compartilhar a tela."
       }
       top={<AccessTabs current="cadastro" returnTo={returnTo} />}

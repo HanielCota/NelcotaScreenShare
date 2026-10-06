@@ -31,6 +31,7 @@ function deliver(to: string, subject: string, content: ReturnType<typeof mailLay
 
 function createUserAuth(db: Database, secret: string) {
   const production = process.env.NODE_ENV === "production";
+  const verificationRequired = getEnv().REQUIRE_EMAIL_VERIFICATION;
 
   return betterAuth({
     appName: "Nelcota",
@@ -77,7 +78,8 @@ function createUserAuth(db: Database, secret: string) {
     },
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: true,
+      // Desligada por enquanto (REQUIRE_EMAIL_VERIFICATION): o cadastro já entra.
+      requireEmailVerification: verificationRequired,
       minPasswordLength: PASSWORD_LIMITS.user.min,
       maxPasswordLength: PASSWORD_LIMITS.user.max,
       password: { hash: hashPassword, verify: verifyPassword },
@@ -111,8 +113,9 @@ function createUserAuth(db: Database, secret: string) {
       },
     },
     emailVerification: {
-      sendOnSignUp: true,
-      sendOnSignIn: true,
+      // Com a confirmação desligada, o link só sai quando a pessoa pede (em /conta).
+      sendOnSignUp: verificationRequired,
+      sendOnSignIn: verificationRequired,
       autoSignInAfterVerification: true,
       expiresIn: 24 * 60 * 60,
       sendVerificationEmail: async ({ user, url }) => {

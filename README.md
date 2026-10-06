@@ -135,21 +135,22 @@ Os atalhos não disparam enquanto você digita no chat ou em outro campo.
 
 ## Variáveis de ambiente
 
-| Variável                  | Obrigatória | Descrição                                                                    |
-| ------------------------- | ----------- | ---------------------------------------------------------------------------- |
-| `LIVEKIT_API_KEY`         | sim         | Chave da API do LiveKit (mesma do servidor LiveKit)                          |
-| `LIVEKIT_API_SECRET`      | sim         | Segredo (32+ caracteres). **Nunca** vai para o navegador                     |
-| `NEXT_PUBLIC_LIVEKIT_URL` | sim         | `wss://lk.seudominio.com`                                                    |
-| `ACCESS_PASSWORD`         | não         | Se definida, todos precisam dela para entrar (comparação em tempo constante) |
-| `MAX_PARTICIPANTS`        | não         | Limite por sala, de 2 a 8 (padrão 6)                                         |
-| `DATABASE_URL`            | sim         | Postgres (`postgres://…`), papel `nelcota_app`                               |
-| `AUTH_SECRET`             | sim         | Segredo das contas de participantes (32+ caracteres)                         |
-| `ADMIN_AUTH_SECRET`       | não         | Liga o `/admin` (32+ caracteres, `openssl rand -base64 48`). Exige banco     |
-| `APP_URL`                 | produção    | Origem pública do app (links de e-mail; obrigatória com o painel ligado)     |
-| `SMTP_URL` / `MAIL_FROM`  | produção    | E-mail transacional (convites, senha). Em dev, sem SMTP, o e-mail vai ao log |
-| `SENTRY_DSN`              | não         | Liga o Sentry no servidor (sem dados pessoais)                               |
-| `LOG_LEVEL`               | não         | Nível do log (padrão `info` em produção, `debug` em dev)                     |
-| `APP_VERSION`             | não         | Definida pela imagem (SHA do commit); aparece no `/api/ready` e no Sentry    |
+| Variável                     | Obrigatória | Descrição                                                                                         |
+| ---------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| `LIVEKIT_API_KEY`            | sim         | Chave da API do LiveKit (mesma do servidor LiveKit)                                               |
+| `LIVEKIT_API_SECRET`         | sim         | Segredo (32+ caracteres). **Nunca** vai para o navegador                                          |
+| `NEXT_PUBLIC_LIVEKIT_URL`    | sim         | `wss://lk.seudominio.com`                                                                         |
+| `ACCESS_PASSWORD`            | não         | Se definida, todos precisam dela para entrar (comparação em tempo constante)                      |
+| `MAX_PARTICIPANTS`           | não         | Limite por sala, de 2 a 8 (padrão 6)                                                              |
+| `REQUIRE_EMAIL_VERIFICATION` | não         | `true` exige confirmar o e-mail antes de entrar em salas (padrão `false`, desligado por enquanto) |
+| `DATABASE_URL`               | sim         | Postgres (`postgres://…`), papel `nelcota_app`                                                    |
+| `AUTH_SECRET`                | sim         | Segredo das contas de participantes (32+ caracteres)                                              |
+| `ADMIN_AUTH_SECRET`          | não         | Liga o `/admin` (32+ caracteres, `openssl rand -base64 48`). Exige banco                          |
+| `APP_URL`                    | produção    | Origem pública do app (links de e-mail; obrigatória com o painel ligado)                          |
+| `SMTP_URL` / `MAIL_FROM`     | produção    | E-mail transacional (convites, senha). Em dev, sem SMTP, o e-mail vai ao log                      |
+| `SENTRY_DSN`                 | não         | Liga o Sentry no servidor (sem dados pessoais)                                                    |
+| `LOG_LEVEL`                  | não         | Nível do log (padrão `info` em produção, `debug` em dev)                                          |
+| `APP_VERSION`                | não         | Definida pela imagem (SHA do commit); aparece no `/api/ready` e no Sentry                         |
 
 Tudo é validado com Zod em `server/env.ts`. Se faltar algo, o container sai com código 1 no boot e lista o problema nos logs.
 

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getDb } from "@/server/db";
 import { users } from "@/server/db/schema";
+import { getEnv } from "@/server/env";
 import { getUserAuth } from "./user";
 
 export interface UserSession {
@@ -58,14 +59,17 @@ export const getUserSession = cache(async (): Promise<UserSession | null> => {
   };
 });
 
-/** Exige login (e, por padrão, e-mail verificado); senão manda para /entrar e volta depois. */
+/**
+ * Exige login (e e-mail verificado, quando REQUIRE_EMAIL_VERIFICATION está
+ * ligada); senão manda para /entrar ou /verificar-email e volta depois.
+ */
 export async function requireUser(
   returnTo: string,
   { requireVerified = true }: { requireVerified?: boolean } = {},
 ): Promise<UserSession> {
   const current = await getUserSession();
   if (!current) redirect(`/entrar?voltar=${encodeURIComponent(safeReturnPath(returnTo))}`);
-  if (requireVerified && !current.user.emailVerified) {
+  if (requireVerified && getEnv().REQUIRE_EMAIL_VERIFICATION && !current.user.emailVerified) {
     redirect(`/verificar-email?voltar=${encodeURIComponent(safeReturnPath(returnTo))}`);
   }
   return current;

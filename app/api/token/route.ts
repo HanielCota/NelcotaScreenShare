@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       403,
     );
   }
-  if (!user.emailVerified) {
+  if (env.REQUIRE_EMAIL_VERIFICATION && !user.emailVerified) {
     await log("unverified");
     return errorResponse(
       "email_unverified",

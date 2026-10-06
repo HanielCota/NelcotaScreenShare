@@ -17,6 +17,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { requireUser, safeReturnPath } from "@/server/auth/user-session";
 import { getDb } from "@/server/db";
 import { userSessions } from "@/server/db/schema";
+import { getEnv } from "@/server/env";
 
 export const metadata: Metadata = { title: "Minha conta" };
 
@@ -77,7 +78,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
         {notice ? (
           <output className="block rounded-xl bg-surface-2 px-4 py-3 text-sm">{notice}</output>
         ) : null}
-        {current.user.emailVerified ? null : (
+        {current.user.emailVerified || !getEnv().REQUIRE_EMAIL_VERIFICATION ? null : (
           <p className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm">
             Seu e-mail ainda não foi confirmado: confirme para entrar em salas.{" "}
             <Link href="/verificar-email" className="font-semibold underline">
