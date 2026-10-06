@@ -13,7 +13,9 @@ import { clientIpFrom } from "@/server/client-ip";
 import { getEnv } from "@/server/env";
 import { requestLogger } from "@/server/request-log";
 import { tokenRequestSchema, type TokenErrorCode, type TokenResponse } from "@/lib/livekit";
+import { getDb } from "@/server/db";
 import { recordTokenRequest, type TokenResult } from "@/server/livekit/token-log";
+import { redeemRoomInvite } from "@/server/rooms/invites";
 import { createRateLimiter } from "@/server/rate-limit";
 
 const TOKEN_TTL = "10m";
@@ -155,9 +157,10 @@ export async function POST(request: NextRequest) {
     return errorResponse("invalid_request", message, 400);
   }
 
-  const { room, password } = parsed.data;
+  const { room, password, invite } = parsed.data;
 
-  if (env.ACCESS_PASSWORD) {
+  // Convite do painel substitui a senha de acesso (é validado mais abaixo).
+  if (env.ACCESS_PASSWORD && invite === undefined) {
     const failures = passwordFailures.peek(ip);
     if (!failures.ok) {
       await log("rate_limited");
@@ -187,6 +190,22 @@ export async function POST(request: NextRequest) {
         `A sala está cheia (máximo de ${env.MAX_PARTICIPANTS} pessoas). Aguarde alguém sair e tente novamente.`,
         409,
       );
+    }
+
+    // Depois da lotação: sala cheia não gasta uso do convite.
+    if (invite !== undefined) {
+      const db = getDb();
+      if (
+        !db ||
+        !(await redeemRoomInvite(db, { token: invite, roomCode: room, userId: user.id }))
+      ) {
+        await log("invite_invalid");
+        return errorResponse(
+          "invite_invalid",
+          "Este convite expirou, foi revogado ou já atingiu o limite de pessoas. Peça um novo a quem convidou.",
+          403,
+        );
+      }
     }
 
     // Identidade = conta: a mesma pessoa em duas abas ocupa um só lugar na sala

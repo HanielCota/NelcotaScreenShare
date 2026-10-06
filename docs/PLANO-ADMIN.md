@@ -523,6 +523,8 @@ CREATE TABLE users (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX users_email_key ON users (lower(email));
+-- (Implementado) users.participations_count, mantido por trigger em room_participations,
+-- para ordenar a lista de participantes por participações sem COUNT por página.
 -- user_sessions, user_accounts, user_verifications, user_two_factors, user_rate_limits:
 -- mesma estrutura das tabelas admin_* acima, com FK para users(id) ON DELETE CASCADE.
 
@@ -575,7 +577,16 @@ CREATE TABLE room_invites (               -- convite com validade/limite (substi
   CHECK (max_uses IS NULL OR uses <= max_uses)
 );
 
-CREATE TYPE token_result AS ENUM ('granted','wrong_password','room_full','rate_limited','blocked','unverified','unauthenticated','invalid','error');
+-- (Implementado) quem usou cada convite: o limite conta PESSOAS, não entradas.
+CREATE TABLE room_invite_uses (
+  invite_id uuid NOT NULL REFERENCES room_invites(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (invite_id, user_id)
+);
+-- Convite válido (?convite= no link da sala) substitui a senha de acesso no /api/token.
+
+CREATE TYPE token_result AS ENUM ('granted','wrong_password','room_full','rate_limited','blocked','unverified','unauthenticated','invalid','invite_invalid','error');
 CREATE TABLE token_requests (             -- cada pedido ao /api/token (append-only)
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   room_code text NOT NULL,

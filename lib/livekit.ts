@@ -20,6 +20,8 @@ export const displayNameSchema = z
 export const tokenRequestSchema = z.object({
   room: roomCodeSchema,
   password: z.string().max(128).optional(),
+  /** Token de convite do painel (?convite= no link da sala). */
+  invite: z.string().max(64).optional(),
 });
 
 export type TokenRequest = z.infer<typeof tokenRequestSchema>;
@@ -39,6 +41,7 @@ export const tokenErrorSchema = z.object({
     "blocked",
     "cross_site",
     "invalid_password",
+    "invite_invalid",
     "room_full",
     "rate_limited",
     "server_error",
@@ -107,4 +110,9 @@ export async function requestToken(input: TokenRequest): Promise<TokenResult> {
 
 export function roomPath(code: string): string {
   return `/sala/${encodeURIComponent(code)}`;
+}
+
+/** Link da sala com o convite do painel (quando houver). */
+export function roomLink(code: string, invite?: string): string {
+  return invite ? `${roomPath(code)}?convite=${encodeURIComponent(invite)}` : roomPath(code);
 }

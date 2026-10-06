@@ -58,6 +58,8 @@ const SEGMENT_LABELS: Record<string, string> = {
   "sem-permissao": "Sem permissão",
 };
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function useBreadcrumbs(groups: NavGroup[]) {
   const pathname = usePathname();
   const labels = new Map(
@@ -68,7 +70,8 @@ function useBreadcrumbs(groups: NavGroup[]) {
     const href = `/${parts.slice(0, index + 1).join("/")}`;
     return {
       href,
-      label: labels.get(href) ?? SEGMENT_LABELS[part] ?? part,
+      // IDs na URL (páginas de detalhe) viram "Detalhes": o título da página diz qual é.
+      label: labels.get(href) ?? SEGMENT_LABELS[part] ?? (UUID.test(part) ? "Detalhes" : part),
       current: index === parts.length - 1,
     };
   });

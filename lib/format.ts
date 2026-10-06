@@ -49,3 +49,19 @@ export function endOfDayInSaoPaulo(day: string): Date | undefined {
   if (!y || !m || !d) return undefined;
   return new Date(new TZDate(y, m - 1, d + 1, 0, 0, 0, TIME_ZONE).getTime());
 }
+
+/** Duração curta em pt-BR: "45 s", "12 min", "1 h 05 min". */
+export function formatDuration(seconds: number): string {
+  const total = Math.max(0, Math.round(seconds));
+  if (total < 60) return `${total} s`;
+  const minutes = Math.floor(total / 60);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours} h ${String(minutes % 60).padStart(2, "0")} min`;
+}
+
+/** Duração entre duas datas; sem fim, "em andamento". */
+export function formatSpan(start: Date | string, end: Date | string | null): string {
+  if (!end) return "em andamento";
+  return formatDuration((new Date(end).getTime() - new Date(start).getTime()) / 1000);
+}

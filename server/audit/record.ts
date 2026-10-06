@@ -73,6 +73,29 @@ export async function recordAudit(executor: DbExecutor, actor: AuditActor, entry
   });
 }
 
+/** Várias linhas de uma vez (ações em massa: uma linha por item afetado). */
+export async function recordAuditMany(
+  executor: DbExecutor,
+  actor: AuditActor,
+  entries: AuditEntry[],
+) {
+  if (entries.length === 0) return;
+  const info = await requestInfo();
+  const rows = entries.map((entry) => ({
+    actorAdminId: typeof actor === "object" && "adminId" in actor ? actor.adminId : null,
+    actorUserId: typeof actor === "object" && "userId" in actor ? actor.userId : null,
+    action: entry.action,
+    resourceType: entry.resourceType,
+    resourceId: entry.resourceId ?? null,
+    changes: entry.changes ?? null,
+    metadata: entry.metadata ?? {},
+    ...info,
+  }));
+  for (let i = 0; i < rows.length; i += 1000) {
+    await executor.insert(auditLogs).values(rows.slice(i, i + 1000));
+  }
+}
+
 /**
  * Gravador amarrado a um autor, entregue às actions no `ctx`. Marca quando foi
  * usado: action declarada como auditada que termina sem registrar é um bug.
@@ -84,6 +107,10 @@ export function createAuditRecorder(actor: AuditActor) {
     async record(executor: DbExecutor, entry: AuditEntry, as?: AuditActor) {
       used += 1;
       await recordAudit(executor, as ?? actor, entry);
+    },
+    async recordMany(executor: DbExecutor, entries: AuditEntry[]) {
+      used += entries.length;
+      await recordAuditMany(executor, actor, entries);
     },
     get count() {
       return used;

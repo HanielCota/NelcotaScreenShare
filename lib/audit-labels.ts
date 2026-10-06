@@ -13,6 +13,21 @@ const ACTION_LABELS: Record<string, string> = {
   "settings.update": "Alterou configurações",
   "audit.export": "Exportou o audit log",
   "user.self_delete": "Excluiu a própria conta",
+  "user.block": "Bloqueou participante",
+  "user.unblock": "Desbloqueou participante",
+  "user.delete": "Excluiu participante",
+  "user.restore": "Restaurou participante",
+  "user.sessions_revoke": "Encerrou sessões do participante",
+  "user.verification_resend": "Reenviou confirmação de e-mail",
+  "user.anonymize": "Anonimizou participante (LGPD)",
+  "user.export": "Exportou participantes",
+  "room.update": "Alterou a nota da sala",
+  "room.delete": "Excluiu sala",
+  "room.restore": "Restaurou sala",
+  "room.export": "Exportou salas",
+  "share_session.export": "Exportou compartilhamentos",
+  "room_invite.create": "Criou convite de sala",
+  "room_invite.revoke": "Revogou convite de sala",
 };
 
 const RESOURCE_LABELS: Record<string, string> = {
@@ -22,6 +37,9 @@ const RESOURCE_LABELS: Record<string, string> = {
   app_settings: "Configuração",
   audit_logs: "Audit log",
   user: "Participante",
+  room: "Sala",
+  room_invite: "Convite de sala",
+  share_session: "Compartilhamento",
 };
 
 export function actionLabel(action: string): string {
@@ -31,3 +49,12 @@ export function actionLabel(action: string): string {
 export function resourceLabel(resourceType: string): string {
   return RESOURCE_LABELS[resourceType] ?? resourceType;
 }
+
+/** Motivo de saída de uma participação. */
+export const LEAVE_REASON_LABELS: Record<string, string> = {
+  left: "Saiu",
+  disconnected: "Caiu a conexão",
+  removed_by_admin: "Removido pelo painel",
+  room_closed: "Sala encerrada",
+  unknown: "Desconhecido",
+};

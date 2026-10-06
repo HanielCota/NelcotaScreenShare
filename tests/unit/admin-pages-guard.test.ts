@@ -22,3 +22,14 @@ test("toda página do painel chama requireAdmin", () => {
     assert.match(source, /await requireAdmin\(/, `${page} precisa chamar requireAdmin`);
   }
 });
+
+test("toda exportação do painel confere sessão e permissão", () => {
+  const root = fileURLToPath(new URL("../../", import.meta.url));
+  const routes = globSync("app/api/admin/exportar/**/route.ts", { cwd: root });
+  assert.ok(routes.length >= 4, `encontrou ${routes.length} exportações`);
+  for (const route of routes) {
+    const source = readFileSync(`${root}${route}`, "utf8");
+    assert.match(source, /await requireAdminApi\(\{/, `${route} precisa chamar requireAdminApi`);
+    assert.match(source, /recordAudit\(/, `${route} precisa registrar a exportação`);
+  }
+});

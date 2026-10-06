@@ -14,3 +14,22 @@ export const pageParsers = {
 export const resetPage = { cursor: null, dir: null } as const;
 
 export const PAGE_SIZE = 50;
+
+/**
+ * Alvo de uma ação em massa: IDs marcados na página (até 500) ou todos os
+ * resultados do filtro atual (`busca` = query string da URL, sem a página),
+ * que o servidor reaplica com limite de 10.000.
+ */
+export type BulkSelection = { tipo: "ids"; ids: string[] } | { tipo: "filtro"; busca: string };
+
+export const BULK_IDS_LIMIT = 500;
+export const BULK_FILTER_LIMIT = 10_000;
+
+/** Query string do filtro, sem cursor de página. */
+export function filterQuery(search: URLSearchParams | string): string {
+  const params = new URLSearchParams(search);
+  params.delete("cursor");
+  params.delete("dir");
+  params.sort();
+  return params.toString();
+}

@@ -13,6 +13,7 @@ interface RoomSessionProps {
   code: string;
   userName: string;
   passwordRequired: boolean;
+  invite?: string;
   maxParticipants: number;
 }
 
@@ -25,13 +26,14 @@ export function RoomSession({
   code,
   userName,
   passwordRequired,
+  invite,
   maxParticipants,
 }: RoomSessionProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "prejoin" });
 
   // Nova tentativa com token novo: o anterior pode ter expirado (TTL de 10 min).
   async function retry(choices: JoinChoices, attempt: number) {
-    const result = await requestToken({ room: code, password: choices.password });
+    const result = await requestToken({ room: code, password: choices.password, invite });
     if (!result.ok) {
       setPhase({ kind: "left", message: result.message });
       return;
@@ -62,7 +64,8 @@ export function RoomSession({
         <PreJoin
           code={code}
           userName={userName}
-          passwordRequired={passwordRequired}
+          passwordRequired={passwordRequired && !invite}
+          invite={invite}
           onJoin={(choices) => setPhase({ kind: "room", choices, attempt: 0 })}
         />
       ) : (

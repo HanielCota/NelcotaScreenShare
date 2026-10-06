@@ -9,6 +9,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   smallint,
   text,
   uniqueIndex,
@@ -184,6 +185,24 @@ export const roomInvites = pgTable(
   ],
 );
 
+/**
+ * Quem já usou cada convite: o limite conta pessoas, não entradas (voltar
+ * para a sala com o mesmo convite não gasta outro uso).
+ */
+export const roomInviteUses = pgTable(
+  "room_invite_uses",
+  {
+    inviteId: uuid("invite_id")
+      .notNull()
+      .references(() => roomInvites.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.inviteId, t.userId] })],
+);
+
 export const tokenResult = pgEnum("token_result", [
   "granted",
   "wrong_password",
@@ -193,6 +212,7 @@ export const tokenResult = pgEnum("token_result", [
   "unverified",
   "unauthenticated",
   "invalid",
+  "invite_invalid",
   "error",
 ]);
 

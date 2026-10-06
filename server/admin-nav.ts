@@ -33,6 +33,32 @@ const NAV: { label: string; items: NavItemDefinition[] }[] = [
     items: [{ href: "/admin", label: "Início", icon: "home", permission: { dashboard: ["read"] } }],
   },
   {
+    label: "Uso",
+    items: [
+      {
+        href: "/admin/salas",
+        label: "Salas",
+        icon: "rooms",
+        permission: { room: ["read"] },
+        keywords: ["sala", "código", "convite"],
+      },
+      {
+        href: "/admin/usuarios",
+        label: "Participantes",
+        icon: "users",
+        permission: { participant: ["read"] },
+        keywords: ["usuário", "conta", "pessoa", "bloquear"],
+      },
+      {
+        href: "/admin/compartilhamentos",
+        label: "Compartilhamentos",
+        icon: "shares",
+        permission: { shareSession: ["read"] },
+        keywords: ["tela", "share"],
+      },
+    ],
+  },
+  {
     label: "Governança",
     items: [
       {

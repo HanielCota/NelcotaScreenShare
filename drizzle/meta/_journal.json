@@ -36,6 +36,20 @@
       "when": 1791296298479,
       "tag": "0004_business",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791296672489,
+      "tag": "0005_participations_count",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791297135807,
+      "tag": "0006_room_invite_uses",
+      "breakpoints": true
     }
   ]
 }

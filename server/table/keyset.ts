@@ -140,3 +140,20 @@ export const timestampCursor = {
   parse: (value: string | number | null) =>
     typeof value === "string" ? sql`${value}::timestamptz` : value,
 };
+
+/**
+ * Coluna ordenável genérica: o cursor guarda o valor como texto do Postgres
+ * (exato, inclusive microssegundos) e volta com cast para o tipo da coluna.
+ * Selecione `key` como `sortKey` na consulta.
+ */
+export function sortableColumn<TRow extends { sortKey: string | null }>(
+  column: AnyColumn,
+  pgType: "timestamptz" | "int" | "text",
+): SortColumn<TRow> & { key: SQL<string | null> } {
+  return {
+    column,
+    key: sql<string | null>`${column}::text`,
+    valueOf: (row) => row.sortKey,
+    parse: (value) => (typeof value === "string" ? sql`${value}::${sql.raw(pgType)}` : value),
+  };
+}

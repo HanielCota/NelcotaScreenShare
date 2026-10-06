@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { requestToken, roomPath } from "@/lib/livekit";
+import { requestToken, roomLink } from "@/lib/livekit";
 import { saveMicrophone, savedMicrophone } from "@/lib/room-data";
 import { cn, formText } from "@/lib/utils";
 
@@ -30,6 +30,8 @@ interface PreJoinProps {
   /** Nome da conta logada: é como a pessoa aparece na sala. */
   userName: string;
   passwordRequired: boolean;
+  /** Convite do painel: substitui a senha de acesso. */
+  invite?: string;
   onJoin: (choices: JoinChoices) => void;
 }
 
@@ -51,7 +53,7 @@ function micErrorMessage(error: unknown): string {
   }
 }
 
-export function PreJoin({ code, userName, passwordRequired, onJoin }: PreJoinProps) {
+export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: PreJoinProps) {
   const scope = useRef<HTMLFormElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const meterRef = useRef<HTMLDivElement>(null);
@@ -170,11 +172,11 @@ export function PreJoin({ code, userName, passwordRequired, onJoin }: PreJoinPro
     setSubmitting(true);
     setTesting(false);
 
-    const result = await requestToken({ room: code, password });
+    const result = await requestToken({ room: code, password, invite });
     if (!result.ok) {
       // Sessão expirou ou e-mail ainda não confirmado: volta para a sala depois.
       if (result.code === "unauthenticated" || result.code === "email_unverified") {
-        const back = encodeURIComponent(roomPath(code));
+        const back = encodeURIComponent(roomLink(code, invite));
         window.location.assign(
           result.code === "unauthenticated"
             ? `/entrar?voltar=${back}`
@@ -238,12 +240,18 @@ export function PreJoin({ code, userName, passwordRequired, onJoin }: PreJoinPro
           <strong className="block truncate text-base font-semibold text-ink">{userName}</strong>
         </p>
         <Link
-          href={`/conta?voltar=${encodeURIComponent(roomPath(code))}`}
+          href={`/conta?voltar=${encodeURIComponent(roomLink(code, invite))}`}
           className="shrink-0 text-sm font-semibold text-brand-soft hover:underline"
         >
           Mudar nome
         </Link>
       </div>
+
+      {invite ? (
+        <p data-anim="row" className="text-sm text-ink-muted">
+          Você tem um convite para esta sala: não precisa de senha.
+        </p>
+      ) : null}
 
       {passwordRequired ? (
         <div

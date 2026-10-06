@@ -12,7 +12,14 @@ import {
 } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, Inbox } from "lucide-react";
 import { useQueryStates } from "nuqs";
-import { useState, useTransition, type ReactNode } from "react";
+import {
+  createContext,
+  use,
+  useState,
+  useTransition,
+  type ReactNode,
+  type TransitionStartFunction,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -24,7 +31,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber } from "@/lib/format";
-import { pageParsers } from "@/lib/table-params";
+import { useSearchParams } from "next/navigation";
+import { filterQuery, pageParsers, type BulkSelection } from "@/lib/table-params";
 import { cn } from "@/lib/utils";
 
 /** Ordenação, filtros e paginação são do servidor: a tabela só exibe e seleciona. */
@@ -49,8 +57,11 @@ interface DataTableProps<TData extends RowData & { id: string }> {
   emptyMessage: string;
   /** Filtros e busca (componentes que usam os mesmos parâmetros de URL). */
   toolbar?: ReactNode;
-  /** Ações em massa para os IDs selecionados; sem isso, não há seleção. */
-  bulkActions?: (selected: string[], clear: () => void) => ReactNode;
+  /**
+   * Ações em massa para a seleção (IDs da página ou todos os resultados do
+   * filtro); sem isso, não há seleção. `count` é o total aproximado.
+   */
+  bulkActions?: (selection: BulkSelection, clear: () => void, count: number) => ReactNode;
   /** Cartão por linha abaixo de 640 px (tabelas largas viram lista). */
   renderCard?: (row: TData) => ReactNode;
 }
@@ -82,6 +93,18 @@ function SelectRowCell<TData extends RowData>({ row }: CellContext<DataTableFeat
       aria-label="Selecionar linha"
     />
   );
+}
+
+/**
+ * Transição da tabela para a barra de filtros: filtro mudou → a tabela fica
+ * "carregando" (aria-busy, esmaecida) até os dados novos chegarem.
+ */
+const TableTransitionContext = createContext<TransitionStartFunction | null>(null);
+
+export function useTableTransition(): TransitionStartFunction {
+  const startTransition = use(TableTransitionContext);
+  if (!startTransition) throw new Error("useTableTransition fora de um DataTable");
+  return startTransition;
 }
 
 function totalLabel({ total, capped }: PageInfo): string {
@@ -125,8 +148,21 @@ export function DataTable<TData extends RowData & { id: string }>({
     state: { rowSelection },
   });
 
-  const selected = Object.keys(rowSelection).filter((id) => rowSelection[id]);
-  const clear = () => setRowSelection({});
+  // Só conta o que está na página atual (mudar o filtro "solta" o resto).
+  const pageIds = new Set(data.map((row) => row.id));
+  const selected = Object.keys(rowSelection).filter((id) => rowSelection[id] && pageIds.has(id));
+  // "Todos os resultados" vale só para o filtro em que foi escolhido.
+  const filterKey = filterQuery(useSearchParams().toString());
+  const [allFor, setAllFor] = useState<string | null>(null);
+  const allMatching = allFor === filterKey && selected.length === data.length;
+  const selection: BulkSelection = allMatching
+    ? { tipo: "filtro", busca: filterKey }
+    : { tipo: "ids", ids: selected };
+  const count = allMatching ? page.total : selected.length;
+  const clear = () => {
+    setRowSelection({});
+    setAllFor(null);
+  };
   const go = (cursor: string | null, dir: "next" | "prev") => {
     clear();
     void setPage({ cursor, dir });
@@ -134,14 +170,28 @@ export function DataTable<TData extends RowData & { id: string }>({
 
   return (
     <section aria-label={label} className="flex flex-col gap-3">
-      {toolbar ? <div className="flex flex-wrap items-end gap-2">{toolbar}</div> : null}
+      {toolbar ? (
+        <TableTransitionContext value={startTransition}>
+          <div className="flex flex-wrap items-end gap-2">{toolbar}</div>
+        </TableTransitionContext>
+      ) : null}
 
       {selectable && selected.length > 0 ? (
         <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
           <span className="font-semibold">
-            {selected.length === 1 ? "1 selecionado" : `${selected.length} selecionados`}
+            {allMatching
+              ? `Todos os ${page.capped ? "mais de " : ""}${formatNumber(page.total)} resultados`
+              : selected.length === 1
+                ? "1 selecionado"
+                : `${selected.length} selecionados`}
           </span>
-          {bulkActions(selected, clear)}
+          {!allMatching && selected.length === data.length && page.total > data.length ? (
+            <Button variant="link" size="sm" onClick={() => setAllFor(filterKey)}>
+              Selecionar todos os {page.capped ? "mais de " : ""}
+              {formatNumber(page.total)} resultados
+            </Button>
+          ) : null}
+          {bulkActions(selection, clear, count)}
           <Button variant="ghost" size="sm" className="ml-auto" onClick={clear}>
             Limpar seleção
           </Button>

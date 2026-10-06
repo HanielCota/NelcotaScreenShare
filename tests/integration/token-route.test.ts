@@ -53,6 +53,7 @@ Object.assign(process.env, {
 const { POST } = await import("@/app/api/token/route");
 const { NextRequest } = await import("next/server");
 const { getUserAuth } = await import("@/server/auth/user");
+const { createRoomInvite } = await import("@/server/rooms/invites");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -262,5 +263,93 @@ describe("registro em token_requests", () => {
         ["invalid", ""],
       ],
     );
+  });
+});
+
+/** Convite para a sala (criada se ainda não existir), como o painel faria. */
+async function inviteFor(
+  code: string,
+  { maxUses = null, expiresAt = null }: { maxUses?: number | null; expiresAt?: Date | null } = {},
+) {
+  const [owner] = await db
+    .insert(schema.adminUsers)
+    .values({ email: `convite-${crypto.randomUUID()}@exemplo.com`, name: "Admin", role: "admin" })
+    .returning({ id: schema.adminUsers.id });
+  let [room] = await db.select().from(schema.rooms).where(eq(schema.rooms.code, code));
+  if (!room) [room] = await db.insert(schema.rooms).values({ code }).returning();
+  return createRoomInvite(db, {
+    roomId: room?.id ?? "",
+    label: null,
+    maxUses,
+    expiresAt,
+    createdBy: owner?.id ?? "",
+  });
+}
+
+describe("convites de sala", () => {
+  test("convite válido entra sem a senha de acesso", async () => {
+    const kai = await verifiedParticipant(db, handler);
+    const room = `sala-conv-${Date.now().toString(36)}`;
+    const { token } = await inviteFor(room);
+    const response = await post({ room, invite: token }, { cookie: kai.jar.header() });
+    assert.equal(response.status, 200);
+    // Sem o convite, a senha continua obrigatória.
+    const without = await post({ room }, { cookie: kai.jar.header() });
+    assert.equal(without.status, 401);
+  });
+
+  test("limite conta pessoas: quem já usou volta; a próxima pessoa é recusada", async () => {
+    const room = `sala-lim-${Date.now().toString(36)}`;
+    const { id, token } = await inviteFor(room, { maxUses: 1 });
+    const leo = await verifiedParticipant(db, handler);
+    const mia = await verifiedParticipant(db, handler);
+    assert.equal((await post({ room, invite: token }, { cookie: leo.jar.header() })).status, 200);
+    assert.equal((await post({ room, invite: token }, { cookie: leo.jar.header() })).status, 200);
+    const full = await post({ room, invite: token }, { cookie: mia.jar.header() });
+    assert.equal(full.status, 403);
+    assert.equal(await errorCode(full), "invite_invalid");
+    const [invite] = await db
+      .select()
+      .from(schema.roomInvites)
+      .where(eq(schema.roomInvites.id, id));
+    assert.equal(invite?.uses, 1);
+    const [logged] = await db
+      .select({ result: schema.tokenRequests.result })
+      .from(schema.tokenRequests)
+      .where(eq(schema.tokenRequests.userId, mia.id));
+    assert.equal(logged?.result, "invite_invalid");
+  });
+
+  test("expirado, revogado, de outra sala ou forjado: recusado", async () => {
+    const nil = await verifiedParticipant(db, handler);
+    const cookie = nil.jar.header();
+    const room = `sala-rec-${Date.now().toString(36)}`;
+    const expired = await inviteFor(room, { expiresAt: new Date(Date.now() - 1000) });
+    const revoked = await inviteFor(room);
+    await db
+      .update(schema.roomInvites)
+      .set({ revokedAt: new Date() })
+      .where(eq(schema.roomInvites.id, revoked.id));
+    const other = await inviteFor(`outra-${Date.now().toString(36)}`);
+    for (const invite of [expired.token, revoked.token, other.token, "x".repeat(43)]) {
+      const response = await post({ room, invite }, { cookie });
+      assert.equal(response.status, 403, invite);
+      assert.equal(await errorCode(response), "invite_invalid");
+    }
+  });
+
+  test("sala cheia não gasta uso do convite", async () => {
+    const { id, token } = await inviteFor("sala-cheia", { maxUses: 3 });
+    const ota = await verifiedParticipant(db, handler);
+    const response = await post(
+      { room: "sala-cheia", invite: token },
+      { cookie: ota.jar.header() },
+    );
+    assert.equal(response.status, 409);
+    const [invite] = await db
+      .select()
+      .from(schema.roomInvites)
+      .where(eq(schema.roomInvites.id, id));
+    assert.equal(invite?.uses, 0);
   });
 });

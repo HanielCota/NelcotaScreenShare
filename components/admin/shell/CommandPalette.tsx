@@ -1,8 +1,9 @@
 "use client";
 
-import { LogOut, SunMoon } from "lucide-react";
+import { LogOut, SunMoon, User, Video } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Command,
   CommandDialog,
@@ -13,13 +14,14 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { searchPanelAction } from "@/features/busca/actions";
 import { applyTheme, currentTheme } from "@/lib/theme";
 import type { NavGroup } from "@/server/admin-nav";
 import { NAV_ICONS } from "./nav-icons";
 
 /**
- * Command palette (Ctrl/⌘ K): navegação do painel e ações rápidas. A busca de
- * salas e usuários por código/nome entra com os CRUDs (Fase 5).
+ * Command palette (Ctrl/⌘ K): navegação do painel, ações rápidas e busca de
+ * salas (código) e participantes (nome ou e-mail, sem acento).
  */
 export function CommandPalette({
   groups,
@@ -33,6 +35,18 @@ export function CommandPalette({
   onSignOut: () => void;
 }) {
   const router = useRouter();
+  const [query, setQuery] = useState("");
+  const search = useAction(searchPanelAction);
+  const { execute } = search;
+  const term = query.trim();
+  const results = term.length >= 2 && search.input?.q === term ? search.result.data : undefined;
+
+  // Busca no servidor depois de uma pausa na digitação.
+  useEffect(() => {
+    if (term.length < 2) return;
+    const timer = setTimeout(() => execute({ q: term }), 250);
+    return () => clearTimeout(timer);
+  }, [term, execute]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -47,6 +61,7 @@ export function CommandPalette({
 
   function run(action: () => void) {
     onOpenChange(false);
+    setQuery("");
     action();
   }
 
@@ -59,9 +74,46 @@ export function CommandPalette({
     >
       {/* Nesta versão do shadcn, o conteúdo precisa vir dentro de <Command> (contexto do cmdk). */}
       <Command>
-        <CommandInput placeholder="Ir para… ou executar…" />
+        <CommandInput
+          placeholder="Ir para…, código da sala ou nome de alguém"
+          value={query}
+          onValueChange={setQuery}
+        />
         <CommandList>
-          <CommandEmpty>Nada encontrado.</CommandEmpty>
+          <CommandEmpty>{search.isPending ? "Buscando…" : "Nada encontrado."}</CommandEmpty>
+          {results && results.rooms.length > 0 ? (
+            <CommandGroup heading="Salas">
+              {results.rooms.map((room) => (
+                <CommandItem
+                  key={room.id}
+                  // O texto digitado no valor: o filtro local do cmdk não esconde o resultado.
+                  value={`${term} sala ${room.code}`}
+                  onSelect={() => run(() => router.push(`/admin/salas/${room.id}`))}
+                >
+                  <Video aria-hidden="true" />
+                  <span className="font-mono">{room.code}</span>
+                  {room.status === "active" ? (
+                    <span className="ml-auto text-xs text-danger">ao vivo</span>
+                  ) : null}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ) : null}
+          {results && results.people.length > 0 ? (
+            <CommandGroup heading="Participantes">
+              {results.people.map((person) => (
+                <CommandItem
+                  key={person.id}
+                  value={`${term} pessoa ${person.id}`}
+                  onSelect={() => run(() => router.push(`/admin/usuarios/${person.id}`))}
+                >
+                  <User aria-hidden="true" />
+                  <span className="truncate">{person.name}</span>
+                  <span className="ml-auto truncate text-xs text-ink-muted">{person.email}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ) : null}
           {groups.map((group) => (
             <CommandGroup key={group.label} heading={group.label}>
               {group.items.map((item) => {

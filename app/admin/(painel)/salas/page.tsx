@@ -1,0 +1,48 @@
+import type { Metadata } from "next";
+import { createSerializer } from "nuqs/server";
+import { RoomsTable } from "@/features/salas/components/RoomsTable";
+import { listRooms } from "@/features/salas/queries";
+import { loadRoomParams, roomParsers } from "@/features/salas/search-params";
+import { PAGE_SIZE } from "@/lib/table-params";
+import { requireAdmin } from "@/server/auth/admin-session";
+import { can } from "@/server/auth/permissions";
+import { getDb } from "@/server/db";
+
+export const metadata: Metadata = { title: "Salas" };
+
+const serialize = createSerializer(roomParsers);
+
+export default async function RoomsPage({ searchParams }: PageProps<"/admin/salas">) {
+  const admin = await requireAdmin({ room: ["read"] });
+  const db = getDb();
+  if (!db) throw new Error("Banco indisponível");
+  const params = await loadRoomParams(searchParams);
+  const page = await listRooms(db, params, PAGE_SIZE);
+  const role = admin.user.role;
+
+  return (
+    <>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Salas</h1>
+        <p className="mt-1 text-ink-muted">
+          Toda sala aberta no LiveKit, com quem entrou e o que foi compartilhado.
+        </p>
+      </div>
+      <RoomsTable
+        rows={page.items}
+        page={{
+          nextCursor: page.nextCursor,
+          prevCursor: page.prevCursor,
+          total: page.total,
+          capped: page.capped,
+        }}
+        canDelete={can(role, { room: ["delete"] })}
+        exportHref={
+          can(role, { room: ["export"] })
+            ? `/api/admin/exportar/salas${serialize({ ...params, cursor: null, dir: null })}`
+            : null
+        }
+      />
+    </>
+  );
+}

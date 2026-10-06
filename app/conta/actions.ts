@@ -6,15 +6,9 @@ import { z } from "zod";
 import { ActionError, userAction } from "@/server/actions/client";
 import { verifyPassword } from "@/server/auth/password";
 import { getDb } from "@/server/db";
-import {
-  roomParticipations,
-  userAccounts,
-  users,
-  userSessions,
-  userTwoFactors,
-  userVerifications,
-} from "@/server/db/schema";
+import { userAccounts, userSessions } from "@/server/db/schema";
 import { logger } from "@/server/logger";
+import { anonymizeParticipant } from "@/server/participants/operations";
 
 function database() {
   const db = getDb();
@@ -82,30 +76,7 @@ export const deleteMyAccount = userAction
       throw new ActionError("Senha incorreta.");
     }
     await db.transaction(async (tx) => {
-      await tx
-        .update(users)
-        .set({
-          name: "Pessoa removida",
-          email: `removido+${userId}@invalid.nelcota`,
-          emailVerified: false,
-          image: null,
-          twoFactorEnabled: false,
-          anonymizedAt: new Date(),
-          deletedAt: new Date(),
-        })
-        .where(eq(users.id, userId));
-      // Nome mostrado nas salas sai do histórico. O IP fica até a retenção de
-      // 6 meses (registro de acesso exigido pelo Marco Civil, art. 15).
-      await tx
-        .update(roomParticipations)
-        .set({ displayName: null })
-        .where(eq(roomParticipations.userId, userId));
-      await tx.delete(userAccounts).where(eq(userAccounts.userId, userId));
-      await tx.delete(userTwoFactors).where(eq(userTwoFactors.userId, userId));
-      await tx.delete(userSessions).where(eq(userSessions.userId, userId));
-      await tx
-        .delete(userVerifications)
-        .where(eq(userVerifications.identifier, ctx.current.user.email));
+      await anonymizeParticipant(tx, userId);
       // LGPD: registro da exclusão pedida pelo próprio titular (sem dados pessoais).
       await ctx.audit.record(tx, {
         action: "user.self_delete",

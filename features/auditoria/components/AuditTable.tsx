@@ -2,9 +2,10 @@
 
 import { Download, Eye, X } from "lucide-react";
 import { debounce, useQueryStates } from "nuqs";
-import { createContext, use, useState, useTransition } from "react";
+import { createContext, use, useState } from "react";
 import {
   DataTable,
+  useTableTransition,
   type DataTableColumn,
   type PageInfo,
 } from "@/components/admin/data-table/DataTable";
@@ -44,7 +45,7 @@ function value(v: unknown): string {
 const SELECT_CLASS = "h-9 rounded-lg border border-input bg-surface-2 px-2.5 text-sm text-ink";
 
 function Filters({ options, exportHref }: { options: Options; exportHref: string | null }) {
-  const [pending, startTransition] = useTransition();
+  const startTransition = useTableTransition();
   const [params, setParams] = useQueryStates(auditParsers, {
     shallow: false,
     startTransition,
@@ -160,7 +161,6 @@ function Filters({ options, exportHref }: { options: Options; exportHref: string
             variant="ghost"
             size="sm"
             className="h-9"
-            disabled={pending}
             onClick={() => {
               setText("");
               set({ q: null, acao: null, recurso: null, autor: null, de: null, ate: null });

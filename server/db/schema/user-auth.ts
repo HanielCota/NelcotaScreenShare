@@ -28,6 +28,8 @@ export const users = pgTable(
     image: text("image"),
     twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
     lastSeenAt: timestamptz("last_seen_at"),
+    // Mantido por trigger em room_participations (ordenar a lista sem COUNT por página).
+    participationsCount: integer("participations_count").notNull().default(0),
     // Bloqueio pelo painel: login e entrada em salas recusados.
     blockedAt: timestamptz("blocked_at"),
     blockReason: text("block_reason"),
@@ -46,6 +48,9 @@ export const users = pgTable(
       .where(sql`${t.deletedAt} is null`),
     index("users_last_seen_at_idx")
       .on(t.lastSeenAt.desc().nullsLast(), t.id.desc())
+      .where(sql`${t.deletedAt} is null`),
+    index("users_participations_idx")
+      .on(t.participationsCount.desc(), t.id.desc())
       .where(sql`${t.deletedAt} is null`),
     index("users_search_idx")
       .using("gin", sql`f_unaccent(lower(${t.name} || ' ' || ${t.email})) gin_trgm_ops`)
