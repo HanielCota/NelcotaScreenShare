@@ -15,7 +15,8 @@ export function createFaceRenderer(face: HTMLElement) {
   return {
     lids,
     render(gaze: Gaze, state: FaceState) {
-      const pose = avatarFrame(face.parentElement?.dataset.expression, state.lid0, state.lid1);
+      const root = face.closest<HTMLElement>("[data-slot=mascot]");
+      const pose = avatarFrame(root?.dataset.expression, state.lid0, state.lid1);
       face.style.setProperty("--sprite-column", String(pose.column));
       face.style.setProperty("--sprite-row", String(pose.row));
       const tilt = state.tilt + gaze.x * 0.65;

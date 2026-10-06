@@ -21,6 +21,12 @@
   transition: opacity 180ms ease-out;
 }
 
+/* Virado para a direita, o "Zzz" sai do outro lado da cabeça (texto nunca espelha). */
+.root[data-facing="right"] .dreams {
+  left: auto;
+  right: 72%;
+}
+
 .dreams span:nth-child(2) {
   font-size: 0.8em;
   animation-delay: 650ms;

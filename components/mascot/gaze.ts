@@ -16,9 +16,16 @@ const TEXT_INPUT_TYPES = new Set(["text", "email", "password", "search", "tel", 
 
 const measure = typeof document === "undefined" ? null : document.createElement("canvas");
 
-/** Olhar do rosto (`face`) na direção de um ponto da tela. */
+/**
+ * Olhar do rosto (`face`) na direção de um ponto da tela. Mascote espelhado
+ * (`facing="right"`): mira o ponto refletido no eixo do rosto, e o espelho
+ * do desenho traz o olhar de volta para o ponto certo.
+ */
 function lookAt(face: Element, point: Point): Gaze {
-  return gazeAt(face.getBoundingClientRect(), point);
+  const rect = face.getBoundingClientRect();
+  const mirrored = face.closest("[data-facing='right']") !== null;
+  const target = mirrored ? { x: 2 * rect.left + rect.width - point.x, y: point.y } : point;
+  return gazeAt(rect, target);
 }
 
 function center(element: Element): Point {
