@@ -7,7 +7,7 @@ import { can, type PermissionRequest } from "./permissions";
 import { isAdminRole, ROLES_REQUIRING_2FA, type AdminRole } from "./roles";
 
 /** Máximo absoluto de uma sessão, mesmo com uso contínuo. */
-export const ADMIN_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const ADMIN_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface AdminSession {
   user: {

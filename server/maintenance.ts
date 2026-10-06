@@ -17,7 +17,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * Prazos de retenção (docs/PLANO-ADMIN.md, LGPD). Registros de acesso ficam
  * 6 meses (Marco Civil, art. 15); o resto só o tempo de servir à segurança.
  */
-export const RETENTION_DAYS = {
+const RETENTION_DAYS = {
   tokenRequests: 183,
   participationIp: 183,
   participationName: 365,

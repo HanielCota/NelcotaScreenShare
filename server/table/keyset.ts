@@ -9,7 +9,7 @@ import type { DbExecutor } from "@/server/db";
  * na coluna de ordenação (o id desempata). Anterior/próxima com cursores.
  */
 export type Direction = "asc" | "desc";
-export type PageDirection = "next" | "prev";
+type PageDirection = "next" | "prev";
 
 const cursorSchema = z.object({
   /** Valor da coluna de ordenação (datas em ISO). */
@@ -18,7 +18,7 @@ const cursorSchema = z.object({
 });
 export type Cursor = z.infer<typeof cursorSchema>;
 
-export function encodeCursor(cursor: Cursor): string {
+function encodeCursor(cursor: Cursor): string {
   return Buffer.from(JSON.stringify(cursor)).toString("base64url");
 }
 

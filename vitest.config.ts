@@ -12,6 +12,11 @@ if (!process.env.TEST_DATABASE_URL && existsSync(`${root}.env.local`)) {
   if (local.TEST_DATABASE_URL) process.env.TEST_DATABASE_URL = local.TEST_DATABASE_URL;
 }
 
+if (!process.env.TEST_DATABASE_URL) {
+  // Sem o banco de testes, a integração não roda: avisa em vez de sumir calada.
+  console.warn("[vitest] TEST_DATABASE_URL ausente: só os testes unitários vão rodar.");
+}
+
 /**
  * Dois projetos:
  * - `unit`: sem banco, sempre roda.
@@ -55,8 +60,19 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      include: ["server/**", "features/**", "lib/**", "app/**/actions.ts", "app/api/**"],
-      reporter: ["text-summary", "html"],
+      include: [
+        "server/**",
+        "features/**",
+        "lib/**",
+        "components/**",
+        "hooks/**",
+        "app/**/actions.ts",
+        "app/api/**",
+      ],
+      exclude: ["components/ui/**"],
+      reporter: ["text-summary", "html", "json-summary"],
+      // Catraca: o mínimo só sobe. Valores do baseline da refatoração (unit + integração).
+      thresholds: { statements: 31, branches: 25, functions: 25, lines: 32 },
     },
   },
 });

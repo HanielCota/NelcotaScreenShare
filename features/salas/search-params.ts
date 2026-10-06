@@ -1,10 +1,9 @@
 import { createLoader, parseAsString, parseAsStringLiteral } from "nuqs/server";
 import { pageParsers } from "@/lib/table-params";
 
-export const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
-export type RoomStatusFilter = (typeof ROOM_STATUSES)[number];
+const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
 
-export const ROOM_SORTS = ["atividade", "inicio", "pico"] as const;
+const ROOM_SORTS = ["atividade", "inicio", "pico"] as const;
 
 /** Estado da lista de salas na URL. */
 export const roomParsers = {

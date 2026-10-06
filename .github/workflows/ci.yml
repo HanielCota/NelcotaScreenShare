@@ -27,6 +27,14 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - name: Código, exports e dependências sem uso (knip)
+        run: pnpm knip
+      - name: Duplicação abaixo do limite (jscpd)
+        run: pnpm dup
+      - name: Schema e migrações em dia (nenhuma migração pendente)
+        run: |
+          pnpm db:generate
+          test -z "$(git status --porcelain drizzle)" || { git status drizzle; exit 1; }
       - name: Dependências de produção sem vulnerabilidade alta/crítica
         run: pnpm audit --prod --audit-level=high
 
@@ -73,4 +81,48 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm build:migrate
+      - run: pnpm build:scripts
+      - name: Imagem Docker (a mesma do deploy) monta sem erro
+        run: docker build --tag nelcota-ci .
+
+  e2e:
+    name: E2E (Playwright, Postgres e LiveKit reais)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: nelcota_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:test@localhost:5432/nelcota_test
+      LIVEKIT_API_KEY: devkey
+      LIVEKIT_API_SECRET: devsecret-0123456789abcdef0123456789abcdef
+      NEXT_PUBLIC_LIVEKIT_URL: ws://127.0.0.1:7880
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: LiveKit de desenvolvimento
+        run: |
+          docker run -d --name lk --network host \
+            -e LIVEKIT_KEYS="$LIVEKIT_API_KEY: $LIVEKIT_API_SECRET" \
+            livekit/livekit-server:v1.13.7 --dev --bind 0.0.0.0 --node-ip 127.0.0.1
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

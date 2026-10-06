@@ -233,4 +233,3 @@ export async function getParticipantDetail(db: DbExecutor, id: string) {
   ]);
   return { account, sessions, timeline, history };
 }
-export type ParticipantDetail = NonNullable<Awaited<ReturnType<typeof getParticipantDetail>>>;

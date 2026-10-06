@@ -14,7 +14,7 @@ import { createRateLimiter, type RateLimiter } from "@/server/rate-limit";
 export class ActionError extends Error {}
 
 /** Janela de sessão "fresca" para ações críticas (igual ao freshAge do Better Auth). */
-export const FRESH_SESSION_MS = 10 * 60 * 1000;
+const FRESH_SESSION_MS = 10 * 60 * 1000;
 
 const metadataSchema = z.object({
   /** Nome estável da action (logs e auditoria), ex.: "account.revokeSession". */
@@ -37,7 +37,7 @@ export type ActionMetadata = z.infer<typeof metadataSchema>;
  * Cliente base. Erro inesperado nunca vaza para o navegador: vira uma
  * mensagem genérica e vai para o log com o request_id.
  */
-export const actionClient = createSafeActionClient({
+const actionClient = createSafeActionClient({
   defineMetadataSchema: () => metadataSchema,
   async handleServerError(error, { metadata }) {
     if (error instanceof ActionError) return error.message;

@@ -1,7 +1,7 @@
 import { TZDate } from "@date-fns/tz";
 
 /** Formatação pt-BR, sempre no fuso de São Paulo (docs/PLANO-ADMIN.md §6). */
-export const TIME_ZONE = "America/Sao_Paulo";
+const TIME_ZONE = "America/Sao_Paulo";
 
 const dateTime = new Intl.DateTimeFormat("pt-BR", {
   timeZone: TIME_ZONE,

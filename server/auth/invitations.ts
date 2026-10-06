@@ -8,15 +8,15 @@ import type { AdminAuth } from "./admin";
 import { PASSWORD_LIMITS } from "./password";
 import type { AdminRole } from "./roles";
 
-export const INVITE_TTL_MS = 48 * 60 * 60 * 1000;
+const INVITE_TTL_MS = 48 * 60 * 60 * 1000;
 /** Convite do script de bootstrap do primeiro owner: curto de propósito. */
 export const OWNER_BOOTSTRAP_TTL_MS = 30 * 60 * 1000;
 
-export function hashToken(token: string): string {
+function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function invitationUrl(token: string): string {
+function invitationUrl(token: string): string {
   return `${appUrl()}/admin/convite/${token}`;
 }
 

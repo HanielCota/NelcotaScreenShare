@@ -6,7 +6,6 @@ export type Reason =
   | "error"
   | "capsLock"
   | "doubt"
-  | "tap"
   | "typing"
   | "sleep"
   | "interaction"

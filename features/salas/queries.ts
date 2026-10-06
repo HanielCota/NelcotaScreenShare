@@ -229,4 +229,3 @@ export async function getRoomDetail(db: DbExecutor, id: string) {
   ]);
   return { room, participants, shares, invites, history };
 }
-export type RoomDetail = NonNullable<Awaited<ReturnType<typeof getRoomDetail>>>;

@@ -39,7 +39,7 @@ const adminPlugin = admin({
   bannedUserMessage: "Esta conta está desativada. Fale com o dono do painel.",
 });
 
-export const DISABLED_ADMIN_PLUGIN_PATHS = Object.values(adminPlugin.endpoints).map(
+const DISABLED_ADMIN_PLUGIN_PATHS = Object.values(adminPlugin.endpoints).map(
   (endpoint) => endpoint.path,
 );
 

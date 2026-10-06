@@ -7,7 +7,7 @@ import * as schema from "./schema";
 
 export type Database = NodePgDatabase<typeof schema>;
 /** Transação do Drizzle (o mesmo que `db`, mas dentro de `db.transaction`). */
-export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 /** Quem executa a consulta: a conexão normal ou uma transação. */
 export type DbExecutor = Database | Transaction;
 

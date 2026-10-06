@@ -4,7 +4,7 @@ import { pageParsers } from "@/lib/table-params";
 export const PARTICIPANT_STATUSES = ["ativo", "nao_verificado", "bloqueado", "excluido"] as const;
 export type ParticipantStatus = (typeof PARTICIPANT_STATUSES)[number];
 
-export const PARTICIPANT_SORTS = ["cadastro", "acesso", "participacoes"] as const;
+const PARTICIPANT_SORTS = ["cadastro", "acesso", "participacoes"] as const;
 
 /** Estado da lista de participantes na URL. */
 export const participantParsers = {

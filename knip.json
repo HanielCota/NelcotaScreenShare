@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["scripts/*.ts", "instrumentation*.ts", "tests/**/*.test.ts"],
+  "project": ["**/*.{ts,tsx}"],
+  "ignore": ["components/ui/**"],
+  "ignoreDependencies": ["pino-pretty", "tw-animate-css", "shadcn", "tailwindcss"]
+}

@@ -74,11 +74,7 @@ export async function recordAudit(executor: DbExecutor, actor: AuditActor, entry
 }
 
 /** Várias linhas de uma vez (ações em massa: uma linha por item afetado). */
-export async function recordAuditMany(
-  executor: DbExecutor,
-  actor: AuditActor,
-  entries: AuditEntry[],
-) {
+async function recordAuditMany(executor: DbExecutor, actor: AuditActor, entries: AuditEntry[]) {
   if (entries.length === 0) return;
   const info = await requestInfo();
   const rows = entries.map((entry) => ({

@@ -63,6 +63,9 @@ export default defineConfig({
     "jsx-a11y/no-autofocus": "error",
     "nextjs/no-img-element": "error",
     "nextjs/no-async-client-component": "error",
+    // Tamanho e complexidade (docs/refactor/03-arquitetura-alvo.md §4).
+    "eslint/max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
+    "eslint/complexity": ["error", { max: 15 }],
   },
   overrides: [
     {
@@ -94,6 +97,31 @@ export default defineConfig({
           },
         ],
       },
+    },
+    {
+      // Vendor (shadcn) e testes ficam fora dos limites de tamanho.
+      files: ["components/ui/**", "tests/**"],
+      rules: { "eslint/max-lines": "off", "eslint/complexity": "off" },
+    },
+    {
+      // CATRACA: arquivos que ainda estouram os limites. A lista só diminui:
+      // cada fase da refatoração tira daqui o que quebrou em partes menores.
+      files: [
+        "app/admin/(painel)/salas/[[]id]/page.tsx",
+        "app/admin/(painel)/usuarios/[[]id]/page.tsx",
+        "app/api/token/route.ts",
+        "components/account/SignUpForm.tsx",
+        "components/admin/data-table/DataTable.tsx",
+        "components/mascot/avatar-frames.ts",
+        "components/mascot/use-mascot.ts",
+        "components/room/PreJoin.tsx",
+        "components/room/RoomView.tsx",
+        "components/room/ScreenStage.tsx",
+        "features/auditoria/components/AuditTable.tsx",
+        "features/usuarios/components/ParticipantActions.tsx",
+        "server/livekit/webhook-projector.ts",
+      ],
+      rules: { "eslint/max-lines": "off", "eslint/complexity": "off" },
     },
     {
       // Fixtures de teste montam objetos parciais (DOM, respostas HTTP, contexto do

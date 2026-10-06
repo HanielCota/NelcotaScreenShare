@@ -26,14 +26,14 @@ export const tokenRequestSchema = z.object({
 
 export type TokenRequest = z.infer<typeof tokenRequestSchema>;
 
-export const tokenResponseSchema = z.object({
+const tokenResponseSchema = z.object({
   token: z.string(),
   serverUrl: z.string(),
 });
 
 export type TokenResponse = z.infer<typeof tokenResponseSchema>;
 
-export const tokenErrorSchema = z.object({
+const tokenErrorSchema = z.object({
   error: z.enum([
     "invalid_request",
     "unauthenticated",

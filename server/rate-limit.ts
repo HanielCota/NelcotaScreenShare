@@ -5,7 +5,7 @@ interface Bucket {
   resetAt: number;
 }
 
-export interface RateLimitResult {
+interface RateLimitResult {
   ok: boolean;
   retryAfterSeconds: number;
 }
