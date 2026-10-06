@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 import { accessContext } from "@/lib/access-context";
+import { mascotLine } from "@/lib/access-copy";
 import { inboxLink, suggestEmail } from "@/lib/email-suggest";
 import { passwordStrength } from "@/lib/password-rules";
 
@@ -52,4 +53,19 @@ test("contexto da tela de acesso pelo destino de volta", () => {
   assert.deepEqual(accessContext("/conta"), { kind: "app" });
   assert.deepEqual(accessContext("/sala/%E0%A4%A"), { kind: "app" }, "código malformado");
   assert.deepEqual(accessContext("/sala/A B"), { kind: "app" });
+});
+
+test("fala do mascote acompanha a tela e a sala", () => {
+  assert.equal(mascotLine("/entrar", null), "Que bom te ver de novo.");
+  assert.equal(
+    mascotLine("/entrar", "/sala/kfa-mtrx-q2p"),
+    "A sala kfa-mtrx-q2p já está te esperando.",
+  );
+  assert.match(
+    mascotLine("/entrar", "/sala/kfa-mtrx-q2p?convite=x"),
+    /convite para a sala kfa-mtrx-q2p/,
+  );
+  assert.match(mascotLine("/cadastro", "/sala/kfa-mtrx-q2p"), /sala kfa-mtrx-q2p/);
+  assert.equal(mascotLine("/cadastro", "/sala/<script>"), "É rapidinho: nome, e-mail e uma senha.");
+  assert.match(mascotLine("/redefinir-senha", null), /Eu não olho/);
 });

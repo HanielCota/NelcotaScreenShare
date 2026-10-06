@@ -1,36 +1,51 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { Mascot } from "@/components/Mascot";
+import { mascotLine } from "@/lib/access-copy";
+
+/** Balão do mascote: a fala muda com a tela e com a sala de destino. */
+function SpeechBubble() {
+  const pathname = usePathname();
+  const returnTo = useSearchParams().get("voltar");
+  return <BubbleText text={mascotLine(pathname, returnTo)} />;
+}
+
+function BubbleText({ text }: { text: string }) {
+  return (
+    <p className="relative max-w-64 rounded-2xl border border-line bg-surface px-4 py-3 text-sm leading-snug lg:max-w-72 lg:text-base">
+      {text}
+      {/* Rabinho do balão: aponta para o mascote (à esquerda no celular, embaixo no computador). */}
+      <span
+        aria-hidden="true"
+        className="absolute top-1/2 -left-1.5 size-3 -translate-y-1/2 rotate-45 border-b border-l border-line bg-surface lg:top-auto lg:-bottom-1.5 lg:left-10 lg:translate-y-0 lg:border-t-0 lg:border-r lg:border-b lg:border-l-0"
+      />
+    </p>
+  );
+}
 
 /**
- * Lado do mascote no painel de acesso: ele reage ao formulário ao lado, com
- * o que o Nelcota faz embaixo. No celular vira uma faixa no topo do painel.
+ * Lado do mascote no painel de acesso. Ele reage ao formulário ao lado e
+ * fala pelo balão; embaixo, só a informação que ajuda de fato.
  */
-export function BrandPanel({ maxParticipants }: { maxParticipants: number }) {
-  const perks = [
-    `Até ${maxParticipants} pessoas por sala`,
-    "Tela e áudio do sistema",
-    "Link pronto para mandar",
-  ];
+export function BrandPanel() {
   return (
-    <aside className="flex items-center gap-4 border-b border-line bg-surface-2 bg-[radial-gradient(circle_at_50%_35%,color-mix(in_oklch,var(--color-brand)_20%,transparent),transparent_65%)] px-5 py-4 sm:px-8 lg:flex-col lg:justify-center lg:gap-8 lg:border-r lg:border-b-0 lg:p-10">
-      <Mascot className="size-20 sm:size-24 lg:size-52" sizes="(min-width: 1024px) 624px, 288px" />
-      <div className="flex min-w-0 flex-col gap-4 lg:items-center lg:text-center">
-        <p className="text-base font-semibold text-balance sm:text-lg lg:text-2xl lg:leading-snug lg:font-bold lg:tracking-tight">
-          Compartilhe a tela em segundos, sem instalar nada.
-        </p>
-        <ul className="flex flex-col gap-2 text-sm text-ink-muted max-lg:hidden">
-          {perks.map((perk) => (
-            <li key={perk} className="flex items-center gap-2.5">
-              <span className="grid size-5 place-items-center rounded-full bg-brand/20">
-                <Check className="size-3 text-brand-soft" aria-hidden="true" />
-              </span>
-              {perk}
-            </li>
-          ))}
-        </ul>
+    <aside className="flex flex-col border-b border-line bg-surface-2 px-5 py-4 sm:px-8 lg:border-r lg:border-b-0 lg:p-10">
+      {/* Mascote e balão juntos: lado a lado no celular, balão em cima no computador. */}
+      <div className="flex items-center gap-3 lg:flex-1 lg:flex-col-reverse lg:items-start lg:justify-center lg:gap-1">
+        <Mascot
+          className="size-20 shrink-0 sm:size-24 lg:ml-6 lg:size-52"
+          sizes="(min-width: 1024px) 624px, 288px"
+        />
+        <Suspense fallback={<BubbleText text="Oi! Eu sou o Nelcota." />}>
+          <SpeechBubble />
+        </Suspense>
       </div>
+      <p className="max-w-72 text-xs leading-relaxed text-ink-subtle max-lg:hidden">
+        Para compartilhar a tela, use o Chrome, o Edge ou o Firefox no computador. Não precisa
+        instalar nada.
+      </p>
     </aside>
   );
 }

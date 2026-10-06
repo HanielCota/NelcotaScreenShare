@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { BrandPanel } from "@/components/account/BrandPanel";
 import { NavBrand } from "@/components/NavBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { getEnv } from "@/server/env";
 
 /**
  * Telas de acesso da conta de participante: um painel no centro da página,
@@ -17,8 +16,8 @@ export default function AccessLayout({ children }: { children: ReactNode }) {
         <NavBrand href="/" />
         <ThemeToggle />
       </div>
-      <div className="glass grid w-full max-w-4xl overflow-hidden rounded-3xl lg:min-h-[36rem] lg:grid-cols-[5fr_6fr]">
-        <BrandPanel maxParticipants={getEnv().MAX_PARTICIPANTS} />
+      <div className="grid w-full max-w-4xl overflow-hidden rounded-2xl border border-line bg-surface lg:min-h-[34rem] lg:grid-cols-[5fr_6fr]">
+        <BrandPanel />
         <div
           data-layout="split"
           className="group/access flex flex-col items-center justify-center px-5 py-7 sm:px-10 sm:py-10"

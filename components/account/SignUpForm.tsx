@@ -4,7 +4,7 @@ import { Check, Circle, Loader2, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
-import { AccessTabs, RoomContextNote } from "@/components/account/AccessTop";
+import { AccessTabs } from "@/components/account/AccessTop";
 import { EmailField, forgetTypedEmail } from "@/components/account/EmailField";
 import { AuthCard, FormError } from "@/components/auth/AuthCard";
 import { PasswordInput } from "@/components/auth/PasswordInput";
@@ -128,15 +128,10 @@ export function SignUpForm({ returnTo, context }: { returnTo: string; context: A
       title="Crie sua conta"
       description={
         context.kind === "room"
-          ? "Leva um minuto. Depois de confirmar o e-mail, você entra na sala."
+          ? "Depois de confirmar o e-mail, você entra direto na sala."
           : "Para criar salas, entrar nas salas do time e compartilhar a tela."
       }
-      top={
-        <>
-          <AccessTabs current="cadastro" returnTo={returnTo} />
-          <RoomContextNote context={context} />
-        </>
-      }
+      top={<AccessTabs current="cadastro" returnTo={returnTo} />}
     >
       <form
         onSubmit={(event) => void handleSubmit(event)}

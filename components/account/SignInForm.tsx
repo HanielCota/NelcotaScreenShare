@@ -4,7 +4,7 @@ import { Loader2, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
-import { AccessTabs, RoomContextNote } from "@/components/account/AccessTop";
+import { AccessTabs } from "@/components/account/AccessTop";
 import { EmailField, forgetTypedEmail } from "@/components/account/EmailField";
 import { AuthCard, FormError } from "@/components/auth/AuthCard";
 import { PasswordInput } from "@/components/auth/PasswordInput";
@@ -85,12 +85,7 @@ export function SignInForm({
           ? "Depois de entrar, você volta direto para a sala."
           : "Para criar salas e compartilhar a tela."
       }
-      top={
-        <>
-          <AccessTabs current="entrar" returnTo={returnTo} />
-          <RoomContextNote context={context} />
-        </>
-      }
+      top={<AccessTabs current="entrar" returnTo={returnTo} />}
     >
       <form
         onSubmit={(event) => void handleSubmit(event)}
