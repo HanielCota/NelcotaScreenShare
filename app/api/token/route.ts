@@ -1,4 +1,4 @@
-import { timingSafeEqual, createHash, randomUUID } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import {
   AccessToken,
   RoomConfiguration,
@@ -7,13 +7,18 @@ import {
   TrackSource,
 } from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
+import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/auth/origin-guard";
+import { getUserAuth } from "@/server/auth/user";
+import { clientIpFrom } from "@/server/client-ip";
 import { getEnv } from "@/server/env";
 import { requestLogger } from "@/server/request-log";
 import { tokenRequestSchema, type TokenErrorCode, type TokenResponse } from "@/lib/livekit";
-import { createRateLimiter, getClientIp } from "@/server/rate-limit";
+import { createRateLimiter } from "@/server/rate-limit";
 
 const TOKEN_TTL = "10m";
 const rateLimit = createRateLimiter({ limit: 20, windowMs: 60_000 });
+// Por conta também: trocar de IP não dá mais tentativas.
+const perUserLimit = createRateLimiter({ limit: 20, windowMs: 60_000 });
 // Senha errada: poucas chances por IP, com janela longa, contra força bruta.
 const passwordFailures = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
 
@@ -74,9 +79,33 @@ function tooManyAttempts(
 
 export async function POST(request: NextRequest) {
   const env = getEnv();
-  const ip = getClientIp(request.headers, env.TRUSTED_PROXY_HOPS);
+  if (isCrossSiteMutation(request)) return forbiddenCrossSite();
+  const ip = clientIpFrom(request.headers) ?? "desconhecido";
   const limit = rateLimit.hit(ip);
   if (!limit.ok) return tooManyAttempts(limit.retryAfterSeconds);
+
+  // Só participantes logados, com e-mail confirmado e conta ativa.
+  const auth = await getUserAuth().api.getSession({ headers: request.headers });
+  if (!auth) {
+    return errorResponse("unauthenticated", "Entre na sua conta para participar da sala.", 401);
+  }
+  const { user } = auth;
+  if (user.blockedAt || user.deletedAt) {
+    return errorResponse(
+      "blocked",
+      "Sua conta não pode entrar em salas. Fale com o suporte se achar que é um engano.",
+      403,
+    );
+  }
+  if (!user.emailVerified) {
+    return errorResponse(
+      "email_unverified",
+      "Confirme seu e-mail para entrar em salas. Enviamos um link quando você criou a conta.",
+      403,
+    );
+  }
+  const userLimit = perUserLimit.hit(user.id);
+  if (!userLimit.ok) return tooManyAttempts(userLimit.retryAfterSeconds);
 
   let body: unknown;
   try {
@@ -93,17 +122,15 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     const field = parsed.error.issues[0]?.path[0];
     const message =
-      field === "name"
-        ? "Confira seu nome. Digite entre 1 e 32 caracteres para entrar na sala."
-        : field === "password"
-          ? "Confira a senha de acesso. Ela deve ter no máximo 128 caracteres."
-          : field === "room"
-            ? "Confira o código da sala ou peça um novo convite a quem enviou."
-            : "Confira os dados de entrada e tente novamente.";
+      field === "password"
+        ? "Confira a senha de acesso. Ela deve ter no máximo 128 caracteres."
+        : field === "room"
+          ? "Confira o código da sala ou peça um novo convite a quem enviou."
+          : "Confira os dados de entrada e tente novamente.";
     return errorResponse("invalid_request", message, 400);
   }
 
-  const { room, name, password } = parsed.data;
+  const { room, password } = parsed.data;
 
   if (env.ACCESS_PASSWORD) {
     const failures = passwordFailures.peek(ip);
@@ -134,9 +161,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Identidade = conta: a mesma pessoa em duas abas ocupa um só lugar na sala
+    // (o LiveKit desconecta a conexão anterior) e os eventos ligam na conta certa.
     const token = new AccessToken(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET, {
-      identity: `${name.toLowerCase().replaceAll(/\s+/g, "-")}-${randomUUID().slice(0, 8)}`,
-      name,
+      identity: user.id,
+      name: user.name,
       ttl: TOKEN_TTL,
     });
     token.addGrant({

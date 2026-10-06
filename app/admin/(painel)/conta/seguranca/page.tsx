@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TwoFactorSettings } from "@/components/admin/account/TwoFactorSettings";
+import { TwoFactorSettings } from "@/components/auth/TwoFactorSettings";
 import { needsTwoFactorSetup, requireAdmin } from "@/server/auth/admin-session";
 import { ROLES_REQUIRING_2FA } from "@/server/auth/roles";
 
@@ -21,6 +21,8 @@ export default async function AccountSecurityPage() {
         </output>
       ) : null}
       <TwoFactorSettings
+        scope="admin"
+        doneHref="/admin"
         enabled={admin.user.twoFactorEnabled}
         required={ROLES_REQUIRING_2FA.includes(admin.user.role)}
       />

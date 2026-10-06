@@ -1,11 +1,19 @@
 "use client";
 
-import { Keyboard, Plus } from "lucide-react";
+import { Keyboard, Plus, UserRound } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useTransition } from "react";
 import { Mascot } from "@/components/Mascot";
 import { celebrateMascot } from "@/components/mascot/events";
-import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
+import {
+  NavBar,
+  NavBrand,
+  NavDivider,
+  navItemClass,
+  NavPopover,
+  ShortcutsPanel,
+} from "@/components/NavBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
@@ -18,7 +26,16 @@ const STEPS = [
   "Clique em compartilhar e escolha a tela inteira, uma janela ou uma aba.",
 ];
 
-export function HomeScene({ invalidCode }: { invalidCode: boolean }) {
+export function HomeScene({
+  invalidCode,
+  account,
+  notice,
+}: {
+  invalidCode: boolean;
+  /** Participante logado (nome para a navbar), ou null. */
+  account: { name: string } | null;
+  notice?: string | undefined;
+}) {
   const scope = useRef<HTMLElement>(null);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -83,21 +100,44 @@ export function HomeScene({ invalidCode }: { invalidCode: boolean }) {
           >
             <ShortcutsPanel />
           </NavPopover>
-          {/* No celular o "Criar sala" do formulário já fica logo abaixo. */}
           <ThemeToggle className="ml-auto" />
-          <NavDivider className="max-sm:hidden" />
-          <Button
-            disabled={pending}
-            onClick={createRoom}
-            className="h-9 rounded-xl px-3.5 max-sm:hidden"
-          >
-            <Plus aria-hidden="true" />
-            Criar sala
-          </Button>
+          <NavDivider />
+          {account ? (
+            <>
+              <Link href="/conta" className={`${navItemClass} max-w-40`}>
+                <UserRound className="size-4 shrink-0" aria-hidden="true" />
+                <span className="truncate max-sm:sr-only">{account.name}</span>
+                <span className="sr-only sm:hidden">Minha conta</span>
+              </Link>
+              {/* No celular o "Criar sala" do formulário já fica logo abaixo. */}
+              <Button
+                disabled={pending}
+                onClick={createRoom}
+                className="h-9 rounded-xl px-3.5 max-sm:hidden"
+              >
+                <Plus aria-hidden="true" />
+                Criar sala
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/entrar" className={navItemClass}>
+                Entrar
+              </Link>
+              <Button asChild className="h-9 rounded-xl px-3.5 max-sm:hidden">
+                <Link href="/cadastro">Criar conta</Link>
+              </Button>
+            </>
+          )}
         </NavBar>
       </header>
 
       <div className="flex w-full max-w-md flex-col items-center text-center">
+        {notice ? (
+          <output className="mb-6 block w-full rounded-xl bg-surface-2 px-4 py-3 text-sm">
+            {notice}
+          </output>
+        ) : null}
         <div data-anim="mascot" className="mb-6">
           <Mascot className="size-44 sm:size-52" />
         </div>

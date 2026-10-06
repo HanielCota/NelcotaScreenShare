@@ -96,7 +96,7 @@ export default defineConfig({
       },
     },
     {
-      files: ["components/room/PreJoin.tsx"],
+      files: ["components/account/SignUpForm.tsx"],
       // Oxlint 1.86 omite o token HTML válido `nickname` da lista desta regra.
       // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill-field
       rules: { "jsx-a11y/autocomplete-valid": "off" },
@@ -106,8 +106,8 @@ export default defineConfig({
         "components/room/MicMenu.tsx",
         "components/room/Reactions.tsx",
         "components/room/ShareMenu.tsx",
-        "components/admin/auth/AdminTwoFactorForm.tsx",
-        "components/admin/account/TwoFactorSettings.tsx",
+        "components/auth/TwoFactorSettings.tsx",
+        "components/auth/TwoFactorCodeForm.tsx",
       ],
       // Popovers abertos por ação da pessoa e telas de um único campo (código do
       // 2FA, que a pessoa acabou de pedir): o foco inicial ajuda quem usa teclado.

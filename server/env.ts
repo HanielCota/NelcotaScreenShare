@@ -28,17 +28,16 @@ const envSchema = z
       emptyToUndefined,
       z.coerce.number().int().min(1).max(5).default(1),
     ),
-    // Postgres (configurações do admin e o que vier depois). Sem ele, o app roda
-    // com os valores padrão e o admin não consegue salvar.
-    DATABASE_URL: z.preprocess(
-      emptyToUndefined,
-      z
-        .url({
-          protocol: /^postgres(ql)?$/,
-          error: "DATABASE_URL precisa ser uma URL postgres:// ou postgresql://",
-        })
-        .optional(),
-    ),
+    // Postgres: contas, salas e configurações. Use o papel sem DDL (nelcota_app).
+    DATABASE_URL: z.url({
+      protocol: /^postgres(ql)?$/,
+      error: "DATABASE_URL é obrigatória (postgres:// ou postgresql://)",
+    }),
+    // Segredo da instância de participantes do Better Auth (cookies, 2FA cifrado).
+    // Gere com: openssl rand -base64 48
+    AUTH_SECRET: z
+      .string({ error: "AUTH_SECRET é obrigatória (openssl rand -base64 48)" })
+      .min(32, "AUTH_SECRET precisa ter ao menos 32 caracteres"),
     // Origem pública do app (links de e-mail, CSRF do Better Auth). Em dev: localhost.
     APP_URL: z.preprocess(emptyToUndefined, z.url().optional()),
     // Segredo da instância de admin do Better Auth (cookies, 2FA cifrado). Sem ele,
@@ -66,25 +65,26 @@ const envSchema = z
   })
   .superRefine((env, ctx) => {
     if (process.env.NODE_ENV !== "production") return;
-    if (env.ADMIN_AUTH_SECRET && !env.DATABASE_URL) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["DATABASE_URL"],
-        message: "O /admin precisa do banco: defina DATABASE_URL",
-      });
-    }
-    if (env.ADMIN_AUTH_SECRET && !env.APP_URL) {
+    if (!env.APP_URL) {
       ctx.addIssue({
         code: "custom",
         path: ["APP_URL"],
         message: "Defina APP_URL (ex.: https://app.seudominio.com) para os links de e-mail",
       });
     }
-    if (env.ADMIN_AUTH_SECRET && (!env.SMTP_URL || !env.MAIL_FROM)) {
+    if (!env.SMTP_URL || !env.MAIL_FROM) {
       ctx.addIssue({
         code: "custom",
         path: ["SMTP_URL"],
-        message: "Em produção, convites e recuperação de senha exigem SMTP_URL e MAIL_FROM",
+        message:
+          "Em produção, verificação de e-mail e recuperação de senha exigem SMTP_URL e MAIL_FROM",
+      });
+    }
+    if (env.ADMIN_AUTH_SECRET && env.ADMIN_AUTH_SECRET === env.AUTH_SECRET) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["ADMIN_AUTH_SECRET"],
+        message: "Use segredos diferentes para o painel admin e para as contas de participantes",
       });
     }
   });

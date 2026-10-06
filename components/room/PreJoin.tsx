@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { displayNameSchema, requestToken } from "@/lib/livekit";
+import { requestToken, roomPath } from "@/lib/livekit";
 import { saveMicrophone, savedMicrophone } from "@/lib/room-data";
 import { cn, formText } from "@/lib/utils";
 
@@ -27,33 +27,15 @@ export interface JoinChoices {
 
 interface PreJoinProps {
   code: string;
-  defaultName: string;
+  /** Nome da conta logada: é como a pessoa aparece na sala. */
+  userName: string;
   passwordRequired: boolean;
   onJoin: (choices: JoinChoices) => void;
 }
 
-const NAME_KEY = "nelcota:nome";
-
-/** Nome usado da última vez neste navegador (conveniência; pode não existir). */
 /** O microfone salvo só muda por esta tela, que já guarda a escolha no estado. */
 function subscribeNothing(): () => void {
   return () => {};
-}
-
-function savedName(): string {
-  try {
-    return localStorage.getItem(NAME_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-function saveName(name: string) {
-  try {
-    localStorage.setItem(NAME_KEY, name);
-  } catch {
-    // Armazenamento bloqueado: só não lembra o nome.
-  }
 }
 
 function micErrorMessage(error: unknown): string {
@@ -69,12 +51,10 @@ function micErrorMessage(error: unknown): string {
   }
 }
 
-export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoinProps) {
+export function PreJoin({ code, userName, passwordRequired, onJoin }: PreJoinProps) {
   const scope = useRef<HTMLFormElement>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const meterRef = useRef<HTMLDivElement>(null);
-  const nameId = useId();
   const passwordId = useId();
   const micId = useId();
   const deviceId = useId();
@@ -88,7 +68,7 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
   const [chosenMic, setChosenMic] = useState<string | null>();
   const savedMic = useSyncExternalStore(subscribeNothing, savedMicrophone, () => undefined);
   const audioDeviceId = chosenMic === undefined ? savedMic : (chosenMic ?? undefined);
-  const [formError, setFormError] = useState<{ message: string; field?: "name" | "password" }>();
+  const [formError, setFormError] = useState<{ message: string; field?: "password" }>();
   const [submitting, setSubmitting] = useState(false);
 
   useGSAP(
@@ -106,12 +86,9 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
     { scope },
   );
 
-  // Preenche o nome da última vez e foca o primeiro campo que falta.
+  // Com senha de acesso, o foco já começa no único campo que falta.
   useEffect(() => {
-    const input = nameRef.current;
-    if (!input) return;
-    if (!input.value) input.value = savedName();
-    (input.value === "" ? input : (passwordRef.current ?? input)).focus();
+    passwordRef.current?.focus();
   }, []);
 
   // Teste de microfone: captura local + medidor de nível (sem re-render por frame).
@@ -177,18 +154,8 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
     event.preventDefault();
     if (submitting) return;
     const data = new FormData(event.currentTarget);
-    const name = displayNameSchema.safeParse(formText(data, "name"));
     const password = passwordRequired ? formText(data, "password") : undefined;
 
-    if (!name.success) {
-      setFormError({
-        message: name.error.issues[0]?.message ?? "Digite seu nome para entrar na sala.",
-        field: "name",
-      });
-      nameRef.current?.focus();
-      upsetMascot("grumpy", nameRef.current ?? undefined);
-      return;
-    }
     if (passwordRequired && !password) {
       setFormError({
         message: "Digite a senha que recebeu de quem enviou o convite.",
@@ -203,8 +170,18 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
     setSubmitting(true);
     setTesting(false);
 
-    const result = await requestToken({ room: code, name: name.data, password });
+    const result = await requestToken({ room: code, password });
     if (!result.ok) {
+      // Sessão expirou ou e-mail ainda não confirmado: volta para a sala depois.
+      if (result.code === "unauthenticated" || result.code === "email_unverified") {
+        const back = encodeURIComponent(roomPath(code));
+        window.location.assign(
+          result.code === "unauthenticated"
+            ? `/entrar?voltar=${back}`
+            : `/verificar-email?voltar=${back}`,
+        );
+        return;
+      }
       setSubmitting(false);
       setFormError({
         message: result.message,
@@ -225,9 +202,8 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
       return;
     }
 
-    saveName(name.data);
     onJoin({
-      name: name.data,
+      name: userName,
       password,
       token: result.data.token,
       serverUrl: result.data.serverUrl,
@@ -255,29 +231,18 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
 
       <div
         data-anim="row"
-        data-invalid={formError?.field === "name" || undefined}
-        className="flex flex-col gap-2"
+        className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3"
       >
-        <Label htmlFor={nameId}>Seu nome</Label>
-        <Input
-          ref={nameRef}
-          id={nameId}
-          name="name"
-          defaultValue={defaultName}
-          autoComplete="nickname"
-          placeholder="Como vão te ver na sala"
-          maxLength={32}
-          aria-invalid={formError?.field === "name" || undefined}
-          aria-describedby={formError?.field === "name" ? `${nameId}-error` : undefined}
-          onChange={() =>
-            setFormError((error) => (error?.field === "password" ? error : undefined))
-          }
-        />
-        {formError?.field === "name" ? (
-          <p id={`${nameId}-error`} className="text-sm text-danger" role="alert">
-            {formError.message}
-          </p>
-        ) : null}
+        <p className="min-w-0 text-sm text-ink-muted">
+          Você vai entrar como{" "}
+          <strong className="block truncate text-base font-semibold text-ink">{userName}</strong>
+        </p>
+        <Link
+          href={`/conta?voltar=${encodeURIComponent(roomPath(code))}`}
+          className="shrink-0 text-sm font-semibold text-brand-soft hover:underline"
+        >
+          Mudar nome
+        </Link>
       </div>
 
       {passwordRequired ? (
@@ -299,7 +264,7 @@ export function PreJoin({ code, defaultName, passwordRequired, onJoin }: PreJoin
             maxLength={128}
             aria-invalid={formError?.field === "password" || undefined}
             aria-describedby={formError?.field === "password" ? `${passwordId}-error` : undefined}
-            onChange={() => setFormError((error) => (error?.field === "name" ? error : undefined))}
+            onChange={() => setFormError(undefined)}
           />
           {formError?.field === "password" ? (
             <p id={`${passwordId}-error`} className="text-sm text-danger" role="alert">

@@ -7,6 +7,8 @@ const KEY = "chave-teste";
 const SECRET = "segredo-de-teste-0123456789abcdef0123456789";
 
 Object.assign(process.env, {
+  DATABASE_URL: "postgres://ninguem@127.0.0.1:1/naoexiste",
+  AUTH_SECRET: "segredo-de-teste-unitario-0123456789abcdef",
   LIVEKIT_API_KEY: KEY,
   LIVEKIT_API_SECRET: SECRET,
   NEXT_PUBLIC_LIVEKIT_URL: "ws://127.0.0.1:7880",

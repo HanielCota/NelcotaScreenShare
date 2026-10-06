@@ -1,11 +1,10 @@
 import "server-only";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins/admin";
 import { twoFactor } from "better-auth/plugins/two-factor";
-import { CLIENT_IP_HEADER, clientIpFrom } from "@/server/client-ip";
+import { CLIENT_IP_HEADER } from "@/server/client-ip";
 import { getDb, type Database } from "@/server/db";
 import {
   adminAccounts,
@@ -18,17 +17,11 @@ import {
 import { appUrl, getEnv } from "@/server/env";
 import { logger } from "@/server/logger";
 import { mailLayout, sendMail } from "@/server/mail";
-import { checkLockout, clearFailures, emailHash, recordFailure } from "./lockout";
 import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password";
 import { ac, roles } from "./permissions";
+import { lockoutHooks, SIGN_IN_PATH } from "./shared";
 
 export const ADMIN_AUTH_BASE_PATH = "/api/admin/auth";
-const SIGN_IN_PATH = "/sign-in/email";
-
-function lockedMessage(seconds: number): string {
-  const minutes = Math.max(1, Math.ceil(seconds / 60));
-  return `Muitas tentativas. Tente de novo em ${minutes} min.`;
-}
 
 function createAdminAuth(db: Database, secret: string) {
   const production = process.env.NODE_ENV === "production";
@@ -108,40 +101,7 @@ function createAdminAuth(db: Database, secret: string) {
       database: { generateId: false },
       ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
     },
-    hooks: {
-      before: createAuthMiddleware(async (ctx) => {
-        if (ctx.path !== SIGN_IN_PATH) return;
-        const email = typeof ctx.body?.email === "string" ? ctx.body.email : "";
-        const status = await checkLockout(db, {
-          scope: "admin",
-          hash: emailHash(secret, "admin", email),
-          ip: ctx.headers ? clientIpFrom(ctx.headers) : undefined,
-        });
-        if (status.locked) {
-          throw new APIError("TOO_MANY_REQUESTS", {
-            message: lockedMessage(status.retryAfterSeconds),
-          });
-        }
-      }),
-      after: createAuthMiddleware(async (ctx) => {
-        if (ctx.path !== SIGN_IN_PATH) return;
-        const email = typeof ctx.body?.email === "string" ? ctx.body.email : "";
-        const hash = emailHash(secret, "admin", email);
-        const returned = ctx.context.returned;
-        if (returned instanceof APIError) {
-          if (returned.statusCode === 401) {
-            await recordFailure(db, {
-              scope: "admin",
-              hash,
-              ip: ctx.headers ? clientIpFrom(ctx.headers) : undefined,
-            });
-            logger.warn({ event: "admin.sign_in_failed" }, "login de admin recusado");
-          }
-          return;
-        }
-        await clearFailures(db, { scope: "admin", hash });
-      }),
-    },
+    hooks: lockoutHooks(db, secret, "admin"),
     plugins: [
       twoFactor({
         issuer: "Nelcota Admin",

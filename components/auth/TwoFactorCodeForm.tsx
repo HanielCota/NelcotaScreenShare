@@ -9,10 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminAuthClient } from "@/lib/admin-auth-client";
+import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { formText } from "@/lib/utils";
 
-export function AdminTwoFactorForm() {
+/** Segundo fator no login (app autenticador ou código de backup). */
+export function TwoFactorCodeForm({
+  scope,
+  doneHref,
+  backHref,
+}: {
+  scope: "admin" | "user";
+  doneHref: string;
+  backHref: string;
+}) {
+  const client = scope === "admin" ? adminAuthClient : authClient;
   const router = useRouter();
   const codeId = useId();
   const errorId = useId();
@@ -27,14 +38,14 @@ export function AdminTwoFactorForm() {
     setPending(true);
     setError(undefined);
     const { error: failure } = backup
-      ? await adminAuthClient.twoFactor.verifyBackupCode({ code })
-      : await adminAuthClient.twoFactor.verifyTotp({ code });
+      ? await client.twoFactor.verifyBackupCode({ code })
+      : await client.twoFactor.verifyTotp({ code });
     if (failure) {
       setPending(false);
       setError(authErrorMessage(failure, "Código inválido. Confira e tente de novo."));
       return;
     }
-    router.replace("/admin");
+    router.replace(doneHref);
     router.refresh();
   }
 
@@ -48,7 +59,7 @@ export function AdminTwoFactorForm() {
           : "Digite o código de 6 dígitos do seu app autenticador."
       }
       footer={
-        <Link href="/admin/entrar" className="font-semibold text-brand-soft hover:underline">
+        <Link href={backHref} className="font-semibold text-brand-soft hover:underline">
           Voltar ao login
         </Link>
       }

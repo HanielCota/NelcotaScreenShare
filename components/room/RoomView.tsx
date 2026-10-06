@@ -77,6 +77,8 @@ function connectErrorMessage(error: unknown): string {
 
 function disconnectMessage(reason: DisconnectReason | undefined): string | undefined {
   switch (reason) {
+    case DisconnectReason.DUPLICATE_IDENTITY:
+      return "Você entrou nesta sala em outra aba ou dispositivo, então esta conexão foi encerrada.";
     case DisconnectReason.PARTICIPANT_REMOVED:
       return "Você foi removido da sala. Fale com quem enviou o convite antes de entrar de novo.";
     case DisconnectReason.ROOM_DELETED:

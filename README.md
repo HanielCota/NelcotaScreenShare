@@ -140,7 +140,8 @@ Os atalhos não disparam enquanto você digita no chat ou em outro campo.
 | `NEXT_PUBLIC_LIVEKIT_URL` | sim         | `wss://lk.seudominio.com`                                                    |
 | `ACCESS_PASSWORD`         | não         | Se definida, todos precisam dela para entrar (comparação em tempo constante) |
 | `MAX_PARTICIPANTS`        | não         | Limite por sala, de 2 a 8 (padrão 6)                                         |
-| `DATABASE_URL`            | não         | Postgres (`postgres://…`). Sem ele, as configurações do admin usam o padrão  |
+| `DATABASE_URL`            | sim         | Postgres (`postgres://…`), papel `nelcota_app`                               |
+| `AUTH_SECRET`             | sim         | Segredo das contas de participantes (32+ caracteres)                         |
 | `ADMIN_AUTH_SECRET`       | não         | Liga o `/admin` (32+ caracteres, `openssl rand -base64 48`). Exige banco     |
 | `APP_URL`                 | produção    | Origem pública do app (links de e-mail; obrigatória com o painel ligado)     |
 | `SMTP_URL` / `MAIL_FROM`  | produção    | E-mail transacional (convites, senha). Em dev, sem SMTP, o e-mail vai ao log |
@@ -159,7 +160,7 @@ O app usa **PostgreSQL 18** com **[Drizzle ORM](https://orm.drizzle.team)** (`dr
 - O schema fica em `server/db/schema.ts`. Depois de mudar o schema, rode `pnpm db:generate`, revise o SQL e faça commit dele em `drizzle/`.
 - **Migrações nunca rodam no boot do app.** São um job separado (`scripts/migrate.ts`), com um usuário próprio do Postgres, advisory lock e `lock_timeout` de 5 s. Mudanças seguem _expand/contract_ (o código antigo continua funcionando com o schema novo).
 - Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `server/settings.ts`). Um grupo novo de configuração não precisa de migração.
-- Sem `DATABASE_URL` o app funciona normalmente, com os valores padrão.
+- `DATABASE_URL` é obrigatória: entrar numa sala exige conta.
 
 ### Papéis do Postgres (privilégio mínimo)
 
@@ -175,6 +176,16 @@ Os papéis são criados uma vez com `deploy/postgres/bootstrap.sql` (idempotente
 
 - `tests/unit`: sem banco.
 - `tests/integration`: Postgres real. Com `TEST_DATABASE_URL` (banco **descartável**; em dev ele é lido do `.env.local`), o Vitest recria um banco-modelo já migrado e cada arquivo de teste recebe uma cópia limpa (`CREATE DATABASE … TEMPLATE`).
+
+### Contas de participantes
+
+Entrar numa sala (e criar uma) exige **conta com e-mail confirmado**. É uma segunda instância do Better Auth em `/api/auth` (tabelas `users*`, cookie `nelcota.*`, `SameSite=Lax`), separada do painel admin.
+
+- **Cadastro:** nome de exibição, e-mail e senha (10 a 128 caracteres, argon2id) e aceite do [aviso de privacidade](/privacidade). Cadastrar um e-mail que já existe responde igual a um cadastro novo, e o dono do e-mail recebe um aviso.
+- **Confirmação de e-mail obrigatória** (link de 24 h; em dev o link aparece no log do servidor). Depois de confirmar, a pessoa já entra e volta para onde estava (ex.: a sala).
+- **Na sala:** a identidade no LiveKit é o ID da conta e o nome vem da conta. A mesma conta numa segunda aba desconecta a primeira, com aviso.
+- **Minha conta (`/conta`):** nome, troca de e-mail (com confirmação no novo), senha, 2FA opcional, sessões ativas, **baixar meus dados** (JSON) e **excluir a conta** (anonimização imediata).
+- Mesmas proteções do admin: bloqueio por tentativas, rate limit no banco, checagem de origem e mensagens que não revelam se o e-mail existe. Conta bloqueada pelo painel não entra nem abre sessão.
 
 ### Painel `/admin`
 

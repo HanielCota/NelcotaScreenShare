@@ -4,6 +4,7 @@ import { createSafeActionClient } from "next-safe-action";
 import { z } from "zod";
 import { getAdminSession, needsTwoFactorSetup } from "@/server/auth/admin-session";
 import { can, type PermissionRequest } from "@/server/auth/permissions";
+import { getUserSession } from "@/server/auth/user-session";
 import { clientIpFrom } from "@/server/client-ip";
 import { requestLogger } from "@/server/request-log";
 import { createRateLimiter, type RateLimiter } from "@/server/rate-limit";
@@ -77,4 +78,17 @@ export const publicAction = actionClient.use(async ({ next, metadata }) => {
   const ip = clientIpFrom(await headers()) ?? "desconhecido";
   if (!limiter.hit(ip).ok) throw new ActionError("Muitas tentativas. Aguarde alguns minutos.");
   return next();
+});
+
+/**
+ * Actions do participante logado (Minha conta). `fresh` exige login nos
+ * últimos 10 minutos (trocar senha ou e-mail, excluir a conta).
+ */
+export const userAction = actionClient.use(async ({ next, metadata }) => {
+  const current = await getUserSession();
+  if (!current) throw new ActionError("Sua sessão expirou. Entre de novo.");
+  if (metadata.fresh && Date.now() - current.session.createdAt.getTime() > FRESH_SESSION_MS) {
+    throw new ActionError("Por segurança, entre de novo para fazer isso.");
+  }
+  return next({ ctx: { current } });
 });

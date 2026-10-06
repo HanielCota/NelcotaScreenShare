@@ -5,6 +5,9 @@
  */
 const BY_CODE: Record<string, string> = {
   INVALID_EMAIL_OR_PASSWORD: "E-mail ou senha incorretos.",
+  EMAIL_NOT_VERIFIED: "Confirme seu e-mail antes de entrar. Enviamos um novo link agora.",
+  USER_ALREADY_EXISTS: "Confira seu e-mail para continuar.",
+  FAILED_TO_CREATE_SESSION: "E-mail ou senha incorretos.",
   INVALID_PASSWORD: "Senha incorreta.",
   INVALID_CODE: "Código inválido ou expirado. Confira o app autenticador e tente de novo.",
   INVALID_TWO_FACTOR_COOKIE: "A verificação expirou. Entre com e-mail e senha de novo.",

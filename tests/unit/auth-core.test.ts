@@ -147,6 +147,7 @@ describe("mensagens e formatação", () => {
     assert.equal(formatDateTime("2026-10-07T02:30:00Z"), "06/10/2026, 23:30");
     const now = Date.parse("2026-10-06T12:00:00Z");
     assert.equal(formatRelative(now - 5 * 60_000, now), "há 5 minutos");
+    assert.equal(formatRelative(now - 12_000, now), "agora mesmo");
     assert.equal(formatRelative(now - 86_400_000, now), "ontem");
   });
 });

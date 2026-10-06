@@ -1,5 +1,5 @@
-import { AdminTwoFactorForm } from "@/components/admin/auth/AdminTwoFactorForm";
+import { TwoFactorCodeForm } from "@/components/auth/TwoFactorCodeForm";
 
 export default function AdminVerifyTwoFactorPage() {
-  return <AdminTwoFactorForm />;
+  return <TwoFactorCodeForm scope="admin" doneHref="/admin" backHref="/admin/entrar" />;
 }

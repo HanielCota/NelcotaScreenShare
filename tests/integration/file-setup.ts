@@ -22,4 +22,5 @@ Object.assign(process.env, {
   LIVEKIT_API_KEY: "chave-teste",
   LIVEKIT_API_SECRET: "segredo-de-teste-0123456789abcdef0123456789",
   NEXT_PUBLIC_LIVEKIT_URL: "ws://127.0.0.1:7880",
+  AUTH_SECRET: "segredo-participantes-de-teste-0123456789abcdef",
 });

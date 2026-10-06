@@ -10,17 +10,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminAuthClient } from "@/lib/admin-auth-client";
+import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { formText } from "@/lib/utils";
 
-const BACK_TO_LOGIN = (
-  <Link href="/admin/entrar" className="font-semibold text-brand-soft hover:underline">
-    Voltar ao login
-  </Link>
-);
+type Scope = "admin" | "user";
 
-/** Pede o link. A resposta é sempre a mesma: não revela quais e-mails são de admin. */
-export function AdminForgotPasswordForm() {
+const PATHS: Record<Scope, { login: string; forgot: string; reset: string; minLength: number }> = {
+  admin: {
+    login: "/admin/entrar",
+    forgot: "/admin/recuperar-senha",
+    reset: "/admin/redefinir-senha",
+    minLength: 12,
+  },
+  user: { login: "/entrar", forgot: "/recuperar-senha", reset: "/redefinir-senha", minLength: 10 },
+};
+
+function BackToLogin({ scope }: { scope: Scope }) {
+  return (
+    <Link href={PATHS[scope].login} className="font-semibold text-brand-soft hover:underline">
+      Voltar ao login
+    </Link>
+  );
+}
+
+/** Pede o link. A resposta é sempre a mesma: não revela quais e-mails têm conta. */
+export function ForgotPasswordForm({ scope }: { scope: Scope }) {
+  const client = scope === "admin" ? adminAuthClient : authClient;
   const emailId = useId();
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string>();
@@ -31,9 +47,9 @@ export function AdminForgotPasswordForm() {
     if (pending) return;
     setPending(true);
     setError(undefined);
-    const { error: failure } = await adminAuthClient.requestPasswordReset({
+    const { error: failure } = await client.requestPasswordReset({
       email: formText(new FormData(event.currentTarget), "email"),
-      redirectTo: "/admin/redefinir-senha",
+      redirectTo: PATHS[scope].reset,
     });
     setPending(false);
     if (failure?.status === 429) {
@@ -48,8 +64,8 @@ export function AdminForgotPasswordForm() {
       <AuthCard
         icon={MailCheck}
         title="Confira seu e-mail"
-        description="Se o e-mail tiver acesso ao painel, enviamos um link para definir uma nova senha. Ele vale por 30 minutos."
-        footer={BACK_TO_LOGIN}
+        description="Se o e-mail tiver uma conta, enviamos um link para definir uma nova senha. Ele vale por 30 minutos."
+        footer={<BackToLogin scope={scope} />}
       >
         <p className="text-sm text-ink-subtle">
           Não chegou? Veja a caixa de spam ou peça de novo em um minuto.
@@ -62,8 +78,12 @@ export function AdminForgotPasswordForm() {
     <AuthCard
       icon={KeyRound}
       title="Recuperar senha"
-      description="Digite o e-mail da sua conta do painel."
-      footer={BACK_TO_LOGIN}
+      description={
+        scope === "admin"
+          ? "Digite o e-mail da sua conta do painel."
+          : "Digite o e-mail da sua conta."
+      }
+      footer={<BackToLogin scope={scope} />}
     >
       <form
         onSubmit={(event) => void handleSubmit(event)}
@@ -92,7 +112,9 @@ export function AdminForgotPasswordForm() {
 }
 
 /** Nova senha a partir do link do e-mail (token de uso único). */
-export function AdminResetPasswordForm({ token }: { token: string | undefined }) {
+export function ResetPasswordForm({ scope, token }: { scope: Scope; token: string | undefined }) {
+  const client = scope === "admin" ? adminAuthClient : authClient;
+  const { minLength } = PATHS[scope];
   const router = useRouter();
   const passwordId = useId();
   const confirmId = useId();
@@ -105,10 +127,10 @@ export function AdminResetPasswordForm({ token }: { token: string | undefined })
         icon={KeyRound}
         title="Link inválido"
         description="Este link de redefinição expirou ou já foi usado."
-        footer={BACK_TO_LOGIN}
+        footer={<BackToLogin scope={scope} />}
       >
         <Button asChild size="lg" className="w-full">
-          <Link href="/admin/recuperar-senha">Pedir um novo link</Link>
+          <Link href={PATHS[scope].forgot}>Pedir um novo link</Link>
         </Button>
       </AuthCard>
     );
@@ -119,8 +141,8 @@ export function AdminResetPasswordForm({ token }: { token: string | undefined })
     if (pending || !token) return;
     const data = new FormData(event.currentTarget);
     const newPassword = formText(data, "password");
-    if (newPassword.length < 12) {
-      setError("A senha precisa ter ao menos 12 caracteres.");
+    if (newPassword.length < minLength) {
+      setError(`A senha precisa ter ao menos ${minLength} caracteres.`);
       return;
     }
     if (newPassword !== formText(data, "confirm")) {
@@ -129,21 +151,21 @@ export function AdminResetPasswordForm({ token }: { token: string | undefined })
     }
     setPending(true);
     setError(undefined);
-    const { error: failure } = await adminAuthClient.resetPassword({ newPassword, token });
+    const { error: failure } = await client.resetPassword({ newPassword, token });
     if (failure) {
       setPending(false);
       setError(authErrorMessage(failure));
       return;
     }
-    router.replace("/admin/entrar?aviso=senha");
+    router.replace(`${PATHS[scope].login}?aviso=senha`);
   }
 
   return (
     <AuthCard
       icon={KeyRound}
       title="Definir nova senha"
-      description="Use ao menos 12 caracteres. Todas as sessões abertas serão encerradas."
-      footer={BACK_TO_LOGIN}
+      description={`Use ao menos ${minLength} caracteres. Todas as sessões abertas serão encerradas.`}
+      footer={<BackToLogin scope={scope} />}
     >
       <form
         onSubmit={(event) => void handleSubmit(event)}
@@ -157,7 +179,7 @@ export function AdminResetPasswordForm({ token }: { token: string | undefined })
             name="password"
             autoComplete="new-password"
             required
-            minLength={12}
+            minLength={minLength}
             maxLength={128}
           />
         </div>

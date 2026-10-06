@@ -1,6 +1,6 @@
 import { and, desc, eq, gt, sql } from "drizzle-orm";
 import type { Metadata } from "next";
-import { SessionList } from "@/components/admin/account/SessionList";
+import { SessionList } from "@/components/auth/SessionList";
 import { requireAdmin } from "@/server/auth/admin-session";
 import { getDb } from "@/server/db";
 import { adminSessions } from "@/server/db/schema";
@@ -35,6 +35,7 @@ export default async function AccountSessionsPage() {
         </p>
       </div>
       <SessionList
+        scope="admin"
         currentId={admin.session.id}
         sessions={rows.map((row) => ({
           ...row,

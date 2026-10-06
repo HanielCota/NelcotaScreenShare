@@ -1,5 +1,5 @@
-import { AdminForgotPasswordForm } from "@/components/admin/auth/AdminPasswordForms";
+import { ForgotPasswordForm } from "@/components/auth/PasswordForms";
 
 export default function AdminForgotPasswordPage() {
-  return <AdminForgotPasswordForm />;
+  return <ForgotPasswordForm scope="admin" />;
 }

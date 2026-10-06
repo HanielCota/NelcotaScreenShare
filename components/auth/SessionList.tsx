@@ -7,6 +7,7 @@ import {
   revokeOtherOwnSessions,
   revokeOwnSession,
 } from "@/app/admin/(painel)/conta/sessoes/actions";
+import { revokeMyOtherSessions, revokeMySession } from "@/app/conta/actions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
@@ -20,25 +21,30 @@ interface SessionRow {
 }
 
 export function SessionList({
+  scope,
   sessions,
   currentId,
 }: {
+  scope: "admin" | "user";
   sessions: SessionRow[];
   currentId: string;
 }) {
-  const revokeOne = useAction(revokeOwnSession, {
+  const revokeOne = useAction(scope === "admin" ? revokeOwnSession : revokeMySession, {
     onSuccess: () => toast.success("Sessão encerrada."),
     onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
   });
-  const revokeOthers = useAction(revokeOtherOwnSessions, {
-    onSuccess: ({ data }) =>
-      toast.success(
-        data.revoked === 0
-          ? "Não havia outras sessões."
-          : `${data.revoked} sessão(ões) encerrada(s).`,
-      ),
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
-  });
+  const revokeOthers = useAction(
+    scope === "admin" ? revokeOtherOwnSessions : revokeMyOtherSessions,
+    {
+      onSuccess: ({ data }) =>
+        toast.success(
+          data.revoked === 0
+            ? "Não havia outras sessões."
+            : `${data.revoked} sessão(ões) encerrada(s).`,
+        ),
+      onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
+    },
+  );
   const others = sessions.filter((session) => session.id !== currentId).length;
 
   return (
@@ -66,7 +72,9 @@ export function SessionList({
                 <span className="text-sm text-ink-muted">
                   {session.ipAddress ?? "IP desconhecido"} · entrou em{" "}
                   {formatDateTime(session.createdAt)} · ativo{" "}
-                  <time dateTime={session.updatedAt}>{formatRelative(session.updatedAt)}</time>
+                  <time dateTime={session.updatedAt} suppressHydrationWarning>
+                    {formatRelative(session.updatedAt)}
+                  </time>
                 </span>
               </span>
               {current ? null : (

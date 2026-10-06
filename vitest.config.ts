@@ -27,6 +27,8 @@ export default defineConfig({
     ],
   },
   test: {
+    // Logs só atrapalham a saída dos testes (os espiões do logger continuam valendo).
+    env: { LOG_LEVEL: "silent" },
     restoreMocks: true,
     unstubEnvs: true,
     projects: [

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminAuthClient } from "@/lib/admin-auth-client";
+import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { formText } from "@/lib/utils";
 
@@ -23,7 +24,15 @@ function secretFrom(uri: string): string {
   return new URL(uri).searchParams.get("secret") ?? "";
 }
 
-function BackupCodes({ codes, onDone }: { codes: string[]; onDone: () => void }) {
+function BackupCodes({
+  codes,
+  onDone,
+  scope,
+}: {
+  codes: string[];
+  onDone: () => void;
+  scope: "admin" | "user";
+}) {
   const text = codes.join("\n");
   return (
     <div className="flex flex-col gap-4">
@@ -51,7 +60,7 @@ function BackupCodes({ codes, onDone }: { codes: string[]; onDone: () => void })
         <Button type="button" variant="outline" asChild>
           <a
             href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Códigos de backup do painel Nelcota\n\n${text}\n`)}`}
-            download="nelcota-admin-codigos-backup.txt"
+            download={`nelcota${scope === "admin" ? "-admin" : ""}-codigos-backup.txt`}
           >
             <Download aria-hidden="true" />
             Baixar .txt
@@ -67,13 +76,20 @@ function BackupCodes({ codes, onDone }: { codes: string[]; onDone: () => void })
 }
 
 export function TwoFactorSettings({
+  scope,
   enabled,
   required,
+  doneHref,
 }: {
+  /** Qual instância do Better Auth: painel admin ou conta de participante. */
+  scope: "admin" | "user";
   enabled: boolean;
   /** O papel exige 2FA (owner/admin): não dá para desativar. */
   required: boolean;
+  /** Para onde ir depois de ativar. */
+  doneHref: string;
 }) {
+  const client = scope === "admin" ? adminAuthClient : authClient;
   const router = useRouter();
   const passwordId = useId();
   const codeId = useId();
@@ -96,7 +112,7 @@ export function TwoFactorSettings({
   async function handleEnable(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const password = formText(new FormData(event.currentTarget), "password");
-    const data = await run(() => adminAuthClient.twoFactor.enable({ password }));
+    const data = await run(() => client.twoFactor.enable({ password }));
     // O painel só usa TOTP (app autenticador); "otp" seria código por e-mail.
     if (data?.method === "totp") {
       setStep({ name: "scan", totpURI: data.totpURI, backupCodes: data.backupCodes });
@@ -107,21 +123,21 @@ export function TwoFactorSettings({
     event.preventDefault();
     if (step.name !== "scan") return;
     const code = formText(new FormData(event.currentTarget), "code").replaceAll(" ", "");
-    const data = await run(() => adminAuthClient.twoFactor.verifyTotp({ code }));
+    const data = await run(() => client.twoFactor.verifyTotp({ code }));
     if (data) setStep({ name: "codes", backupCodes: step.backupCodes });
   }
 
   async function handleRegenerate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const password = formText(new FormData(event.currentTarget), "password");
-    const data = await run(() => adminAuthClient.twoFactor.generateBackupCodes({ password }));
+    const data = await run(() => client.twoFactor.generateBackupCodes({ password }));
     if (data) setStep({ name: "codes", backupCodes: data.backupCodes });
   }
 
   async function handleDisable(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const password = formText(new FormData(event.currentTarget), "password");
-    const data = await run(() => adminAuthClient.twoFactor.disable({ password }));
+    const data = await run(() => client.twoFactor.disable({ password }));
     if (data) {
       toast.success("Verificação em duas etapas desativada.");
       router.refresh();
@@ -131,7 +147,7 @@ export function TwoFactorSettings({
   function finish() {
     setStep({ name: "idle" });
     toast.success("Verificação em duas etapas ativa.");
-    router.replace("/admin");
+    router.replace(doneHref);
     router.refresh();
   }
 
@@ -171,6 +187,7 @@ export function TwoFactorSettings({
 
       {step.name === "codes" ? (
         <BackupCodes
+          scope={scope}
           codes={step.backupCodes}
           onDone={enabled ? () => setStep({ name: "idle" }) : finish}
         />

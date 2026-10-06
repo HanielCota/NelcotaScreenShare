@@ -11,6 +11,7 @@ import { StatusScreen } from "./StatusScreen";
 
 interface RoomSessionProps {
   code: string;
+  userName: string;
   passwordRequired: boolean;
   maxParticipants: number;
 }
@@ -20,17 +21,17 @@ type Phase =
   | { kind: "room"; choices: JoinChoices; attempt: number }
   | { kind: "left"; message?: string };
 
-export function RoomSession({ code, passwordRequired, maxParticipants }: RoomSessionProps) {
+export function RoomSession({
+  code,
+  userName,
+  passwordRequired,
+  maxParticipants,
+}: RoomSessionProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "prejoin" });
-  const [lastName, setLastName] = useState("");
 
   // Nova tentativa com token novo: o anterior pode ter expirado (TTL de 10 min).
   async function retry(choices: JoinChoices, attempt: number) {
-    const result = await requestToken({
-      room: code,
-      name: choices.name,
-      password: choices.password,
-    });
+    const result = await requestToken({ room: code, password: choices.password });
     if (!result.ok) {
       setPhase({ kind: "left", message: result.message });
       return;
@@ -60,12 +61,9 @@ export function RoomSession({ code, passwordRequired, maxParticipants }: RoomSes
       {phase.kind === "prejoin" ? (
         <PreJoin
           code={code}
-          defaultName={lastName}
+          userName={userName}
           passwordRequired={passwordRequired}
-          onJoin={(choices) => {
-            setLastName(choices.name);
-            setPhase({ kind: "room", choices, attempt: 0 });
-          }}
+          onJoin={(choices) => setPhase({ kind: "room", choices, attempt: 0 })}
         />
       ) : (
         <StatusScreen

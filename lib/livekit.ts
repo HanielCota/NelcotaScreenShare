@@ -16,9 +16,9 @@ export const displayNameSchema = z
   .min(1, "Digite seu nome para entrar na sala.")
   .max(32, "Seu nome pode ter até 32 caracteres. Use um nome mais curto.");
 
+/** O nome e a identidade vêm da conta logada (servidor), nunca do navegador. */
 export const tokenRequestSchema = z.object({
   room: roomCodeSchema,
-  name: displayNameSchema,
   password: z.string().max(128).optional(),
 });
 
@@ -34,6 +34,10 @@ export type TokenResponse = z.infer<typeof tokenResponseSchema>;
 export const tokenErrorSchema = z.object({
   error: z.enum([
     "invalid_request",
+    "unauthenticated",
+    "email_unverified",
+    "blocked",
+    "cross_site",
     "invalid_password",
     "room_full",
     "rate_limited",
