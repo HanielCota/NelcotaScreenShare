@@ -57,13 +57,16 @@ describe("convite", () => {
   });
 
   test("convite expirado e senha curta são recusados", async () => {
-    const { token } = await createAdminInvitation(db, {
+    const { token, invitation } = await createAdminInvitation(db, {
       email: "expirado@exemplo.com",
       role: "admin",
       invitedBy: null,
-      ttlMs: 1,
     });
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    // Envelhece o convite no banco (o relógio do Node e o do Postgres podem diferir).
+    await pool.query(
+      "update admin_invitations set created_at = now() - interval '3 days', expires_at = now() - interval '1 day' where id = $1",
+      [invitation.id],
+    );
     assert.deepEqual(
       await acceptAdminInvitation(db, auth, { token, name: "X", password: PASSWORD }),
       { ok: false, reason: "invalid" },
@@ -267,5 +270,63 @@ describe("redefinição de senha", () => {
       body: { email: "reset@exemplo.com", password: newPassword },
     });
     assert.equal(relogin.status, 200);
+  });
+});
+
+async function auditFor(action: string) {
+  return db.select().from(schema.auditLogs).where(eq(schema.auditLogs.action, action));
+}
+
+describe("auditoria dos eventos de login", () => {
+  test("login certo registra o autor; login errado não guarda o e-mail", async () => {
+    const call = newCaller();
+    await inviteAndAccept("auditoria@exemplo.com");
+    const [user] = await db
+      .select({ id: schema.adminUsers.id })
+      .from(schema.adminUsers)
+      .where(eq(schema.adminUsers.email, "auditoria@exemplo.com"));
+    await call("/sign-in/email", { body: { email: "auditoria@exemplo.com", password: PASSWORD } });
+    const signIns = await auditFor("auth.sign_in");
+    assert.ok(signIns.some((row) => row.actorAdminId === user?.id && row.resourceId === user?.id));
+
+    await call("/sign-in/email", {
+      body: { email: "auditoria@exemplo.com", password: "senha-errada-123" },
+    });
+    const failures = await auditFor("auth.sign_in_failed");
+    assert.ok(failures.length > 0);
+    for (const row of failures) {
+      assert.equal(row.actorAdminId, null);
+      assert.doesNotMatch(JSON.stringify(row), /auditoria@exemplo\.com/);
+    }
+  });
+
+  test("2FA ativado e senha redefinida ficam registrados", async () => {
+    const call = newCaller();
+    await inviteAndAccept("audit2@exemplo.com");
+    const jar = new CookieJar();
+    await call("/sign-in/email", {
+      body: { email: "audit2@exemplo.com", password: PASSWORD },
+      jar,
+    });
+    const enabled = await call("/two-factor/enable", { body: { password: PASSWORD }, jar });
+    const { totpURI } = enabled.body as { totpURI: string };
+    await call("/two-factor/verify-totp", { body: { code: totpFromUri(totpURI) }, jar });
+    assert.ok((await auditFor("auth.two_factor_enabled")).length > 0);
+
+    await call("/request-password-reset", {
+      body: { email: "audit2@exemplo.com", redirectTo: "/admin/redefinir-senha" },
+    });
+    const [row] = await db
+      .select()
+      .from(schema.adminVerifications)
+      .where(like(schema.adminVerifications.identifier, "reset-password:%"));
+    const token = row?.identifier.replace("reset-password:", "") ?? "";
+    await call("/reset-password", { body: { token, newPassword: "nova-senha-auditada-1" } });
+    assert.ok((await auditFor("auth.password_reset")).length > 0);
+  });
+
+  test("audit log não aceita UPDATE nem DELETE recente (nem para o superusuário)", async () => {
+    await assert.rejects(pool.query("update audit_logs set action = 'x.y'"), /imutável/);
+    await assert.rejects(pool.query("delete from audit_logs"), /5 anos/);
   });
 });

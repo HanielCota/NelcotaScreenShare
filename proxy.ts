@@ -17,8 +17,6 @@ export function proxy(request: NextRequest) {
   const requestId = incoming && REQUEST_ID.test(incoming) ? incoming : crypto.randomUUID();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", requestId);
-  // Caminho atual para layouts (ex.: liberar a tela de configurar o 2FA).
-  requestHeaders.set("x-pathname", request.nextUrl.pathname);
   // IP real do cliente (atrás de TRUSTED_PROXY_HOPS proxies), SEMPRE sobrescrito:
   // um valor mandado pelo próprio cliente nunca chega ao app.
   requestHeaders.set(CLIENT_IP_HEADER, getClientIp(request.headers, getEnv().TRUSTED_PROXY_HOPS));

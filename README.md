@@ -200,6 +200,10 @@ O painel usa uma **instância própria do [Better Auth](https://www.better-auth.
 - **CSRF:** o Better Auth confere a origem; além disso, a rota recusa qualquer requisição de outra origem (inclusive o primeiro login, sem cookie).
 - **Permissões:** papéis `owner`, `admin` e `viewer` em `server/auth/permissions.ts` (matriz em `docs/PLANO-ADMIN.md` §5.2). Toda página chama `requireAdmin(...)` e toda Server Action passa por `adminAction` (sessão, 2FA, permissão e sessão fresca conferidas **dentro** da action).
 
+- **Auditoria:** `audit_logs` guarda quem fez o quê, quando, de onde (IP, navegador, `request_id`) e o "antes → depois" campo a campo, com segredos mascarados. É gravado na **mesma transação** da mudança. A tabela é imutável (trigger + papel do app sem UPDATE/DELETE; apagar só depois de 5 anos). Toda Server Action declara `audit: "required" | "none"`; uma action auditada que termina sem registrar falha. Logins, bloqueios, 2FA e trocas de senha do painel também são registrados.
+- **Shell:** sidebar recolhível (lembrada em cookie), breadcrumbs, busca/command palette (`Ctrl/⌘ K`), estados de carregamento, erro e 404 em pt-BR. O menu mostra só o que o papel pode abrir.
+- **Testes de segurança:** um teste importa **todas** as Server Actions e confere que nenhuma roda sem sessão; outro confere que toda página do painel chama `requireAdmin`.
+
 **Criar o primeiro dono:**
 
 ```bash

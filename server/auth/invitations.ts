@@ -77,7 +77,7 @@ export async function findPendingInvitation(db: Database, token: string) {
 }
 
 export type AcceptResult =
-  | { ok: true; userId: string; email: string }
+  | { ok: true; userId: string; email: string; invitationId: string; role: string }
   | { ok: false; reason: "invalid" | "already_admin" | "weak_password" };
 
 /**
@@ -146,7 +146,13 @@ export async function acceptAdminInvitation(
       .update(adminInvitations)
       .set({ acceptedUserId: user.id })
       .where(eq(adminInvitations.id, claimed.id));
-    return { ok: true, userId: user.id, email: claimed.email };
+    return {
+      ok: true,
+      userId: user.id,
+      email: claimed.email,
+      invitationId: claimed.id,
+      role: claimed.role,
+    };
   } catch (error) {
     await release();
     throw error;

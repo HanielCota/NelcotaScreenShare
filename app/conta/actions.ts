@@ -23,7 +23,7 @@ function database() {
 
 /** Encerra uma sessão da própria conta (o token nunca vai ao navegador). */
 export const revokeMySession = userAction
-  .metadata({ name: "account.revokeSession" })
+  .metadata({ name: "account.revokeSession", audit: "none" })
   .inputSchema(z.object({ sessionId: z.uuid() }))
   .action(async ({ parsedInput, ctx }) => {
     if (parsedInput.sessionId === ctx.current.session.id) {
@@ -44,7 +44,7 @@ export const revokeMySession = userAction
   });
 
 export const revokeMyOtherSessions = userAction
-  .metadata({ name: "account.revokeOtherSessions" })
+  .metadata({ name: "account.revokeOtherSessions", audit: "none" })
   .action(async ({ ctx }) => {
     const deleted = await database()
       .delete(userSessions)
@@ -65,7 +65,7 @@ export const revokeMyOtherSessions = userAction
  * senha, 2FA e sessões somem na hora. Exige a senha atual.
  */
 export const deleteMyAccount = userAction
-  .metadata({ name: "account.delete" })
+  .metadata({ name: "account.delete", audit: "required" })
   .inputSchema(z.object({ password: z.string().min(1).max(128) }))
   .action(async ({ parsedInput, ctx }) => {
     const db = database();
@@ -99,6 +99,12 @@ export const deleteMyAccount = userAction
       await tx
         .delete(userVerifications)
         .where(eq(userVerifications.identifier, ctx.current.user.email));
+      // LGPD: registro da exclusão pedida pelo próprio titular (sem dados pessoais).
+      await ctx.audit.record(tx, {
+        action: "user.self_delete",
+        resourceType: "user",
+        resourceId: userId,
+      });
     });
     logger.info({ event: "user.account_deleted", userId }, "conta excluída pelo titular");
     return { deleted: true };

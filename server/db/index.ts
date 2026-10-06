@@ -6,6 +6,10 @@ import { logger } from "@/server/logger";
 import * as schema from "./schema";
 
 export type Database = NodePgDatabase<typeof schema>;
+/** Transação do Drizzle (o mesmo que `db`, mas dentro de `db.transaction`). */
+export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+/** Quem executa a consulta: a conexão normal ou uma transação. */
+export type DbExecutor = Database | Transaction;
 
 // No `next dev` os módulos recarregam a cada edição: guardar o pool no globalThis
 // evita abrir uma conexão nova por recarga.

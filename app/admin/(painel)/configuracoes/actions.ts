@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ActionError, adminAction } from "@/server/actions/client";
-import { mascotSettings, saveSetting, SettingsUnavailableError } from "@/server/settings";
+import { diffChanges } from "@/server/audit/record";
+import { getDb } from "@/server/db";
+import { getSetting, invalidateSetting, mascotSettings, saveSetting } from "@/server/settings";
 
 const mascotInput = z.object({
   saturationDark: z.number(),
@@ -12,19 +14,33 @@ const mascotInput = z.object({
 
 /** Saturação do mascote por tema (só owner: settings.update). */
 export const saveMascotSettings = adminAction
-  .metadata({ name: "settings.saveMascot", permission: { settings: ["update"] } })
+  .metadata({
+    name: "settings.saveMascot",
+    permission: { settings: ["update"] },
+    audit: "required",
+  })
   .inputSchema(mascotInput)
-  .action(async ({ parsedInput }) => {
+  .action(async ({ parsedInput, ctx }) => {
+    const db = getDb();
+    if (!db) throw new ActionError("Banco de dados não configurado.");
+    const before = await getSetting(mascotSettings, db);
     try {
-      await saveSetting(mascotSettings, parsedInput);
+      await db.transaction(async (tx) => {
+        const after = await saveSetting(mascotSettings, parsedInput, tx, ctx.admin.user.id);
+        await ctx.audit.record(tx, {
+          action: "settings.update",
+          resourceType: "app_settings",
+          resourceId: mascotSettings.key,
+          changes: diffChanges(before, after),
+        });
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new ActionError("A saturação precisa ficar entre 0% e 200%.");
       }
-      if (error instanceof SettingsUnavailableError) {
-        throw new ActionError("Banco de dados não configurado: defina DATABASE_URL no servidor.");
-      }
       throw error;
+    } finally {
+      invalidateSetting(mascotSettings.key);
     }
     // Páginas já abertas no navegador (cache do roteador) pegam o valor novo.
     revalidatePath("/", "layout");

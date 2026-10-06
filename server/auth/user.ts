@@ -18,7 +18,7 @@ import { appUrl, getEnv } from "@/server/env";
 import { logger } from "@/server/logger";
 import { mailLayout, sendMail } from "@/server/mail";
 import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password";
-import { lockoutHooks, SIGN_IN_PATH } from "./shared";
+import { authHooks, SIGN_IN_PATH } from "./shared";
 
 export const USER_AUTH_BASE_PATH = "/api/auth";
 
@@ -166,7 +166,7 @@ function createUserAuth(db: Database, secret: string) {
         },
       },
     },
-    hooks: lockoutHooks(db, secret, "user"),
+    hooks: authHooks(db, secret, "user", { audit: false }),
     plugins: [
       twoFactor({
         issuer: "Nelcota",

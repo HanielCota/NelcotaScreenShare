@@ -2,6 +2,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { createSafeActionClient } from "next-safe-action";
 import { z } from "zod";
+import { createAuditRecorder, type AuditRecorder } from "@/server/audit/record";
 import { getAdminSession, needsTwoFactorSetup } from "@/server/auth/admin-session";
 import { can, type PermissionRequest } from "@/server/auth/permissions";
 import { getUserSession } from "@/server/auth/user-session";
@@ -23,6 +24,11 @@ const metadataSchema = z.object({
   fresh: z.boolean().optional(),
   /** Permite usar sem 2FA ativo (só as telas de configurar o 2FA). */
   allowWithoutTwoFactor: z.boolean().optional(),
+  /**
+   * Obrigatório: toda action declara se é auditada. "required" = tem de gravar
+   * exatamente o que fez em audit_logs (na mesma transação), senão falha.
+   */
+  audit: z.enum(["required", "none"]),
 });
 
 export type ActionMetadata = z.infer<typeof metadataSchema>;
@@ -43,6 +49,13 @@ export const actionClient = createSafeActionClient({
   },
 });
 
+/** Action auditada que terminou sem registrar: bug, nunca silencioso. */
+function assertAudited(metadata: ActionMetadata, audit: AuditRecorder, success: boolean) {
+  if (metadata.audit === "required" && success && audit.count === 0) {
+    throw new Error(`A action ${metadata.name} é auditada mas não gravou em audit_logs`);
+  }
+}
+
 /**
  * Toda mutação do painel passa por aqui: sessão válida, 2FA (quando o papel
  * exige), permissão e sessão fresca são conferidos DENTRO da action, nunca só
@@ -60,7 +73,10 @@ export const adminAction = actionClient.use(async ({ next, metadata }) => {
   if (metadata.fresh && Date.now() - admin.session.createdAt.getTime() > FRESH_SESSION_MS) {
     throw new ActionError("Por segurança, entre de novo para fazer isso.");
   }
-  return next({ ctx: { admin } });
+  const audit = createAuditRecorder({ adminId: admin.user.id });
+  const result = await next({ ctx: { admin, audit } });
+  assertAudited(metadata, audit, result.success);
+  return result;
 });
 
 const publicLimiters = new Map<string, RateLimiter>();
@@ -77,7 +93,10 @@ export const publicAction = actionClient.use(async ({ next, metadata }) => {
   }
   const ip = clientIpFrom(await headers()) ?? "desconhecido";
   if (!limiter.hit(ip).ok) throw new ActionError("Muitas tentativas. Aguarde alguns minutos.");
-  return next();
+  const audit = createAuditRecorder("system");
+  const result = await next({ ctx: { audit } });
+  assertAudited(metadata, audit, result.success);
+  return result;
 });
 
 /**
@@ -90,5 +109,8 @@ export const userAction = actionClient.use(async ({ next, metadata }) => {
   if (metadata.fresh && Date.now() - current.session.createdAt.getTime() > FRESH_SESSION_MS) {
     throw new ActionError("Por segurança, entre de novo para fazer isso.");
   }
-  return next({ ctx: { current } });
+  const audit = createAuditRecorder({ userId: current.user.id });
+  const result = await next({ ctx: { current, audit } });
+  assertAudited(metadata, audit, result.success);
+  return result;
 });

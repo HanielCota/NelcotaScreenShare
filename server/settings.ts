@@ -1,7 +1,7 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, type Database } from "@/server/db";
+import { getDb, type Database, type DbExecutor } from "@/server/db";
 import { appSettings } from "@/server/db/schema";
 import { logger } from "@/server/logger";
 
@@ -90,23 +90,32 @@ export class SettingsUnavailableError extends Error {
   }
 }
 
-/** Valida e grava (upsert). Lança `ZodError` para valor inválido. */
+/**
+ * Valida e grava (upsert). Lança `ZodError` para valor inválido. Aceita uma
+ * transação para gravar junto com o audit log; `updatedBy` = admin que mudou.
+ */
 export async function saveSetting<T>(
   group: SettingGroup<T>,
   input: unknown,
-  db: Database | null = getDb() ?? null,
+  db: DbExecutor | null = getDb() ?? null,
+  updatedBy?: string,
 ): Promise<T> {
   if (!db) throw new SettingsUnavailableError();
   const value = group.schema.parse(input);
   await db
     .insert(appSettings)
-    .values({ key: group.key, value })
+    .values({ key: group.key, value, updatedBy: updatedBy ?? null })
     .onConflictDoUpdate({
       target: appSettings.key,
-      set: { value, updatedAt: sql`now()` },
+      set: { value, updatedBy: updatedBy ?? null, updatedAt: sql`now()` },
     });
   cache.delete(group.key);
   return value;
+}
+
+/** Limpa o cache depois do commit (a transação pode ter gravado por último). */
+export function invalidateSetting(key: string) {
+  cache.delete(key);
 }
 
 /** Só para testes: esquece o cache entre casos. */

@@ -22,14 +22,25 @@ const REASONS = {
 
 /** Aceita o convite de admin e cria a conta (sem sessão: action pública com rate limit). */
 export const acceptInvitation = publicAction
-  .metadata({ name: "adminInvitation.accept" })
+  .metadata({ name: "adminInvitation.accept", audit: "required" })
   .inputSchema(acceptInput)
-  .action(async ({ parsedInput }) => {
+  .action(async ({ parsedInput, ctx }) => {
     const db = getDb();
     const auth = getAdminAuth();
     if (!db || !auth) throw new ActionError("O painel admin está desligado neste servidor.");
     const result = await acceptAdminInvitation(db, auth, parsedInput);
     if (!result.ok) throw new ActionError(REASONS[result.reason]);
+    // Autor: o admin que acabou de nascer deste convite.
+    await ctx.audit.record(
+      db,
+      {
+        action: "admin_invitation.accept",
+        resourceType: "admin_invitation",
+        resourceId: result.invitationId,
+        metadata: { papel: result.role },
+      },
+      { adminId: result.userId },
+    );
     logger.info({ event: "admin.invitation_accepted", adminId: result.userId }, "convite aceito");
     return { email: result.email };
   });

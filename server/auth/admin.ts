@@ -15,11 +15,12 @@ import {
   adminVerifications,
 } from "@/server/db/schema";
 import { appUrl, getEnv } from "@/server/env";
+import { recordAudit } from "@/server/audit/record";
 import { logger } from "@/server/logger";
 import { mailLayout, sendMail } from "@/server/mail";
 import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password";
 import { ac, roles } from "./permissions";
-import { lockoutHooks, SIGN_IN_PATH } from "./shared";
+import { authHooks, SIGN_IN_PATH } from "./shared";
 
 export const ADMIN_AUTH_BASE_PATH = "/api/admin/auth";
 
@@ -101,7 +102,48 @@ function createAdminAuth(db: Database, secret: string) {
       database: { generateId: false },
       ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
     },
-    hooks: lockoutHooks(db, secret, "admin"),
+    hooks: authHooks(db, secret, "admin", { audit: true }),
+    databaseHooks: {
+      user: {
+        update: {
+          // 2FA ligado/desligado (o plugin grava twoFactorEnabled no usuário).
+          after: async (user, context) => {
+            if (!context?.path.startsWith("/two-factor/")) return;
+            if (!("twoFactorEnabled" in user)) return;
+            await recordAudit(
+              db,
+              { adminId: user.id },
+              {
+                action: user.twoFactorEnabled
+                  ? "auth.two_factor_enabled"
+                  : "auth.two_factor_disabled",
+                resourceType: "admin_user",
+                resourceId: user.id,
+              },
+            ).catch((error: unknown) => logger.error({ err: error }, "falha ao auditar 2FA"));
+          },
+        },
+      },
+      account: {
+        update: {
+          // Senha trocada (na conta) ou redefinida (link do e-mail).
+          after: async (account, context) => {
+            if (!context?.path || !/password/.test(context.path)) return;
+            await recordAudit(
+              db,
+              { adminId: account.userId },
+              {
+                action: context.path.includes("reset")
+                  ? "auth.password_reset"
+                  : "auth.password_changed",
+                resourceType: "admin_user",
+                resourceId: account.userId,
+              },
+            ).catch((error: unknown) => logger.error({ err: error }, "falha ao auditar senha"));
+          },
+        },
+      },
+    },
     plugins: [
       twoFactor({
         issuer: "Nelcota Admin",
