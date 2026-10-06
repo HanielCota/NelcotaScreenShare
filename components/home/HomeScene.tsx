@@ -19,7 +19,24 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import { generateRoomCode, roomPath } from "@/lib/livekit";
+import { ShareSupportNote } from "@/components/account/ShareSupportNote";
 import { JoinForm } from "./JoinForm";
+
+/** Os três passos, na mesma ordem do slogan (abriu, mandou, mostrou). */
+const STEPS = [
+  {
+    title: "Abra uma sala.",
+    text: "Um clique em “Criar sala” e ela está no ar, com um código só dela.",
+  },
+  {
+    title: "Mande o link.",
+    text: "Cada pessoa entra pelo navegador, no computador ou no celular.",
+  },
+  {
+    title: "Mostre a tela.",
+    text: "Tela inteira, uma janela ou uma aba. Com som, no Chrome e no Edge.",
+  },
+];
 
 export function HomeScene({
   invalidCode,
@@ -40,7 +57,13 @@ export function HomeScene({
       const mm = gsap.matchMedia();
 
       mm.add(MOTION_QUERIES.motion, () => {
-        gsap.from("[data-anim]", { y: 16, opacity: 0, duration: 0.7, stagger: 0.08 });
+        gsap.from("[data-anim]", {
+          y: 24,
+          opacity: 0,
+          duration: 0.9,
+          stagger: 0.09,
+          ease: "expo.out",
+        });
       });
 
       mm.add(MOTION_QUERIES.reduced, () => {
@@ -64,13 +87,14 @@ export function HomeScene({
   return (
     <main
       ref={scope}
-      className="flex min-h-dvh flex-col items-center justify-center px-4 pt-28 pb-16 sm:px-8"
+      className="apple-buttons flex min-h-dvh flex-col items-center px-4 pt-32 pb-10 sm:px-8 sm:pt-40"
     >
       <header data-anim="nav" className="fixed inset-x-0 top-0 z-30 px-4 pt-4 sm:px-6">
         <NavBar aria-label="Principal" className="mx-auto max-w-5xl">
           <NavBrand href="/" />
-          <NavDivider />
-          <HowItWorks />
+          <NavDivider className="max-sm:hidden" />
+          {/* No celular os passos estão na própria página (e a barra não cabe). */}
+          <HowItWorks className="max-sm:hidden" />
           <NavPopover
             trigger={
               <>
@@ -115,32 +139,69 @@ export function HomeScene({
         </NavBar>
       </header>
 
-      <div className="flex w-full max-w-md flex-col items-center text-center">
+      <section
+        aria-labelledby="home-title"
+        className="flex w-full max-w-3xl flex-col items-center text-center"
+      >
         {notice ? (
-          <output className="mb-6 block w-full rounded-xl bg-surface-2 px-4 py-3 text-sm">
+          <output className="mb-8 block w-full max-w-md rounded-2xl bg-surface-2 px-4 py-3 text-sm">
             {notice}
           </output>
         ) : null}
-        <div data-anim="mascot" className="mb-6">
-          <Mascot className="size-44 sm:size-52" />
-        </div>
-
+        <p data-anim="eyebrow" className="text-base font-semibold text-brand-soft sm:text-lg">
+          Nelcota
+        </p>
         <h1
+          id="home-title"
           data-anim="title"
-          className="text-4xl leading-[1.1] font-semibold tracking-tight sm:text-5xl"
+          className="mt-2 text-5xl leading-[1.02] font-semibold tracking-[-0.04em] sm:text-7xl lg:text-8xl"
         >
-          Mostre sua tela. Sem enrolação.
+          Abriu. Mandou. Mostrou.
         </h1>
-
-        <p data-anim="lead" className="mt-4 text-base text-ink-muted sm:text-lg">
-          Crie uma sala, mande o link para o time e compartilhe a tela pelo navegador, sem instalar
-          nada.
+        <p
+          data-anim="lead"
+          className="mt-5 max-w-2xl text-lg leading-snug text-ink-muted sm:text-2xl"
+        >
+          Uma sala, um link e a sua tela na frente do time em segundos. Direto do navegador, sem
+          instalar nada.
         </p>
 
-        <div data-anim="card" className="mt-8 w-full will-change-transform">
+        <div data-anim="card" className="mt-9 w-full will-change-transform">
           <JoinForm invalidCode={invalidCode} pending={pending} onNavigate={navigate} />
         </div>
-      </div>
+
+        <div data-anim="mascot" className="mt-10">
+          <Mascot className="size-48 sm:size-60" />
+        </div>
+        <ShareSupportNote className="mt-2 justify-center text-left" />
+      </section>
+
+      <section
+        aria-labelledby="home-steps"
+        className="mt-28 w-full max-w-5xl border-t border-line pt-14 sm:mt-36"
+      >
+        <h2 id="home-steps" className="text-3xl font-semibold tracking-[-0.03em] sm:text-5xl">
+          Três passos. Nenhuma instalação.
+        </h2>
+        <ol className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
+          {STEPS.map((step, index) => (
+            <li key={step.title} className="flex flex-col gap-2">
+              <span className="text-sm font-semibold text-ink-subtle tabular-nums">
+                0{index + 1}
+              </span>
+              <h3 className="text-xl font-semibold tracking-tight sm:text-2xl">{step.title}</h3>
+              <p className="text-ink-muted">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <footer className="mt-24 flex w-full max-w-5xl flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-sm text-ink-subtle">
+        <span>Nelcota · compartilhamento de tela pelo navegador</span>
+        <Link href="/privacidade" className="hover:text-ink">
+          Privacidade
+        </Link>
+      </footer>
     </main>
   );
 }
