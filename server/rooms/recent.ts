@@ -19,8 +19,10 @@ export async function recentRoomsFor(
       code: rooms.code,
       status: rooms.status,
       lastJoinedAt: lastJoined,
+      // "rooms"."id" explícito: sem join, o Drizzle escreve só "id" e a subconsulta
+      // compararia a própria tabela (contagem sempre zero).
       online: sql<number>`(select count(*)::int from ${roomParticipations} as here
-        where here.room_id = ${rooms.id} and here.left_at is null)`,
+        where here.room_id = ${sql.identifier("rooms")}.${sql.identifier("id")} and here.left_at is null)`,
     })
     .from(roomParticipations)
     .innerJoin(rooms, eq(rooms.id, roomParticipations.roomId))

@@ -4,17 +4,18 @@ import { createAudioAnalyser, createLocalAudioTrack, MediaDeviceFailure } from "
 import {
   ArrowRight,
   AudioLines,
-  Link2,
+  Headphones,
   Loader2,
   Lock,
   Mic,
   MicOff,
-  Play,
-  Square,
+  RotateCcw,
+  ShieldAlert,
   Ticket,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { ShareSupportNote } from "@/components/account/ShareSupportNote";
 import { Mascot } from "@/components/Mascot";
 import { upsetMascot } from "@/components/mascot/events";
 import { Button } from "@/components/ui/button";
@@ -22,10 +23,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { copyRoomLink } from "@/lib/copy-room-link";
 import { requestToken, roomLink } from "@/lib/livekit";
 import { saveMicrophone, savedMicrophone } from "@/lib/room-data";
 import { cn, formText } from "@/lib/utils";
+import { InviteLinkButton } from "./prejoin/InviteLinkButton";
+import { NameRow } from "./prejoin/NameRow";
+import { useMicPermission } from "./prejoin/use-mic-permission";
 
 export interface JoinChoices {
   name: string;
@@ -44,6 +47,9 @@ interface PreJoinProps {
   passwordRequired: boolean;
   /** Convite do painel: substitui a senha de acesso. */
   invite?: string;
+  /** Pessoas na sala agora (null: desconhecido). */
+  presence: { online: number } | null;
+  maxParticipants: number;
   onJoin: (choices: JoinChoices) => void;
 }
 
@@ -55,17 +61,52 @@ function subscribeNothing(): () => void {
 function micErrorMessage(error: unknown): string {
   switch (MediaDeviceFailure.getFailure(error)) {
     case MediaDeviceFailure.PermissionDenied:
-      return "Permita o uso do microfone nas permissões deste site no navegador e teste novamente.";
+      return "O navegador bloqueou o microfone.";
     case MediaDeviceFailure.NotFound:
-      return "Nenhum microfone encontrado. Conecte um microfone e teste novamente, ou entre com ele desligado.";
+      return "Nenhum microfone encontrado. Conecte um microfone ou fone com microfone.";
     case MediaDeviceFailure.DeviceInUse:
-      return "O microfone está em uso. Feche outros aplicativos que possam estar usando ele e teste novamente.";
+      return "O microfone está em uso por outro programa (outra chamada, por exemplo). Feche esse programa e tente de novo.";
     default:
-      return "Não foi possível usar o microfone. Confira o dispositivo e as permissões deste site, ou entre com ele desligado.";
+      return "Não deu para usar o microfone. Confira se ele está conectado e tente de novo.";
   }
 }
 
-export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: PreJoinProps) {
+/** "Quem já está lá dentro": responde "estou no lugar certo? já começou?". */
+function PresenceLine({ presence, max }: { presence: { online: number } | null; max: number }) {
+  if (!presence) return null;
+  const { online } = presence;
+  if (online >= max) {
+    return (
+      <p className="text-sm font-medium text-warning">
+        A sala está cheia ({online} de {max} pessoas). Aguarde alguém sair.
+      </p>
+    );
+  }
+  if (online === 0) {
+    return (
+      <p className="text-sm text-ink-muted">Ninguém na sala ainda: você será a primeira pessoa.</p>
+    );
+  }
+  return (
+    <p className="inline-flex items-center gap-2 text-sm font-medium text-ink">
+      <span className="relative flex size-2" aria-hidden="true">
+        <span className="absolute inset-0 animate-ping rounded-full bg-success/60 motion-reduce:hidden" />
+        <span className="relative size-2 rounded-full bg-success" />
+      </span>
+      {online === 1 ? "1 pessoa já está na sala" : `${online} pessoas já estão na sala`}
+    </p>
+  );
+}
+
+export function PreJoin({
+  code,
+  userName,
+  passwordRequired,
+  invite,
+  presence,
+  maxParticipants,
+  onJoin,
+}: PreJoinProps) {
   const scope = useRef<HTMLFormElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const meterRef = useRef<HTMLDivElement>(null);
@@ -73,10 +114,12 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
   const micId = useId();
   const deviceId = useId();
 
-  const [testing, setTesting] = useState(false);
+  const [name, setName] = useState(userName);
   const [micEnabled, setMicEnabled] = useState(true);
   const [micError, setMicError] = useState<string>();
+  const [requesting, setRequesting] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const { permission, setPermission, request } = useMicPermission();
   // Escolha feita nesta tela; antes disso vale o microfone da última vez.
   // `null` é "Padrão do sistema" escolhido de propósito.
   const [chosenMic, setChosenMic] = useState<string | null>();
@@ -84,6 +127,10 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
   const audioDeviceId = chosenMic === undefined ? savedMic : (chosenMic ?? undefined);
   const [formError, setFormError] = useState<{ message: string; field?: "password" }>();
   const [submitting, setSubmitting] = useState(false);
+  // Medidor ao vivo sozinho: com a permissão dada e o microfone ligado, ninguém
+  // precisa achar um botão "Testar" (leigo não testa e entra mudo).
+  const testing = micEnabled && permission === "granted" && !micError && !submitting;
+  const blocked = permission === "denied";
 
   useGSAP(
     () => {
@@ -105,7 +152,7 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
     passwordRef.current?.focus();
   }, []);
 
-  // Teste de microfone: captura local + medidor de nível (sem re-render por frame).
+  // Medidor: captura local + nível da voz (sem re-render por frame).
   useEffect(() => {
     const meter = meterRef.current;
     if (!testing || !meter) return;
@@ -147,9 +194,11 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
         };
         tick();
       } catch (error) {
-        if (!cancelled) {
+        if (cancelled) return;
+        if (MediaDeviceFailure.getFailure(error) === MediaDeviceFailure.PermissionDenied) {
+          setPermission("denied");
+        } else {
           setMicError(micErrorMessage(error));
-          setTesting(false);
         }
       }
     };
@@ -162,7 +211,17 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
       cleanup?.();
       meter.style.transform = "scaleX(0)";
     };
-  }, [testing, audioDeviceId]);
+  }, [testing, audioDeviceId, setPermission]);
+
+  async function askPermission() {
+    setRequesting(true);
+    setMicError(undefined);
+    const error = await request();
+    setRequesting(false);
+    if (error && !(error instanceof DOMException && error.name === "NotAllowedError")) {
+      setMicError(micErrorMessage(error));
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -182,7 +241,6 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
 
     setFormError(undefined);
     setSubmitting(true);
-    setTesting(false);
 
     const result = await requestToken({ room: code, password, invite });
     if (!result.ok) {
@@ -217,54 +275,42 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
     }
 
     onJoin({
-      name: userName,
+      name,
       password,
       token: result.data.token,
       serverUrl: result.data.serverUrl,
-      micEnabled,
+      // Microfone bloqueado: entra ouvindo, em vez de falhar lá dentro.
+      micEnabled: micEnabled && !blocked,
       audioDeviceId,
     });
   }
 
-  const initials = userName
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
+  const joinsMuted = !micEnabled || blocked;
 
   return (
     <form
       ref={scope}
       onSubmit={(event) => void handleSubmit(event)}
       noValidate
-      className="apple-buttons flex w-full max-w-md flex-col items-center gap-7"
+      className="apple-buttons flex w-full max-w-md flex-col items-center gap-6"
     >
-      {/* Topo: mascote e a sala (código numa linha só, com o link à mão). */}
+      {/* Topo: mascote, a sala, quem já está lá e o convite para o time. */}
       <header data-anim="row" className="flex flex-col items-center gap-3 text-center">
         <Mascot className="size-28 sm:size-32" sizes="(min-width: 640px) 384px, 336px" />
         <div className="flex flex-col items-center gap-2">
-          <p className="text-sm font-medium text-ink-muted">Pronto para entrar na sala</p>
+          <p className="text-sm font-medium text-ink-muted">Você está entrando na sala</p>
           <h1 className="max-w-full font-mono text-2xl font-semibold tracking-tight break-all sm:text-3xl">
             {code}
           </h1>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => void copyRoomLink(code)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3 py-1 text-xs font-semibold text-ink-muted transition-[transform,color] hover:text-ink active:scale-95"
-            >
-              <Link2 className="size-3.5" aria-hidden="true" />
-              Copiar link
-            </button>
-            {invite ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-xs font-semibold text-ink">
-                <Ticket className="size-3.5 text-brand-soft" aria-hidden="true" />
-                Convite: sem senha
-              </span>
-            ) : null}
-          </div>
+          <PresenceLine presence={presence} max={maxParticipants} />
+          {invite ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-xs font-semibold text-ink">
+              <Ticket className="size-3.5 text-brand-soft" aria-hidden="true" />
+              Você tem convite: não precisa de senha
+            </span>
+          ) : null}
         </div>
+        <InviteLinkButton code={code} />
       </header>
 
       {/* Lista agrupada (estilo Ajustes): quem você é e o seu microfone. */}
@@ -272,24 +318,7 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
         data-anim="row"
         className="w-full divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface"
       >
-        <div className="flex items-center gap-3 px-4 py-3">
-          <span
-            aria-hidden="true"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/15 text-sm font-bold text-brand-soft"
-          >
-            {initials || "?"}
-          </span>
-          <p className="min-w-0 flex-1">
-            <span className="block text-xs text-ink-subtle">Você vai entrar como</span>
-            <strong className="block truncate font-semibold">{userName}</strong>
-          </p>
-          <Link
-            href={`/conta?voltar=${encodeURIComponent(roomLink(code, invite))}`}
-            className="shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-brand-soft transition-colors hover:bg-surface-2"
-          >
-            Mudar
-          </Link>
-        </div>
+        <NameRow name={name} onChange={setName} />
 
         <fieldset className="flex min-w-0 flex-col gap-3 px-4 py-3">
           <legend className="sr-only">Microfone</legend>
@@ -298,15 +327,19 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
               aria-hidden="true"
               className={cn(
                 "grid size-10 shrink-0 place-items-center rounded-full transition-colors",
-                micEnabled ? "bg-brand/15 text-brand-soft" : "bg-danger/15 text-danger",
+                joinsMuted ? "bg-danger/15 text-danger" : "bg-brand/15 text-brand-soft",
               )}
             >
-              {micEnabled ? <Mic className="size-4.5" /> : <MicOff className="size-4.5" />}
+              {joinsMuted ? <MicOff className="size-4.5" /> : <Mic className="size-4.5" />}
             </span>
             <Label htmlFor={micId} className="min-w-0 flex-1 flex-col items-start gap-0">
               <span className="text-xs font-normal text-ink-subtle">Microfone</span>
               <span className="text-base font-semibold">
-                {micEnabled ? "Ligado ao entrar" : "Mutado ao entrar"}
+                {!micEnabled
+                  ? "Desligado: você entra só ouvindo"
+                  : blocked
+                    ? "Bloqueado pelo navegador"
+                    : "Ligado ao entrar"}
               </span>
             </Label>
             <Switch
@@ -314,89 +347,124 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
               checked={micEnabled}
               onCheckedChange={(checked) => {
                 setMicEnabled(checked);
-                if (!checked) setTesting(false);
+                setMicError(undefined);
               }}
             />
           </div>
 
-          {/* Teste e dispositivo num bloco só: o medidor ocupa o lugar do texto durante o teste. */}
           {micEnabled ? (
             <div className="flex flex-col gap-3 rounded-xl bg-surface-2 p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                  <AudioLines
-                    className={cn(
-                      "size-4 shrink-0",
-                      testing ? "text-brand-soft" : "text-ink-subtle",
-                    )}
-                    aria-hidden="true"
-                  />
-                  {/* Sempre montado: o efeito do teste escreve direto na barra. */}
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      "relative h-2 flex-1 overflow-hidden rounded-full bg-surface-3",
-                      !testing && "hidden",
-                    )}
-                  >
+              {blocked ? (
+                // Bloqueado: o passo a passo para liberar, à vista.
+                <div className="flex flex-col gap-3 text-sm">
+                  <p className="flex items-start gap-2 font-semibold text-warning">
+                    <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                    O navegador bloqueou o microfone neste site.
+                  </p>
+                  <ol className="flex list-decimal flex-col gap-1 pl-10 text-ink-muted">
+                    <li>
+                      Clique no <strong className="text-ink">cadeado 🔒</strong> ao lado do endereço
+                      do site, lá em cima.
+                    </li>
+                    <li>
+                      Em <strong className="text-ink">Microfone</strong>, escolha{" "}
+                      <strong className="text-ink">Permitir</strong>.
+                    </li>
+                    <li>Volte aqui: a barra de voz aparece sozinha.</li>
+                  </ol>
+                  <p className="pl-6 text-xs text-ink-subtle">
+                    Se preferir, entre assim mesmo: você ouve tudo e liga o microfone depois.
+                  </p>
+                </div>
+              ) : permission === "granted" && !micError ? (
+                // Liberado: a barra mexe com a voz, sem precisar testar.
+                <>
+                  <div className="flex items-center gap-2.5">
+                    <AudioLines className="size-4 shrink-0 text-brand-soft" aria-hidden="true" />
                     <div
-                      ref={meterRef}
-                      className="absolute inset-0 origin-left scale-x-0 rounded-full bg-linear-to-r from-brand to-brand-soft"
-                    />
+                      aria-hidden="true"
+                      className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-3"
+                    >
+                      <div
+                        ref={meterRef}
+                        className="absolute inset-0 origin-left scale-x-0 rounded-full bg-linear-to-r from-brand to-brand-soft"
+                      />
+                    </div>
                   </div>
-                  <span
-                    aria-live="polite"
-                    className={cn("text-sm text-ink-muted", testing && "sr-only")}
+                  <p className="text-xs text-ink-subtle">
+                    Fale algo: se a barra se mexer, seu microfone está funcionando.
+                  </p>
+                  {devices.length > 1 ? (
+                    <div className="flex items-center gap-2.5">
+                      <Label
+                        htmlFor={deviceId}
+                        className="shrink-0 text-sm font-normal text-ink-muted"
+                      >
+                        Usar
+                      </Label>
+                      <select
+                        id={deviceId}
+                        value={audioDeviceId ?? ""}
+                        onChange={(event) => {
+                          const id = event.target.value || undefined;
+                          setChosenMic(id ?? null);
+                          saveMicrophone(id);
+                        }}
+                        className="h-9 min-w-0 flex-1 rounded-full border border-line bg-surface px-3.5 text-sm text-ink"
+                      >
+                        <option value="">Padrão do sistema</option>
+                        {devices.map((device, index) => (
+                          <option key={device.deviceId} value={device.deviceId}>
+                            {device.label || `Microfone ${index + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+                  <p className="flex items-start gap-2 text-xs text-ink-subtle">
+                    <Headphones className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+                    Dica: com fone de ouvido, ninguém escuta eco.
+                  </p>
+                </>
+              ) : micError ? (
+                // Outro problema (sem microfone, em uso): o que fazer e tentar de novo.
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm text-warning">{micError}</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    onClick={() => setMicError(undefined)}
                   >
-                    {testing ? "Teste em andamento: fale algo." : "Teste rápido do microfone"}
-                  </span>
+                    <RotateCcw aria-hidden="true" />
+                    Tentar de novo
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setMicError(undefined);
-                    setTesting((value) => !value);
-                  }}
-                >
-                  {testing ? (
-                    <Square className="size-3 fill-current" aria-hidden="true" />
-                  ) : (
-                    <Play className="size-3 fill-current" aria-hidden="true" />
-                  )}
-                  {testing ? "Parar" : "Testar"}
-                </Button>
-              </div>
-
-              {devices.length > 1 ? (
-                <div className="flex items-center gap-2.5">
-                  <Label htmlFor={deviceId} className="shrink-0 text-sm font-normal text-ink-muted">
-                    Usar
-                  </Label>
-                  <select
-                    id={deviceId}
-                    value={audioDeviceId ?? ""}
-                    onChange={(event) => {
-                      const id = event.target.value || undefined;
-                      setChosenMic(id ?? null);
-                      saveMicrophone(id);
-                    }}
-                    className="h-9 min-w-0 flex-1 rounded-full border border-line bg-surface px-3.5 text-sm text-ink"
+              ) : (
+                // Ainda não permitido: explicar antes que o navegador pergunte.
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm text-ink-muted">
+                    Para os outros te ouvirem, o navegador vai pedir para usar o microfone. Clique
+                    em <strong className="text-ink">Permitir</strong> quando aparecer.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={requesting}
+                    onClick={() => void askPermission()}
                   >
-                    <option value="">Padrão do sistema</option>
-                    {devices.map((device, index) => (
-                      <option key={device.deviceId} value={device.deviceId}>
-                        {device.label || `Microfone ${index + 1}`}
-                      </option>
-                    ))}
-                  </select>
+                    {requesting ? (
+                      <Loader2 className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Mic aria-hidden="true" />
+                    )}
+                    {requesting ? "Esperando você permitir…" : "Permitir microfone"}
+                  </Button>
                 </div>
-              ) : null}
+              )}
             </div>
           ) : null}
-
-          {micError ? <output className="text-xs text-warning">{micError}</output> : null}
         </fieldset>
       </div>
 
@@ -408,7 +476,7 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
         >
           <Label htmlFor={passwordId} className="inline-flex items-center gap-1.5">
             <Lock className="size-3.5 text-ink-subtle" aria-hidden="true" />
-            Senha de acesso
+            Senha da sala (quem te convidou sabe)
           </Label>
           <Input
             ref={passwordRef}
@@ -431,7 +499,7 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
       ) : null}
 
       {formError && !formError.field ? (
-        <p className="-mt-3 w-full text-center text-sm text-danger" role="alert">
+        <p className="-mt-2 w-full text-center text-sm text-danger" role="alert">
           {formError.message}
         </p>
       ) : null}
@@ -439,9 +507,10 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
       <div data-anim="row" className="flex w-full flex-col items-center gap-3">
         <Button type="submit" size="lg" disabled={submitting} className="w-full">
           {submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
-          {submitting ? "Entrando…" : "Entrar na sala"}
+          {submitting ? "Entrando…" : joinsMuted ? "Entrar só ouvindo" : "Entrar na sala"}
           {submitting ? null : <ArrowRight aria-hidden="true" />}
         </Button>
+        <ShareSupportNote variant="badge" />
         <Link
           href="/"
           className="rounded-md text-sm text-ink-subtle transition-colors hover:text-ink"

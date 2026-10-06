@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { RoomSession } from "@/components/room/RoomSession";
 import { requireUser } from "@/server/auth/user-session";
+import { getDb } from "@/server/db";
 import { getEnv } from "@/server/env";
+import { roomPresence } from "@/server/rooms/presence";
 import { roomCodeSchema, roomLink } from "@/lib/livekit";
 import { INVITE_TOKEN_PATTERN } from "@/lib/invite";
 
@@ -33,6 +35,9 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/sal
   // Entrar em sala exige conta com e-mail confirmado; depois do login, volta para cá.
   const { user } = await requireUser(roomLink(code.data, invite));
   const { ACCESS_PASSWORD, MAX_PARTICIPANTS } = getEnv();
+  // Quem já está lá dentro, para a pré-entrada mostrar (sem banco, não mostra).
+  const db = getDb();
+  const presence = db ? await roomPresence(db, code.data) : null;
 
   return (
     <RoomSession
@@ -41,6 +46,7 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/sal
       passwordRequired={ACCESS_PASSWORD !== undefined}
       invite={invite}
       maxParticipants={MAX_PARTICIPANTS}
+      presence={presence}
     />
   );
 }

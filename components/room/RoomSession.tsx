@@ -15,6 +15,8 @@ interface RoomSessionProps {
   passwordRequired: boolean;
   invite?: string;
   maxParticipants: number;
+  /** Pessoas na sala agora (null: desconhecido). */
+  presence: { online: number } | null;
 }
 
 type Phase =
@@ -28,6 +30,7 @@ export function RoomSession({
   passwordRequired,
   invite,
   maxParticipants,
+  presence,
 }: RoomSessionProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "prejoin" });
 
@@ -66,6 +69,8 @@ export function RoomSession({
           userName={userName}
           passwordRequired={passwordRequired && !invite}
           invite={invite}
+          presence={presence}
+          maxParticipants={maxParticipants}
           onJoin={(choices) => setPhase({ kind: "room", choices, attempt: 0 })}
         />
       ) : (

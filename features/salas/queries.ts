@@ -93,8 +93,10 @@ export async function listRooms(
       lastActivityAt: rooms.lastActivityAt,
       peak: rooms.peakParticipants,
       // Só para as linhas da página (índice share_sessions_room_idx).
+      // "rooms"."id" explícito: sem join, o Drizzle escreve só "id" e a subconsulta
+      // compararia a própria tabela (contagem sempre zero).
       shares: sql<number>`(select count(*)::int from ${shareSessions}
-        where ${shareSessions.roomId} = ${rooms.id})`,
+        where ${shareSessions.roomId} = ${sql.identifier("rooms")}.${sql.identifier("id")})`,
       sortKey: sort.key,
     })
     .from(rooms)
