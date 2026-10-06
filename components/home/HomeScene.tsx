@@ -140,11 +140,17 @@ export function HomeScene({
         </div>
       </div>
 
-      <footer className="mt-12 flex w-full max-w-2xl flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-ink-subtle">
-        <ShareSupportNote />
-        <Link href="/privacidade" className="hover:text-ink">
-          Privacidade
-        </Link>
+      <footer className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
+        <ShareSupportNote variant="badge" />
+        <nav
+          aria-label="Rodapé"
+          className="flex items-center gap-5 text-xs font-medium text-ink-muted"
+        >
+          <Link href="/privacidade" className="transition-colors hover:text-ink">
+            Privacidade
+          </Link>
+          <span className="text-ink-subtle">© Nelcota</span>
+        </nav>
       </footer>
     </main>
   );
