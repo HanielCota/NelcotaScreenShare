@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { requestToken } from "@/features/room/client/api";
-import { PreJoin, type JoinChoices } from "@/features/room/ui/prejoin/PreJoin";
+import type { JoinChoices } from "@/features/room/domain/join";
+import { PreJoin } from "@/features/room/ui/prejoin/PreJoin";
 import { RoomView } from "@/features/room/ui/call/RoomView";
 import { StatusScreen } from "./StatusScreen";
 

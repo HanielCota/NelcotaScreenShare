@@ -10,13 +10,7 @@ import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";
-
-type ShareSurface = "monitor" | "window" | "browser";
-
-export interface ShareChoice {
-  surface: ShareSurface;
-  audio: boolean;
-}
+import type { ShareChoice, ShareSurface } from "@/features/room/domain/share-support";
 
 interface ShareMenuProps {
   isSharing: boolean;

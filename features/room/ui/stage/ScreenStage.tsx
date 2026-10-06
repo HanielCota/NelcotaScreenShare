@@ -1,43 +1,19 @@
 "use client";
 
-import { useDataChannel, VideoTrack, type TrackReference } from "@livekit/components-react";
+import { VideoTrack, type TrackReference } from "@livekit/components-react";
 import { Maximize2, Minimize2, MonitorUp, MousePointerClick } from "lucide-react";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type MouseEvent,
-  type RefObject,
-} from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { participantName } from "@/features/room/domain/participant-label";
-import { contentBox } from "@/features/room/domain/content-box";
-import {
-  createReceiveThrottle,
-  decodeMessage,
-  encodeMessage,
-  pointerSchema,
-  TOPICS,
-  type PointerMessage,
-} from "@/features/room/domain/data-channel";
 import { cn } from "@/lib/utils";
+import { PointerLayer, usePointers } from "./PointerLayer";
 
 interface ScreenStageProps {
   shares: TrackReference[];
   focused: TrackReference;
   onFocus: (sid: string) => void;
 }
-
-interface Ping extends PointerMessage {
-  id: number;
-  name: string;
-}
-
-const PING_MS = 2500;
-/** Intervalo mínimo entre pontos enviados por esta pessoa. */
-const SEND_INTERVAL_MS = 150;
 
 function sharerName(ref: TrackReference): string {
   return ref.participant.isLocal ? "Você" : participantName(ref.participant);
@@ -49,119 +25,6 @@ function subscribeFullscreen(onChange: () => void) {
 }
 
 /** Pontos marcados na tela compartilhada (canal de dados, sem garantia de entrega). */
-function usePointers() {
-  const [pings, setPings] = useState<Ping[]>([]);
-  const nextId = useRef(0);
-  const lastSent = useRef(0);
-
-  function add(point: PointerMessage, name: string) {
-    const id = nextId.current++;
-    setPings((list) => [...list.slice(-19), { ...point, id, name }]);
-    setTimeout(() => setPings((list) => list.filter((ping) => ping.id !== id)), PING_MS);
-  }
-
-  const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));
-
-  const { send } = useDataChannel(TOPICS.pointer, (message) => {
-    if (!acceptFrom(message.from?.identity ?? "")) return;
-    const received = decodeMessage(message.payload, pointerSchema);
-    if (received) add(received, participantName(message.from));
-  });
-
-  function pointAt(message: PointerMessage) {
-    const now = Date.now();
-    if (now - lastSent.current < SEND_INTERVAL_MS) return;
-    lastSent.current = now;
-    add(message, "Você");
-    send(encodeMessage(message), { reliable: false }).catch(() => {
-      toast.error("Não foi possível marcar o ponto na tela.");
-    });
-  }
-
-  return { pings, pointAt };
-}
-
-/** Área da imagem dentro do <video> (`object-contain` deixa faixas pretas). */
-function useContentBox(videoRef: RefObject<HTMLVideoElement | null>) {
-  const [box, setBox] = useState<ReturnType<typeof contentBox>>();
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const update = () =>
-      setBox(
-        contentBox(
-          { width: video.clientWidth, height: video.clientHeight },
-          { width: video.videoWidth, height: video.videoHeight },
-        ),
-      );
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(video);
-    // "resize" dispara quando a resolução do vídeo muda (ex.: troca de janela).
-    video.addEventListener("resize", update);
-    video.addEventListener("loadedmetadata", update);
-    return () => {
-      observer.disconnect();
-      video.removeEventListener("resize", update);
-      video.removeEventListener("loadedmetadata", update);
-    };
-  }, [videoRef]);
-
-  return box;
-}
-
-function PointerLayer({
-  videoRef,
-  trackSid,
-  pings,
-  pointing,
-  onPoint,
-}: {
-  videoRef: RefObject<HTMLVideoElement | null>;
-  trackSid: string;
-  pings: Ping[];
-  pointing: boolean;
-  onPoint?: (message: PointerMessage) => void;
-}) {
-  const box = useContentBox(videoRef);
-  if (!box) return null;
-
-  function handleClick(event: MouseEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    if (x >= 0 && x <= 1 && y >= 0 && y <= 1) onPoint?.({ trackSid, x, y });
-  }
-
-  return (
-    <div
-      aria-hidden="true"
-      onClick={pointing ? handleClick : undefined}
-      className={cn("absolute", pointing ? "cursor-crosshair" : "pointer-events-none")}
-      style={{ left: box.left, top: box.top, width: box.width, height: box.height }}
-    >
-      {pings
-        .filter((ping) => ping.trackSid === trackSid)
-        .map((ping) => (
-          <span
-            key={ping.id}
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
-            style={{ left: `${ping.x * 100}%`, top: `${ping.y * 100}%` }}
-          >
-            <span className="relative flex size-5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-75 motion-reduce:animate-none" />
-              <span className="relative inline-flex size-5 rounded-full border-2 border-canvas bg-brand" />
-            </span>
-            <span className="glass rounded-md px-1.5 py-0.5 text-[0.7rem] font-semibold whitespace-nowrap">
-              {ping.name}
-            </span>
-          </span>
-        ))}
-    </div>
-  );
-}
-
 export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);

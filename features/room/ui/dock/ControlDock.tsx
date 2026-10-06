@@ -12,7 +12,7 @@ import { DockButton } from "./DockButton";
 import { MicMenu } from "./MicMenu";
 import { ReactionsMenu } from "./Reactions";
 import { ShareMenu } from "./ShareMenu";
-import { MIC_ERROR_TOAST } from "@/features/room/ui/toast-ids";
+import { MIC_ERROR_TOAST } from "@/features/room/client/toast-ids";
 import type { ScreenShareControl } from "@/features/room/hooks/use-screen-share";
 
 interface ControlDockProps {

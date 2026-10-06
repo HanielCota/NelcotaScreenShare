@@ -82,3 +82,11 @@ export const SHARE_SUPPORT_TEXT: Record<
     detail: "Use o Chrome, o Edge ou o Firefox atualizados.",
   },
 };
+
+/** O que compartilhar: a tela inteira, uma janela ou uma aba (com ou sem o som). */
+export type ShareSurface = "monitor" | "window" | "browser";
+
+export interface ShareChoice {
+  surface: ShareSurface;
+  audio: boolean;
+}

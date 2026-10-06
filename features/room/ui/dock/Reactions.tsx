@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
+import { useTimeouts } from "@/lib/hooks/use-timeouts";
 import { setHandRaised } from "@/features/room/client/api";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import { participantName } from "@/features/room/domain/participant-label";
@@ -51,12 +52,13 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<FloatingReaction[]>([]);
   const nextId = useRef(0);
   const lastSent = useRef(0);
+  const later = useTimeouts();
 
   function show(emoji: Reaction, name: string) {
     const id = nextId.current++;
     const left = 6 + Math.random() * 28;
     setItems((list) => [...list.slice(-(MAX_VISIBLE - 1)), { id, emoji, name, left }]);
-    setTimeout(() => setItems((list) => list.filter((item) => item.id !== id)), VISIBLE_MS);
+    later(() => setItems((list) => list.filter((item) => item.id !== id)), VISIBLE_MS);
   }
 
   const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));

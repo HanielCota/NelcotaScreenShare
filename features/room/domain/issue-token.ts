@@ -7,7 +7,7 @@ import { tokenRequestSchema, type TokenErrorCode } from "./token-contract";
  */
 
 /** Resultado gravado em token_requests (o enum `token_result` do banco). */
-export type TokenLogResult =
+type TokenLogResult =
   | "granted"
   | "wrong_password"
   | "room_full"

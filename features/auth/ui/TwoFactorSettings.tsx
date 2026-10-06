@@ -4,8 +4,8 @@ import { Check, Copy, Download, Loader2, ShieldCheck, ShieldAlert } from "lucide
 import { useRouter } from "next/navigation";
 import { useId, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { FormError } from "./AuthCard";
-import { PasswordInput } from "./PasswordInput";
+import { FormError } from "@/components/FormError";
+import { PasswordInput } from "@/components/PasswordInput";
 import { QrCode } from "@/components/QrCode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

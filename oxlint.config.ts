@@ -1,4 +1,10 @@
+import { readdirSync } from "node:fs";
 import { defineConfig } from "oxlint";
+
+/** Uma regra de UI por feature: dentro dela os imports são livres. */
+const FEATURES = readdirSync("features", { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
 
 export default defineConfig({
   $schema: "./node_modules/oxlint/configuration_schema.json",
@@ -68,15 +74,39 @@ export default defineConfig({
     "eslint/complexity": ["error", { max: 15 }],
   },
   overrides: [
+    // Camadas (docs/refactor/03-arquitetura-alvo.md §2). Cada override diz o que
+    // a pasta NÃO pode importar; o resto é livre (sem ciclos, pelo import/no-cycle).
     {
-      // Camadas (docs/PLANO-ADMIN.md §3.3): UI e código isomórfico não tocam o banco
-      // nem o servidor. Dados chegam por props/Server Components; mutações por actions.
+      // Genérico (UI compartilhada e utilitários): não conhece features, rotas nem servidor.
+      files: ["components/**", "lib/**"],
+      rules: {
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["@/features/*", "@/features/**", "@/app/*", "@/app/**"],
+                allowTypeImports: true,
+                message: "Código genérico não depende de features nem de rotas.",
+              },
+              {
+                group: ["@/server", "@/server/*", "pg", "drizzle-orm", "drizzle-orm/*"],
+                allowTypeImports: true,
+                message: "Código genérico não acessa o servidor nem o banco.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    // UI e hooks das features: dados por props/RSC, mutações por actions; da UI de
+    // outra feature, só o que é público (mascote e aviso de compartilhamento).
+    ...FEATURES.map((feature) => ({
       files: [
-        "components/**",
-        "hooks/**",
-        "lib/**",
-        "features/*/components/**",
-        "features/*/columns.tsx",
+        `features/${feature}/ui/**`,
+        `features/${feature}/hooks/**`,
+        `features/${feature}/client/**`,
+        `features/${feature}/*/ui/**`,
       ],
       rules: {
         "eslint/no-restricted-imports": [
@@ -84,14 +114,90 @@ export default defineConfig({
           {
             patterns: [
               {
-                group: ["@/server", "@/server/*", "pg", "drizzle-orm", "drizzle-orm/*"],
+                group: [
+                  "@/server",
+                  "@/server/*",
+                  "@/features/*/server/*",
+                  "@/features/admin/*/queries",
+                  "pg",
+                  "drizzle-orm",
+                  "drizzle-orm/*",
+                  "livekit-server-sdk",
+                ],
                 allowTypeImports: true,
-                message: "Componentes não acessam o servidor/banco: use props ou uma action.",
+                message: "UI não acessa o servidor: use props, um Server Component ou uma action.",
               },
               {
-                group: ["@/features/*/queries"],
+                group: [
+                  "@/features/*/ui/**",
+                  "@/features/*/*/ui/**",
+                  `!@/features/${feature}/**`,
+                  "!@/features/mascot/ui/*",
+                  "!@/features/room/ui/ShareSupportNote",
+                ],
                 allowTypeImports: true,
-                message: "Consultas são server-only: chame-as num Server Component.",
+                message:
+                  "UI de outra feature não é pública (só o mascote e o aviso de compartilhamento).",
+              },
+            ],
+          },
+        ],
+      },
+    })),
+    {
+      // Domínio: TypeScript puro (testável sem React, Next, banco ou SDK).
+      files: ["features/*/domain/**", "features/mascot/engine/**"],
+      rules: {
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: [
+                  "react",
+                  "react-dom",
+                  "next",
+                  "next/*",
+                  "pg",
+                  "drizzle-orm",
+                  "drizzle-orm/*",
+                  "livekit-client",
+                  "livekit-server-sdk",
+                  "better-auth",
+                  "better-auth/*",
+                  "@/server",
+                  "@/server/*",
+                  "@/features/*/server/*",
+                  "@/features/*/ui/*",
+                ],
+                allowTypeImports: true,
+                message: "domain/ é TypeScript puro: dependências entram por parâmetro.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // Infra do servidor: só o domínio das features (constantes e tipos puros).
+      files: ["server/**"],
+      rules: {
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: [
+                  "@/app/*",
+                  "@/app/**",
+                  "@/components/*",
+                  "@/features/*/server/*",
+                  "@/features/*/ui/*",
+                  "@/features/*/hooks/*",
+                  "@/features/*/client/*",
+                  "@/features/*/actions",
+                ],
+                message: "Infra não conhece features (exceto o domain/, que é puro).",
               },
             ],
           },
@@ -112,9 +218,6 @@ export default defineConfig({
         "features/auth/ui/SignUpForm.tsx",
         "components/data-table/DataTable.tsx",
         "features/mascot/engine/avatar-frames.ts",
-        "features/room/ui/prejoin/PreJoin.tsx",
-        "features/room/ui/call/RoomView.tsx",
-        "features/room/ui/stage/ScreenStage.tsx",
         "features/admin/participants/ui/ParticipantActions.tsx",
       ],
       rules: { "eslint/max-lines": "off", "eslint/complexity": "off" },
