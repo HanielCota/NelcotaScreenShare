@@ -1,7 +1,7 @@
 "use client";
 
 import { createAudioAnalyser, createLocalAudioTrack, MediaDeviceFailure } from "livekit-client";
-import { ArrowRight, Loader2, Lock, Mic, MicOff } from "lucide-react";
+import { ArrowRight, Link2, Loader2, Lock, Mic, MicOff, Ticket } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Mascot } from "@/components/Mascot";
@@ -9,8 +9,8 @@ import { upsetMascot } from "@/components/mascot/events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { copyRoomLink } from "@/lib/copy-room-link";
 import { requestToken, roomLink } from "@/lib/livekit";
 import { saveMicrophone, savedMicrophone } from "@/lib/room-data";
 import { cn, formText } from "@/lib/utils";
@@ -214,50 +214,164 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
     });
   }
 
+  const initials = userName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
   return (
     <form
       ref={scope}
       onSubmit={(event) => void handleSubmit(event)}
       noValidate
-      className="glass flex w-full max-w-md flex-col gap-6 rounded-2xl p-6 sm:p-8"
+      className="apple-buttons flex w-full max-w-md flex-col items-center gap-7"
     >
-      <header data-anim="row" className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-ink-subtle">Pronto para entrar?</p>
-          <h1 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">
-            Sala <span className="block text-brand-soft">{code}</span>
+      {/* Topo: mascote e a sala (código numa linha só, com o link à mão). */}
+      <header data-anim="row" className="flex flex-col items-center gap-3 text-center">
+        <Mascot className="size-28 sm:size-32" sizes="(min-width: 640px) 384px, 336px" />
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-sm font-medium text-ink-muted">Pronto para entrar na sala</p>
+          <h1 className="max-w-full font-mono text-2xl font-semibold tracking-tight break-all sm:text-3xl">
+            {code}
           </h1>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => void copyRoomLink(code)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3 py-1 text-xs font-semibold text-ink-muted transition-[transform,color] hover:text-ink active:scale-95"
+            >
+              <Link2 className="size-3.5" aria-hidden="true" />
+              Copiar link
+            </button>
+            {invite ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-xs font-semibold text-ink">
+                <Ticket className="size-3.5 text-brand-soft" aria-hidden="true" />
+                Convite: sem senha
+              </span>
+            ) : null}
+          </div>
         </div>
-        <Mascot className="size-20 sm:size-24" sizes="(min-width: 640px) 288px, 240px" />
       </header>
 
+      {/* Lista agrupada (estilo Ajustes): quem você é e o seu microfone. */}
       <div
         data-anim="row"
-        className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-4 py-3"
+        className="w-full divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface"
       >
-        <p className="min-w-0 text-sm text-ink-muted">
-          Você vai entrar como{" "}
-          <strong className="block truncate text-base font-semibold text-ink">{userName}</strong>
-        </p>
-        <Link
-          href={`/conta?voltar=${encodeURIComponent(roomLink(code, invite))}`}
-          className="shrink-0 text-sm font-semibold text-brand-soft hover:underline"
-        >
-          Mudar nome
-        </Link>
-      </div>
+        <div className="flex items-center gap-3 px-4 py-3">
+          <span
+            aria-hidden="true"
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/15 text-sm font-bold text-brand-soft"
+          >
+            {initials || "?"}
+          </span>
+          <p className="min-w-0 flex-1">
+            <span className="block text-xs text-ink-subtle">Você vai entrar como</span>
+            <strong className="block truncate font-semibold">{userName}</strong>
+          </p>
+          <Link
+            href={`/conta?voltar=${encodeURIComponent(roomLink(code, invite))}`}
+            className="shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-brand-soft transition-colors hover:bg-surface-2"
+          >
+            Mudar
+          </Link>
+        </div>
 
-      {invite ? (
-        <p data-anim="row" className="text-sm text-ink-muted">
-          Você tem um convite para esta sala: não precisa de senha.
-        </p>
-      ) : null}
+        <fieldset className="flex min-w-0 flex-col gap-3 px-4 py-3">
+          <legend className="sr-only">Microfone</legend>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              id={micId}
+              aria-pressed={micEnabled}
+              aria-label={micEnabled ? "Microfone ligado: desligar" : "Microfone desligado: ligar"}
+              onClick={() => {
+                setMicEnabled((value) => !value);
+                setTesting(false);
+              }}
+              className={cn(
+                "grid size-10 shrink-0 place-items-center rounded-full transition-[transform,background-color] active:scale-95",
+                micEnabled ? "bg-brand text-brand-ink" : "bg-danger/15 text-danger",
+              )}
+            >
+              {micEnabled ? (
+                <Mic className="size-4.5" aria-hidden="true" />
+              ) : (
+                <MicOff className="size-4.5" aria-hidden="true" />
+              )}
+            </button>
+            <p className="min-w-0 flex-1">
+              <span className="block text-xs text-ink-subtle">Microfone</span>
+              <strong className="block font-semibold">
+                {micEnabled ? "Ligado ao entrar" : "Mutado ao entrar"}
+              </strong>
+            </p>
+            {micEnabled ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setMicError(undefined);
+                  setTesting((value) => !value);
+                }}
+              >
+                {testing ? "Parar" : "Testar"}
+              </Button>
+            ) : null}
+          </div>
+
+          {/* Medidor: só aparece durante o teste (antes, vazio, parecia quebrado). */}
+          <div className={cn("flex flex-col gap-2", !testing && "hidden")}>
+            <span className="sr-only">Teste de microfone em andamento: fale algo.</span>
+            <div
+              aria-hidden="true"
+              className="relative h-1.5 overflow-hidden rounded-full bg-surface-3"
+            >
+              <div
+                ref={meterRef}
+                className="absolute inset-0 origin-left scale-x-0 rounded-full bg-linear-to-r from-brand to-brand-soft"
+              />
+            </div>
+            <span className="text-xs text-ink-subtle">Fale algo: a barra deve se mexer.</span>
+          </div>
+
+          {devices.length > 1 ? (
+            <div className="flex items-center gap-2">
+              <Label htmlFor={deviceId} className="shrink-0 text-xs text-ink-subtle">
+                Dispositivo
+              </Label>
+              <select
+                id={deviceId}
+                value={audioDeviceId ?? ""}
+                onChange={(event) => {
+                  const id = event.target.value || undefined;
+                  setChosenMic(id ?? null);
+                  saveMicrophone(id);
+                }}
+                className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface-2 px-2.5 text-sm text-ink"
+              >
+                <option value="">Padrão do sistema</option>
+                {devices.map((device, index) => (
+                  <option key={device.deviceId} value={device.deviceId}>
+                    {device.label || `Microfone ${index + 1}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          {micError ? <output className="text-xs text-warning">{micError}</output> : null}
+        </fieldset>
+      </div>
 
       {passwordRequired ? (
         <div
           data-anim="row"
           data-invalid={formError?.field === "password" || undefined}
-          className="flex flex-col gap-2"
+          className="flex w-full flex-col gap-2"
         >
           <Label htmlFor={passwordId} className="inline-flex items-center gap-1.5">
             <Lock className="size-3.5 text-ink-subtle" aria-hidden="true" />
@@ -270,6 +384,7 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
             type="password"
             autoComplete="current-password"
             maxLength={128}
+            className="h-12 rounded-full px-5"
             aria-invalid={formError?.field === "password" || undefined}
             aria-describedby={formError?.field === "password" ? `${passwordId}-error` : undefined}
             onChange={() => setFormError(undefined)}
@@ -282,102 +397,21 @@ export function PreJoin({ code, userName, passwordRequired, invite, onJoin }: Pr
         </div>
       ) : null}
 
-      <fieldset
-        data-anim="row"
-        className="flex min-w-0 flex-col gap-3 rounded-xl border border-line bg-surface/60 p-4"
-      >
-        <legend className="sr-only">Microfone</legend>
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div
-              aria-hidden="true"
-              className={cn(
-                "grid size-9 shrink-0 place-items-center rounded-xl",
-                micEnabled ? "bg-brand/15 text-brand-soft" : "bg-surface-3 text-ink-subtle",
-              )}
-            >
-              {micEnabled ? <Mic className="size-4" /> : <MicOff className="size-4" />}
-            </div>
-            <Label htmlFor={micId} className="min-w-0 flex-col items-start gap-1">
-              <span className="text-sm font-semibold">Microfone</span>
-              <span className="max-w-full text-xs leading-relaxed font-normal text-ink-subtle">
-                {micEnabled ? "Entrar com o microfone ligado" : "Entrar mutado"}
-              </span>
-            </Label>
-          </div>
-          <Switch id={micId} checked={micEnabled} onCheckedChange={setMicEnabled} />
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span className="sr-only">
-            {testing ? "Teste de microfone em andamento: fale algo." : "Teste de microfone parado."}
-          </span>
-          <div
-            aria-hidden="true"
-            className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-3"
-          >
-            <div
-              ref={meterRef}
-              className="absolute inset-0 origin-left scale-x-0 rounded-full bg-linear-to-r from-brand to-brand-soft"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setMicError(undefined);
-              setTesting((value) => !value);
-            }}
-            className="h-8 rounded-lg px-3"
-          >
-            {testing ? "Parar teste" : "Testar"}
-          </Button>
-        </div>
-
-        {devices.length > 1 ? (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={deviceId} className="text-xs text-ink-subtle">
-              Dispositivo
-            </Label>
-            <select
-              id={deviceId}
-              value={audioDeviceId ?? ""}
-              onChange={(event) => {
-                const id = event.target.value || undefined;
-                setChosenMic(id ?? null);
-                saveMicrophone(id);
-              }}
-              className="h-9 rounded-lg border border-line bg-surface-2 px-2.5 text-sm text-ink"
-            >
-              <option value="">Padrão do sistema</option>
-              {devices.map((device, index) => (
-                <option key={device.deviceId} value={device.deviceId}>
-                  {device.label || `Microfone ${index + 1}`}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
-
-        {micError ? <output className="text-xs text-warning">{micError}</output> : null}
-      </fieldset>
-
       {formError && !formError.field ? (
-        <p className="-mt-2 text-sm text-danger" role="alert">
+        <p className="-mt-3 w-full text-center text-sm text-danger" role="alert">
           {formError.message}
         </p>
       ) : null}
 
-      <div data-anim="row" className="flex flex-col gap-3">
-        <Button type="submit" size="lg" disabled={submitting}>
+      <div data-anim="row" className="flex w-full flex-col items-center gap-3">
+        <Button type="submit" size="lg" disabled={submitting} className="w-full">
           {submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
-          {submitting ? "Entrando…" : "Entrar agora"}
+          {submitting ? "Entrando…" : "Entrar na sala"}
           {submitting ? null : <ArrowRight aria-hidden="true" />}
         </Button>
         <Link
           href="/"
-          className="self-center rounded-md text-sm text-ink-subtle transition-colors hover:text-ink"
+          className="rounded-md text-sm text-ink-subtle transition-colors hover:text-ink"
         >
           Voltar ao início
         </Link>
