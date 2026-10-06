@@ -1,5 +1,5 @@
 import type { BadgeTone } from "@/components/admin/StatusBadge";
-import type { ParticipantStatus } from "./search-params";
+import { PARTICIPANT_STATUSES, type ParticipantStatus } from "./search-params";
 
 export const STATUS_LABELS: Record<ParticipantStatus, { label: string; tone: BadgeTone }> = {
   ativo: { label: "Ativo", tone: "success" },
@@ -8,7 +8,7 @@ export const STATUS_LABELS: Record<ParticipantStatus, { label: string; tone: Bad
   excluido: { label: "Excluído", tone: "neutral" },
 };
 
-export const STATUS_OPTIONS = (Object.keys(STATUS_LABELS) as ParticipantStatus[]).map((value) => ({
+export const STATUS_OPTIONS = PARTICIPANT_STATUSES.map((value) => ({
   value,
   label: STATUS_LABELS[value].label,
 }));

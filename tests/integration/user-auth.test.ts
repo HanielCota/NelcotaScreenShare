@@ -24,10 +24,10 @@ const PASSWORD = "senha-do-participante-1";
 /** Sem SMTP, o e-mail vai para o log: pega o link do último e-mail para `to`. */
 function captureMail() {
   const mails: { to: string; body: string }[] = [];
-  vi.spyOn(logger, "warn").mockImplementation(((entry: unknown) => {
+  vi.spyOn(logger, "warn").mockImplementation((entry: unknown) => {
     const mail = entry as { mail?: { to: string }; body?: string };
     if (mail.mail && mail.body) mails.push({ to: mail.mail.to, body: mail.body });
-  }) as typeof logger.warn);
+  });
   return {
     linkFor(to: string): string | undefined {
       const mail = mails.findLast((item) => item.to === to);

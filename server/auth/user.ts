@@ -163,7 +163,7 @@ function createUserAuth(db: Database, secret: string) {
             const [user] = await db
               .select({ blockedAt: users.blockedAt, deletedAt: users.deletedAt })
               .from(users)
-              .where(eq(users.id, String(session.userId)));
+              .where(eq(users.id, session.userId));
             if (!user || user.blockedAt || user.deletedAt) return false;
           },
         },

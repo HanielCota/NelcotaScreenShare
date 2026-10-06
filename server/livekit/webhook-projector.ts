@@ -352,7 +352,11 @@ export async function ingestEvent(
     .insert(livekitEvents)
     .values({
       id,
-      event: parsed.success ? parsed.data.event : String(payload.event ?? "desconhecido"),
+      event: parsed.success
+        ? parsed.data.event
+        : typeof payload.event === "string"
+          ? payload.event
+          : "desconhecido",
       roomName: parsed.success ? (parsed.data.room?.name ?? null) : null,
       payload,
       occurredAt: parsed.success ? occurredAt(parsed.data) : new Date(),

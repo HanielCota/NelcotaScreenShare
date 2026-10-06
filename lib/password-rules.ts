@@ -4,7 +4,8 @@ export const PASSWORD_LIMITS = {
   user: { min: 10, max: 128 },
 } as const;
 
-export type PasswordStrength = 0 | 1 | 2 | 3;
+const STRENGTHS = [0, 1, 2, 3] as const;
+export type PasswordStrength = (typeof STRENGTHS)[number];
 
 export const STRENGTH_LABELS = ["Muito curta", "Fraca", "Boa", "Forte"] as const;
 
@@ -30,5 +31,5 @@ export function passwordStrength(
   let score = 1;
   if (password.length >= min + 3 || kinds >= 3) score += 1;
   if (password.length >= min + 8 || (password.length >= min + 2 && kinds >= 3)) score += 1;
-  return Math.min(score, 3) as PasswordStrength;
+  return STRENGTHS[Math.min(score, 3)] ?? 3;
 }

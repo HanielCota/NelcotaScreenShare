@@ -47,7 +47,7 @@ function flip(direction: Direction): Direction {
 
 /** Condição "depois do cursor" para a ordem efetiva da consulta. */
 function afterCursor(
-  sort: SortColumn<unknown>,
+  sort: Pick<SortColumn<unknown>, "column" | "parse">,
   idColumn: AnyColumn,
   cursor: Cursor,
   order: Direction,
@@ -79,9 +79,7 @@ export function keysetClauses<TRow>(query: KeysetQuery<TRow>) {
   const order = query.page === "prev" ? flip(query.direction) : query.direction;
   const by = order === "desc" ? desc : asc;
   return {
-    where: query.cursor
-      ? afterCursor(query.sort as SortColumn<unknown>, query.idColumn, query.cursor, order)
-      : undefined,
+    where: query.cursor ? afterCursor(query.sort, query.idColumn, query.cursor, order) : undefined,
     orderBy: [sql`${by(query.sort.column)} nulls last`, by(query.idColumn)],
     limit: query.limit + 1,
   };
@@ -123,7 +121,7 @@ export async function approximateCount(
   const result = await executor.execute<{ total: number }>(
     sql`select count(*)::int as total from (${subquery} limit ${COUNT_CAP + 1}) as limited`,
   );
-  const total = Number(result.rows[0]?.total ?? 0);
+  const total = result.rows[0]?.total ?? 0;
   return { total: Math.min(total, COUNT_CAP), capped: total > COUNT_CAP };
 }
 

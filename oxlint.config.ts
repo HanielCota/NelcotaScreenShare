@@ -96,6 +96,12 @@ export default defineConfig({
       },
     },
     {
+      // Fixtures de teste montam objetos parciais (DOM, respostas HTTP, contexto do
+      // Better Auth) de propósito; no código do app a regra continua valendo.
+      files: ["tests/**"],
+      rules: { "typescript/no-unsafe-type-assertion": "off" },
+    },
+    {
       files: ["components/account/SignUpForm.tsx"],
       // Oxlint 1.86 omite o token HTML válido `nickname` da lista desta regra.
       // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill-field

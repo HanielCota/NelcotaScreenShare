@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { WebhookReceiver } from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 import { getDb } from "@/server/db";
 import { getEnv } from "@/server/env";
 import { ingestEvent } from "@/server/livekit/webhook-projector";
@@ -15,6 +16,9 @@ const LOGGED_EVENTS = new Set([
 ]);
 
 let receiver: WebhookReceiver | undefined;
+
+/** O evento serializado é sempre um objeto JSON (o tipo do SDK é mais largo). */
+const eventObject = z.record(z.string(), z.unknown());
 
 /** Eventos do LiveKit têm poucos KB; acima disso nem lê o corpo. */
 const MAX_BODY_BYTES = 64 * 1024;
@@ -65,7 +69,7 @@ export async function POST(request: NextRequest) {
   // O LiveKit sempre manda id; o hash do corpo cobre um envio sem ele.
   const id = event.id || `sha256:${createHash("sha256").update(body).digest("hex")}`;
   try {
-    const result = await ingestEvent(db, id, event.toJson() as Record<string, unknown>);
+    const result = await ingestEvent(db, id, eventObject.parse(event.toJson()));
     if (result === "failed") {
       logger.warn({ source: "livekit-webhook", id, event: event.event }, "evento não projetado");
     }
