@@ -1,15 +1,21 @@
 /** Grade do atlas: três colunas, duas linhas, sem recortes sobre o rosto. */
 export function avatarFrame(expression: string | undefined, lid0 = 0, lid1 = 0) {
+  // A piscada fecha só as pálpebras, sem baixar a mão durante o encontro.
+  if (expression === "greeting") return { column: 2, row: 0 };
+  if (expression === "yawning") return { column: 2, row: 1 };
   if (Math.max(lid0, lid1) > 0.85) return { column: 0, row: 1 };
   switch (expression) {
     case "happy":
     case "celebrate":
+    case "highFive":
+    case "presenting":
       return { column: 1, row: 0 };
     case "grumpy":
     case "worried":
     case "skeptical":
       return { column: 1, row: 1 };
     case "surprised":
+    case "ticklish":
       return { column: 2, row: 1 };
     case "asleep":
       return { column: 0, row: 1 };

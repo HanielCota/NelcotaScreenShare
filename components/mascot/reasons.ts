@@ -1,7 +1,17 @@
 import { PRIORITY, type Expression } from "./face";
 
 /** Motivos que mudam a expressão. Cada um dura até um prazo ou até ser removido. */
-export type Reason = "celebrate" | "error" | "capsLock" | "doubt" | "tap" | "typing" | "sleep";
+export type Reason =
+  | "celebrate"
+  | "error"
+  | "capsLock"
+  | "doubt"
+  | "tap"
+  | "typing"
+  | "sleep"
+  | "interaction"
+  | "context"
+  | "curiosity";
 
 /**
  * Os motivos ativos da expressão, com prazo. A expressão mostrada é a do motivo de maior

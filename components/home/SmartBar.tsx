@@ -186,11 +186,8 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col items-center gap-3">
       <div className="relative w-full">
         {mascot ? (
-          // Inteiro, "sentado" na barra: só a sombra dos pés fica atrás dela.
-          // Continua clicável (ele reage a toques).
-          <div aria-hidden="true" className="relative z-0 -mb-3 flex justify-center">
-            {mascot}
-          </div>
+          // Os pés passam à frente da borda da barra, sem serem cortados por ela.
+          <div className="relative z-20 flex justify-center">{mascot}</div>
         ) : null}
         <div
           className={cn(

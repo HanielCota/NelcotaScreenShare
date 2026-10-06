@@ -112,6 +112,7 @@ export function PreJoin({
   const scope = useRef<HTMLFormElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const meterRef = useRef<HTMLDivElement>(null);
+  const voiceLevelRef = useRef(0);
   const passwordId = useId();
   const micId = useId();
   const deviceId = useId();
@@ -191,6 +192,7 @@ export function PreJoin({
 
         const tick = () => {
           const volume = Math.min(1, analyser.calculateVolume() * 2.5);
+          voiceLevelRef.current = volume;
           meter.style.transform = `scaleX(${volume.toFixed(3)})`;
           frame = requestAnimationFrame(tick);
         };
@@ -212,6 +214,7 @@ export function PreJoin({
       cancelAnimationFrame(frame);
       cleanup?.();
       meter.style.transform = "scaleX(0)";
+      voiceLevelRef.current = 0;
     };
   }, [testing, audioDeviceId, setPermission]);
 
@@ -298,7 +301,13 @@ export function PreJoin({
     >
       {/* Topo: mascote, a sala, quem já está lá e o convite para o time. */}
       <header data-anim="row" className="flex flex-col items-center gap-3 text-center">
-        <Mascot className="size-28 sm:size-32" sizes="(min-width: 640px) 384px, 336px" />
+        <Mascot
+          className="size-28 sm:size-32"
+          sizes="(min-width: 640px) 384px, 336px"
+          canSleep={!testing && !submitting}
+          activity={submitting ? "waiting" : testing ? "listening" : "idle"}
+          voiceLevelRef={voiceLevelRef}
+        />
         <div className="flex flex-col items-center gap-2">
           <p className="text-base font-medium text-ink-muted">Você está entrando na sala</p>
           <h1 className="max-w-full font-mono text-3xl font-semibold tracking-tight break-all sm:text-4xl">
