@@ -1,5 +1,7 @@
 import { HomeScene } from "@/components/home/HomeScene";
 import { getUserSession } from "@/server/auth/user-session";
+import { getDb } from "@/server/db";
+import { recentRoomsFor } from "@/server/rooms/recent";
 
 const NOTICES: Record<string, string> = {
   "conta-excluida": "Sua conta foi excluída. Obrigado por usar o Nelcota.",
@@ -8,12 +10,15 @@ const NOTICES: Record<string, string> = {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const { erro, aviso } = await searchParams;
   const current = await getUserSession();
+  const db = getDb();
+  const recentRooms = current && db ? await recentRoomsFor(db, current.user.id) : [];
 
   return (
     <HomeScene
       invalidCode={erro === "codigo"}
       account={current ? { name: current.user.name } : null}
       notice={typeof aviso === "string" ? NOTICES[aviso] : undefined}
+      recentRooms={recentRooms}
     />
   );
 }
