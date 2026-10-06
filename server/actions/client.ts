@@ -101,7 +101,7 @@ export const publicAction = actionClient.use(async ({ next, metadata }) => {
 
 /**
  * Actions do participante logado (Minha conta). `fresh` exige login nos
- * últimos 10 minutos (trocar senha ou e-mail, excluir a conta).
+ * últimos 10 minutos. Excluir a conta pede a senha atual, com limite de erros.
  */
 export const userAction = actionClient.use(async ({ next, metadata }) => {
   const current = await getUserSession();

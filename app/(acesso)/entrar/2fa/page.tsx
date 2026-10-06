@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { TwoFactorCodeForm } from "@/components/auth/TwoFactorCodeForm";
-import { safeReturnPath } from "@/server/auth/user-session";
+import { safeReturnPath } from "@/lib/return-path";
 
 export const metadata: Metadata = { title: "Verificação em duas etapas" };
 

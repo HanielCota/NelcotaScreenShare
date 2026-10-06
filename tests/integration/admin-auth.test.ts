@@ -330,3 +330,24 @@ describe("auditoria dos eventos de login", () => {
     await assert.rejects(pool.query("delete from audit_logs"), /5 anos/);
   });
 });
+
+describe("rotas do plugin admin", () => {
+  test("ficam fechadas por HTTP, mesmo para o owner logado", async () => {
+    const call = newCaller();
+    await inviteAndAccept("owner-plugin@exemplo.com", "owner");
+    const jar = new CookieJar();
+    const signIn = await call("/sign-in/email", {
+      body: { email: "owner-plugin@exemplo.com", password: PASSWORD },
+      jar,
+    });
+    assert.equal(signIn.status, 200);
+
+    const update = await call("/admin/update-user", {
+      body: { userId: "qualquer", data: { email: "outro@exemplo.com" } },
+      jar,
+    });
+    assert.equal(update.status, 404);
+    const list = await call("/admin/list-users", { method: "GET", jar });
+    assert.equal(list.status, 404);
+  });
+});
