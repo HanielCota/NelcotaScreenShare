@@ -31,9 +31,8 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/sal
   // Entrar em sala exige conta com e-mail confirmado; depois do login, volta para cá.
   const { user } = await requireUser(roomLink(code.data, invite));
   const { ACCESS_PASSWORD, MAX_PARTICIPANTS } = getEnv();
-  // Quem já está lá dentro, para a pré-entrada mostrar (sem banco, não mostra).
-  const db = getDb();
-  const presence = db ? await roomPresence(db, code.data) : null;
+  // Quem já está lá dentro, para a pré-entrada mostrar.
+  const presence = await roomPresence(getDb(), code.data);
 
   return (
     <RoomSession

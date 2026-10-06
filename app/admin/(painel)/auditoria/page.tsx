@@ -15,7 +15,6 @@ const serialize = createSerializer(auditParsers);
 export default async function AuditPage({ searchParams }: PageProps<"/admin/auditoria">) {
   const admin = await requireAdmin({ audit: ["read"] });
   const db = getDb();
-  if (!db) throw new Error("Banco indisponível");
   const params = await loadAuditParams(searchParams);
   const [page, options] = await Promise.all([
     listAuditLogs(db, params, PAGE_SIZE),

@@ -1,5 +1,6 @@
 import "server-only";
 import type { NodeOptions } from "@sentry/nextjs";
+import { getEnv } from "@/server/env";
 
 /**
  * Sentry no servidor, sem dados pessoais (LGPD): sem usuário, IP, cookies,
@@ -10,7 +11,7 @@ export function sentryOptions(dsn: string): NodeOptions {
   return {
     dsn,
     environment: process.env.NODE_ENV,
-    release: process.env.APP_VERSION,
+    release: getEnv().APP_VERSION,
     // SDK 11: o padrão coleta usuário, cookies, headers e corpos. Aqui, só o mínimo.
     dataCollection: {
       userInfo: false,

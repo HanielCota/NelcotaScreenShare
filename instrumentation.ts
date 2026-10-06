@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { validateEnvOnBoot } = await import("@/server/env");
+    const { getEnv, validateEnvOnBoot } = await import("@/server/env");
     validateEnvOnBoot();
     // Migrações não rodam aqui: são um job separado do deploy (scripts/migrate.ts).
 
@@ -14,9 +14,10 @@ export async function register() {
     ]);
     scheduleMaintenance(getDb, logger);
 
-    if (process.env.SENTRY_DSN) {
+    const { SENTRY_DSN } = getEnv();
+    if (SENTRY_DSN) {
       const { sentryOptions } = await import("@/server/sentry");
-      Sentry.init(sentryOptions(process.env.SENTRY_DSN));
+      Sentry.init(sentryOptions(SENTRY_DSN));
     }
   }
 }

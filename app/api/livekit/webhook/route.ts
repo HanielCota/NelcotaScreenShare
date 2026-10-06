@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
   }
 
   const db = getDb();
-  if (!db) return new NextResponse(null, { status: 204 });
   // O LiveKit sempre manda id; o hash do corpo cobre um envio sem ele.
   const id = event.id || `sha256:${createHash("sha256").update(body).digest("hex")}`;
   try {

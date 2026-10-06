@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { adminAuthClient } from "@/lib/admin-auth-client";
 import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
+import { PASSWORD_LIMITS } from "@/lib/password-rules";
 import { formText } from "@/lib/utils";
 
 type Scope = "admin" | "user";
@@ -21,9 +22,14 @@ const PATHS: Record<Scope, { login: string; forgot: string; reset: string; minLe
     login: "/admin/entrar",
     forgot: "/admin/recuperar-senha",
     reset: "/admin/redefinir-senha",
-    minLength: 12,
+    minLength: PASSWORD_LIMITS.admin.min,
   },
-  user: { login: "/entrar", forgot: "/recuperar-senha", reset: "/redefinir-senha", minLength: 10 },
+  user: {
+    login: "/entrar",
+    forgot: "/recuperar-senha",
+    reset: "/redefinir-senha",
+    minLength: PASSWORD_LIMITS.user.min,
+  },
 };
 
 function BackToLogin({ scope }: { scope: Scope }) {
@@ -180,7 +186,7 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
             autoComplete="new-password"
             required
             minLength={minLength}
-            maxLength={128}
+            maxLength={PASSWORD_LIMITS[scope].max}
           />
         </div>
         <div className="flex flex-col gap-2">

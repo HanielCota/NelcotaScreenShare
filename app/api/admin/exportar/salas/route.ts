@@ -10,7 +10,6 @@ export async function GET(request: Request) {
   const auth = await requireAdminApi({ room: ["export"] });
   if ("response" in auth) return auth.response;
   const db = getDb();
-  if (!db) return new Response("Banco indisponível.", { status: 503 });
 
   const params = loadRoomParams(new URL(request.url).searchParams);
   await recordAudit(
@@ -24,7 +23,7 @@ export async function GET(request: Request) {
   );
 
   async function* rows() {
-    for await (const row of iterateRooms(db!, params)) {
+    for await (const row of iterateRooms(db, params)) {
       const seconds = row.finishedAt
         ? Math.round((Date.parse(row.finishedAt) - Date.parse(row.startedAt)) / 1000)
         : null;

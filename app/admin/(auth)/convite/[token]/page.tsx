@@ -1,7 +1,6 @@
 import { TimerOff } from "lucide-react";
 import Link from "next/link";
 import { AcceptInvitationForm } from "@/components/admin/auth/AcceptInvitationForm";
-import { AdminDisabled } from "@/components/admin/auth/AdminDisabled";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { findPendingInvitation } from "@/server/auth/invitations";
@@ -12,7 +11,6 @@ export default async function AcceptInvitationPage({
   params,
 }: PageProps<"/admin/convite/[token]">) {
   const db = getDb();
-  if (!db) return <AdminDisabled />;
   const { token } = await params;
   const invitation = token.length <= 200 ? await findPendingInvitation(db, token) : undefined;
 

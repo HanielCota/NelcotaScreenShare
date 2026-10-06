@@ -3,7 +3,8 @@
 import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ActionError, userAction } from "@/server/actions/client";
+import { userAction } from "@/server/actions/client";
+import { ActionError } from "@/server/actions/errors";
 import { verifyPassword } from "@/server/auth/password";
 import { getDb } from "@/server/db";
 import { userAccounts, userSessions } from "@/server/db/schema";
@@ -14,12 +15,6 @@ import { createRateLimiter } from "@/server/rate-limit";
 /** Senha errada ao excluir a conta: poucas chances por conta, contra adivinhação. */
 const deletePasswordFailures = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
 
-function database() {
-  const db = getDb();
-  if (!db) throw new ActionError("Serviço indisponível. Tente de novo em instantes.");
-  return db;
-}
-
 /** Encerra uma sessão da própria conta (o token nunca vai ao navegador). */
 export const revokeMySession = userAction
   .metadata({ name: "account.revokeSession", audit: "none" })
@@ -28,7 +23,7 @@ export const revokeMySession = userAction
     if (parsedInput.sessionId === ctx.current.session.id) {
       throw new ActionError("Para sair deste dispositivo, use o botão Sair.");
     }
-    const deleted = await database()
+    const deleted = await getDb()
       .delete(userSessions)
       .where(
         and(
@@ -45,7 +40,7 @@ export const revokeMySession = userAction
 export const revokeMyOtherSessions = userAction
   .metadata({ name: "account.revokeOtherSessions", audit: "none" })
   .action(async ({ ctx }) => {
-    const deleted = await database()
+    const deleted = await getDb()
       .delete(userSessions)
       .where(
         and(
@@ -67,7 +62,7 @@ export const deleteMyAccount = userAction
   .metadata({ name: "account.delete", audit: "required" })
   .inputSchema(z.object({ password: z.string().min(1).max(128) }))
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const userId = ctx.current.user.id;
     if (!deletePasswordFailures.peek(userId).ok) {
       throw new ActionError("Muitas tentativas com a senha errada. Aguarde alguns minutos.");

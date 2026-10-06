@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
-const { createRateLimiter, getClientIp } = await import("../../server/rate-limit");
+const { createRateLimiter } = await import("../../server/rate-limit");
+const { getClientIp } = await import("../../server/client-ip");
 const { buildCsp } = await import("../../server/csp");
 const { generateRoomCode, roomCodeSchema, roomPath } = await import("../../lib/livekit");
 

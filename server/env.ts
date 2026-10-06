@@ -4,6 +4,17 @@ import { z } from "zod";
 const emptyToUndefined = (value: unknown) =>
   typeof value === "string" && value.trim() === "" ? undefined : value;
 
+// Postgres: contas, salas e configurações. Use o papel sem DDL (nelcota_app).
+const databaseUrlSchema = z.url({
+  protocol: /^postgres(ql)?$/,
+  error: "DATABASE_URL é obrigatória (postgres:// ou postgresql://)",
+});
+
+export const logLevelSchema = z.preprocess(
+  emptyToUndefined,
+  z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).optional(),
+);
+
 const envSchema = z
   .object({
     LIVEKIT_API_KEY: z.string({ error: "LIVEKIT_API_KEY é obrigatória" }).min(1),
@@ -37,11 +48,7 @@ const envSchema = z
       emptyToUndefined,
       z.coerce.number().int().min(1).max(5).default(1),
     ),
-    // Postgres: contas, salas e configurações. Use o papel sem DDL (nelcota_app).
-    DATABASE_URL: z.url({
-      protocol: /^postgres(ql)?$/,
-      error: "DATABASE_URL é obrigatória (postgres:// ou postgresql://)",
-    }),
+    DATABASE_URL: databaseUrlSchema,
     // Segredo da instância de participantes do Better Auth (cookies, 2FA cifrado).
     // Gere com: openssl rand -base64 48
     AUTH_SECRET: z
@@ -65,10 +72,7 @@ const envSchema = z
     // Observabilidade (opcionais). SENTRY_DSN liga o Sentry no servidor; o do
     // navegador vem de NEXT_PUBLIC_SENTRY_DSN no build.
     SENTRY_DSN: z.preprocess(emptyToUndefined, z.url().optional()),
-    LOG_LEVEL: z.preprocess(
-      emptyToUndefined,
-      z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).optional(),
-    ),
+    LOG_LEVEL: logLevelSchema,
     // SHA do commit, definido pelo CI na imagem (aparece no /api/ready e no Sentry).
     APP_VERSION: z.preprocess(emptyToUndefined, z.string().max(64).optional()),
   })
@@ -122,6 +126,16 @@ export function getEnv(): Env {
   }
   cached = parsed.data;
   return cached;
+}
+
+/**
+ * Só a URL do banco, validada pela mesma regra do ambiente completo. Os scripts
+ * (seed, create-owner) usam o banco sem precisar das chaves do LiveKit etc.
+ */
+export function databaseUrl(): string {
+  const parsed = databaseUrlSchema.safeParse(process.env.DATABASE_URL);
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "DATABASE_URL inválida");
+  return parsed.data;
 }
 
 /**

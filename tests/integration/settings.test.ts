@@ -3,13 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeEach, describe, test } from "vitest";
 import * as schema from "@/server/db/schema";
-import {
-  clearSettingsCache,
-  getSetting,
-  mascotSettings,
-  saveSetting,
-  SettingsUnavailableError,
-} from "@/server/settings";
+import { clearSettingsCache, getSetting, mascotSettings, saveSetting } from "@/server/settings";
 import { runMigrations } from "../../scripts/migrate";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -19,14 +13,6 @@ beforeEach(() => clearSettingsCache());
 
 test("migrações já aplicadas: rodar de novo não faz nada", async () => {
   await runMigrations(process.env.DATABASE_URL ?? "");
-});
-
-test("sem banco: valem os padrões e salvar avisa", async () => {
-  assert.deepEqual(await getSetting(mascotSettings, null), mascotSettings.defaults);
-  await assert.rejects(
-    saveSetting(mascotSettings, { saturationDark: 1.2, saturationLight: 1 }, null),
-    SettingsUnavailableError,
-  );
 });
 
 describe("mascote no Postgres", () => {

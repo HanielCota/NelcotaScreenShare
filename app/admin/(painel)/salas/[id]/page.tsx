@@ -21,7 +21,6 @@ export default async function RoomPage({ params }: PageProps<"/admin/salas/[id]"
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const db = getDb();
-  if (!db) throw new Error("Banco indisponível");
   const detail = await getRoomDetail(db, id);
   if (!detail) notFound();
   const { room, participants, shares, invites, history } = detail;

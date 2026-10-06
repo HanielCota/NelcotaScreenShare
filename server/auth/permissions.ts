@@ -1,3 +1,4 @@
+import "server-only";
 import { createAccessControl } from "better-auth/plugins/access";
 import type { AdminRole } from "./roles";
 

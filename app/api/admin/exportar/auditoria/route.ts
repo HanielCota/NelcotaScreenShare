@@ -14,7 +14,6 @@ export async function GET(request: Request) {
   const auth = await requireAdminApi({ audit: ["export"] });
   if ("response" in auth) return auth.response;
   const db = getDb();
-  if (!db) return new Response("Banco indisponível.", { status: 503 });
 
   const params = loadAuditParams(new URL(request.url).searchParams);
   await recordAudit(
@@ -28,7 +27,7 @@ export async function GET(request: Request) {
   );
 
   async function* rows() {
-    for await (const row of iterateAuditLogs(db!, params)) {
+    for await (const row of iterateAuditLogs(db, params)) {
       yield [
         row.createdAt,
         row.action,

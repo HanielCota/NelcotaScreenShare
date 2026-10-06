@@ -111,14 +111,12 @@ const INTERVAL_MS = 6 * 60 * 60 * 1000;
 let scheduled = false;
 
 /** Agenda a manutenção no processo do servidor (uma réplica; ver README). */
-export function scheduleMaintenance(getDatabase: () => Database | undefined, log: MaintenanceLog) {
+export function scheduleMaintenance(getDatabase: () => Database, log: MaintenanceLog) {
   if (scheduled) return;
   scheduled = true;
   const run = async () => {
-    const db = getDatabase();
-    if (!db) return;
     try {
-      log.info({ maintenance: await runMaintenance(db) }, "manutenção concluída");
+      log.info({ maintenance: await runMaintenance(getDatabase()) }, "manutenção concluída");
     } catch (error) {
       log.error({ err: error }, "falha na manutenção");
     }

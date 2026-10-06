@@ -31,12 +31,15 @@ if (process.env.NODE_ENV === "production" || (!local && !args.has("forcar"))) {
   console.error("Seed recusado: só roda em banco local (ou com --forcar num banco descartável).");
   process.exit(1);
 }
-const maybeDb = getDb();
-if (!maybeDb) {
-  console.error("Defina DATABASE_URL.");
-  process.exit(1);
+function openDb() {
+  try {
+    return getDb();
+  } catch {
+    console.error("Defina DATABASE_URL.");
+    process.exit(1);
+  }
 }
-const db = maybeDb;
+const db = openDb();
 
 const ACTIONS = [
   ["auth.sign_in", "admin_user"],

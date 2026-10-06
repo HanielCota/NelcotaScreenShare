@@ -1,5 +1,6 @@
 import "server-only";
 import pino, { type Logger } from "pino";
+import { logLevelSchema } from "@/server/env";
 
 /**
  * Logger estruturado do servidor. Produção: JSON no stdout (o Coolify coleta),
@@ -7,7 +8,9 @@ import pino, { type Logger } from "pino";
  * Segredos e dados pessoais sensíveis são mascarados em qualquer nível.
  */
 export const logger: Logger = pino({
-  level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === "production" ? "info" : "debug"),
+  level:
+    logLevelSchema.parse(process.env.LOG_LEVEL) ??
+    (process.env.NODE_ENV === "production" ? "info" : "debug"),
   base: { service: "nelcota" },
   timestamp: pino.stdTimeFunctions.isoTime,
   redact: {

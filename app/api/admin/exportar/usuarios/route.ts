@@ -11,7 +11,6 @@ export async function GET(request: Request) {
   const auth = await requireAdminApi({ participant: ["export"] });
   if ("response" in auth) return auth.response;
   const db = getDb();
-  if (!db) return new Response("Banco indisponível.", { status: 503 });
 
   const params = loadParticipantParams(new URL(request.url).searchParams);
   await recordAudit(
@@ -25,7 +24,7 @@ export async function GET(request: Request) {
   );
 
   async function* rows() {
-    for await (const row of iterateParticipants(db!, params)) {
+    for await (const row of iterateParticipants(db, params)) {
       yield [
         row.id,
         row.name,

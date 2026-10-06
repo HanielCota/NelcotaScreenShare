@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   const auth = await getUserAuth().api.getSession({ headers: request.headers });
   const db = getDb();
   // Conta bloqueada ou excluída não tem sessão, como em getUserSession.
-  if (!auth || !db || auth.user.deletedAt || auth.user.blockedAt) {
+  if (!auth || auth.user.deletedAt || auth.user.blockedAt) {
     return Response.json(
       { message: "Entre na sua conta para baixar seus dados." },
       { status: 401 },

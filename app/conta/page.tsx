@@ -1,4 +1,3 @@
-import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -15,6 +14,7 @@ import { SessionList } from "@/components/auth/SessionList";
 import { TwoFactorSettings } from "@/components/auth/TwoFactorSettings";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { safeReturnPath } from "@/lib/return-path";
+import { listActiveSessions } from "@/server/auth/sessions";
 import { requireUser } from "@/server/auth/user-session";
 import { getDb } from "@/server/db";
 import { userSessions } from "@/server/db/schema";
@@ -30,22 +30,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
   const current = await requireUser("/conta", { requireVerified: false });
   const { voltar, aviso } = await searchParams;
   const back = typeof voltar === "string" ? safeReturnPath(voltar, "") : "";
-  const db = getDb();
-  const sessions = db
-    ? await db
-        .select({
-          id: userSessions.id,
-          ipAddress: userSessions.ipAddress,
-          userAgent: userSessions.userAgent,
-          createdAt: userSessions.createdAt,
-          updatedAt: userSessions.updatedAt,
-        })
-        .from(userSessions)
-        .where(
-          and(eq(userSessions.userId, current.user.id), gt(userSessions.expiresAt, sql`now()`)),
-        )
-        .orderBy(desc(userSessions.updatedAt))
-    : [];
+  const sessions = await listActiveSessions(getDb(), userSessions, current.user.id);
   const notice = typeof aviso === "string" ? NOTICES[aviso] : undefined;
 
   return (

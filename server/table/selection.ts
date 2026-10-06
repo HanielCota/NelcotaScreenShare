@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { ActionError } from "@/server/actions/client";
+import { ActionError } from "@/server/actions/errors";
 import { BULK_FILTER_LIMIT, BULK_IDS_LIMIT, filterQuery } from "@/lib/table-params";
 
 /** Entrada das ações em massa (ver `BulkSelection`). */

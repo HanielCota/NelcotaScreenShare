@@ -10,7 +10,6 @@ export async function GET(request: Request) {
   const auth = await requireAdminApi({ shareSession: ["export"] });
   if ("response" in auth) return auth.response;
   const db = getDb();
-  if (!db) return new Response("Banco indisponível.", { status: 503 });
 
   const params = loadShareParams(new URL(request.url).searchParams);
   await recordAudit(
@@ -24,7 +23,7 @@ export async function GET(request: Request) {
   );
 
   async function* rows() {
-    for await (const row of iterateShares(db!, params)) {
+    for await (const row of iterateShares(db, params)) {
       yield [
         row.id,
         row.roomCode,

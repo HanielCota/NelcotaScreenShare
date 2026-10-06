@@ -20,7 +20,7 @@ import { logger } from "@/server/logger";
 import { mailLayout, sendMail } from "@/server/mail";
 import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password";
 import { ac, roles } from "./permissions";
-import { authHooks, SIGN_IN_PATH } from "./shared";
+import { AUTH_RATE_LIMIT_RULES, authHooks, FRESH_SESSION_SECONDS } from "./shared";
 
 export const ADMIN_AUTH_BASE_PATH = "/api/admin/auth";
 
@@ -74,7 +74,7 @@ function createAdminAuth(db: Database, secret: string) {
       expiresIn: 12 * 60 * 60,
       updateAge: 60 * 60,
       // Ações críticas exigem login nos últimos 10 min (senha, papel, 2FA, exclusão).
-      freshAge: 10 * 60,
+      freshAge: FRESH_SESSION_SECONDS,
       // Sem cache em cookie: sessão revogada deixa de valer na próxima requisição.
       cookieCache: { enabled: false },
     },
@@ -106,13 +106,7 @@ function createAdminAuth(db: Database, secret: string) {
       modelName: "adminRateLimits",
       window: 60,
       max: 100,
-      customRules: {
-        [SIGN_IN_PATH]: { window: 60, max: 5 },
-        "/request-password-reset": { window: 60, max: 3 },
-        "/reset-password": { window: 60, max: 5 },
-        "/two-factor/verify-totp": { window: 60, max: 10 },
-        "/two-factor/verify-backup-code": { window: 60, max: 5 },
-      },
+      customRules: AUTH_RATE_LIMIT_RULES,
     },
     advanced: {
       cookiePrefix: "nelcota-admin",
@@ -186,7 +180,7 @@ export function getAdminAuth(): AdminAuth | undefined {
   if (instance) return instance;
   const db = getDb();
   const secret = getEnv().ADMIN_AUTH_SECRET;
-  if (!db || !secret) return undefined;
+  if (!secret) return undefined;
   instance = createAdminAuth(db, secret);
   return instance;
 }

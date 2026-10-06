@@ -1,20 +1,19 @@
 import "server-only";
 import { headers } from "next/headers";
 import { createSafeActionClient } from "next-safe-action";
+import { ActionError } from "@/server/actions/errors";
 import { z } from "zod";
 import { createAuditRecorder, type AuditRecorder } from "@/server/audit/record";
 import { getAdminSession, needsTwoFactorSetup } from "@/server/auth/admin-session";
 import { can, type PermissionRequest } from "@/server/auth/permissions";
+import { FRESH_SESSION_SECONDS } from "@/server/auth/shared";
 import { getUserSession } from "@/server/auth/user-session";
 import { clientIpFrom } from "@/server/client-ip";
 import { requestLogger } from "@/server/request-log";
 import { createRateLimiter, type RateLimiter } from "@/server/rate-limit";
 
-/** Erro com mensagem pensada para quem usa: vai para `result.serverError` como está. */
-export class ActionError extends Error {}
-
-/** Janela de sessão "fresca" para ações críticas (igual ao freshAge do Better Auth). */
-const FRESH_SESSION_MS = 10 * 60 * 1000;
+/** Janela de sessão "fresca" para ações críticas (a mesma do freshAge do Better Auth). */
+const FRESH_SESSION_MS = FRESH_SESSION_SECONDS * 1000;
 
 const metadataSchema = z.object({
   /** Nome estável da action (logs e auditoria), ex.: "account.revokeSession". */

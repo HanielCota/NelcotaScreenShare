@@ -2,7 +2,7 @@
 
 import { and, desc, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { ActionError, adminAction } from "@/server/actions/client";
+import { adminAction } from "@/server/actions/client";
 import { can } from "@/server/auth/permissions";
 import { getDb } from "@/server/db";
 import { rooms, users } from "@/server/db/schema";
@@ -17,7 +17,6 @@ export const searchPanelAction = adminAction
   .inputSchema(z.object({ q: z.string().trim().min(2).max(60) }))
   .action(async ({ parsedInput, ctx }) => {
     const db = getDb();
-    if (!db) throw new ActionError("Banco de dados indisponível.");
     const role = ctx.admin.user.role;
     const q = parsedInput.q;
     const [foundRooms, foundPeople] = await Promise.all([

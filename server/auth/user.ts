@@ -18,7 +18,7 @@ import { appUrl, getEnv } from "@/server/env";
 import { logger } from "@/server/logger";
 import { mailLayout, sendMail } from "@/server/mail";
 import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password";
-import { authHooks, SIGN_IN_PATH } from "./shared";
+import { AUTH_RATE_LIMIT_RULES, authHooks, FRESH_SESSION_SECONDS } from "./shared";
 
 export const USER_AUTH_BASE_PATH = "/api/auth";
 
@@ -73,7 +73,7 @@ function createUserAuth(db: Database, secret: string) {
       expiresIn: 30 * 24 * 60 * 60,
       updateAge: 24 * 60 * 60,
       // Trocar senha/e-mail e excluir a conta exigem login nos últimos 10 min.
-      freshAge: 10 * 60,
+      freshAge: FRESH_SESSION_SECONDS,
       cookieCache: { enabled: false },
     },
     emailAndPassword: {
@@ -138,13 +138,9 @@ function createUserAuth(db: Database, secret: string) {
       window: 60,
       max: 100,
       customRules: {
-        [SIGN_IN_PATH]: { window: 60, max: 5 },
+        ...AUTH_RATE_LIMIT_RULES,
         "/sign-up/email": { window: 60 * 10, max: 5 },
-        "/request-password-reset": { window: 60, max: 3 },
         "/send-verification-email": { window: 60, max: 2 },
-        "/reset-password": { window: 60, max: 5 },
-        "/two-factor/verify-totp": { window: 60, max: 10 },
-        "/two-factor/verify-backup-code": { window: 60, max: 5 },
       },
     },
     advanced: {
@@ -189,7 +185,6 @@ let instance: UserAuth | undefined;
 export function getUserAuth(): UserAuth {
   if (instance) return instance;
   const db = getDb();
-  if (!db) throw new Error("DATABASE_URL é obrigatória para as contas de participantes");
   instance = createUserAuth(db, getEnv().AUTH_SECRET);
   return instance;
 }
