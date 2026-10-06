@@ -1,0 +1,189 @@
+# 02 — Diagnóstico
+
+## Leitura honesta antes da lista
+
+O projeto **não está bagunçado de forma generalizada**. O servidor tem disciplina acima da média para o porte: `strict` com `noUncheckedIndexedAccess`, **zero `any`**, Zod em todas as bordas, `server-only` em todo o DAL, oxlint type-aware com `import/no-cycle` e camadas por `no-restricted-imports`, nenhum import circular, duplicação de 2,24% e testes de integração com Postgres real.
+
+A sensação de "verboso e misturado" vem de **quatro focos concentrados**:
+
+1. **Componentes e hooks-deus no cliente**: o mascote, a pré-entrada e a sala, além do handler `/api/token`.
+2. **Organização que mudou de critério no meio do caminho**: `features/` só para o admin, `components/` dependendo de `app/`, três pastas de auth e `lib/` usado como gaveta.
+3. **Duplicação concentrada no painel**: tabelas, filtros, exportações e formulários de auth.
+4. **Guardrails que existem mas não protegem nada**: o lint está vermelho, não há remote nem CI rodando, não há E2E e não há nenhum teste do cliente.
+
+Por isso a proposta (doc 03) é **cirúrgica** e não uma reescrita em Clean Architecture.
+
+Severidade: **alta** = causa bug ou bloqueia evolução hoje; **média** = custo recorrente a cada mudança; **baixa** = ruído. Esforço: **P** < 2 h, **M** 2–8 h, **G** > 8 h.
+
+## 1. SRP: arquivos e funções que fazem coisas demais
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-001 | `components/mascot/use-mascot.ts:76-665` é **um único `useEffect` de cerca de 590 linhas**. Ele junta estado em `let` (`:93-119`), 25 comparações `current === "…"`, cerca de 18 listeners, laço rAF, sono, espirro, sinais e contexto. O WIP atual soma +189 linhas ao mesmo bloco. | manutenção, testabilidade | alta | G |
+| D-002 | `components/room/PreJoin.tsx:103-534` tem complexidade **39**. Junta permissão de microfone, medidor de áudio (`:159-219`, chama `createLocalAudioTrack`/`createAudioAnalyser`), escolha de dispositivo, senha, `requestToken`, redirect de login (`:253-260`), GSAP e mascote. | manutenção, testabilidade | alta | M |
+| D-003 | `app/api/token/route.ts:83-247`: o `POST` tem 165 linhas e complexidade **31**. Contém **regra de negócio no handler**: senha de acesso com limitador (`:163-183`), lotação via `RoomServiceClient` (`:57-72`, `:186`), resgate de convite (`:196-209`), grants (`:213-230`) e mensagens de UI (`:151-156`). | manutenção, testabilidade | alta | M |
+| D-004 | `components/room/RoomView.tsx` (380 linhas) junta três responsabilidades: o ciclo de vida da conexão com o SDK (`:90-211`: `new Room`, `room.on`, `connect`, mic), o layout (`RoomLayout`, `:213-334`, complexidade 28) e `AloneWelcome`. Os mapas de erro puros (`:49-88`) ficam presos e sem export. | testabilidade, bug (ver B-01) | média | M |
+| D-005 | `server/livekit/webhook-projector.ts:194-313`: `projectEvent` é um `switch` de 7 casos com 120 linhas e complexidade 24. | manutenção | média | M |
+| D-006 | Componentes do painel grandes demais: `AuditTable.tsx` (360 linhas: filtros, Sheet de detalhe, células e contexto), `DataTable.tsx:115-284` (função de 170 linhas, complexidade 21), `TwoFactorSettings.tsx` (276), `AccountForms.tsx` (288, com 4 formulários), páginas `salas/[id]/page.tsx` (função de 182 linhas) e `usuarios/[id]/page.tsx` (162). | manutenção | média | M |
+| D-007 | `lib/room-data.ts` junta o protocolo do data channel (`:7-45`), geometria (`:48-59`) e `localStorage` (`:61-79`). `lib/livekit.ts` junta o contrato HTTP do token, o `fetch` e o gerador de código, e **não importa nada do LiveKit**. | navegação | baixa | P |
+
+## 2. Mistura de camadas e dependências invertidas
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-008 | **`components/` importa server actions de `app/`**: `components/auth/SessionList.tsx:6-10` (actions de admin **e** de participante), `components/account/AccountForms.tsx:8`, `components/admin/MascotSettingsForm.tsx:7`, `components/admin/auth/AcceptInvitationForm.tsx:7`. | manutenção (não há regra possível de fronteira), bundle | média | M |
+| D-009 | **Acesso a dados dentro de páginas e handlers**, fora do DAL: `app/conta/page.tsx:33-47` e `app/admin/(painel)/conta/sessoes/page.tsx:13-27` (a mesma consulta de sessões, duplicada), `app/api/conta/dados/route.ts:35-85` (4 consultas inline e sessão refeita à mão em `:21-23`). | manutenção, consistência (ver S-09) | média | P |
+| D-010 | `components/admin/shell/CommandPalette.tsx` → `features/busca/actions.ts`, enquanto `features/*` → `components/admin`: é um **ciclo no nível de pasta**. | manutenção | baixa | P |
+| D-011 | Inversões pequenas: `components/ui/sonner.tsx:5` → `@/components/ThemeToggle` (vendor depende da app); `server/table/selection.ts:3` → `server/actions/client.ts` (`ActionError`); `server/db/schema/admin-auth.ts:14` → `server/auth/roles.ts`; `components/auth/TwoFactorSettings.tsx:9` → `components/admin/QrCode`; `use-screen-share.ts:7` importa um tipo do componente `ShareMenu`; `JoinChoices` é definido no componente `PreJoin.tsx:33`. | manutenção | baixa | P |
+| D-012 | Configuração de interface em `server/`: `server/admin-nav.ts` (rótulos e ícones), consumido por `import type` em 3 componentes client. `getClientIp` (leitura de XFF) mora em `server/rate-limit.ts:86` e não em `server/client-ip.ts`. | navegação | baixa | P |
+
+## 3. Organização e convenções
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-013 | **`features/` existe só para o painel admin** (auditoria, compartilhamentos, salas, usuarios, busca). A sala ao vivo, a conta, a auth, a home e o mascote vivem em `components/`. As actions de admin ficam espalhadas em `app/admin/(painel)/configuracoes/actions.ts` e `conta/sessoes/actions.ts`. | navegação: "onde fica X?" tem 3 respostas | média | M |
+| D-014 | **Três pastas de auth com critérios diferentes**: `components/auth` (compartilhada por `scope`), `components/account` (participante, mas contém `ShareSupportNote`, usado pela home e pela sala) e `components/admin/auth`. `AccessTop.tsx:8` exporta `AccessTabs`. | navegação | média | M |
+| D-015 | **`lib/` como gaveta**: o domínio da sala (`livekit.ts`, `room-data.ts`, `room-input.ts`, `share-support.ts`, `recent-room.ts`, `invite.ts`) e da auth (`auth-errors.ts`, `password-rules.ts`, `access-copy.ts`, `access-context.ts`) está misturado com genéricos (`format`, `csv`, `utils`, `gsap`, `theme`). `hooks/` tem 3 arquivos de domínios diferentes. | navegação | média | M |
+| D-016 | **Mistura de idiomas sem regra**: pastas `features/auditoria` e `features/salas` com componentes `AuditTable` e `RoomsTable`; `features/usuarios` contém `ParticipantsTable` e o título "Participantes" (`app/admin/(painel)/usuarios/page.tsx:11`); payload `BulkSelection = {tipo:"ids"} \| {tipo:"filtro"; busca}` (`lib/table-params.ts:23`); `changes: {antes, depois}` convivendo com `action: "room.delete"`. | onboarding, bugs de nome | média | M |
+| D-017 | **O mesmo nome com dois significados**: `TokenResult` é o resultado do fetch em `lib/livekit.ts:73` e um enum de log em `server/livekit/token-log.ts:7`. "user" é a conta de *admin* em `server/auth/permissions.ts:7-9`, mas a exportação de participantes audita `action: "user.export"` (`app/api/admin/exportar/usuarios/route.ts:21-22`) com a permissão `participant.export`. Há uma função local `refresh()` em `features/salas/actions.ts:23` com o mesmo nome de `refresh` de `next/cache`. | bug em potencial, consultas de auditoria confusas | média | M |
+| D-018 | Nomes de arquivo em 3 estilos: `hooks/useShortcut.ts` e `useRoomAnimations.ts` (camelCase), `hooks/use-mobile.ts` e `components/mascot/use-mascot.ts` (kebab), componentes em PascalCase. Um hook (`use-mascot.ts`) fica fora de `hooks/`. | ruído | baixa | P |
+
+## 4. Verbosidade e duplicação
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-019 | **4 rotas de exportação CSV praticamente idênticas** (`app/api/admin/exportar/{salas,usuarios,compartilhamentos,auditoria}/route.ts`, 45–63 linhas cada): `requireAdminApi` → `getDb` → `recordAudit({...params, cursor: undefined, dir: undefined})` → gerador com `db!` → `csvResponse`. | manutenção | média | P |
+| D-020 | **Queries do painel ×4**: `iterateX` quase idêntico (`auditoria/queries.ts:169`, `compartilhamentos:115`, `salas:124`, `usuarios:140`), o esqueleto de `listX` (keyset → `keysetPage` → `approximateCount` → `toISOString`, cerca de 35 linhas e 70% comum) e o filtro de período `de`/`ate` (`auditoria/queries.ts:148-157` ≈ os outros 3, segundo o jscpd). A auditoria monta o `sort` à mão (`:132-136`). | manutenção (cada tabela nova = copiar 4 arquivos) | média | M |
+| D-021 | **Filtros do painel**: `RoomsTable.tsx:67-109` ↔ `ParticipantsTable.tsx:69-111` (43 linhas, cerca de 90% iguais). `AuditTable.Filters` (137 linhas) reimplementa `FilterSelect`/`FilterDate`/`FilterSearch`. `SELECT_CLASS` tem 3 cópias (`AuditTable.tsx:45`, `filters.tsx:11`, `InvitesPanel.tsx:161`). "Exportar CSV" e "Limpar" aparecem 4 vezes. As páginas de tabela repetem cerca de 15 linhas (`requireAdmin` + `if (!db) throw` + `createSerializer` + mapeamento de `page`). | manutenção | média | M |
+| D-022 | **Formulários de auth**: `SignInForm.tsx:88-134` ↔ `AdminSignInForm.tsx:56-101` (cerca de 60 linhas iguais). O par `useState(pending)` + `useState<string>(error)` se repete **11 vezes em 8 arquivos**. O regex de e-mail aparece em `SignUpForm.tsx:107` e `EmailField.tsx:66`. | manutenção | baixa | M |
+| D-023 | **Limites de senha fixos no código em 8 lugares**, quando `lib/password-rules.ts:2-5` já exporta `PASSWORD_LIMITS`: `AcceptInvitationForm.tsx:40,77,83,84`, `AccountForms.tsx:167,195,201,202`, `PasswordForms.tsx:24,26,183`. Só o `SignUpForm.tsx:22` usa a constante. | regra diverge entre servidor e UI | média | P |
+| D-024 | **Duas configurações de Better Auth em paralelo**: `customRules` de rate limit em `server/auth/admin.ts:89-95` ≈ `user.ts:141-148`; a janela "fresh" de 10 min aparece 3 vezes (`server/actions/client.ts:17`, `admin.ts:57`, `user.ts:76`). O envio de e-mail em segundo plano é inline no admin e usa o helper `deliver` no user. | manutenção (mudar um lado só) | baixa | P |
+| D-025 | Pequenas duplicações de domínio: o regex do código de sala em `lib/livekit.ts:9` e `server/db/schema/rooms.ts:32`; a subconsulta de "online" em `server/rooms/presence.ts:15-16` e `recent.ts:24-25`; o mapeamento de linha de auditoria em `server/audit/record.ts:64-73` e `84-93`; o hash de token em hex (`server/auth/invitations.ts:15`) e em bytea (`server/rooms/invites.ts:14`); `function database()` 3 vezes (`app/conta/actions.ts:13`, `features/salas/actions.ts:17`, `features/usuarios/actions.ts:22`). | manutenção | baixa | P |
+| D-026 | UI da sala: `initials` 3 vezes **com regras diferentes** (`NameRow.tsx:9-16`, `ParticipantTile.tsx:15-20`, `RoomTopBar.tsx:11-14`); `displayName` com fallback 6 vezes; "copiar link" 2 vezes, uma com fallback manual e outra que falha calada (`RoomTopBar.tsx:33-38`). | inconsistência visível | baixa | P |
+| D-027 | Mascote: `prefersReducedMotion` 4 vezes (`lib/gsap.ts:21`, `use-mascot.ts:13`, `hand-motions.ts:14,22`, `MascotPair.tsx:22`); `IDLE_MS = 30_000` (`MascotPair.tsx:12`) duplica `SLEEPY_AFTER_MS` (`sleep.ts:1`); `WALK_MS = 3200` duplica o CSS `3200ms` (`MascotPair.module.css:35`). | ajuste diverge | baixa | P |
+| D-028 | CSS: a ponte shadcn repete hex literais em vez de tokens (`globals.css:96` `--background: #17181a` = `--color-canvas` `:17`), e o tema claro repete o bloco. `.apple-buttons` (`globals.css:236-293`) fica fora de `@layer` e sobrepõe utilitários explícitos (ver B-09). | manutenção | baixa | P |
+
+## 5. OCP / LSP / ISP / DIP
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-029 | **OCP (mascote)**: a lista de expressões que "ocupam" o mascote está em **5 lugares com variações**: `use-mascot.ts:139`, `:253-257`, `:321-325`, `:504` e `MascotPair.tsx:54` (seletor CSS). Uma expressão nova exige revisar todos. | bug sutil | média | P |
+| D-030 | **Modelo**: `Expression` (`face.ts:10-31`) mistura expressões (happy, grumpy), atividades (walking, presenting) e gestos (pet, highFive). `avatarFrame(expression: string \| undefined)` (`avatar-frames.ts:2`) aceita string porque lê do `dataset`. O DOM é usado como canal de estado (`face-renderer.ts:18-19`, `MascotPair.tsx:53-55`). | perde exaustividade | média | M |
+| D-031 | **DIP só onde dói**: o SDK do LiveKit está instanciado dentro da regra de negócio do token (`new RoomServiceClient` em `route.ts:59`, `new AccessToken` em `:213`), o que impede testar a decisão sem servidor HTTP falso. Não há outros casos relevantes: DB (Postgres real nos testes) e e-mail (`server/mail.ts` cai para log) **não precisam** de porta. | testabilidade | média | P |
+| D-032 | Não há `switch` gigante por tipo fora do `projectEvent` (D-005). Os 3 `switch` de mapeamento de erro da sala (`RoomView.tsx:55-87`, `PreJoin.tsx:62-71`) são adequados. Não há interfaces inchadas. | — | — | — |
+
+## 6. Server vs Client
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-033 | `components/home/HomeScene.tsx:1`: a **home inteira é client**. `RecentRooms`, o título e o rodapé poderiam ser RSC com ilhas client (SmartBar, MascotPair, ThemeToggle). | bundle (ganho pequeno) | baixa | M |
+| D-034 | `"use client"` sem necessidade ou em nível alto demais: `AccountForms.tsx:1` (o `Section` visual vira client), `BrandPanel.tsx:1` (só o balão usa `useSearchParams`), `HowItWorks.tsx:1`, e módulos que não são componentes (`components/admin/undo-toast.ts:1`, `hooks/useShortcut.ts:1`). `RoomStatus` é exportado do módulo client `RoomsTable.tsx:111` e usado por um RSC (`salas/[id]/page.tsx:9`). | bundle, clareza | baixa | P |
+| D-035 | Módulos de servidor sem `server-only`: `server/auth/permissions.ts` (puxa `better-auth/plugins/access`), `roles.ts`, `csp.ts`, `client-ip.ts`, `table/search.ts`, `db/schema/*`. Hoje ninguém do cliente os importa, mas nada impede. **Não há vazamento de segredo**: todo import de `server/` em client é `import type`. | segurança (preventivo) | baixa | P |
+
+## 7. Tipagem
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-036 | **Banco "opcional" falso**: `server/env.ts:41-44` torna `DATABASE_URL` obrigatória, mas `server/db/index.ts:18-22` devolve `Database \| undefined` ("o app usa os padrões"). Resultado: **27 desvios `if (!db)`/`getDb() ??`** que nunca rodam em produção, `db!` nas 4 exportações e a classe `SettingsUnavailableError`. | tipos mentem, ruído | média | P |
+| D-037 | Casts evitáveis: `(ADMIN_ROLE_LABELS as Record<string,string>)` (`app/admin/(painel)/layout.tsx:43`), `failure as {code?…}` (`TwoFactorSettings.tsx:106`, sendo que já existe `AuthErrorLike`), `event.toJson() as Record<…>` (`webhook/route.ts:58`), `query.sort as SortColumn<unknown>` (`keyset.ts:83`), `AcceptResult.role: string` (`invitations.ts:80`), `LeaveReason` redeclarado à mão (`webhook-projector.ts:57`) em vez de `leaveReason.enumValues`. | baixo | baixa | P |
+| D-038 | Validação na borda **está presente** em toda entrada (Zod em actions, token, webhook, env, cursores e respostas de `/api/token` no cliente). Único ponto frouxo: `saveMascotSettings` usa `z.number()` **sem limites** (`configuracoes/actions.ts:11-12`) e valida pelo `ZodError` capturado dentro da transação (`:38`). | baixa | baixa | P |
+
+## 8. Estado e efeitos
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-039 | Cada `<Mascot>` registra cerca de 15 listeners globais e um `MutationObserver` em `document.body` com `subtree` (`use-mascot.ts:543-571`). A sala monta 2–3 mascotes (`RoomView.tsx:269,310,350`). | performance (aceitável para 5 usuários) | baixa | M |
+| D-040 | Estado duplicado ou derivado: `useScreenShare()` instanciado duas vezes (`ControlDock.tsx:30` e `RoomView.tsx:341`), então o `busy` não é compartilhado; `AuditTable.tsx:57` copia `params.q` em estado e não acompanha voltar/avançar; `SignUpForm.tsx:88` guarda `personal` (derivado) em estado. | bug pequeno | baixa | P |
+| D-041 | Timers sem limpeza: `Reactions.tsx:60` e `ScreenStage.tsx:63`. A animação de "shake" fica fora do contexto GSAP (`PreJoin.tsx:277`). **O resto do GSAP está correto** (`useGSAP` com `scope`), e o cleanup do `useMascot` é exemplar. | baixo | baixa | P |
+| D-042 | Prop drilling raso: `code`/`maxParticipants` descem 5 níveis (`page` → `RoomSession` → `RoomView` → `RoomLayout` → `RoomTopBar`). **Não justifica um contexto novo.** | — | — | — |
+
+## 9. Tratamento de erros
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-043 | Erros silenciados sem log: `.catch(() => {})` em `server/auth/admin-session.ts:38` (revogação de sessão) e `user-session.ts:48`; `clipboard.writeText` sem `catch` (`TwoFactorSettings.tsx:54`); `RoomTopBar.tsx:33-38` falha calado. | diagnóstico | baixa | P |
+| D-044 | Configuração lida de dois jeitos: `LOG_LEVEL`, `APP_VERSION` e `SENTRY_DSN` são validados em `env.ts:67-73`, mas lidos crus de `process.env` (`logger.ts:10`, `sentry.ts:13`, `instrumentation.ts:9`). Os scripts exigem o env inteiro (incluindo as chaves do LiveKit) só para usar o banco. | manutenção | baixa | P |
+| D-045 | Padrão de erro **já existe e é bom**: `ActionError` + next-safe-action que nunca vaza erro inesperado (`server/actions/client.ts:42-49`), `TokenResult` como união discriminada no cliente e pino com `redact`. **Não precisa** de biblioteca `Result`. A inconsistência é pontual: páginas de tabela lançam erro sem banco, enquanto `conta/page.tsx:33` mostra `[]`. | — | baixa | P |
+
+## 10. Testabilidade
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-046 | **Nenhum teste do cliente e nenhum E2E**: `components/**` e `hooks/**` ficam fora da cobertura (`vitest.config.ts:58`); não há jsdom, Testing Library nem Playwright. A jornada principal (pré-entrada → conectar → compartilhar → sair) não tem rede de segurança. | regressão silenciosa | alta | G |
+| D-047 | Lógica pura presa em componentes e impossível de testar: `connectErrorMessage`/`disconnectMessage` (`RoomView.tsx:49-88`), `micErrorMessage` (`PreJoin.tsx:61-72`), a escolha do foco (`RoomView.tsx:236-239`), as não lidas (`Chat.tsx:61-63`), o texto de presença (`PreJoin.tsx:75-101`), as fases do `MascotPair` (`:59-86`) e a "decisão" do `useMascot`. | testabilidade | média | P |
+| D-048 | `tests/integration/actions-authz.test.ts:33` usa `globSync("app/**/actions.ts")` com o comentário "importa TODOS", mas **deixa de fora as 13 actions de `features/*/actions.ts`**. | segurança (rede furada) | média | P |
+| D-049 | A integração roda como superusuário (`ci.yml:47`), sem aplicar o `bootstrap.sql`. Um GRANT faltando para `nelcota_app` passa no CI. Não há `coverage.thresholds`; sem `TEST_DATABASE_URL`, o projeto de integração **some sem aviso** (`vitest.config.ts:39`). | regressão | média | M |
+| D-050 | Dois estilos de teste na mesma pasta: `tests/unit/mascot.test.ts` usa `await test(...)` + `node:assert` + import relativo (e responde por boa parte do lint vermelho); `mascot-personality.test.ts` usa `describe`/`expect` + `@/`. | ruído | baixa | P |
+
+## 11. Guardrails, CI e documentação
+
+| ID | Evidência | Impacto | Sev. | Esf. |
+|---|---|---|---|---|
+| D-051 | **`pnpm lint` falha com 44 erros e 10 avisos** (`tests/unit/mascot.test.ts:13` `await test(...)`, `app/layout.tsx:37`, `components/ui/sidebar.tsx:184`, `MascotSettingsForm.tsx:85` …) e **o repositório não tem `git remote`**: o CI e o deploy descritos no README nunca rodaram. Com push, o CI ficaria vermelho e bloquearia o deploy. | os guardrails não valem nada hoje | **alta** | P |
+| D-052 | O CI não checa se o schema bate com as migrações (`drizzle-kit check`), não roda `docker build` no PR nem `build:scripts`. Coolify puxa a tag mutável `:main` (`deploy.yml:50`), o que torna o rollback pouco confiável. | deploy | média | M |
+| D-053 | O README está desatualizado: diz que o e-mail confirmado é obrigatório (o padrão é `false`, `env.ts:31`), o env do Coolify omite `AUTH_SECRET`, `APP_URL`, `SMTP_URL`, `MAIL_FROM` e `ADMIN_AUTH_SECRET`, cita `server/db/schema.ts` e `JoinForm` (que não existem). | operação | média | P |
+| D-054 | Não há regra de tamanho (`max-lines`, `complexity`) no `oxlint.config.ts`. A regra de camadas (`no-restricted-imports`) não proíbe `components → app` nem `components → features`. Não há knip nem jscpd no CI. | regressão de arquitetura | média | P |
+
+## 12. Código morto
+
+| ID | Evidência | Sev. | Esf. |
+|---|---|---|---|
+| D-055 | `date-fns` (dependência sem import); `components/ui/popover.tsx` e `select.tsx`; `BOUNCE` (`body-motions.ts:78`); o motivo `"tap"` (`reasons.ts:9`), que nunca é definido; `RoomStatusFilter` (`salas/search-params.ts:5`); `JoinChoices.name`, preenchido (`PreJoin.tsx:283`) e **nunca lido**; `NavIcon` `live`/`admins` sem item; `invite_status 'expired'`, que nunca é gravado; o texto "salas e usuários chegam nas próximas fases" (`app/admin/(painel)/page.tsx:37`); 26 exports + 10 tipos sem uso (knip). `purgeOldFailures` e `reprocessPendingEvents` estão "mortos", mas **são funcionalidade que falta ligar** (ver B-03 e S-11), não código para apagar. | baixa | P |
+
+---
+
+## Achados fora do escopo (bugs e segurança, **não corrigir no refactor**)
+
+Estes itens mudam comportamento. Devem virar PRs próprios, **separados** dos PRs de refatoração. "Confirmado" = verificado no código e/ou executado; "provável" = deduzido do código do SDK ou do framework, sem rodar o app.
+
+### Segurança
+
+| ID | Achado | Evidência | Sev. | Status |
+|---|---|---|---|---|
+| S-01 | **Open redirect pós-login.** `safeReturnPath` bloqueia `//` e `/\`, mas aceita `/\t/evil.com`. `new URL("/\t/evil.com", base)` resolve para `https://evil.com/` (executado). O valor chega a `router.replace(returnTo)` em `SignInForm.tsx:75`, `TwoFactorCodeForm.tsx:48` e `redirect()` em `entrar/page.tsx:18`. Exemplo: `/entrar?voltar=/%09/evil.com`. | `server/auth/user-session.ts:25` | **alta** | confirmado no código; não testado no navegador |
+| S-02 | **Endpoints do plugin `admin` do Better Auth expostos e sem uso** (`/api/admin/auth/admin/{create-user,set-role,update-user,ban-user,…}`). Não exigem 2FA nem sessão "fresh" e não auditam. O owner tem `user:["update"]` (`permissions.ts:36`), o que permite trocar o e-mail de outro admin. | `server/auth/admin.ts:153-160` | média | provável |
+| S-03 | `deleteMyAccount` confere a senha **sem rate limit** e sem `fresh`. Com uma sessão roubada, é possível adivinhar a senha por essa action. O comentário em `server/actions/client.ts:103-104` diz que "excluir a conta" usa `fresh`. | `app/conta/actions.ts:62-77` | média | confirmado |
+| S-04 | Rodar `bootstrap.sql` de novo (o próprio arquivo se diz idempotente) faz `GRANT … UPDATE, DELETE ON ALL TABLES` e **desfaz os REVOKE** das migrações 0003 e 0004 em `token_requests` e `livekit_events`. | `deploy/postgres/bootstrap.sql:69` | média | confirmado |
+| S-05 | `canUpdateOwnMetadata: true` deixa o participante **trocar o próprio nome** no LiveKit e se passar por outra pessoa na sala. O webhook grava esse `displayName`. | `app/api/token/route.ts:227`, `webhook-projector.ts:147` | média | provável (é o que a documentação da permissão descreve) |
+| S-06 | `deploy.yml` com `workflow_run` + `branches: [main]` não confere `event == 'push'` nem o repositório de origem. Num repositório público, um fork com uma branch `main` poderia disparar build e migração. | `.github/workflows/deploy.yml:5-8` | média (latente) | confirmado na config |
+| S-07 | `public/mascot/nelcota-mint-atlas.provenance.json` é servido publicamente e expõe um caminho local (`C:/Users/Fialho/...`) e o prompt. | `public/mascot/` | baixa | confirmado |
+| S-08 | Sem IP, todos caem no bucket `"desconhecido"` (`route.ts:87`, `client.ts:94`). Fora do proxy, `getClientIp` confia em `x-real-ip`. | `server/rate-limit.ts:95` | baixa | confirmado |
+| S-09 | `/api/conta/dados` checa `deletedAt`, mas não `blockedAt`, e inclui sessões expiradas. | `app/api/conta/dados/route.ts:18-23` | baixa | confirmado |
+| S-10 | O webhook lê o corpo inteiro, sem limite, antes de verificar a assinatura. Reações e apontador não têm limite no receptor. `Permissions-Policy camera=(self)` não é necessário. | `webhook/route.ts:30`, `next.config.ts:17` | baixa | confirmado |
+| S-11 | Não há retenção: `login_failures`, `token_requests` (com IP) e `livekit_events` crescem sem limite. O PLANO prevê 30 dias e 6 meses (é questão de LGPD). | `server/auth/lockout.ts:132` sem chamador | média | confirmado |
+
+### Bugs
+
+| ID | Achado | Evidência | Sev. | Status |
+|---|---|---|---|---|
+| B-01 | **Falha de conexão mostra "Você saiu da sala" em vez de "Não deu para conectar / Tentar de novo".** O SDK emite `RoomEvent.Disconnected` antes de rejeitar `connect()`, e o handler troca a fase para `left` antes do `catch`. A mensagem de "sala cheia" e o `retry` ficam inalcançáveis. | `RoomView.tsx:119-121` vs `:145-146`; `livekit-client.esm.mjs:33757-33766` | alta | provável (lido no SDK) |
+| B-02 | `RoomEvent.MediaDevicesError` não distingue a fonte. Cancelar o seletor de tela gera um toast **de microfone** além do toast certo, e uma falha de microfone gera 2 toasts. | `RoomView.tsx:123-131`, `use-screen-share.ts:42` | média | provável |
+| B-03 | Evento de webhook que falha na projeção recebe **204** e não é reprocessado. O LiveKit não reenvia e os dados de sala ou compartilhamento se perdem. O comentário diz "503 sem banco", mas o código devolve 204. | `app/api/livekit/webhook/route.ts:23-24, 54, 59-66` | média | confirmado |
+| B-04 | `create-owner.mjs` é gerado com `--packages=external`, mas a imagem standalone não tem `drizzle-orm` nem `zod`. O passo do README para criar o primeiro dono em produção deve falhar. | `package.json` (`build:scripts`), `.next/standalone/node_modules` | alta | provável (visto no standalone local, não no container) |
+| B-05 | Link quebrado `/admin/ao-vivo/${room.code}`: a rota não existe. | `app/admin/(painel)/salas/[id]/page.tsx:47` | média | confirmado |
+| B-06 | `error.tsx` do painel usa `reset`. A doc do Next 16.3 recomenda `retry()`, que busca os dados de novo; com `reset`, um erro de RSC persiste. | `app/admin/(painel)/error.tsx:12,28`; `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/error.md` | média | confirmado na doc |
+| B-07 | `ChangeEmailForm` mostra "enviamos um link" mesmo em erro 401 ou 5xx. Só o 429 é tratado. | `components/account/AccountForms.tsx:117` | média | confirmado |
+| B-08 | "Selecionar todos os mais de 10.000" é oferecido, mas o servidor sempre recusa acima de 10.000. | `DataTable.tsx:188-193` vs `server/table/selection.ts:26` | baixa | confirmado |
+| B-09 | `.apple-buttons` (CSS sem `@layer`) anula `h-9 rounded-xl px-3.5` do botão "Criar conta" na home. | `globals.css:236-251`, `HomeScene.tsx:106` | baixa | inferido pela cascata |
+| B-10 | `acceptAdminInvitation` não usa transação: se `linkAccount` falhar, fica uma conta órfã sem senha e o convite é revogado na tentativa seguinte. | `server/auth/invitations.ts:97-159` | baixa | confirmado no código |
+| B-11 | As iniciais do mesmo nome diferem entre a pré-entrada e a sala; `useScreenShare` duplicado permite dois `start`; `pointing` continua ligado ao voltar para a própria tela. | D-026, D-040, `ScreenStage.tsx:168,196` | baixa | confirmado no código |
+| B-12 | `generateMetadata` chama `decodeURIComponent` sem `try` (a page tem), o que pode virar 500 com `%E0`. | `app/sala/[codigo]/page.tsx:13` | baixa | suspeita |
+| B-13 | WIP do mascote: `syncContext` chama `personality.cancel()` a cada troca de activity, então o ciclo do `MascotPair` (0,25–3,2 s) apaga o convite de high-five. Há 4 paradas de Tab extras na home, com `aria-label` duplicado. | `use-mascot.ts:583-595`, `Mascot.tsx:146` | baixa | suspeita |
+| B-14 | Reabrir uma sala não reinicia `startedAt`/`peakParticipants`, e a duração exportada soma as sessões e os intervalos entre elas. | `webhook-projector.ts:105-114` | baixa | suspeita de semântica |
+
+---
+
+## Ranking: os 10 problemas que mais custam caro hoje
+
+| # | Problema | Por que nesta posição |
+|---|---|---|
+| 1 | **D-051: lint vermelho, sem remote e sem CI rodando** | Anula todos os outros guardrails, que já são bons. Toda regra de arquitetura proposta no doc 03 depende de o CI rodar verde. Esforço P, retorno imediato. |
+| 2 | **D-046: nenhum teste do cliente e nenhum E2E** | A jornada principal do produto não tem rede de segurança, e os bugs B-01 e B-02 estão escondidos justamente aí. Sem isso, refatorar PreJoin, RoomView e o mascote é aposta. Bloqueia as fases 3 e 4. |
+| 3 | **D-003 + D-031: regra de negócio do token no handler, acoplada ao SDK** | É o endpoint mais crítico (toda entrada passa por ele), tem a maior complexidade do servidor (31) e só é testável subindo um servidor HTTP falso do LiveKit. |
+| 4 | **D-002 + D-004 + D-047: PreJoin e RoomView monolíticos** | A maior complexidade do projeto (39) está no componente que todo usuário usa. A lógica de erro fica presa e sem teste, e é ali que estão os bugs de conexão. |
+| 5 | **D-001 + D-029: hook-deus do mascote** | É o maior arquivo do projeto, e é o que **mais cresce agora** (WIP de +189 linhas no mesmo `useEffect`). Cada feature de personalidade aumenta o risco. A lista de expressões em 5 lugares já gera bugs sutis. |
+| 6 | **D-013 + D-014 + D-015 + D-008: organização incoerente** | Custa um pouco em **toda** mudança: "onde fica X?" tem três respostas, e `components → app` impede escrever uma regra automática de fronteira. Sem resolver isso, o doc 03 não pode ser imposto pelo lint. |
+| 7 | **D-020 + D-021 + D-019: duplicação do painel** | Cada tabela ou exportação nova exige copiar 4–5 arquivos. É a duplicação que o jscpd aponta, e ela cresce linearmente com o painel. |
+| 8 | **D-036: banco "opcional" falso** | Os 27 desvios mortos e o `db!` fazem os tipos mentirem em cerca de 20 arquivos. A correção é pequena e simplifica todas as fases seguintes (o DAL fica com `Database` não opcional). |
+| 9 | **D-048 + D-049: furos na rede de segurança do servidor** | O teste que garante "toda action exige sessão" não vê `features/`, e os testes não rodam com o papel real do banco. São falsos positivos de segurança. |
+| 10 | **D-016 + D-017: nomes ambíguos e mistura pt/en** | `TokenResult` com dois significados, "user" significando admin e `features/usuarios` contendo `Participant*` geram confusão e consultas de auditoria erradas. A correção é barata se feita junto com a mudança de pastas (fase 3). |
