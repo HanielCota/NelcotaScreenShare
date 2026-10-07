@@ -50,7 +50,7 @@ const AUDIO_HINT: Record<ShareSurface, string> = {
   browser: "Áudio só da aba escolhida.",
 };
 
-/** Segundos desde que `running` virou true; volta a zero ao parar. */
+/** Seconds since `running` became true; resets to zero on stop. */
 function useElapsedSeconds(running: boolean): number {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
@@ -73,14 +73,14 @@ function formatElapsed(total: number): string {
 }
 
 /**
- * Menu próprio antes do seletor nativo: a pessoa escolhe o tipo de superfície
- * e o seletor do navegador já abre na aba correspondente (`displaySurface`).
+ * Our own menu before the native picker: the person chooses the surface type
+ * and the browser picker opens on the matching tab (`displaySurface`).
  */
 export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: ShareMenuProps) {
   const [open, setOpen] = useState(false);
   const [audio, setAudio] = useState(true);
   const [hovered, setHovered] = useState<ShareSurface>("monitor");
-  // Compartilhando, o botão mostra há quanto tempo: deixa claro que a tela está no ar.
+  // While sharing, the button shows for how long: makes it clear the screen is live.
   const elapsed = formatElapsed(useElapsedSeconds(isSharing));
 
   const label = !supported
@@ -94,7 +94,7 @@ export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: Share
       toast.info("Este navegador não compartilha tela. Use Chrome, Edge ou Firefox no computador.");
       return;
     }
-    // Compartilhando: o botão para na hora, sem abrir o menu.
+    // While sharing: the button stops immediately, without opening the menu.
     if (next && isSharing) {
       onStop();
       return;
@@ -109,7 +109,7 @@ export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: Share
       <Popover.Trigger asChild>
         <DockButton
           label={label}
-          // Neutro até começar (verde no dock parece "ligado"); vermelho para parar.
+          // Neutral until it starts (green in the dock looks "on"); red to stop.
           tone={isSharing ? "muted" : "default"}
           caption={busy ? "Aguarde…" : isSharing ? `Parar · ${elapsed}` : "Compartilhar"}
           shortCaption={busy ? "…" : isSharing ? elapsed : "Tela"}

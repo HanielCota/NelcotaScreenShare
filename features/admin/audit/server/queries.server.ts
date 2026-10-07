@@ -32,7 +32,7 @@ export interface AuditRow {
   metadata: Record<string, unknown>;
 }
 
-// Filtros vindos da URL: validados antes de virar SQL.
+// Filters coming from the URL: validated before becoming SQL.
 const actionFilter = z.string().regex(/^[a-z][a-z_]*\.[a-z][a-z_]*$/);
 const resourceFilter = z.string().regex(/^[a-z_]{1,40}$/);
 
@@ -56,7 +56,7 @@ function filtersFrom(params: AuditParams): SQL[] {
 interface RawRow {
   id: string;
   createdAt: Date;
-  /** created_at exato, para o cursor. */
+  /** Exact created_at, for the cursor. */
   sortKey: string;
   action: string;
   resourceType: string;
@@ -117,7 +117,7 @@ const selection = {
   metadata: auditLogs.metadata,
 };
 
-/** Uma página do audit log (keyset por created_at, id) com os nomes dos autores. */
+/** One page of the audit log (keyset on created_at, id) with the actor names. */
 export async function listAuditLogs(
   db: DbExecutor,
   params: AuditParams,
@@ -147,7 +147,7 @@ export async function listAuditLogs(
     .orderBy(...clauses.orderBy)
     .limit(clauses.limit);
   const page = keysetPage(rows, query);
-  // A exportação itera em lotes e não precisa do total a cada lote.
+  // The export iterates in batches and does not need the total for each batch.
   const total = count
     ? await approximateCount(
         db,
@@ -162,14 +162,14 @@ export async function listAuditLogs(
   };
 }
 
-/** Todas as linhas do filtro, em lotes keyset (exportação CSV em stream). */
+/** Every row of the filter, in keyset batches (streamed CSV export). */
 export function iterateAuditLogs(db: DbExecutor, params: AuditParams, batch = 1000) {
   return iterateAll((cursor) =>
     listAuditLogs(db, { ...params, cursor, dir: "next" }, batch, { count: false }),
   );
 }
 
-/** Opções dos filtros: ações e tipos de recurso que existem e os admins. */
+/** Filter options: the existing actions and resource types, and the admins. */
 export async function auditFilterOptions(db: DbExecutor) {
   const [actions, resources, admins] = await Promise.all([
     db

@@ -3,43 +3,43 @@ import type { Expression, FaceState } from "./face";
 import type { Reason } from "./reasons";
 
 /**
- * Regras do mascote que dependem só da expressão atual. Antes ficavam como
- * comparações `current === "…"` espalhadas pelo hook; aqui cada uma tem nome
- * e teste (tests/unit/mascot-rules.test.ts).
+ * Mascot rules that depend only on the current expression. They used to be
+ * `current === "…"` comparisons scattered across the hook; here each one has a name
+ * and a test (tests/unit/mascot-rules.test.ts).
  */
 
 const SLEEPING: ReadonlySet<Expression> = new Set(["sleepy", "asleep"]);
-/** Bravo ou preocupado: o rosto do erro manda, sem brincadeira por cima. */
+/** Angry or worried: the error face rules, with no play on top. */
 const UPSET: ReadonlySet<Expression> = new Set(["grumpy", "worried"]);
 
-/** Sonolento ou dormindo: olhar parado, pálpebras e corpo lentos. */
+/** Sleepy or asleep: still gaze, slow eyelids and body. */
 export function isSleeping(expression: Expression): boolean {
   return SLEEPING.has(expression);
 }
 
-/** Expressões que não deixam começar (e interrompem) carinho, espirro e afins. */
+/** Expressions that prevent (and interrupt) petting, sneezing and the like. */
 export function blocksPlay(expression: Expression): boolean {
   return UPSET.has(expression) || expression === "skeptical" || expression === "asleep";
 }
 
-/** Piscar só com olhos abertos e calmos. */
+/** Blink only with open, calm eyes. */
 export function canBlink(expression: Expression): boolean {
   return !isSleeping(expression) && !UPSET.has(expression);
 }
 
-/** Acenar ao passar o mouse: não com cara de erro. */
+/** Wave on mouse hover: not with an error face. */
 export function canGreet(expression: Expression): boolean {
   return !UPSET.has(expression);
 }
 
-/** Espirro de vez em quando: só em repouso tranquilo. */
+/** Occasional sneeze: only at quiet rest. */
 export function canSneeze(expression: Expression): boolean {
   return expression === "neutral" || expression === "happy" || expression === "curious";
 }
 
 /**
- * O par da home só sai andando se nenhum dos dois está ocupado com isto
- * (ou com um gesto que não seja o próprio "toca aqui").
+ * The home page pair only starts walking if neither is busy with one of these
+ * (or with a gesture other than the "high five" itself).
  */
 const PAIR_BUSY_EXPRESSIONS: readonly Expression[] = [
   "asleep",
@@ -50,13 +50,13 @@ const PAIR_BUSY_EXPRESSIONS: readonly Expression[] = [
   "skeptical",
 ];
 
-/** Seletor CSS dos mascotes ocupados dentro do par (ver PAIR_BUSY_EXPRESSIONS). */
+/** CSS selector for busy mascots within the pair (see PAIR_BUSY_EXPRESSIONS). */
 export const PAIR_BUSY_SELECTOR = [
   '[data-gesture]:not([data-gesture="highFive"])',
   ...PAIR_BUSY_EXPRESSIONS.map((expression) => `[data-expression="${expression}"]`),
 ].join(", ");
 
-/** Para onde olhar além do ponteiro e do foco. */
+/** Where to look besides the pointer and focus. */
 export type GazeFocus = "idle" | "partner" | "stage" | "free";
 
 export function gazeFocus(expression: Expression): GazeFocus {
@@ -66,58 +66,58 @@ export function gazeFocus(expression: Expression): GazeFocus {
   return "free";
 }
 
-/** Molas criticamente amortecidas (sem quique); "response" em segundos, como na Apple. */
+/** Critically damped springs (no bounce); "response" in seconds, as Apple does it. */
 export const GAZE_RESPONSE = 0.14;
 const FACE_RESPONSE = 0.32;
 const SLEEP_RESPONSE = 0.85;
 
-/** Dormindo, pálpebras, cabeça e corpo se acomodam devagar; o resto segue normal. */
+/** While sleeping, eyelids, head and body settle slowly; everything else stays normal. */
 export function faceResponse(expression: Expression, key: keyof FaceState): number {
   return isSleeping(expression) && key !== "pupil" ? SLEEP_RESPONSE : FACE_RESPONSE;
 }
 
-/** "Esperando": olhar indo e voltando devagar, de um lado ao outro. */
+/** "Waiting": gaze slowly drifting back and forth, side to side. */
 export function waitingGaze(time: number): Gaze {
   const x = Math.sin(time / 1100) * 0.55;
   return { ...IDLE, x, leftX: x, rightX: x };
 }
 
-/** "Ouvindo": inclina a cabeça e abre o olhar conforme a voz (0–1). */
+/** "Listening": tilts the head and opens the eyes according to the voice (0–1). */
 export function listeningFace(face: FaceState, voice: number): FaceState {
   return { ...face, tilt: -4 + voice * 7, pupil: 1 + voice * 0.05 };
 }
 
-/** Pálpebra numa piscada de 180 ms (0 aberta → 1 fechada → 0). */
+/** Eyelid during a 180 ms blink (0 open → 1 closed → 0). */
 export const BLINK_MS = 180;
 export function blinkLid(progress: number): number {
   return progress < 1 ? Math.sin(progress * Math.PI) ** 2 : 0;
 }
 
-/** Intervalo até a próxima piscada (aleatório para parecer natural). */
+/** Interval until the next blink (random to look natural). */
 export function nextBlinkIn(random = Math.random()): number {
   return 2500 + random * 3500;
 }
 
-/** Quanto tempo ele olha pra algo que pediu atenção (ex.: o alerta de erro). */
+/** How long it looks at something that asked for attention (e.g. the error alert). */
 export const ATTENTION_MS = 1500;
-/** Fica com a cara do erro até a pessoa voltar a digitar (ou até passar esse tempo). */
+/** Keeps the error face until the person types again (or until this time passes). */
 const UPSET_MS = 4000;
 export const HAPPY_AFTER_TYPING_MS = 2000;
 const CELEBRATE_MS = 1600;
-/** Intervalo mínimo entre dois acenos ao passar o mouse. */
+/** Minimum interval between two waves on mouse hover. */
 export const GREETING_COOLDOWN_MS = 2500;
 
-/** Sinais das telas (events.ts) traduzidos em mudanças de expressão e movimento. */
+/** Screen signals (events.ts) translated into expression and motion changes. */
 export interface SignalReaction {
   clear: Reason[];
   set?: { reason: Reason; expression: Expression; durationMs?: number };
-  /** Desfaz o "doubt" (sinal de dúvida desligado). */
+  /** Undoes "doubt" (doubt signal turned off). */
   unset?: Reason;
   motion?: "jump" | "shake" | "nod";
   wave?: "celebrate" | "simple";
-  /** Para o aceno e o movimento atual antes de reagir. */
+  /** Stops the wave and the current motion before reacting. */
   stopGestures?: boolean;
-  /** Olha para o elemento do sinal por um instante. */
+  /** Looks at the signal's element for a moment. */
   lookAtTarget?: boolean;
 }
 

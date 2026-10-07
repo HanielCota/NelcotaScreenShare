@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-/** setTimeout que some junto com o componente (nada roda depois de desmontar). */
+/** setTimeout that goes away with the component (nothing runs after unmount). */
 export function useTimeouts() {
   const timers = useRef(new Set<number>());
 

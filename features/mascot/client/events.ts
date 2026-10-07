@@ -1,22 +1,22 @@
 /**
- * Como o resto do sistema conversa com o mascote. Ele não conhece as telas: quem sabe o que
- * aconteceu (ex.: o formulário de login) avisa por aqui, e o mascote reage.
+ * How the rest of the system talks to the mascot. It does not know the screens: whoever knows what
+ * happened (e.g. the login form) signals through here, and the mascot reacts.
  *
- * O que é genérico de qualquer formulário (foco, digitação, campo de senha, Caps Lock), ele
- * percebe sozinho.
+ * What is generic to any form (focus, typing, password field, Caps Lock), it
+ * notices on its own.
  */
 
 export type MascotSignal =
-  /** Deu certo: pulinho de alegria. */
+  /** It worked: a little jump of joy. */
   | { type: "celebrate" }
   /**
-   * Deu errado. `grumpy`: erro causado pela tentativa (fecha a cara e balança a cabeça);
-   * `worried`: o resto (fica preocupado com a pessoa). `target`: pra onde ele olha.
+   * It failed. `grumpy`: error caused by the attempt (frowns and shakes its head);
+   * `worried`: everything else (gets worried about the person). `target`: where it looks.
    */
   | { type: "upset"; mood: "grumpy" | "worried"; target?: Element | undefined }
-  /** Desconfiado (ex.: email com cara de digitado errado) até `active` voltar a ser falso. */
+  /** Suspicious (e.g. an email that looks mistyped) until `active` turns false again. */
   | { type: "doubt"; active: boolean }
-  /** Aceno de aprovação (ex.: o email ficou completo). */
+  /** Approving nod (e.g. the email is complete). */
   | { type: "nod" };
 
 const MASCOT_EVENT = "mascot:signal";
@@ -31,7 +31,7 @@ export const upsetMascot = (mood: "grumpy" | "worried", target?: Element) =>
 export const setMascotDoubt = (active: boolean) => emit({ type: "doubt", active });
 export const nodMascot = () => emit({ type: "nod" });
 
-/** Usado pelo mascote pra ouvir os avisos. Devolve a função que para de ouvir. */
+/** Used by the mascot to listen for signals. Returns the function that stops listening. */
 export function onMascotSignal(listener: (signal: MascotSignal) => void): () => void {
   const handler = (event: Event) => {
     if (!(event instanceof CustomEvent)) return;

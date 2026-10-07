@@ -1,8 +1,8 @@
 import type { TokenErrorCode } from "./token-contract";
 
-/** O que a pré-entrada entrega para a sala. */
+/** What the pre-join screen hands to the room. */
 export interface JoinChoices {
-  /** Só em memória: o "Tentar de novo" da sala pede um token novo com ela. */
+  /** In memory only: the room's "Tentar de novo" requests a new token with it. */
   password?: string;
   token: string;
   serverUrl: string;
@@ -10,13 +10,13 @@ export interface JoinChoices {
   audioDeviceId?: string;
 }
 
-/** O que fazer quando o pedido de token falha na pré-entrada. */
+/** What to do when the token request fails in the pre-join screen. */
 export interface JoinFailure {
-  /** Sessão expirou ou e-mail não confirmado: sai para a tela certa e volta depois. */
+  /** Session expired or email not verified: go to the right screen and come back later. */
   redirect?: "login" | "verify-email";
-  /** Erro marcado no campo de senha (e foco nele). */
+  /** Error marked on the password field (and focus on it). */
   passwordField: boolean;
-  /** Erro da tentativa (senha, dados) deixa bravo; falha de servidor ou rede, preocupado. */
+  /** An attempt error (password, data) makes it grumpy; a server or network failure, worried. */
   mood: "grumpy" | "worried";
 }
 
@@ -31,7 +31,7 @@ export function joinFailure(code: TokenErrorCode | "network_error"): JoinFailure
   return { passwordField: false, mood: "worried" };
 }
 
-/** "Quem já está lá dentro": responde "estou no lugar certo? já começou?". */
+/** "Who is already inside": answers "am I in the right place? has it started?". */
 export type Presence =
   | { kind: "full"; text: string }
   | { kind: "empty"; text: string }

@@ -25,7 +25,7 @@ export interface AppHeaderProps {
   "data-anim"?: string;
 }
 
-/** Navegação compartilhada das páginas do app, antes e depois da chamada. */
+/** Shared navigation for the app pages, before and after the call. */
 export function AppHeader({
   account,
   accountHref = "/conta",

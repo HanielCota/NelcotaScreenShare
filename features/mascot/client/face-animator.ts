@@ -7,17 +7,17 @@ import type { FaceRenderer } from "./face-renderer";
 const ZERO_FACE: FaceState = { tilt: 0, pupil: 0, lid0: 0, lid1: 0, rest: 0 };
 
 interface FrameHooks {
-  /** Pode animar agora (montado, aba visível, mascote na tela)? */
+  /** Can it animate now (mounted, tab visible, mascot on screen)? */
   canRun: () => boolean;
-  /** Ajustes por quadro (olhar do "esperando", voz do "ouvindo"); `keepAlive` mantém o laço. */
+  /** Per-frame adjustments ("waiting" gaze, "listening" voice); `keepAlive` keeps the loop going. */
   beforeFrame: (time: number) => { gaze?: Gaze; face?: FaceState; keepAlive: boolean };
-  /** Resposta da mola de cada traço do rosto (dormindo, mais lenta). */
+  /** Spring response for each facial feature (slower while sleeping). */
   responseFor: (key: keyof FaceState) => number;
 }
 
 /**
- * Olhar e rosto animados por molas até os alvos, escritos direto no DOM a cada
- * quadro (sem render do React). O laço só roda enquanto algo não assentou.
+ * Gaze and face animated by springs towards their targets, written straight to the DOM every
+ * frame (no React render). The loop only runs while something has not settled.
  */
 export function createFaceAnimator(renderer: FaceRenderer, initial: FaceState, hooks: FrameHooks) {
   let gazeTarget: Gaze = IDLE;
@@ -35,7 +35,7 @@ export function createFaceAnimator(renderer: FaceRenderer, initial: FaceState, h
       frame = 0;
       return;
     }
-    // O horário do rAF é o do início do quadro e pode vir antes do lastTime: nunca negativo.
+    // The rAF time is the frame start and may come before lastTime: never negative.
     const dt = Math.min(Math.max(0, (time - lastTime) / 1000), 1 / 30);
     lastTime = time;
     const extra = hooks.beforeFrame(time);
@@ -43,7 +43,7 @@ export function createFaceAnimator(renderer: FaceRenderer, initial: FaceState, h
     if (extra.face) faceTarget = extra.face;
     const gazeSettled = springStep(gaze, gazeVelocity, gazeTarget, GAZE_RESPONSE, dt);
     const faceSettled = springStep(face, faceVelocity, faceTarget, hooks.responseFor, dt);
-    // O horário do rAF pode vir antes do blinkStarted: conta como início, sem descartar a piscada.
+    // The rAF time may come before blinkStarted: count it as the start, without dropping the blink.
     const progress = blinkStarted ? Math.max(0, (time - blinkStarted) / BLINK_MS) : 1;
     const blinking = progress < 1;
     if (!blinking) blinkStarted = 0;
@@ -62,26 +62,26 @@ export function createFaceAnimator(renderer: FaceRenderer, initial: FaceState, h
       gazeTarget = nextGaze;
       faceTarget = nextFace;
     },
-    /** Começa uma piscada (aparece no próximo quadro). */
+    /** Starts a blink (shows up on the next frame). */
     blink() {
       blinkStarted = performance.now();
     },
     cancelBlink() {
       blinkStarted = 0;
     },
-    /** Garante o laço rodando (não duplica se já roda). */
+    /** Ensures the loop is running (does not duplicate it if already running). */
     start() {
       if (frame) return;
       lastTime = performance.now();
       frame = requestAnimationFrame(step);
     },
-    /** Para o laço e esquece a piscada (aba escondida, fora da tela). */
+    /** Stops the loop and forgets the blink (hidden tab, off screen). */
     pause() {
       cancelAnimationFrame(frame);
       frame = 0;
       blinkStarted = 0;
     },
-    /** Movimento reduzido: vai direto aos alvos, sem molas. */
+    /** Reduced motion: jumps straight to the targets, no springs. */
     snap() {
       cancelAnimationFrame(frame);
       frame = 0;

@@ -1,18 +1,18 @@
-# LiveKit Server self-hosted (recurso separado no Coolify: "Docker Compose").
+# Self-hosted LiveKit Server (separate resource in Coolify: "Docker Compose").
 #
-# Portas a liberar no firewall da VPS (ufw / painel do provedor):
-#   7881/tcp          -> WebRTC via TCP (fallback quando UDP é bloqueado)
-#   50000-50100/udp   -> mídia WebRTC (RTP/RTCP)
+# Ports to open in the VPS firewall (ufw / provider panel):
+#   7881/tcp          -> WebRTC over TCP (fallback when UDP is blocked)
+#   50000-50100/udp   -> WebRTC media (RTP/RTCP)
 #   3478/udp          -> TURN/UDP
-#   30000-30100/udp   -> portas de relay do TURN (turn.relay_range_* no livekit.yaml)
-#   5349/tcp          -> TURN/TLS (somente se ativado no livekit.yaml)
+#   30000-30100/udp   -> TURN relay ports (turn.relay_range_* in livekit.yaml)
+#   5349/tcp          -> TURN/TLS (only if enabled in livekit.yaml)
 #
-# A porta 7880 (sinalização HTTP/WebSocket) NÃO deve ser aberta no firewall:
-# ela passa pelo proxy HTTPS do Coolify em https://lk.seudominio.com
-# (o app conecta em wss://lk.seudominio.com). Veja docs/deployment.md.
+# Port 7880 (HTTP/WebSocket signaling) must NOT be opened in the firewall:
+# it goes through Coolify's HTTPS proxy at https://lk.yourdomain.com
+# (the app connects to wss://lk.yourdomain.com). See docs/deployment.md.
 #
-# network_mode: host é obrigatório para WebRTC: evita NAT do Docker na faixa UDP
-# e permite que o LiveKit anuncie o IP público correto nos candidatos ICE.
+# network_mode: host is required for WebRTC: it avoids Docker NAT on the UDP range
+# and lets LiveKit advertise the correct public IP in the ICE candidates.
 
 services:
   livekit:
@@ -21,13 +21,13 @@ services:
     network_mode: host
     command: --config /etc/livekit/livekit.yaml
     environment:
-      # Formato "chave: segredo". Defina LIVEKIT_API_KEY e LIVEKIT_API_SECRET
-      # nas variáveis do recurso no Coolify (iguais às do app).
-      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:?defina LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET:?defina LIVEKIT_API_SECRET}"
+      # Format "key: secret". Set LIVEKIT_API_KEY and LIVEKIT_API_SECRET
+      # in the resource variables in Coolify (the same as the app's).
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET}"
     volumes:
       - ./deploy/livekit/livekit.yaml:/etc/livekit/livekit.yaml:ro
-      # TURN/TLS: descomente e aponte para o certificado do domínio do TURN.
-      # - /etc/letsencrypt/live/lk.seudominio.com:/etc/livekit/certs:ro
+      # TURN/TLS: uncomment and point to the certificate of the TURN domain.
+      # - /etc/letsencrypt/live/lk.yourdomain.com:/etc/livekit/certs:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:7880 || exit 1"]
       interval: 30s

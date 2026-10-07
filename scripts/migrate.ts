@@ -1,13 +1,13 @@
 /**
- * Aplica as migrações pendentes de `drizzle/`. Roda como job separado do app:
- * no deploy (CI → `docker run … node dist/migrate.mjs`), em dev (`pnpm db:migrate`)
- * e na preparação dos testes de integração. O app nunca migra no boot.
+ * Applies the pending migrations in `drizzle/`. Runs as a job separate from the app:
+ * on deploy (CI → `docker run … node dist/migrate.mjs`), in dev (`pnpm db:migrate`)
+ * and when preparing the integration tests. The app never migrates on boot.
  *
- * Uso: MIGRATOR_DATABASE_URL=postgres://… node scripts/migrate.ts
- *      (aceita DATABASE_URL quando é o próprio usuário de migração, como no job de deploy)
+ * Usage: MIGRATOR_DATABASE_URL=postgres://… node scripts/migrate.ts
+ *        (accepts DATABASE_URL when it is the migration user itself, as in the deploy job)
  *
- * Arquivo autossuficiente (sem aliases nem dependência do framework) para rodar com o Node
- * direto e para ser empacotado num único arquivo na imagem Docker.
+ * Self-contained file (no aliases or framework dependency) so it runs with plain Node
+ * and can be bundled into a single file in the Docker image.
  */
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -15,7 +15,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
 
-/** Número fixo do app: identifica a trava de migração no Postgres. */
+/** Fixed app number: identifies the migration lock in Postgres. */
 const MIGRATION_LOCK_ID = 7_340_118;
 
 export async function runMigrations(
@@ -29,9 +29,9 @@ export async function runMigrations(
   });
   await client.connect();
   try {
-    // Uma migração esperando lock por muito tempo trava o app junto: desiste e falha o deploy.
+    // A migration waiting on a lock for too long blocks the app too: give up and fail the deploy.
     await client.query("set lock_timeout = '5s'");
-    // Duas execuções ao mesmo tempo (deploys sobrepostos) esperam uma pela outra.
+    // Two concurrent runs (overlapping deploys) wait for each other.
     await client.query("select pg_advisory_lock($1)", [MIGRATION_LOCK_ID]);
     await migrate(drizzle(client), { migrationsFolder });
   } finally {
@@ -45,14 +45,14 @@ const isEntryPoint = process.argv[1] && import.meta.url === pathToFileURL(proces
 if (isEntryPoint) {
   const url = process.env.MIGRATOR_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!url) {
-    console.error("[migrate] defina MIGRATOR_DATABASE_URL (usuário de migração, não o do app)");
+    console.error("[migrate] set MIGRATOR_DATABASE_URL (the migration user, not the app's)");
     process.exit(1);
   }
   const started = Date.now();
   runMigrations(url, process.env.MIGRATIONS_DIR ?? join(process.cwd(), "drizzle")).then(
-    () => console.info(`[migrate] migrações em dia (${Date.now() - started} ms)`),
+    () => console.info(`[migrate] migrations up to date (${Date.now() - started} ms)`),
     (error: unknown) => {
-      console.error("[migrate] falhou", error);
+      console.error("[migrate] failed", error);
       process.exit(1);
     },
   );

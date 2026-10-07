@@ -7,8 +7,8 @@ export interface PrivacyTocItem {
 }
 
 /**
- * Barra de seções do aviso, presa no topo ao rolar: acende a cápsula da seção
- * que está na tela. Sem JavaScript, continua sendo uma lista de âncoras comum.
+ * Section bar of the notice, sticky at the top while scrolling: highlights the pill
+ * of the section on screen. Without JavaScript, it is still a plain anchor list.
  */
 export function PrivacyToc({ items }: { items: PrivacyTocItem[] }) {
   const [active, setActive] = useState(items[0]?.id ?? "");
@@ -28,7 +28,7 @@ export function PrivacyToc({ items }: { items: PrivacyTocItem[] }) {
         const first = items.find((item) => visible.has(item.id));
         if (!first) return;
         setActive(first.id);
-        // No celular a barra rola para o lado: mantém a cápsula ativa à vista.
+        // On mobile the bar scrolls sideways: keeps the active pill in view.
         const list = listRef.current;
         const pill = list?.querySelector<HTMLElement>(`a[href="#${first.id}"]`);
         if (list && pill) {
@@ -36,7 +36,7 @@ export function PrivacyToc({ items }: { items: PrivacyTocItem[] }) {
           list.scrollTo({ left, behavior: "smooth" });
         }
       },
-      // Conta como "atual" a seção que cruza a faixa logo abaixo da barra.
+      // The "current" section is the one crossing the strip just below the bar.
       { rootMargin: "-20% 0px -55% 0px" },
     );
     for (const section of sections) observer.observe(section);

@@ -6,12 +6,12 @@ import {
   type TokenResponse,
 } from "@/features/room/domain/token-contract";
 
-/** Resultado do pedido de token no navegador (não confundir com o registro em token_requests). */
+/** Result of the token request in the browser (not to be confused with the token_requests record). */
 export type TokenFetchResult =
   | { ok: true; data: TokenResponse }
   | { ok: false; code: TokenErrorCode | "network_error"; message: string };
 
-/** Pede um token ao backend. Roda no navegador; o segredo fica no servidor. */
+/** Requests a token from the backend. Runs in the browser; the secret stays on the server. */
 export async function requestToken(input: TokenRequest): Promise<TokenFetchResult> {
   let response: Response;
   try {
@@ -45,7 +45,7 @@ export async function requestToken(input: TokenRequest): Promise<TokenFetchResul
   };
 }
 
-/** Levanta ou baixa a mão (o servidor grava o atributo; ver /api/sala/mao). */
+/** Raises or lowers the hand (the server writes the attribute; see /api/sala/mao). */
 export async function setHandRaised(room: string, raised: boolean): Promise<boolean> {
   try {
     const response = await fetch("/api/sala/mao", {

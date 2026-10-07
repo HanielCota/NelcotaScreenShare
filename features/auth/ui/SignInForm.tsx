@@ -15,7 +15,7 @@ import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { formText } from "@/lib/utils";
 
-/** Erros que a pessoa causou (credenciais) deixam o mascote bravo; o resto, preocupado. */
+/** Errors the person caused (credentials) make the mascot angry; the rest, worried. */
 const OWN_FAULT = new Set(["INVALID_EMAIL_OR_PASSWORD", "FAILED_TO_CREATE_SESSION"]);
 
 export function SignInForm({
@@ -66,7 +66,7 @@ export function SignInForm({
       return;
     }
     forgetTypedEmail();
-    // Com 2FA, o Better Auth leva para /entrar/2fa (onTwoFactorRedirect do cliente).
+    // With 2FA, Better Auth goes to /entrar/2fa (the client's onTwoFactorRedirect).
     if (result && "twoFactorRedirect" in result && result.twoFactorRedirect) {
       nodMascot();
       return;

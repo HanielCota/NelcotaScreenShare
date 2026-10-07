@@ -5,7 +5,7 @@ import { logger } from "@/server/logger.server";
 export interface MailMessage {
   to: string;
   subject: string;
-  /** Texto puro (todo e-mail tem; o HTML é opcional). */
+  /** Plain text (every e-mail has it; the HTML is optional). */
   text: string;
   html?: string;
 }
@@ -13,15 +13,15 @@ export interface MailMessage {
 let transporter: Transporter | undefined;
 
 /**
- * E-mail transacional. Com SMTP_URL, envia de verdade. Sem ele (só em dev;
- * produção recusa subir), o conteúdo vai para o log para os links funcionarem.
+ * Transactional e-mail. With SMTP_URL, it really sends. Without it (dev only;
+ * production refuses to start), the content goes to the log so the links still work.
  */
 export async function sendMail(message: MailMessage): Promise<void> {
   const { SMTP_URL, MAIL_FROM } = getEnv();
   if (!SMTP_URL) {
     logger.warn(
       { mail: { to: message.to, subject: message.subject }, body: message.text },
-      "e-mail não enviado (sem SMTP_URL): conteúdo no log",
+      "e-mail not sent (no SMTP_URL): content in the log",
     );
     return;
   }
@@ -29,7 +29,7 @@ export async function sendMail(message: MailMessage): Promise<void> {
   await transporter.sendMail({ from: MAIL_FROM, ...message });
 }
 
-/** Escapa texto para os templates HTML. */
+/** Escapes text for the HTML templates. */
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -39,7 +39,7 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
-/** Layout simples e legível em qualquer cliente de e-mail (sem imagens externas). */
+/** Simple layout, readable in any e-mail client (no external images). */
 export function mailLayout({
   title,
   intro,

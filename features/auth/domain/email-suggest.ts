@@ -1,4 +1,4 @@
-/** Domínios mais comuns no Brasil: "gmial.com" vira sugestão de "gmail.com". */
+/** Most common domains in Brazil: "gmial.com" becomes a suggestion of "gmail.com". */
 const COMMON_DOMAINS = [
   "gmail.com",
   "hotmail.com",
@@ -32,8 +32,8 @@ function distance(a: string, b: string): number {
 }
 
 /**
- * E-mail com cara de domínio digitado errado → o e-mail corrigido.
- * Domínio conhecido ou muito diferente dos comuns → undefined.
+ * E-mail that looks like a mistyped domain → the corrected e-mail.
+ * Known domain or one very different from the common ones → undefined.
  */
 export function suggestEmail(email: string): string | undefined {
   const at = email.lastIndexOf("@");
@@ -51,7 +51,7 @@ export function suggestEmail(email: string): string | undefined {
   return best ? `${email.slice(0, at)}@${best.domain}` : undefined;
 }
 
-/** Atalho para a caixa de entrada do provedor (busca já filtrando pelo Nelcota). */
+/** Shortcut to the provider's inbox (search already filtered by Nelcota). */
 export function inboxLink(email: string): { label: string; href: string } | undefined {
   const domain = email.slice(email.lastIndexOf("@") + 1).toLowerCase();
   if (domain === "gmail.com" || domain === "googlemail.com") {

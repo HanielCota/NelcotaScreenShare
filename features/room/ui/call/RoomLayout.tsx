@@ -31,7 +31,7 @@ function connectionStatus(state: ConnectionState): Connection {
   return state === ConnectionState.Connecting ? "connecting" : "connected";
 }
 
-/** Avisos empilhados: reconexão e áudio bloqueado podem aparecer juntos. */
+/** Stacked notices: reconnection and blocked audio can appear together. */
 function ConnectionNotices({ connection }: { connection: Connection }) {
   const { canPlayAudio, startAudio } = useAudioPlayback();
   const reconnecting = connection === "reconnecting";
@@ -57,7 +57,7 @@ function ConnectionNotices({ connection }: { connection: Connection }) {
   );
 }
 
-/** Pessoas: grade sem palco; com palco, uma faixa ao lado com o mascote "apresentando". */
+/** People: a grid without a stage; with a stage, a side strip with the "presenting" mascot. */
 function PeopleArea({
   participants,
   sharingIds,
@@ -67,7 +67,7 @@ function PeopleArea({
   participants: Participant[];
   sharingIds: Set<string>;
   hasStage: boolean;
-  /** Conectando ou reconectando: o mascote espera em vez de apresentar. */
+  /** Connecting or reconnecting: the mascot waits instead of presenting. */
   busy: boolean;
 }) {
   return (
@@ -102,7 +102,7 @@ function PeopleArea({
   );
 }
 
-/** A sala conectada: barra do topo, palco (tela em foco), pessoas, chat e controles. */
+/** The connected room: top bar, stage (focused screen), people, chat and controls. */
 export function RoomLayout({
   code,
   maxParticipants,
@@ -115,7 +115,7 @@ export function RoomLayout({
   const scope = useRef<HTMLDivElement>(null);
   const connectionState = useConnectionState();
   const participants = useParticipants();
-  // Só entra no palco depois que o vídeo está disponível (evita palco preto).
+  // Only goes on stage once the video is available (avoids a black stage).
   const screenShares = useTracks([Track.Source.ScreenShare]).filter(
     (ref) => ref.publication.track !== undefined,
   );
@@ -155,7 +155,7 @@ export function RoomLayout({
         className={cn(
           "relative z-10 flex min-h-0 flex-1 gap-4 px-3 pt-4 pb-32 sm:px-6",
           hasStage ? "flex-col lg:flex-row" : "flex-col items-center justify-center",
-          // Chat aberto em tela larga: o conteúdo abre espaço em vez de ficar por baixo.
+          // Chat open on a wide screen: the content makes room instead of sitting underneath.
           chat.open && "lg:pr-[26.5rem]",
         )}
       >

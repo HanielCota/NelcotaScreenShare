@@ -4,9 +4,9 @@ interface ScreenShareLike {
 }
 
 /**
- * Tela que vai para o palco: a escolhida, senão a mais recente dos outros. A
- * própria tela só entra quando é a única (o palco mostra uma prévia pequena,
- * sem o efeito espelho).
+ * Screen that goes on stage: the chosen one, otherwise the most recent from others. Your
+ * own screen only goes up when it is the only one (the stage shows a small preview,
+ * without the mirror effect).
  */
 export function pickFocusedShare<T extends ScreenShareLike>(
   shares: readonly T[],

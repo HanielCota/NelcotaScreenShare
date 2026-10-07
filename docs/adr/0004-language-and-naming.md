@@ -1,23 +1,26 @@
-# ADR 0004 — Idioma do código e nomes
+# ADR 0004 — Code language and naming
 
-- **Status:** aceita (2026-10-06)
-- **Contexto:** pastas em português (`features/salas`) conviviam com componentes em inglês (`RoomsTable`). `features/usuarios` continha `Participant*`. O tipo `TokenResult` tinha dois significados.
+- **Status:** accepted (2026-10-06); language policy revised (2026-10-07)
+- **Context:** Portuguese folders (`features/salas`) coexisted with English components (`RoomsTable`). `features/usuarios` contained `Participant*`. The `TokenResult` type had two meanings. Later, comments, docs and test names were still in Portuguese, which kept the repository closed to developers who don't read it.
 
-## Decisão
+## Decision
 
-- **Inglês**: identificadores, pastas, arquivos e chaves internas de código.
-- **Português**:
-  - textos da interface, mensagens de erro e comentários;
-  - URLs e parâmetros (`/sala`, `?convite`, `?voltar`, `de`/`ate`), porque são contrato com quem já tem links salvos;
-  - valores já gravados no banco (por exemplo, `action: "user.export"` na auditoria e os metadados `motivo`/`sala`). Mudar esses valores é mudança de dado, decidida à parte.
-- **Nomes de arquivo**:
-  - componentes React em `PascalCase.tsx`;
-  - hooks em `use-*.ts`;
-  - o resto em `kebab-case.ts`;
-  - documentos (ADRs, guias e planos em `docs/`) também têm nome em inglês e `kebab-case.md`; o conteúdo continua em português.
-- **Termos do domínio**: `participant` é a pessoa que entra em salas (tabela `users`); `admin` é a conta do painel. `TokenFetchResult` (resultado do pedido no navegador) é diferente do registro em `token_requests`.
-- **Sem barrel files.** Os imports são diretos ao arquivo, com o alias `@/`.
+- **English**:
+  - identifiers, folders, files and internal code keys;
+  - code comments, documentation (README, guides, ADRs and plans in `docs/`), test names, log messages and developer-facing errors;
+  - commit messages and PR text.
+- **Portuguese** (the product is for Brazilian users):
+  - UI text and error messages shown to the user (toasts, forms, e-mails, page titles);
+  - URLs and parameters (`/sala`, `?convite`, `?voltar`, `de`/`ate`), because they are a contract with people who already have saved links;
+  - values already stored in the database or exchanged between systems (for example, `action: "user.export"` in the audit log and the `motivo`/`sala` metadata, cookie names, setting keys). Changing these values is a data change, decided separately.
+- **File names**:
+  - React components in `PascalCase.tsx`;
+  - hooks in `use-*.ts`;
+  - everything else in `kebab-case.ts`;
+  - documents (ADRs, guides and plans in `docs/`) in `kebab-case.md`.
+- **Domain terms**: `participant` is the person who joins rooms (`users` table); `admin` is the panel account. `TokenFetchResult` (the result of the request in the browser) is different from the record in `token_requests`.
+- **No barrel files.** Imports point directly at the file, with the `@/` alias.
 
-## Pendências conhecidas
+## Known pending items
 
-- O payload interno das ações em massa ainda usa `{ tipo: "ids" | "filtro", busca }` (`lib/table-params.ts`). Trocar exige mudar actions, tabelas e testes juntos; fica para quando essa parte for mexida.
+- The internal payload of bulk actions still uses `{ tipo: "ids" | "filtro", busca }` (`lib/table-params.ts`). Changing it requires changing actions, tables and tests together; it waits until that part is touched.

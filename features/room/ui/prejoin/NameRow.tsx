@@ -5,7 +5,7 @@ import { authClient } from "@/features/auth/client/participant-auth-client";
 import { displayNameSchema } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";
 
-/** Edita o nome da conta sem sair da pré-entrada. */
+/** Edits the account name without leaving the pre-join screen. */
 export function NameRow({ name, onChange }: { name: string; onChange: (name: string) => void }) {
   const inputId = useId();
   const errorId = useId();
@@ -15,7 +15,7 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
   const [error, setError] = useState<string>();
   const [saving, setSaving] = useState(false);
 
-  // Abriu a edição: o campo já vem selecionado para digitar por cima.
+  // Editing opened: the field comes pre-selected to type over.
   useEffect(() => {
     if (editing) inputRef.current?.select();
   }, [editing]);
@@ -62,7 +62,7 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
               setError(undefined);
             }}
             onKeyDown={(event) => {
-              // Enter salva o nome (não envia o formulário da sala); Esc cancela.
+              // Enter saves the name (does not submit the room form); Esc cancels.
               if (event.key === "Enter") {
                 event.preventDefault();
                 void save();
@@ -120,7 +120,7 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
         }}
         className="-mr-2 shrink-0 rounded-lg px-2 py-1.5 text-sm font-medium text-brand-soft transition-colors hover:bg-surface-2 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       >
-        {/* No celular só "Mudar": com "nome", o texto ao lado quebrava a linha. */}
+        {/* On phones just "Mudar": with "nome", the text beside it wrapped the line. */}
         Mudar<span className="max-sm:sr-only"> nome</span>
       </button>
     </div>

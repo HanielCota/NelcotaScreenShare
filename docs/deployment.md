@@ -1,61 +1,61 @@
-# Deploy e operação
+# Deployment and operations
 
-Guia de produção: Coolify numa VPS, com o LiveKit self-hosted, o app em imagem do GHCR e o Postgres gerenciado pelo Coolify. Para rodar localmente, veja o [guia de desenvolvimento](development.md).
+Production guide: Coolify on a VPS, with self-hosted LiveKit, the app as a GHCR image and Postgres managed by Coolify. To run locally, see the [development guide](development.md).
 
-## Deploy no Coolify
+## Deploying on Coolify
 
-Você vai criar dois recursos no mesmo servidor: o LiveKit e o app.
+You will create two resources on the same server: LiveKit and the app.
 
-### 0. DNS e chaves
+### 0. DNS and keys
 
-1. Crie dois registros A apontando para o IP da VPS:
-   - `app.seudominio.com` → app React Router
-   - `lk.seudominio.com` → LiveKit (sinalização + TURN)
+1. Create two A records pointing to the VPS IP:
+   - `app.yourdomain.com` → React Router app
+   - `lk.yourdomain.com` → LiveKit (signaling + TURN)
 
-   Se usar Cloudflare, deixe o `lk.` como DNS only (nuvem cinza). TURN e WebRTC precisam do IP real.
+   If you use Cloudflare, leave `lk.` as DNS only (grey cloud). TURN and WebRTC need the real IP.
 
-2. Gere um par de chaves:
+2. Generate a key pair:
 
    ```bash
    docker run --rm livekit/livekit-server:v1.13.7 generate-keys
-   # ou: echo "API$(openssl rand -hex 6)"  e  openssl rand -base64 48
+   # or: echo "API$(openssl rand -hex 6)"  and  openssl rand -base64 48
    ```
 
-### 1. Firewall da VPS
+### 1. VPS firewall
 
 ```bash
-ufw allow 7881/tcp           # WebRTC via TCP (fallback)
-ufw allow 50000:50100/udp    # mídia WebRTC
+ufw allow 7881/tcp           # WebRTC over TCP (fallback)
+ufw allow 50000:50100/udp    # WebRTC media
 ufw allow 3478/udp           # TURN/UDP
-ufw allow 30000:30100/udp    # portas de relay do TURN
-ufw allow 5349/tcp           # TURN/TLS (só se ativar, ver abaixo)
+ufw allow 30000:30100/udp    # TURN relay ports
+ufw allow 5349/tcp           # TURN/TLS (only if enabled, see below)
 ```
 
-**Não** abra a 7880: ela passa pelo proxy HTTPS do Coolify. Se o provedor tiver firewall próprio (Hetzner, AWS etc.), libere as mesmas portas lá também.
+Do **not** open 7880: it goes through Coolify's HTTPS proxy. If your provider has its own firewall (Hetzner, AWS etc.), open the same ports there too.
 
-### 2. Recurso LiveKit (Docker Compose)
+### 2. LiveKit resource (Docker Compose)
 
-1. - New Resource → Docker Compose apontando para este repositório.
-2. Em _Docker Compose Location_, use `/docker-compose.livekit.yml`.
-3. Edite `deploy/livekit/livekit.yaml` e troque `lk.seudominio.com` pelo seu domínio (`turn.domain`).
-4. Em Environment Variables, defina `LIVEKIT_API_KEY` e `LIVEKIT_API_SECRET`.
-5. Não preencha domínio no serviço. Com `network_mode: host`, o proxy não descobre o container por labels; a rota é criada no passo 3.
-6. Deploy. Nos logs deve aparecer `starting LiveKit server` com `rtc.portICERange: [50000, 50100]` e `Starting TURN server`.
+1. - New Resource → Docker Compose pointing to this repository.
+2. In _Docker Compose Location_, use `/docker-compose.livekit.yml`.
+3. Edit `deploy/livekit/livekit.yaml` and replace `lk.yourdomain.com` with your domain (`turn.domain`).
+4. In Environment Variables, set `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET`.
+5. Don't fill in a domain on the service. With `network_mode: host`, the proxy can't discover the container through labels; the route is created in step 3.
+6. Deploy. The logs should show `starting LiveKit server` with `rtc.portICERange: [50000, 50100]` and `Starting TURN server`.
 
-### 3. Proxy HTTPS para `lk.seudominio.com` → 7880
+### 3. HTTPS proxy for `lk.yourdomain.com` → 7880
 
-Em Servers → (seu servidor) → Proxy → Dynamic Configurations, adicione um arquivo `livekit.yaml` (Traefik):
+In Servers → (your server) → Proxy → Dynamic Configurations, add a `livekit.yaml` file (Traefik):
 
 ```yaml
 http:
   routers:
     livekit-http:
-      rule: Host(`lk.seudominio.com`)
+      rule: Host(`lk.yourdomain.com`)
       entryPoints: [http]
       middlewares: [livekit-https]
       service: livekit
     livekit:
-      rule: Host(`lk.seudominio.com`)
+      rule: Host(`lk.yourdomain.com`)
       entryPoints: [https]
       service: livekit
       tls:
@@ -71,105 +71,105 @@ http:
           - url: http://host.docker.internal:7880
 ```
 
-O proxy do Coolify já resolve `host.docker.internal` para o host. Se não resolver no seu servidor, use o gateway da bridge do Docker (`http://172.17.0.1:7880`) e permita o tráfego dos containers até a 7880:
+Coolify's proxy already resolves `host.docker.internal` to the host. If it doesn't on your server, use the Docker bridge gateway (`http://172.17.0.1:7880`) and allow traffic from the containers to 7880:
 
 ```bash
 ufw allow from 172.16.0.0/12 to any port 7880 proto tcp
 ufw allow from 10.0.0.0/8 to any port 7880 proto tcp
 ```
 
-Para testar: `curl https://lk.seudominio.com` deve responder `OK`.
+To test: `curl https://lk.yourdomain.com` should respond `OK`.
 
-### 4. Recurso App (imagem do GHCR)
+### 4. App resource (GHCR image)
 
-A imagem é construída no **GitHub Actions** (não na VPS, para não disputar CPU e memória com o app) e publicada no GHCR com duas tags: `:<sha>` (imutável) e `:main`.
+The image is built on **GitHub Actions** (not on the VPS, so it doesn't compete with the app for CPU and memory) and published to GHCR with two tags: `:<sha>` (immutable) and `:main`.
 
-1. No Coolify: New Resource → **Docker Image** → `ghcr.io/<org>/<repo>:main` (com credencial de leitura do GHCR). Ports Exposes: `3000`. Domains: `https://app.seudominio.com`.
+1. In Coolify: New Resource → **Docker Image** → `ghcr.io/<org>/<repo>:main` (with a GHCR read credential). Ports Exposes: `3000`. Domains: `https://app.yourdomain.com`.
 2. Environment Variables (runtime):
 
    ```
-   DATABASE_URL=postgres://nelcota_app:<senha>@<host-interno-do-postgres>:5432/nelcota
-   LIVEKIT_API_KEY=<mesma do LiveKit>
-   LIVEKIT_API_SECRET=<mesmo do LiveKit>
-   LIVEKIT_URL=wss://lk.seudominio.com
-   ACCESS_PASSWORD=<opcional>
+   DATABASE_URL=postgres://nelcota_app:<password>@<postgres-internal-host>:5432/nelcota
+   LIVEKIT_API_KEY=<same as LiveKit>
+   LIVEKIT_API_SECRET=<same as LiveKit>
+   LIVEKIT_URL=wss://lk.yourdomain.com
+   ACCESS_PASSWORD=<optional>
    MAX_PARTICIPANTS=6
-   SENTRY_DSN=<opcional>
+   SENTRY_DSN=<optional>
    AUTH_SECRET=<openssl rand -base64 48>
-   ADMIN_AUTH_SECRET=<outro openssl rand -base64 48; liga o /admin>
-   APP_URL=https://app.seudominio.com
-   SMTP_URL=smtps://usuario:senha@smtp.seudominio.com:465
-   MAIL_FROM=Nelcota <no-reply@seudominio.com>
+   ADMIN_AUTH_SECRET=<another openssl rand -base64 48; enables /admin>
+   APP_URL=https://app.yourdomain.com
+   SMTP_URL=smtps://user:password@smtp.yourdomain.com:465
+   MAIL_FROM=Nelcota <no-reply@yourdomain.com>
    ```
 
-   Sem `APP_URL`, `SMTP_URL` e `MAIL_FROM`, o app recusa subir em produção (`server/env.server.ts`).
+   Without `APP_URL`, `SMTP_URL` and `MAIL_FROM`, the app refuses to start in production (`server/env.server.ts`).
 
-3. Mantenha o rolling update ligado (sem mapear porta do host nem nome fixo de container). O `HEALTHCHECK` do Dockerfile consulta `/api/health`; o container roda como usuário não-root (`nelcota`).
+3. Keep rolling updates on (no host port mapping and no fixed container name). The Dockerfile's `HEALTHCHECK` queries `/api/health`; the container runs as a non-root user (`nelcota`).
 
-**Pipeline** (`.github/workflows`): `ci.yml` roda formatação, lint, tipos, `pnpm audit`, testes (com Postgres 18.6) e build em todo PR. Na `main`, `deploy.yml` faz: imagem no GHCR → **migração** (SSH na VPS, `docker run` da imagem nova com o usuário de migração) → webhook do Coolify → espera o `/api/ready` responder com o SHA novo. Se a migração falhar, nada é deployado.
+**Pipeline** (`.github/workflows`): `ci.yml` runs formatting, lint, types, `pnpm audit`, tests (with Postgres 18.6) and build on every PR. On `main`, `deploy.yml` does: image to GHCR → **migration** (SSH to the VPS, `docker run` of the new image with the migration user) → Coolify webhook → waits for `/api/ready` to respond with the new SHA. If the migration fails, nothing is deployed.
 
-Segredos do GitHub (environment `production`): `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`, `DEPLOY_USER`, `MIGRATOR_DATABASE_URL`, `COOLIFY_DEPLOY_WEBHOOK`, `COOLIFY_TOKEN`. Variáveis: `APP_URL`, `DEPLOY_DOCKER_NETWORK` (padrão `coolify`), `PUBLIC_SENTRY_DSN` (opcional). No servidor, o usuário de deploy precisa de `docker login ghcr.io` uma vez.
+GitHub secrets (`production` environment): `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`, `DEPLOY_USER`, `MIGRATOR_DATABASE_URL`, `COOLIFY_DEPLOY_WEBHOOK`, `COOLIFY_TOKEN`. Variables: `APP_URL`, `DEPLOY_DOCKER_NETWORK` (default `coolify`), `PUBLIC_SENTRY_DSN` (optional). On the server, the deploy user needs `docker login ghcr.io` once.
 
-> O rate limit fica em memória: vale para uma réplica (o padrão no Coolify). Para escalar horizontalmente, troque por Redis.
+> The rate limit is in memory: it holds for a single replica (the Coolify default). To scale horizontally, switch to Redis.
 >
-> O IP usado no rate limit é o do `X-Forwarded-For` contado a partir do fim, conforme `TRUSTED_PROXY_HOPS` (Traefik = 1). Se o `app.` passar também pelo proxy da Cloudflare, use `TRUSTED_PROXY_HOPS=2`.
+> The IP used for rate limiting is taken from `X-Forwarded-For` counting from the end, according to `TRUSTED_PROXY_HOPS` (Traefik = 1). If `app.` also goes through the Cloudflare proxy, use `TRUSTED_PROXY_HOPS=2`.
 >
-> **Rollback:** a tag `:main` muda a cada deploy. Para voltar uma versão, aponte o recurso para `ghcr.io/<org>/<repo>:<sha-anterior>` (tag imutável) e faça redeploy; as migrações são sempre aditivas (expand/contract), então o código anterior funciona com o schema novo.
+> **Rollback:** the `:main` tag changes on every deploy. To go back a version, point the resource to `ghcr.io/<org>/<repo>:<previous-sha>` (immutable tag) and redeploy; migrations are always additive (expand/contract), so the previous code works with the new schema.
 
 ### 4.1. PostgreSQL
 
-1. No Coolify, crie um recurso **PostgreSQL** com a imagem `postgres:18.6-alpine`, no mesmo projeto e servidor do app. **Não** torne a porta pública.
-2. Em "Custom PostgreSQL configuration", cole `deploy/postgres/postgresql.conf` (ele **substitui** o arquivo inteiro; os valores estão comentados para VPS de 4 e 8 GB). Reinicie o banco.
-3. Rode o bootstrap uma vez com o superusuário (instruções no topo de `deploy/postgres/bootstrap.sql`) e guarde as três senhas geradas.
-4. `DATABASE_URL` do App usa `nelcota_app`; `MIGRATOR_DATABASE_URL` (segredo do GitHub) usa `nelcota_migrator`. Ambas com o host **interno** do Postgres.
-5. Ative os backups agendados do Coolify para um S3 compatível (diário, 03:00).
+1. In Coolify, create a **PostgreSQL** resource with the `postgres:18.6-alpine` image, in the same project and server as the app. Do **not** make the port public.
+2. In "Custom PostgreSQL configuration", paste `deploy/postgres/postgresql.conf` (it **replaces** the whole file; the values are annotated for 4 and 8 GB VPSs). Restart the database.
+3. Run the bootstrap once as the superuser (instructions at the top of `deploy/postgres/bootstrap.sql`) and save the three generated passwords.
+4. The App's `DATABASE_URL` uses `nelcota_app`; `MIGRATOR_DATABASE_URL` (GitHub secret) uses `nelcota_migrator`. Both with the Postgres **internal** host.
+5. Enable Coolify's scheduled backups to an S3-compatible store (daily, 03:00).
 
-### 5. TURN/TLS (opcional, para redes muito restritivas)
+### 5. TURN/TLS (optional, for very restrictive networks)
 
-O TURN/UDP (3478) já vem ativo. O TURN/TLS na 5349 atravessa firewalls que só deixam passar TLS, mas precisa de um certificado válido para o `turn.domain`:
+TURN/UDP (3478) is already on. TURN/TLS on 5349 gets through firewalls that only let TLS through, but it needs a valid certificate for `turn.domain`:
 
-1. Gere o certificado por desafio DNS, já que a porta 80 é do proxy:
-   `certbot certonly --manual --preferred-challenges dns -d lk.seudominio.com`
-   (ou use o plugin do seu provedor DNS, para ter renovação automática).
-2. Em `deploy/livekit/livekit.yaml`, descomente `tls_port`, `cert_file` e `key_file`.
-3. Em `docker-compose.livekit.yml`, descomente o volume dos certificados.
-4. Libere `5349/tcp` e faça o redeploy.
+1. Generate the certificate with a DNS challenge, since port 80 belongs to the proxy:
+   `certbot certonly --manual --preferred-challenges dns -d lk.yourdomain.com`
+   (or use your DNS provider's plugin, for automatic renewal).
+2. In `deploy/livekit/livekit.yaml`, uncomment `tls_port`, `cert_file` and `key_file`.
+3. In `docker-compose.livekit.yml`, uncomment the certificates volume.
+4. Open `5349/tcp` and redeploy.
 
-### 6. Webhook (salas e participações no painel)
+### 6. Webhook (rooms and participations in the panel)
 
-O app recebe os eventos do LiveKit em `POST /api/livekit/webhook`. Cada evento é gravado em `livekit_events` (o id do evento impede duplicatas) e projetado em `rooms`, `room_participations` e `share_sessions`, que alimentam o painel admin. A projeção aceita eventos repetidos e fora de ordem. A assinatura é conferida com `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET`: sem ela, a rota responde 401. Com o banco fora do ar, responde 503 e o LiveKit tenta de novo.
+The app receives LiveKit events at `POST /api/livekit/webhook`. Each event is stored in `livekit_events` (the event id prevents duplicates) and projected into `rooms`, `room_participations` and `share_sessions`, which feed the admin panel. The projection accepts repeated and out-of-order events. The signature is checked with `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET`: without it, the route responds 401. With the database down, it responds 503 and LiveKit retries.
 
-1. Em `deploy/livekit/livekit.yaml`, troque `api_key` no bloco `webhook` pelo valor de `LIVEKIT_API_KEY` e a URL pelo domínio do app.
-2. Faça o redeploy do LiveKit.
-3. Confira: entre numa sala e veja `select event, processed_at, error from livekit_events order by received_at desc limit 5;`.
+1. In `deploy/livekit/livekit.yaml`, replace `api_key` in the `webhook` block with the value of `LIVEKIT_API_KEY` and the URL with the app's domain.
+2. Redeploy LiveKit.
+3. Check: join a room and run `select event, processed_at, error from livekit_events order by received_at desc limit 5;`.
 
-Em desenvolvimento, `deploy/livekit/livekit.dev.yaml` aponta o webhook para `http://host.docker.internal:3000` (veja o topo do arquivo).
+In development, `deploy/livekit/livekit.dev.yaml` points the webhook to `http://host.docker.internal:3000` (see the top of the file).
 
-Cada pedido ao `/api/token` também fica em `token_requests` (resultado, conta e IP), que liga cada entrada ao IP de origem.
+Every request to `/api/token` is also stored in `token_requests` (result, account and IP), which ties each join to its source IP.
 
-## Testando em produção
+## Testing in production
 
-### Duas redes diferentes
+### Two different networks
 
-1. Computador A no Wi-Fi de casa/escritório; computador ou celular B no 4G (roteador do celular).
-2. Os dois entram na mesma sala. A compartilha a tela; B deve ver o palco em segundos.
-3. Teste também com uma rede corporativa/VPN, que é onde o TURN costuma ser necessário.
+1. Computer A on the home/office Wi-Fi; computer or phone B on 4G (phone hotspot).
+2. Both join the same room. A shares the screen; B should see the stage within seconds.
+3. Also test from a corporate network/VPN, which is where TURN is usually needed.
 
-### Conferindo candidatos `relay` (TURN)
+### Checking `relay` (TURN) candidates
 
-1. No Chrome, abra `chrome://webrtc-internals` **antes** de entrar na sala.
-2. Entre e compartilhe a tela. Na conexão `RTCPeerConnection`, abra Stats Tables e procure o `candidate-pair` com `state: succeeded` / `nominated: true`.
-3. Veja o `remote-candidate` / `local-candidate` desse par:
-   - `candidateType: host` ou `srflx` → conexão direta via UDP (ideal);
-   - `candidateType: relay` → passou pelo TURN.
-4. Para **forçar** o teste do TURN, bloqueie temporariamente a mídia direta na VPS e reconecte:
+1. In Chrome, open `chrome://webrtc-internals` **before** joining the room.
+2. Join and share the screen. On the `RTCPeerConnection` connection, open Stats Tables and look for the `candidate-pair` with `state: succeeded` / `nominated: true`.
+3. Look at that pair's `remote-candidate` / `local-candidate`:
+   - `candidateType: host` or `srflx` → direct connection over UDP (ideal);
+   - `candidateType: relay` → went through TURN.
+4. To **force** a TURN test, temporarily block direct media on the VPS and reconnect:
 
    ```bash
    ufw deny 50000:50100/udp && ufw deny 7881/tcp
-   # entre na sala: o par nominado deve ser "relay"
+   # join the room: the nominated pair should be "relay"
    ufw delete deny 50000:50100/udp && ufw delete deny 7881/tcp
    ```
 
-   Se não conectar com essas portas bloqueadas, revise `3478/udp`, `30000-30100/udp` e o `turn.domain`.
+   If it doesn't connect with those ports blocked, check `3478/udp`, `30000-30100/udp` and `turn.domain`.
 
-5. Pelo servidor: nos logs do LiveKit, a linha `participant active` de cada pessoa traz `connectionType` (`udp`/`tcp`) e a lista `publisherCandidates`. O candidato marcado com `[remote][selected:1]` mostra o tipo usado (`host`, `srflx` ou `relay`).
+5. From the server: in the LiveKit logs, each person's `participant active` line includes `connectionType` (`udp`/`tcp`) and the `publisherCandidates` list. The candidate marked `[remote][selected:1]` shows the type used (`host`, `srflx` or `relay`).

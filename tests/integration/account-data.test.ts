@@ -9,8 +9,8 @@ import { verifiedParticipant } from "./support/accounts";
 import { makeCaller } from "./support/http-auth";
 
 /**
- * Direitos do titular (LGPD): "baixar meus dados" inclui o histórico de salas
- * e a exclusão da conta tira o nome das participações.
+ * Data subject rights (LGPD): "download my data" includes the room history
+ * and deleting the account removes the name from participations.
  */
 const requestHeaders = { current: new Headers() };
 vi.mock("@/server/request-context.server", () => ({
@@ -80,8 +80,8 @@ const exportSchema = z.object({
   pedidos_de_entrada: z.array(z.object({ sala: z.string(), resultado: z.string() })),
 });
 
-describe("dados do titular", () => {
-  test("exclusão invalida recuperações pendentes e recusa tokens residuais", async () => {
+describe("data subject data", () => {
+  test("deletion invalidates pending recoveries and rejects leftover tokens", async () => {
     const user = await verifiedParticipant(db, handler);
     const auth = await getUserAuth().$context;
     const token = crypto.randomUUID();
@@ -95,7 +95,7 @@ describe("dados do titular", () => {
     const call = makeCaller(handler, "/api/auth", "192.0.2.79");
     const body = { token, newPassword: "nova-senha-forte-123" };
     assert.equal((await call("/reset-password", { body })).status, 400);
-    // Cobre tokens legados ou gravados por uma requisição concorrente à exclusão.
+    // Covers legacy tokens or ones written by a request concurrent with the deletion.
     await auth.internalAdapter.createVerificationValue(recovery);
     assert.equal((await call("/reset-password", { body })).status, 400);
     assert.equal(
@@ -109,7 +109,7 @@ describe("dados do titular", () => {
     );
   });
 
-  test("recuperação de senha continua funcionando para conta ativa", async () => {
+  test("password recovery keeps working for an active account", async () => {
     const user = await verifiedParticipant(db, handler);
     const auth = await getUserAuth().$context;
     const token = crypto.randomUUID();
@@ -127,7 +127,7 @@ describe("dados do titular", () => {
     );
   });
 
-  test("a exportação traz salas, compartilhamentos e pedidos de entrada", async () => {
+  test("the export includes rooms, screen shares and join requests", async () => {
     const lia = await verifiedParticipant(db, handler);
     const { code } = await withHistory(lia.id);
     const response = await downloadAccountData(
@@ -153,7 +153,7 @@ describe("dados do titular", () => {
     );
   });
 
-  test("excluir a conta apaga o nome das participações e mantém o registro de acesso", async () => {
+  test("deleting the account erases the name from participations and keeps the access record", async () => {
     const leo = await verifiedParticipant(db, handler);
     const { participationId } = await withHistory(leo.id);
     requestHeaders.current = new Headers({
@@ -171,7 +171,7 @@ describe("dados do titular", () => {
     assert.equal(row?.userId, leo.id);
   });
 
-  test("senha errada ao excluir tem limite de tentativas por conta", async () => {
+  test("a wrong password on deletion has a per-account attempt limit", async () => {
     const ana = await verifiedParticipant(db, handler);
     requestHeaders.current = new Headers({ cookie: ana.jar.header() });
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -181,6 +181,6 @@ describe("dados do titular", () => {
     const blocked = await deleteMyAccount({ password: ana.password });
     assert.match(String(blocked.serverError), /Muitas tentativas/);
     const [user] = await db.select().from(schema.users).where(eq(schema.users.id, ana.id));
-    assert.equal(user?.deletedAt, null, "a conta continua ativa");
+    assert.equal(user?.deletedAt, null, "the account stays active");
   });
 });

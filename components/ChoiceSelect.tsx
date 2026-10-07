@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-/** Valores vazios continuam válidos no formulário, sem colidir com os IDs das opções. */
+/** Empty values stay valid in the form without colliding with the option IDs. */
 export function ChoiceSelect({
   id,
   name,

@@ -24,14 +24,14 @@ const SETUP_ONLY_NAV = [
 export const meta = () => [{ title: "Admin · Nelcota" }];
 
 /**
- * Shell do painel: só exige sessão de admin. O 2FA obrigatório e as permissões
- * são aplicados por CADA loader de página (`requireAdmin`). Loaders rodam em
- * paralelo: a autorização do layout não protege os dados de seus filhos.
- * Um teste garante que toda página do painel chama `requireAdmin`.
+ * Admin panel shell: only requires an admin session. Mandatory 2FA and permissions
+ * are enforced by EACH page loader (`requireAdmin`). Loaders run in
+ * parallel: the layout's authorization does not protect its children's data.
+ * A test ensures every panel page calls `requireAdmin`.
  */
 export const loader = routeLoader(async ({ request }) => {
   const admin = await requireAdmin(undefined, { allowWithoutTwoFactor: true });
-  // Sidebar aberta/recolhida: lembrada em cookie pelo próprio componente.
+  // Sidebar open/collapsed: remembered in a cookie by the component itself.
   const sidebar = readCookie(request.headers, "sidebar_state");
 
   const groups = needsTwoFactorSetup(admin) ? SETUP_ONLY_NAV : navFor(admin.user.role);
@@ -49,8 +49,8 @@ export default function AdminPanelLayout() {
         roleLabel:
           (ADMIN_ROLE_LABELS as Record<string, string>)[admin.user.role] ?? admin.user.role,
       }}
-      // Sem o 2FA obrigatório, as outras telas redirecionam para a de segurança:
-      // o menu mostra só o que dá para abrir (links que redirecionam viram laço de prefetch).
+      // Without mandatory 2FA, the other screens redirect to the security one:
+      // the menu shows only what can be opened (redirecting links become a prefetch loop).
       groups={groups}
       defaultOpen={sidebar !== "false"}
     >

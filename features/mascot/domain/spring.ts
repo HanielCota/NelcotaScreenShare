@@ -1,12 +1,12 @@
-/** Passo máximo da simulação: estável mesmo quando o navegador limita a 30 quadros por segundo. */
+/** Maximum simulation step: stable even when the browser throttles to 30 frames per second. */
 const MAX_STEP = 1 / 120;
 
 /**
- * Avança uma mola criticamente amortecida (sem quique) por chave; diz se tudo já assentou.
- * `response` é o tempo de resposta em segundos, como nas molas da Apple (pode variar por chave).
+ * Advances a critically damped spring (no bounce) per key; tells whether everything has settled.
+ * `response` is the response time in seconds, as in Apple's springs (may vary per key).
  *
- * O intervalo do quadro é dividido em passos pequenos: com um passo só, molas rápidas (como a do
- * olhar) ficam instáveis abaixo de ~38 quadros por segundo e os valores explodem.
+ * The frame interval is split into small steps: with a single step, fast springs (like the
+ * gaze's) become unstable below ~38 frames per second and the values blow up.
  */
 export function springStep<K extends string>(
   value: Record<K, number>,
@@ -24,7 +24,7 @@ export function springStep<K extends string>(
       velocity[key] += acceleration * h;
       value[key] += velocity[key] * h;
     }
-    // Rede de segurança: um valor inválido nunca chega ao desenho; volta pro alvo.
+    // Safety net: an invalid value never reaches the drawing; it snaps back to the target.
     if (!Number.isFinite(value[key]) || !Number.isFinite(velocity[key])) {
       value[key] = target[key];
       velocity[key] = 0;

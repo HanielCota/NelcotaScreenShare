@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { joinRoom, newParticipant, newRoomCode, newVisitor } from "./support/session";
 import { E2E_ACCESS_PASSWORD } from "./support/env";
 
-/** Tela compartilhada falsa: um canvas animado no lugar do seletor do navegador. */
+/** Fake shared screen: an animated canvas instead of the browser's picker. */
 async function fakeScreenCapture(page: Page) {
   await page.addInitScript(() => {
     navigator.mediaDevices.getDisplayMedia = () => {
@@ -22,8 +22,8 @@ async function fakeScreenCapture(page: Page) {
   });
 }
 
-test.describe("acesso à sala", () => {
-  test("sem conta vai para o login e volta para a sala (código normalizado)", async ({
+test.describe("room access", () => {
+  test("without an account goes to sign-in and back to the room (normalized code)", async ({
     browser,
   }) => {
     const { page, context } = await newVisitor(browser);
@@ -32,7 +32,7 @@ test.describe("acesso à sala", () => {
     await context.close();
   });
 
-  test("código inválido volta para a home com aviso", async ({ browser }) => {
+  test("an invalid code returns to the home page with a notice", async ({ browser }) => {
     const { page, context } = await newVisitor(browser);
     await page.goto("/sala/!!");
     await expect(page).toHaveURL(/\/\?erro=codigo/);
@@ -40,8 +40,8 @@ test.describe("acesso à sala", () => {
   });
 });
 
-test.describe("pré-entrada", () => {
-  test("senha errada mostra o erro no campo", async ({ browser }) => {
+test.describe("pre-join", () => {
+  test("a wrong password shows the error on the field", async ({ browser }) => {
     const ana = await newParticipant(browser, "Ana Teste");
     const response = await ana.page.goto(`/sala/${newRoomCode()}`);
     expect(await response?.text()).not.toContain(E2E_ACCESS_PASSWORD);
@@ -51,7 +51,7 @@ test.describe("pré-entrada", () => {
     await ana.context.close();
   });
 
-  test("microfone desligado entra só ouvindo", async ({ browser }) => {
+  test("with the microphone off, joins listen-only", async ({ browser }) => {
     const bia = await newParticipant(browser, "Bia Teste");
     await bia.page.goto(`/sala/${newRoomCode()}`);
     await bia.page.getByRole("switch").first().click();
@@ -60,8 +60,8 @@ test.describe("pré-entrada", () => {
   });
 });
 
-test.describe("na sala", () => {
-  test("controles: microfone e seletor no celular, compartilhar e parar a tela", async ({
+test.describe("in the room", () => {
+  test("controls: microphone and picker on mobile, share and stop the screen", async ({
     browser,
   }) => {
     const pessoa = await newParticipant(browser, "Aline Teste");
@@ -124,7 +124,7 @@ test.describe("na sala", () => {
     await context.close();
   });
 
-  test("sozinho: boas-vindas; sair e entrar de novo", async ({ browser }) => {
+  test("alone: welcome; leave and join again", async ({ browser }) => {
     const caio = await newParticipant(browser, "Caio Teste");
     const code = newRoomCode();
     await joinRoom(caio.page, code);
@@ -141,9 +141,7 @@ test.describe("na sala", () => {
     await caio.context.close();
   });
 
-  test("duas pessoas: aviso de entrada, chat, reação, mão e tela compartilhada", async ({
-    browser,
-  }) => {
+  test("two people: join notice, chat, reaction, hand and shared screen", async ({ browser }) => {
     const code = newRoomCode();
     const dani = await newParticipant(browser, "Dani Souza");
     const edu = await newParticipant(browser, "Edu Lima");
@@ -159,18 +157,18 @@ test.describe("na sala", () => {
       edu.page.getByRole("region", { name: "Tela compartilhada por Dani Souza" }),
     ).toBeVisible();
 
-    // Chat com o painel fechado: aviso e contador de não lidas.
+    // Chat with the panel closed: notice and unread counter.
     await edu.page.getByRole("button", { name: /^Chat/ }).click();
     await edu.page.getByPlaceholder("Escreva para a sala").fill("Oi, Dani!");
     await edu.page.getByRole("button", { name: "Enviar mensagem" }).click();
     await expect(dani.page.getByRole("button", { name: "Chat (1 nova)" })).toBeVisible();
 
-    // Reação.
+    // Reaction.
     await edu.page.getByRole("button", { name: "Reações" }).click();
     await edu.page.getByRole("button", { name: "Reagir com 🎉" }).click();
     await expect(dani.page.getByText("🎉")).toBeVisible();
 
-    // Mão levantada (gravada pelo servidor em /api/sala/mao).
+    // Raised hand (recorded by the server at /api/sala/mao).
     await edu.page.keyboard.press("Escape");
     await edu.page.keyboard.press("h");
     await expect(dani.page.getByText("✋ Edu Lima levantou a mão")).toBeVisible();
@@ -179,7 +177,7 @@ test.describe("na sala", () => {
     await edu.context.close();
   });
 
-  test("falha ao conectar oferece tentar de novo (B-01)", async ({ browser }) => {
+  test("a connection failure offers to try again (B-01)", async ({ browser }) => {
     const fia = await newParticipant(browser, "Fia Teste");
     await fia.page.route("**/api/token", async (route) => {
       const response = await route.fetch();

@@ -1,61 +1,61 @@
-# Contas, painel admin e banco
+# Accounts, admin panel and database
 
-Como funcionam as contas de participantes, o painel `/admin`, a auditoria e o PostgreSQL. A organização do código está no [guia da arquitetura](README.md).
+How participant accounts, the `/admin` panel, the audit log and PostgreSQL work. The code layout is in the [architecture guide](README.md).
 
-## Banco de dados
+## Database
 
-O app usa **PostgreSQL 18** com **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + driver `pg`). O plano original do painel está preservado no [arquivo histórico](archive/admin-plan.md); a arquitetura atual está no [guia da arquitetura](README.md).
+The app uses **PostgreSQL 18** with **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + the `pg` driver). The original panel plan is preserved in the [historical archive](archive/admin-plan.md); the current architecture is in the [architecture guide](README.md).
 
-- O schema fica em `server/db/schema/` (um arquivo por área). Depois de mudar o schema, rode `pnpm db:generate`, revise o SQL e faça commit dele em `drizzle/`. O CI falha se o schema e as migrações não baterem.
-- **Migrações nunca rodam no boot do app.** São um job separado (`scripts/migrate.ts`), com um usuário próprio do Postgres, advisory lock e `lock_timeout` de 5 s. Mudanças seguem _expand/contract_ (o código antigo continua funcionando com o schema novo).
-- Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `features/admin/settings/server/settings.server.ts`). Um grupo novo de configuração não precisa de migração.
-- `DATABASE_URL` é obrigatória: entrar numa sala exige conta.
-- **Retenção (LGPD) e reprocessamento:** a cada 6 h o próprio processo do app (`features/runtime/server/maintenance.server.ts`) apaga pedidos de token com mais de 6 meses, tira o IP das participações com mais de 6 meses e o nome com mais de 12, apaga eventos do LiveKit e falhas de login com mais de 30 dias e sessões vencidas há 7 dias, e reprojeta eventos do webhook que falharam.
+- The schema lives in `server/db/schema/` (one file per area). After changing the schema, run `pnpm db:generate`, review the SQL and commit it in `drizzle/`. CI fails if the schema and the migrations don't match.
+- **Migrations never run at app boot.** They are a separate job (`scripts/migrate.ts`), with its own Postgres user, an advisory lock and a 5 s `lock_timeout`. Changes follow _expand/contract_ (the old code keeps working with the new schema).
+- Editable settings live in `app_settings` (one row per group, a JSON value validated by Zod in `features/admin/settings/server/settings.server.ts`). A new settings group doesn't need a migration.
+- `DATABASE_URL` is required: joining a room requires an account.
+- **Retention (LGPD) and reprocessing:** every 6 h the app process itself (`features/runtime/server/maintenance.server.ts`) deletes token requests older than 6 months, strips the IP from participations older than 6 months and the name from those older than 12, deletes LiveKit events and login failures older than 30 days and sessions expired for 7 days, and re-projects webhook events that failed.
 
-### Papéis do Postgres (privilégio mínimo)
+### Postgres roles (least privilege)
 
-| Papel              | Pode                                        | Quem usa                           |
-| ------------------ | ------------------------------------------- | ---------------------------------- |
-| `nelcota_migrator` | dono do schema; DDL                         | job de migração (segredo só no CI) |
-| `nelcota_app`      | ler e escrever dados; **sem DDL**; timeouts | o app (`DATABASE_URL`)             |
-| `nelcota_readonly` | só leitura + estatísticas                   | diagnóstico e teste de restauração |
+| Role               | Can                                       | Used by                           |
+| ------------------ | ----------------------------------------- | --------------------------------- |
+| `nelcota_migrator` | owns the schema; DDL                      | migration job (secret only in CI) |
+| `nelcota_app`      | read and write data; **no DDL**; timeouts | the app (`DATABASE_URL`)          |
+| `nelcota_readonly` | read only + statistics                    | diagnostics and restore testing   |
 
-Os papéis são criados uma vez com `deploy/postgres/bootstrap.sql` (idempotente). Em dev, o `docker-compose.dev.yml` roda o bootstrap sozinho com senhas fixas de desenvolvimento.
+The roles are created once with `deploy/postgres/bootstrap.sql` (idempotent). In dev, `docker-compose.dev.yml` runs the bootstrap by itself with fixed development passwords.
 
-## Contas de participantes
+## Participant accounts
 
-Entrar numa sala (e criar uma) exige **conta** (e e-mail confirmado, se `REQUIRE_EMAIL_VERIFICATION=true`). É uma segunda instância do Better Auth em `/api/auth` (tabelas `users*`, cookie `nelcota.*`, `SameSite=Lax`), separada do painel admin.
+Joining a room (and creating one) requires an **account** (and a confirmed e-mail, if `REQUIRE_EMAIL_VERIFICATION=true`). It is a second Better Auth instance at `/api/auth` (`users*` tables, `nelcota.*` cookie, `SameSite=Lax`), separate from the admin panel.
 
-- **Cadastro:** nome de exibição, e-mail e senha (8 a 128 caracteres, argon2id) e aceite do [aviso de privacidade](../app/routes/privacy.tsx). Cadastrar um e-mail que já existe responde igual a um cadastro novo, e o dono do e-mail recebe um aviso.
-- **Confirmação de e-mail** opcional (`REQUIRE_EMAIL_VERIFICATION`, desligada por padrão; link de 24 h; em dev o link aparece no log do servidor). Depois de confirmar, a pessoa já entra e volta para onde estava (ex.: a sala).
-- **Na sala:** a identidade no LiveKit é o ID da conta e o nome vem da conta (o token não deixa trocar o nome lá dentro; "levantar a mão" passa pelo servidor em `POST /api/sala/mao`). A mesma conta numa segunda aba desconecta a primeira, com aviso.
-- **Minha conta (`/conta`):** perfil (foto, nome e e-mail), segurança (senha e 2FA), dispositivos conectados e privacidade (exportação dos dados e exclusão da conta). A foto aceita JPG, PNG e WebP de até 5 MB, com prévia antes de salvar; é recortada ao centro e reduzida para um avatar de 256 × 256 px. A troca de e-mail precisa de confirmação no novo endereço. A exclusão anonimiza a conta imediatamente.
-- Mesmas proteções do admin: bloqueio por tentativas, rate limit no banco, checagem de origem e mensagens que não revelam se o e-mail existe. Conta bloqueada pelo painel não entra nem abre sessão.
+- **Sign-up:** display name, e-mail and password (8 to 128 characters, argon2id) and acceptance of the [privacy notice](../app/routes/privacy.tsx). Signing up with an e-mail that already exists gets the same response as a new sign-up, and the e-mail's owner receives a notice.
+- Optional **e-mail confirmation** (`REQUIRE_EMAIL_VERIFICATION`, off by default; 24 h link; in dev the link shows up in the server log). After confirming, the person is signed in and returns to where they were (e.g. the room).
+- **In the room:** the LiveKit identity is the account ID and the name comes from the account (the token doesn't allow changing the name inside the room; "levantar a mão" ("raise hand") goes through the server at `POST /api/sala/mao`). The same account in a second tab disconnects the first one, with a notice.
+- **My account (`/conta`):** profile (photo, name and e-mail), security (password and 2FA), connected devices and privacy (data export and account deletion). The photo accepts JPG, PNG and WebP up to 5 MB, with a preview before saving; it is center-cropped and scaled down to a 256 × 256 px avatar. Changing the e-mail requires confirmation at the new address. Deletion anonymizes the account immediately.
+- Same protections as the admin: lockout after failed attempts, rate limiting in the database, origin checks and messages that don't reveal whether the e-mail exists. An account blocked from the panel can neither sign in nor open a session.
 
-## Painel `/admin`
+## `/admin` panel
 
-O painel usa uma **instância própria do [Better Auth](https://www.better-auth.com)** em `/api/admin/auth` (tabelas `admin_*`, cookie `nelcota-admin.*`), separada de qualquer conta de participante.
+The panel uses its **own [Better Auth](https://www.better-auth.com) instance** at `/api/admin/auth` (`admin_*` tables, `nelcota-admin.*` cookie), separate from any participant account.
 
-- **Só por convite:** não existe cadastro público nem senha padrão. O primeiro dono é criado com o script abaixo; os demais admins são convidados pelo painel.
-- **Senha:** argon2id (OWASP: 19 MiB, 2 iterações), 12 a 128 caracteres.
-- **2FA TOTP obrigatório** para `owner` e `admin` (app autenticador + 10 códigos de backup de uso único). Sem 2FA, a sessão só acessa a tela de configurá-lo.
-- **Sessão no banco** (sem cache em cookie): expira em 12 h sem uso, máximo absoluto de 7 dias, cookie `HttpOnly` + `Secure` + `SameSite=Strict`. Ações críticas pedem login nos últimos 10 min.
-- **Bloqueio por tentativas:** 5 senhas erradas na mesma conta bloqueiam por 15 min (dobra a cada 5, até 24 h); 20 erros do mesmo IP em 15 min bloqueiam o IP. Mais o rate limit do Better Auth (5 logins/min por IP), guardado no banco.
-- **Sem enumeração:** login, recuperação de senha e convite respondem igual exista o e-mail ou não.
-- **CSRF:** o Better Auth confere a origem; além disso, a rota recusa qualquer requisição de outra origem (inclusive o primeiro login, sem cookie).
-- **Permissões:** papéis `owner`, `admin` e `viewer` em `features/auth/server/permissions.server.ts` (matriz em `docs/archive/admin-plan.md` §5.2). Cada loader protegido chama `requireAdmin(...)`. As operações do painel passam por `defineAdminOperation` (sessão, 2FA, permissão e sessão fresca conferidas no servidor).
+- **Invitation only:** there is no public sign-up and no default password. The first owner is created with the script below; other admins are invited from the panel.
+- **Password:** argon2id (OWASP: 19 MiB, 2 iterations), 12 to 128 characters.
+- **Mandatory TOTP 2FA** for `owner` and `admin` (authenticator app + 10 single-use backup codes). Without 2FA, the session can only reach the screen to set it up.
+- **Database-backed session** (no cookie cache): expires after 12 h of inactivity, absolute maximum of 7 days, `HttpOnly` + `Secure` + `SameSite=Strict` cookie. Critical actions require a login within the last 10 min.
+- **Lockout after failed attempts:** 5 wrong passwords on the same account lock it for 15 min (doubling every 5, up to 24 h); 20 failures from the same IP in 15 min block the IP. On top of that, Better Auth's rate limit (5 logins/min per IP), stored in the database.
+- **No enumeration:** login, password recovery and invitation respond the same whether or not the e-mail exists.
+- **CSRF:** Better Auth checks the origin; in addition, the route rejects any cross-origin request (including the first login, without a cookie).
+- **Permissions:** `owner`, `admin` and `viewer` roles in `features/auth/server/permissions.server.ts` (matrix in `docs/archive/admin-plan.md` §5.2). Every protected loader calls `requireAdmin(...)`. Panel operations go through `defineAdminOperation` (session, 2FA, permission and fresh session checked on the server).
 
-- **Auditoria:** `audit_logs` guarda quem fez o quê, quando, de onde (IP, navegador, `request_id`) e o "antes → depois" campo a campo, com segredos mascarados. É gravado na **mesma transação** da mudança. A tabela é imutável (trigger + papel do app sem UPDATE/DELETE; apagar só depois de 5 anos). Toda operação declara `audit: "required" | "none"`; uma operação auditada que termina sem registrar falha. Logins, bloqueios, 2FA e trocas de senha do painel também são registrados.
-- **Shell:** sidebar recolhível (lembrada em cookie), breadcrumbs, busca/command palette (`Ctrl/⌘ K`), estados de carregamento, erro e 404 em pt-BR. O menu mostra só o que o papel pode abrir.
-- **Testes de segurança:** um teste importa todas as operações do painel e confere que nenhuma roda sem sessão; outro confere que todo loader de página protegida chama `requireAdmin`.
+- **Audit log:** `audit_logs` records who did what, when, from where (IP, browser, `request_id`) and the field-by-field "before → after", with secrets masked. It is written in the **same transaction** as the change. The table is immutable (trigger + an app role without UPDATE/DELETE; deletion only after 5 years). Every operation declares `audit: "required" | "none"`; an audited operation that finishes without recording an entry fails. Panel logins, lockouts, 2FA and password changes are also recorded.
+- **Shell:** collapsible sidebar (remembered in a cookie), breadcrumbs, search/command palette (`Ctrl/⌘ K`), loading, error and 404 states in pt-BR. The menu shows only what the role can open.
+- **Security tests:** one test imports every panel operation and checks that none runs without a session; another checks that every protected page loader calls `requireAdmin`.
 
-**Criar o primeiro dono:**
+**Create the first owner:**
 
 ```bash
 # Dev
 pnpm admin:create-owner dono@exemplo.com
-# Produção (container do app no Coolify → Terminal, ou via SSH)
-docker exec -it <container-do-app> node create-owner.mjs dono@exemplo.com
+# Production (app container in Coolify → Terminal, or via SSH)
+docker exec -it <app-container> node create-owner.mjs dono@exemplo.com
 ```
 
-O comando imprime um link de uso único, válido por 30 minutos. Se o único dono perder o 2FA e os códigos de backup, rode de novo com `--force` para gerar outro convite de dono.
+The command prints a single-use link, valid for 30 minutes. If the only owner loses their 2FA and backup codes, run it again with `--force` to generate another owner invitation.

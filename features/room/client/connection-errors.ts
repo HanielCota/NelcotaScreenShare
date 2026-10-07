@@ -6,13 +6,13 @@ import {
 } from "livekit-client";
 import type { LeaveReason } from "@/features/room/domain/leave";
 
-/** Erros do LiveKit (conexão, queda, microfone) em mensagens para a pessoa. */
+/** LiveKit errors (connection, drop, microphone) as messages for the person. */
 
-/** Falha ao abrir a conexão com a sala. */
+/** Failure to open the connection to the room. */
 export function connectErrorMessage(error: unknown): string {
   if (error instanceof ConnectionError) {
-    // O LiveKit não tem um reason próprio para sala cheia: só a mensagem diz.
-    // Acontece quando duas pessoas passam pela checagem do /api/token juntas.
+    // LiveKit has no dedicated reason for a full room: only the message says so.
+    // Happens when two people pass the /api/token check at the same time.
     if (/full/i.test(error.message))
       return "A sala está cheia. Aguarde alguém sair e tente de novo.";
     switch (error.reason) {
@@ -30,7 +30,7 @@ export function connectErrorMessage(error: unknown): string {
   return "Não foi possível conectar à sala. Aguarde alguns segundos e tente de novo.";
 }
 
-/** Queda da conexão já aberta (`undefined`: sem mensagem específica). */
+/** Drop of an already open connection (`undefined`: no specific message). */
 export function disconnectMessage(reason: DisconnectReason | undefined): string | undefined {
   switch (reason) {
     case DisconnectReason.DUPLICATE_IDENTITY:
@@ -51,7 +51,7 @@ export function disconnectMessage(reason: DisconnectReason | undefined): string 
   }
 }
 
-/** Queda da conexão já aberta, no motivo que a tela de saída entende. */
+/** Drop of an already open connection, as the reason the leave screen understands. */
 export function disconnectReason(reason: DisconnectReason | undefined): LeaveReason {
   switch (reason) {
     case DisconnectReason.DUPLICATE_IDENTITY:
@@ -66,7 +66,7 @@ export function disconnectReason(reason: DisconnectReason | undefined): LeaveRea
   }
 }
 
-/** Microfone que não abriu na pré-entrada. */
+/** Microphone that failed to open in the pre-join screen. */
 export function micErrorMessage(error: unknown): string {
   switch (MediaDeviceFailure.getFailure(error)) {
     case MediaDeviceFailure.PermissionDenied:

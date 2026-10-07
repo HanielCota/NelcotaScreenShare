@@ -14,7 +14,7 @@ interface RoomViewProps {
   onRetry: () => Promise<void>;
 }
 
-/** Conecta à sala e mostra a chamada (ou a tela de falha, com "Tentar de novo"). */
+/** Connects to the room and shows the call (or the failure screen, with "Tentar de novo"). */
 export function RoomView({ code, choices, maxParticipants, onLeave, onRetry }: RoomViewProps) {
   const { room, connectError, leave } = useRoomConnection(choices, onLeave);
 

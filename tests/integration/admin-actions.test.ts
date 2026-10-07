@@ -7,8 +7,8 @@ import * as schema from "@/server/db/schema";
 import { CookieJar, makeCaller } from "./support/http-auth";
 
 /**
- * Operações do painel chamadas com uma sessão de admin real (cookie no
- * `requestHeaders()` simulado): permissão, 2FA e auditoria na mesma transação.
+ * Admin panel operations called with a real admin session (cookie in the
+ * mocked `requestHeaders()`): permission, 2FA and audit in the same transaction.
  */
 const requestHeaders = { current: new Headers() };
 vi.mock("@/server/request-context.server", () => ({
@@ -41,8 +41,8 @@ async function adminSession(email: string, role: "owner" | "admin" | "viewer") {
   const call = makeCaller(auth.handler, ADMIN_AUTH_BASE_PATH, `192.0.2.${role.length * 10}`);
   const res = await call("/sign-in/email", { body: { email, password: PASSWORD }, jar });
   assert.equal(res.status, 200);
-  // Depois do login (antes, o Better Auth pediria o 2FA). O DAL só confere a flag;
-  // o fluxo real do 2FA é testado em admin-auth.
+  // After sign-in (before it, Better Auth would ask for 2FA). The DAL only checks the flag;
+  // the real 2FA flow is tested in admin-auth.
   await db
     .update(schema.adminUsers)
     .set({ twoFactorEnabled: true })
@@ -57,7 +57,7 @@ async function adminSession(email: string, role: "owner" | "admin" | "viewer") {
   };
 }
 
-describe("configurações (settings.update)", () => {
+describe("settings (settings.update)", () => {
   let owner: { id: string; headers: Headers };
   let viewer: { id: string; headers: Headers };
   beforeAll(async () => {
@@ -65,7 +65,7 @@ describe("configurações (settings.update)", () => {
     viewer = await adminSession("leitor@exemplo.com", "viewer");
   });
 
-  test("dono salva: 1 registro de auditoria com diff, autor, IP e request_id", async () => {
+  test("owner saves: 1 audit record with diff, author, IP and request_id", async () => {
     requestHeaders.current = owner.headers;
     const result = await saveMascotSettings({ saturationDark: 1.5, saturationLight: 0.8 });
     assert.deepEqual(result.data, { saved: true });
@@ -91,7 +91,7 @@ describe("configurações (settings.update)", () => {
     assert.equal(setting?.updatedBy, owner.id);
   });
 
-  test("leitor não tem permissão e nada é gravado", async () => {
+  test("viewer has no permission and nothing is written", async () => {
     requestHeaders.current = viewer.headers;
     const before = await db
       .select()
@@ -106,7 +106,7 @@ describe("configurações (settings.update)", () => {
     assert.equal(after.length, before.length);
   });
 
-  test("valor inválido não grava nem audita", async () => {
+  test("an invalid value is neither written nor audited", async () => {
     requestHeaders.current = owner.headers;
     const result = await saveMascotSettings({ saturationDark: 9, saturationLight: 1 });
     assert.equal(result.serverError, "A saturação precisa ficar entre 0% e 200%.");

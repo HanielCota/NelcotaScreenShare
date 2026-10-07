@@ -1,4 +1,4 @@
-/** Limites de senha (admins e participantes), iguais no navegador e no servidor. */
+/** Password limits (admins and participants), the same in the browser and on the server. */
 export const PASSWORD_LIMITS = {
   admin: { min: 12, max: 128 },
   user: { min: 8, max: 128 },
@@ -10,9 +10,9 @@ export type PasswordStrength = (typeof STRENGTHS)[number];
 export const STRENGTH_LABELS = ["Muito curta", "Fraca", "Boa", "Forte"] as const;
 
 /**
- * Força aproximada, só para orientar quem digita (o servidor exige apenas o
- * tamanho mínimo). Tamanho pesa mais que variedade; repetir o nome ou o
- * e-mail derruba a nota.
+ * Approximate strength, only to guide whoever is typing (the server only requires
+ * the minimum length). Length weighs more than variety; repeating the name or
+ * the e-mail lowers the score.
  */
 export function passwordStrength(
   password: string,
@@ -20,7 +20,7 @@ export function passwordStrength(
 ): PasswordStrength {
   if (password.length < min) return 0;
   const lower = password.toLowerCase();
-  // Cada palavra do nome e do e-mail conta ("Rita Teste" → "rita", "teste").
+  // Each word of the name and the e-mail counts ("Rita Teste" → "rita", "teste").
   const containsPersonal = personal
     .flatMap((value) => value.toLowerCase().split(/[^\p{L}\p{N}]+/u))
     .some((word) => word.length >= 3 && lower.includes(word));

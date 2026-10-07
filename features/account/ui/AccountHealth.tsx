@@ -13,8 +13,8 @@ interface Step {
 }
 
 /**
- * O que falta para a conta ficar protegida, com a ação ao lado. Tudo feito:
- * vira uma linha só, sem ocupar espaço.
+ * What is missing for the account to be protected, with the action beside it. All
+ * done: it collapses into a single line, taking no space.
  */
 export function AccountHealth({
   emailVerified,
@@ -22,7 +22,7 @@ export function AccountHealth({
   twoFactorEnabled,
 }: {
   emailVerified: boolean;
-  /** O servidor exige e-mail confirmado para entrar em salas. */
+  /** The server requires a confirmed e-mail to join rooms. */
   emailRequired: boolean;
   twoFactorEnabled: boolean;
 }) {

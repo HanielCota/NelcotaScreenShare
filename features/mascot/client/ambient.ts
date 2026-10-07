@@ -1,15 +1,15 @@
 import { nextBlinkIn } from "@/features/mascot/domain/rules";
 
 interface AmbientContext {
-  /** Pode piscar agora (olhos abertos e calmos, na tela)? */
+  /** Can it blink now (eyes open and calm, on screen)? */
   canBlink: () => boolean;
   blink: () => void;
-  /** Pode espirrar agora (repouso tranquilo, ninguém digitando)? */
+  /** Can it sneeze now (quiet rest, nobody typing)? */
   canSneeze: () => boolean;
   sneeze: () => void;
 }
 
-/** O que o mascote faz sozinho: pisca a cada poucos segundos e, raramente, espirra. */
+/** What the mascot does on its own: blinks every few seconds and, rarely, sneezes. */
 export function startAmbient(ctx: AmbientContext) {
   let blinkTimer = 0;
   let quirkTimer = 0;

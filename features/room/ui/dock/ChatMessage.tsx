@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 const timeFormat = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-/** Uma mensagem: as suas à direita em verde; as dos outros à esquerda, com avatar. */
+/** A message: yours on the right in green; others' on the left, with an avatar. */
 export function ChatMessage({
   message,
   groupStart,
@@ -37,7 +37,7 @@ export function ChatMessage({
       className={cn(
         "group/message flex gap-2",
         mine && "flex-row-reverse",
-        // A primeira empurra o resto para baixo: poucas mensagens ficam junto do campo.
+        // The first one pushes the rest down: a few messages sit right next to the field.
         groupStart ? "mt-3 first:mt-auto" : "mt-1",
       )}
     >
@@ -108,7 +108,7 @@ export function ChatMessage({
   );
 }
 
-/** "⋮" ao lado da mensagem: aparece no hover/foco; em tela de toque, sempre. */
+/** "⋮" next to the message: shows on hover/focus; on touch screens, always. */
 function MessageMenu({
   mine,
   onEdit,

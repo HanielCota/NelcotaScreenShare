@@ -1,4 +1,4 @@
-/** Movimentos do corpo inteiro (Web Animations). Desligados com movimento reduzido. */
+/** Whole-body motions (Web Animations). Turned off with reduced motion. */
 export type Motion = { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
 
 export const PET: Motion = {
@@ -31,7 +31,7 @@ export const SNEEZE: Motion = {
   options: { duration: 420, easing: "ease-out" },
 };
 
-/** Balança a cabeça como quem diz "não" (senha errada). */
+/** Shakes the head as if saying "no" (wrong password). */
 export const SHAKE: Motion = {
   keyframes: [
     { translate: "0" },
@@ -44,7 +44,7 @@ export const SHAKE: Motion = {
   options: { duration: 450, easing: "ease-out" },
 };
 
-/** Pulinho de alegria: um pulo grande e um pequeno. */
+/** Little jump of joy: one big jump and one small. */
 export const JUMP: Motion = {
   keyframes: [
     { translate: "0 0" },
@@ -56,7 +56,7 @@ export const JUMP: Motion = {
   options: { duration: 720, easing: "ease-out" },
 };
 
-/** Aceno de "isso aí" com a cabeça. */
+/** A "that's it" nod of the head. */
 export const NOD: Motion = {
   keyframes: [
     { translate: "0 0" },
@@ -68,7 +68,7 @@ export const NOD: Motion = {
   options: { duration: 480, easing: "ease-in-out" },
 };
 
-/** Encolhe no instante do toque (resposta imediata)... */
+/** Shrinks at the moment of touch (immediate response)... */
 export const PRESS: Motion = {
   keyframes: [{ scale: "1" }, { scale: "0.92" }],
   options: { duration: 90, easing: "ease-out", fill: "forwards" },

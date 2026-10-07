@@ -2,17 +2,17 @@ import { expect, test } from "@playwright/test";
 import { newVisitor } from "./support/session";
 
 /**
- * Comportamento observável do mascote (data-expression na raiz), travado antes
- * de refatorar o motor (use-mascot). O relógio é controlado pelo teste.
+ * Observable mascot behavior (data-expression on the root), locked in before
+ * refactoring the engine (use-mascot). The clock is controlled by the test.
  */
-test("dorme sem atividade e acorda quando a pessoa digita", async ({ browser }) => {
+test("falls asleep without activity and wakes up when the person types", async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
   await page.clock.install();
   await page.goto("/entrar");
   const mascot = page.locator("[data-expression]").first();
   await expect(mascot).toBeVisible();
 
-  // Avança em passos: uma peculiaridade (espirro) no meio reinicia a contagem do sono.
+  // Advance in steps: a quirk (sneeze) along the way resets the sleep countdown.
   await expect
     .poll(
       async () => {
@@ -29,7 +29,7 @@ test("dorme sem atividade e acorda quando a pessoa digita", async ({ browser }) 
   await context.close();
 });
 
-test("código inválido na home deixa o mascote bravo e depois ele se acalma", async ({
+test("an invalid code on the home page makes the mascot grumpy, then it calms down", async ({
   browser,
 }) => {
   const { page, context } = await newVisitor(browser);

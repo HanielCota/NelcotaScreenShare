@@ -12,7 +12,7 @@ interface StatusScreenProps {
   children: ReactNode;
 }
 
-/** Card centralizado das telas de saída e de falha de conexão. */
+/** Centered card for the leave and connection-failure screens. */
 export function StatusScreen({
   icon: Icon,
   tone = "brand",

@@ -19,7 +19,7 @@ const THEMES = [
   {
     field: "saturationDark",
     title: "Tema escuro",
-    // Mesma cor de fundo de cada tema, para a prévia bater com o site.
+    // Same background color as each theme, so the preview matches the site.
     swatch: "bg-[#17181a] text-[#fafafa]",
   },
   {
@@ -40,7 +40,7 @@ export function MascotSettingsForm({
 }: {
   initial: MascotSettings;
   limits: Limits;
-  /** Sem `settings.update`, a tela mostra a prévia mas não salva. */
+  /** Without `settings.update`, the screen shows the preview but does not save. */
   canEdit: boolean;
 }) {
   const [values, setValues] = useState(initial);

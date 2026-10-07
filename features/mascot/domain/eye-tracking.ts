@@ -6,7 +6,7 @@ export const IDLE: Gaze = { x: 0, y: 0, leftX: 0, leftY: 0, rightX: 0, rightY: 0
 export const EYE_ANGLE = 18;
 const CELL_SIZE = 512;
 
-/** Coordenadas dos olhos em cada pose aberta do atlas aprovado. */
+/** Eye coordinates in each open pose of the approved atlas. */
 export const POSE_EYES = [
   [
     { x: 194.6, y: 243.1 },
@@ -35,12 +35,12 @@ export const EYE_SHAPES = [
   { rx: 41.5, ry: 51.3, pupilRx: 27.5, pupilRy: 37.3 },
 ] as const;
 
-/** A borda curva e o traço também precisam sair do recorte quando a pálpebra abre. */
+/** The curved edge and the stroke must also leave the clip when the eyelid opens. */
 export function eyelidOffset(ry: number, closed: number) {
   return (2 * ry + 8) * (Math.min(1, Math.max(0, closed)) - 1);
 }
 
-/** Cada olho mira o mesmo ponto; o limite se aproxima suavemente, sem saturar de repente. */
+/** Each eye aims at the same point; the limit is approached smoothly, without saturating abruptly. */
 export function gazeAt(bounds: FaceBounds, point: Point): Gaze {
   const depth = Math.max(24, bounds.width * 0.42);
   function direction(eye: Point): Point {
@@ -61,7 +61,7 @@ export function gazeAt(bounds: FaceBounds, point: Point): Gaze {
   };
 }
 
-/** Compensa a inclinação do desenho e mantém uma margem até a borda do olho. */
+/** Compensates for the drawing's tilt and keeps a margin to the edge of the eye. */
 export function pupilOffset(
   gaze: Point,
   eye: (typeof EYE_SHAPES)[number],

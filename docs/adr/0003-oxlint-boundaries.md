@@ -1,42 +1,42 @@
-# ADR 0003 — Fronteiras de arquitetura no oxlint (sem dependency-cruiser)
+# ADR 0003 — Architecture boundaries in oxlint (no dependency-cruiser)
 
-- **Status:** aceita (2026-10-06)
-- **Contexto:** era preciso impedir que a organização voltasse a se misturar. As opções avaliadas foram `dependency-cruiser@18.5.0`, `eslint-plugin-boundaries@7.2.0` e as regras do próprio oxlint, que o projeto já usa com informação de tipos.
+- **Status:** accepted (2026-10-06)
+- **Context:** we needed to stop the organization from getting mixed up again. The options evaluated were `dependency-cruiser@18.5.0`, `eslint-plugin-boundaries@7.2.0` and oxlint's own rules, which the project already uses with type information.
 
-## Decisão
+## Decision
 
-As fronteiras ficam no `oxlint.config.ts`, com `no-restricted-imports` por pasta:
+The boundaries live in `oxlint.config.ts`, with `no-restricted-imports` per folder:
 
-| Pasta                                                                                       | Não pode importar                                                                                                 |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `components/**`, `lib/**`                                                                   | features, rotas, servidor                                                                                         |
-| UI, hooks e client de cada feature (um override gerado por feature a partir de `features/`) | servidor, banco, SDK de servidor, UI de outra feature (exceto `features/mascot/ui` e o aviso de compartilhamento) |
-| `features/*/domain/**`, `features/admin/*/domain/**`                                        | React, React Router, banco, SDKs, `@/server`                                                                      |
-| `server/**`                                                                                 | features (exceto `domain/`), rotas, componentes                                                                   |
+| Folder                                                                                    | Must not import                                                                                        |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `components/**`, `lib/**`                                                                 | features, routes, server                                                                               |
+| Each feature's UI, hooks and client (one override generated per feature from `features/`) | server, database, server SDKs, another feature's UI (except `features/mascot/ui` and the share notice) |
+| `features/*/domain/**`, `features/admin/*/domain/**`                                      | React, React Router, database, SDKs, `@/server`                                                        |
+| `server/**`                                                                               | features (except `domain/`), routes, components                                                        |
 
-Completam a proteção:
+The protection is completed by:
 
-- `import/no-cycle` impede ciclos;
-- `max-lines` (300) e `complexity` (15) limitam tamanho e complexidade, sem lista de exceções;
-- `knip` acusa código morto;
-- `jscpd` falha com duplicação acima de 2%.
+- `import/no-cycle` prevents cycles;
+- `max-lines` (300) and `complexity` (15) limit size and complexity, with no exception list;
+- `knip` flags dead code;
+- `jscpd` fails on duplication above 2%.
 
-Tudo isso roda no CI.
+All of this runs in CI.
 
-## Por que não as alternativas
+## Why not the alternatives
 
-- **dependency-cruiser:** precisa da API JS do compilador TypeScript para ler `.ts`, e o TypeScript 7.0.2 instalado não a expõe (`require("typescript").createSourceFile` é `undefined`). Exigiria instalar e manter o SWC só para isso.
-- **eslint-plugin-boundaries:** exige o ESLint como segundo linter, ao lado do oxlint.
+- **dependency-cruiser:** needs the TypeScript compiler's JS API to read `.ts`, and the installed TypeScript 7.0.2 doesn't expose it (`require("typescript").createSourceFile` is `undefined`). It would require installing and maintaining SWC just for that.
+- **eslint-plugin-boundaries:** requires ESLint as a second linter, alongside oxlint.
 
-## Consequências
+## Consequences
 
-- A regra é por padrão de caminho, menos precisa que um grafo, mas suficiente aqui. As três violações plantadas em teste (UI de outra feature, React no domínio, infra importando servidor de feature) foram barradas.
+- The rule works by path pattern, less precise than a graph, but enough here. The three violations planted as a test (another feature's UI, React in the domain, infrastructure importing a feature's server) were blocked.
 
-## Revisão (2026-10-07)
+## Revision (2026-10-07)
 
-Duas brechas encontradas ao reorganizar as pastas:
+Two gaps found while reorganizing the folders:
 
-- No oxlint, `*` não atravessa `/`: `@/server/*` não pegava `@/server/db/index.server`, e `@/features/*/server/*` não pegava as subfeatures do painel (`@/features/admin/rooms/server/...`). Os padrões passaram a usar `**`.
-- O oxlint junta os grupos de padrões de uma regra, então a exceção "a feature importa a própria UI" (`!@/features/<nome>/**`) liberava também o servidor da feature. A exceção agora cobre só `ui/`.
+- In oxlint, `*` doesn't cross `/`: `@/server/*` didn't catch `@/server/db/index.server`, and `@/features/*/server/*` didn't catch the panel subfeatures (`@/features/admin/rooms/server/...`). The patterns now use `**`.
+- oxlint merges a rule's pattern groups, so the exception "a feature imports its own UI" (`!@/features/<name>/**`) also allowed the feature's server. The exception now covers only `ui/`.
 
-As duas foram confirmadas plantando os imports proibidos antes e depois da correção.
+Both were confirmed by planting the forbidden imports before and after the fix.

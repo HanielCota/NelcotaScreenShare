@@ -3,7 +3,7 @@
   position: relative;
   width: 100%;
   height: var(--mascot-size);
-  /* Desconta apenas o espaço transparente abaixo da sola no atlas (24 / 512). */
+  /* Subtracts only the transparent space below the sole in the atlas (24 / 512). */
   margin-bottom: calc(var(--mascot-size) * -0.046875);
 }
 

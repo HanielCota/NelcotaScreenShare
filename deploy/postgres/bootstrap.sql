@@ -1,4 +1,4 @@
--- Bootstrap dos papéis do Postgres. Roda UMA vez, com o superusuário, no banco do app:
+-- Bootstrap of the Postgres roles. Runs ONCE, as the superuser, on the app database:
 --
 --   psql "$SUPERUSER_URL" \
 --     -v migrator_password="$(openssl rand -base64 32)" \
@@ -6,12 +6,12 @@
 --     -v readonly_password="$(openssl rand -base64 32)" \
 --     -f deploy/postgres/bootstrap.sql
 --
--- É idempotente: rodar de novo só atualiza as senhas e os grants.
+-- It is idempotent: running it again only updates the passwords and the grants.
 --
--- Papéis:
---   nelcota_migrator  dono do schema; só o job de migração usa (segredo no GitHub Actions)
---   nelcota_app       o app: lê e escreve dados, sem DDL
---   nelcota_readonly  diagnóstico e teste de restore: só leitura
+-- Roles:
+--   nelcota_migrator  schema owner; only the migration job uses it (secret in GitHub Actions)
+--   nelcota_app       the app: reads and writes data, no DDL
+--   nelcota_readonly  diagnostics and restore testing: read-only
 \set ON_ERROR_STOP on
 
 SELECT format('CREATE ROLE %I LOGIN', r)
@@ -23,27 +23,27 @@ ALTER ROLE nelcota_migrator WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSW
 ALTER ROLE nelcota_app      WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD :'app_password';
 ALTER ROLE nelcota_readonly WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD :'readonly_password';
 
--- Consulta travada ou transação esquecida não seguram conexões nem locks do app.
+-- A stuck query or a forgotten transaction does not hold the app's connections or locks.
 ALTER ROLE nelcota_app SET statement_timeout = '15s';
 ALTER ROLE nelcota_app SET idle_in_transaction_session_timeout = '30s';
 ALTER ROLE nelcota_app SET lock_timeout = '5s';
 ALTER ROLE nelcota_readonly SET statement_timeout = '60s';
 ALTER ROLE nelcota_readonly SET default_transaction_read_only = on;
 
--- Banco: ninguém além dos três cria objetos ou conecta por padrão.
+-- Database: nobody but these three creates objects or connects by default.
 SELECT format('REVOKE ALL ON DATABASE %I FROM PUBLIC', current_database()) \gexec
 SELECT format('GRANT CONNECT, TEMPORARY ON DATABASE %I TO nelcota_migrator, nelcota_app', current_database()) \gexec
 SELECT format('GRANT CONNECT ON DATABASE %I TO nelcota_readonly', current_database()) \gexec
--- Extensões (pg_trgm, unaccent, pg_stat_statements) são criadas pelo migrator.
+-- Extensions (pg_trgm, unaccent, pg_stat_statements) are created by the migrator.
 SELECT format('GRANT CREATE ON DATABASE %I TO nelcota_migrator', current_database()) \gexec
 
--- Schema: o migrator é o dono; o app só usa.
+-- Schema: the migrator owns it; the app only uses it.
 ALTER SCHEMA public OWNER TO nelcota_migrator;
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO nelcota_app, nelcota_readonly;
 
--- Tabelas criadas pelo migrator (agora e no futuro) ficam acessíveis ao app.
--- Tabelas só de inserção (audit etc.) revogam UPDATE/DELETE na própria migração.
+-- Tables created by the migrator (now and in the future) are accessible to the app.
+-- Insert-only tables (audit etc.) revoke UPDATE/DELETE in their own migration.
 ALTER DEFAULT PRIVILEGES FOR ROLE nelcota_migrator IN SCHEMA public
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO nelcota_app;
 ALTER DEFAULT PRIVILEGES FOR ROLE nelcota_migrator IN SCHEMA public
@@ -53,7 +53,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE nelcota_migrator IN SCHEMA public
 ALTER DEFAULT PRIVILEGES FOR ROLE nelcota_migrator IN SCHEMA public
   GRANT SELECT ON TABLES TO nelcota_readonly;
 
--- Objetos que já existiam antes do bootstrap passam para o migrator.
+-- Objects that already existed before the bootstrap are handed over to the migrator.
 SELECT format('ALTER TABLE %I.%I OWNER TO nelcota_migrator', schemaname, tablename)
 FROM pg_tables WHERE schemaname = 'public'
 \gexec
@@ -69,8 +69,8 @@ FROM pg_sequences WHERE schemaname = 'drizzle'
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nelcota_app;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nelcota_app;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO nelcota_readonly;
--- O GRANT acima devolveria UPDATE/DELETE às tabelas só de inserção numa nova
--- rodada: refaz os REVOKE das migrações 0003 e 0004 (se as tabelas já existem).
+-- On a rerun, the GRANT above would give UPDATE/DELETE back on the insert-only
+-- tables: redo the REVOKEs of migrations 0003 and 0004 (if the tables already exist).
 DO $$
 BEGIN
   IF to_regclass('public.audit_logs') IS NOT NULL THEN
@@ -84,8 +84,8 @@ BEGIN
     GRANT UPDATE (processed_at, error) ON livekit_events TO nelcota_app;
   END IF;
 END $$;
--- pg_stat_statements não é extensão "trusted": só o superusuário cria.
--- (Exige shared_preload_libraries = 'pg_stat_statements' no postgresql.conf.)
+-- pg_stat_statements is not a "trusted" extension: only the superuser can create it.
+-- (Requires shared_preload_libraries = 'pg_stat_statements' in postgresql.conf.)
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
--- Tela "Saúde do banco" (só leitura) e diagnóstico.
+-- "Saúde do banco" (database health) screen (read-only) and diagnostics.
 GRANT pg_read_all_stats TO nelcota_readonly;

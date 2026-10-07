@@ -23,7 +23,7 @@ import {
   encodeMessage,
 } from "@/features/room/domain/data-channel";
 
-/** Mensagem como aparece na tela: já com edições e exclusões aplicadas. */
+/** Message as it appears on screen: with edits and deletions already applied. */
 export interface ChatEntry {
   id: string;
   from: Participant | undefined;
@@ -37,7 +37,7 @@ export interface ChatEntry {
 export interface ChatState {
   messages: ChatEntry[];
   send: (text: string) => Promise<unknown>;
-  /** Só a própria mensagem: os outros aplicam pela identidade de quem enviou. */
+  /** Own messages only: others apply it by the sender's identity. */
   edit: (id: string, text: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
   isSending: boolean;
@@ -51,20 +51,20 @@ export function chatAuthor(from: Participant | undefined): string {
   return participantName(from);
 }
 
-/** Aviso de mensagem nova: some se a mensagem for editada ou apagada. */
+/** New message toast: disappears if the message is edited or deleted. */
 function chatToastId(id: string): string {
   return `chat-${id}`;
 }
 
 /**
- * Estado do chat no nível da sala: as mensagens chegam mesmo com o painel
- * fechado (contador de não lidas e aviso). Atalho: C.
+ * Chat state at the room level: messages arrive even with the panel
+ * closed (unread counter and toast). Shortcut: C.
  */
 export function useChatState(): ChatState {
   const { chatMessages, send, isSending } = useChat();
   const { localParticipant } = useLocalParticipant();
   const [open, setOpenState] = useState(false);
-  // Mensagens já vistas: ao abrir ou fechar o painel, tudo até ali conta como lido.
+  // Messages already seen: when opening or closing the panel, everything up to then counts as read.
   const [seen, setSeen] = useState(0);
   const announced = useRef(0);
   const [edits, setEdits] = useState<ChatEdits>(() => new Map());
@@ -81,7 +81,7 @@ export function useChatState(): ChatState {
 
   async function change(op: ChatEditOp) {
     await publishEdit(encodeMessage(op), { reliable: true });
-    // O canal não devolve o aviso para quem enviou: aplica aqui também.
+    // The channel does not echo the notice back to the sender: apply it here too.
     setEdits((current) => recordChatEdit(current, op, localParticipant.identity));
   }
 
@@ -105,7 +105,7 @@ export function useChatState(): ChatState {
     };
   });
 
-  // Painel fechado: avisa a mensagem nova de outra pessoa.
+  // Panel closed: notify about a new message from someone else.
   useEffect(() => {
     const fresh = chatMessages.slice(announced.current);
     announced.current = chatMessages.length;

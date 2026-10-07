@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { roomPath } from "@/features/room/domain/room-code";
 
 /**
- * Convite da sala vazia: o link à vista (a pessoa vê o que está copiando), o
- * botão de copiar e, no computador, um QR code para entrar pelo celular.
+ * Empty room invite: the link in plain sight (the person sees what they are copying), the
+ * copy button and, on desktop, a QR code to join from a phone.
  */
 export function InviteCard({ code }: { code: string }) {
   const titleId = useId();
@@ -26,7 +26,7 @@ export function InviteCard({ code }: { code: string }) {
       await navigator.clipboard.writeText(url);
       setCopied(true);
     } catch {
-      // Sem acesso à área de transferência: deixa o link selecionado para copiar à mão.
+      // No clipboard access: leaves the link selected to copy by hand.
       inputRef.current?.focus();
       inputRef.current?.select();
     }

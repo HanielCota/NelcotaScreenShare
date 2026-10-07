@@ -5,14 +5,14 @@ import { Label } from "@/components/ui/label";
 import { suggestEmail } from "@/features/auth/domain/email-suggest";
 import { EMAIL_PATTERN } from "@/features/auth/domain/sign-up";
 
-/** E-mail digitado numa aba vale na outra (só nesta aba do navegador). */
+/** E-mail typed in one tab carries over to the other (only in this browser tab). */
 const REMEMBER_KEY = "nelcota:acesso-email";
 
 function remember(value: string) {
   try {
     sessionStorage.setItem(REMEMBER_KEY, value);
   } catch {
-    // Sem sessionStorage: segue sem lembrar.
+    // No sessionStorage: carry on without remembering.
   }
 }
 
@@ -20,14 +20,14 @@ export function forgetTypedEmail() {
   try {
     sessionStorage.removeItem(REMEMBER_KEY);
   } catch {
-    // Armazenamento bloqueado: nada a esquecer.
+    // Storage blocked: nothing to forget.
   }
 }
 
 /**
- * Campo de e-mail das telas de acesso: lembra o que foi digitado ao trocar
- * de aba, sugere o domínio certo ("gmial.com" → "gmail.com") e avisa o
- * mascote (desconfiado com o erro, aprovando quando fica certo).
+ * E-mail field of the access screens: remembers what was typed when switching
+ * tabs, suggests the right domain ("gmial.com" → "gmail.com") and notifies the
+ * mascot (suspicious on error, approving when it becomes correct).
  */
 export function EmailField({
   id,
@@ -44,7 +44,7 @@ export function EmailField({
   const hintId = useId();
   const [suggestion, setSuggestion] = useState<string>();
 
-  // Antes da pintura: o campo já aparece preenchido, sem piscar vazio.
+  // Before paint: the field already shows filled in, without flashing empty.
   useLayoutEffect(() => {
     const input = ref.current;
     if (!input || input.value) return;
@@ -52,7 +52,7 @@ export function EmailField({
       const saved = sessionStorage.getItem(REMEMBER_KEY);
       if (saved) input.value = saved;
     } catch {
-      // Sem sessionStorage (modo privado restrito): só não lembra.
+      // No sessionStorage (strict private mode): it just does not remember.
     }
   }, []);
 

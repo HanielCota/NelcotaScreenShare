@@ -4,8 +4,8 @@ import { roomParticipations, rooms } from "@/server/db/schema";
 import type { RecentRoom } from "@/features/room/domain/recent-room";
 
 /**
- * Salas em que a pessoa esteve, da mais recente para a mais antiga, para
- * voltar com um clique na home (índice room_participations_user_idx).
+ * Rooms the person has been in, from most recent to oldest, to
+ * return with one click from the home page (index room_participations_user_idx).
  */
 export async function recentRoomsFor(
   db: DbExecutor,
@@ -18,8 +18,8 @@ export async function recentRoomsFor(
       code: rooms.code,
       status: rooms.status,
       lastJoinedAt: lastJoined,
-      // "rooms"."id" explícito: sem join, o Drizzle escreve só "id" e a subconsulta
-      // compararia a própria tabela (contagem sempre zero).
+      // Explicit "rooms"."id": without a join, Drizzle writes just "id" and the subquery
+      // would compare against its own table (count always zero).
       online: sql<number>`(select count(*)::int from ${roomParticipations} as here
         where here.room_id = ${sql.identifier("rooms")}.${sql.identifier("id")} and here.left_at is null)`,
     })

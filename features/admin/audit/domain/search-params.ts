@@ -1,10 +1,10 @@
 import { createLoader, parseAsString } from "nuqs/server";
 import { pageParsers, periodParsers } from "@/lib/table-params";
 
-/** Estado da tela de auditoria na URL (servidor e cliente usam os mesmos parsers). */
+/** Audit screen state in the URL (server and client use the same parsers). */
 export const auditParsers = {
   ...pageParsers,
-  /** request_id ou id do recurso (busca exata). */
+  /** request_id or resource id (exact search). */
   q: parseAsString.withDefault(""),
   acao: parseAsString,
   recurso: parseAsString,

@@ -23,13 +23,13 @@ interface ControlDockProps {
 }
 
 /**
- * Controles agrupados por função: áudio/tela, interação e saída.
- * O seletor de dispositivo faz parte do controle do microfone, também no celular.
+ * Controls grouped by function: audio/screen, interaction and leave.
+ * The device picker is part of the microphone control, on phones too.
  */
 export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
   const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const [micBusy, setMicBusy] = useState(false);
-  // Sinal de vida do microfone: sozinho na sala, ninguém confirma que você está sendo ouvido.
+  // Microphone sign of life: alone in the room, nobody confirms you are being heard.
   const speaking = useIsSpeaking(localParticipant) && isMicrophoneEnabled;
   const shareSupported = canShareScreen();
 
@@ -55,7 +55,7 @@ export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
     <div
       className={cn(
         "pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-[max(1rem,env(safe-area-inset-bottom))]",
-        // Chat aberto em tela larga: o dock centraliza no espaço que sobra, como o conteúdo.
+        // Chat open on a wide screen: the dock centers in the remaining space, like the content.
         chat.open && "lg:pr-[26.5rem]",
       )}
     >

@@ -3,7 +3,7 @@ import { useState, type ComponentProps } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-/** Campo de senha com botão de mostrar/ocultar (acessível pelo teclado). */
+/** Password field with a show/hide button (keyboard accessible). */
 export function PasswordInput({ className, ...props }: Omit<ComponentProps<typeof Input>, "type">) {
   const [visible, setVisible] = useState(false);
   return (

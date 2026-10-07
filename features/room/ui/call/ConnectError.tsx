@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StatusScreen } from "@/features/room/ui/StatusScreen";
 
-/** A conexão nem abriu: explica o motivo e oferece tentar de novo (com token novo). */
+/** The connection never opened: explains why and offers to retry (with a new token). */
 export function ConnectError({
   message,
   onRetry,

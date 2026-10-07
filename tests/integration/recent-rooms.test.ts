@@ -39,7 +39,7 @@ async function join(roomId: string, userId: string | null, minutesAgo: number, l
   });
 }
 
-test("salas recentes: mais nova primeiro, ao vivo com quem está dentro, sem excluídas", async () => {
+test("recent rooms: newest first, live ones with who is inside, no deleted ones", async () => {
   const tag = Date.now().toString(36);
   const ana = await person("Ana");
   const bia = await person("Bia");
@@ -52,7 +52,7 @@ test("salas recentes: mais nova primeiro, ao vivo com quem está dentro, sem exc
   const gone = await room(`excluida-${tag}`, { deletedAt: new Date() });
 
   await join(old, ana, 3000, true);
-  await join(old, ana, 600, true); // duas vezes na mesma sala: aparece uma vez só
+  await join(old, ana, 600, true); // twice in the same room: shows up only once
   await join(live, ana, 5, false);
   await join(live, bia, 2, false);
   await join(gone, ana, 1, true);

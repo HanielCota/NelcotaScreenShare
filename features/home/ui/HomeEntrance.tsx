@@ -1,7 +1,7 @@
 import { useRef, type ReactNode } from "react";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 
-/** Entrada da home: os blocos marcados com data-anim sobem em sequência. */
+/** Home entrance: the blocks marked with data-anim rise in sequence. */
 export function HomeEntrance({ className, children }: { className: string; children: ReactNode }) {
   const scope = useRef<HTMLElement>(null);
 

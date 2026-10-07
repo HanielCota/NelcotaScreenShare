@@ -11,7 +11,7 @@ export type MascotActivity =
   | "greeting";
 export type Gesture = "pet" | "highFive" | "highFiveHit" | "yawn" | "stretch" | "sneeze";
 
-/** Ignora ruído baixo; entradas inválidas nunca chegam às molas ou ao CSS. */
+/** Ignores low noise; invalid inputs never reach the springs or the CSS. */
 export function voiceAmount(level: number): number {
   return Number.isFinite(level) ? Math.min(1, Math.max(0, (level - 0.06) / 0.7)) : 0;
 }
@@ -28,7 +28,7 @@ interface PersonalityOptions {
   unschedule?: (timer: number) => void;
 }
 
-/** Gestos interrompíveis: uma rotina por vez, sem timers órfãos nem filas de brincadeiras. */
+/** Interruptible gestures: one routine at a time, no orphan timers or queues of play. */
 export function createPersonality({
   root,
   hands,

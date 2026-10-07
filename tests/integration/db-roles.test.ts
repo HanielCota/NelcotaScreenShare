@@ -2,21 +2,21 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 /**
- * Os outros testes rodam como superusuário. Aqui as operações rodam com o papel
- * do app (nelcota_app), com os mesmos grants do deploy/postgres/bootstrap.sql:
- * uma migração que esqueça o GRANT ou o REVOKE aparece aqui, e não em produção.
+ * The other tests run as superuser. Here operations run with the app's role
+ * (nelcota_app), with the same grants as deploy/postgres/bootstrap.sql:
+ * a migration that forgets the GRANT or the REVOKE shows up here, not in production.
  */
 const client = new Client({ connectionString: process.env.DATABASE_URL });
 
 beforeAll(async () => {
   await client.connect();
-  // Papel do cluster: cria se faltar (CI); no Postgres de dev ele já existe.
+  // Cluster role: created if missing (CI); in the dev Postgres it already exists.
   await client.query(`DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nelcota_app') THEN
       CREATE ROLE nelcota_app NOLOGIN;
     END IF;
   END $$`);
-  // Mesmo trecho do bootstrap.sql (grants gerais + REVOKE das tabelas só de inserção).
+  // Same excerpt as bootstrap.sql (general grants + REVOKE on insert-only tables).
   await client.query(`
     GRANT USAGE ON SCHEMA public TO nelcota_app;
     GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nelcota_app;
@@ -47,8 +47,8 @@ async function fails(statement: string, values: unknown[] = []): Promise<string>
   }
 }
 
-describe("papel do app no Postgres", () => {
-  it("lê e escreve dados comuns", async () => {
+describe("app role in Postgres", () => {
+  it("reads and writes regular data", async () => {
     await client.query("BEGIN");
     try {
       const room = await client.query<{ id: string }>(
@@ -68,7 +68,7 @@ describe("papel do app no Postgres", () => {
     }
   });
 
-  it("não altera auditoria, pedidos de token nem o corpo dos eventos, e não faz DDL", async () => {
+  it("cannot change audit logs, token requests or event bodies, and cannot run DDL", async () => {
     await client.query("BEGIN");
     try {
       expect(await fails("update audit_logs set action = action")).toMatch(/permission denied/);

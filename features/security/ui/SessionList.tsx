@@ -16,8 +16,8 @@ interface SessionRow {
 }
 
 /**
- * Sessões da própria conta. As actions vêm por prop (a página de participante
- * passa as dela; o painel, as do admin): a lista não conhece nenhuma das duas.
+ * Sessions of the user's own account. The actions come via prop (the participant
+ * page passes its own; the panel, the admin ones): the list knows neither.
  */
 export function SessionList({
   sessions,
@@ -30,7 +30,7 @@ export function SessionList({
   currentId: string;
   revokeSession: typeof revokeMySession;
   revokeOtherSessions: typeof revokeMyOtherSessions;
-  /** `plain`: sem cartão próprio, para quem já está dentro de um (ex.: /conta). */
+  /** `plain`: no card of its own, for callers already inside one (e.g. /conta). */
   variant?: "card" | "plain";
 }) {
   const plain = variant === "plain";

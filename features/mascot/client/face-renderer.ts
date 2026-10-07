@@ -3,7 +3,7 @@ import type { Gaze } from "./gaze";
 import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
 import { EYE_SHAPES, pupilOffset, eyelidOffset } from "@/features/mascot/domain/eye-tracking";
 
-/** Atualiza só o desenho, sem renderizações React a cada quadro. */
+/** Updates only the drawing, without React renders on every frame. */
 export function createFaceRenderer(face: HTMLElement) {
   const sprite = face.querySelector<HTMLElement>("[data-mascot-sprite]");
   if (!sprite) return null;

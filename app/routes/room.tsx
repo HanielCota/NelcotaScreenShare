@@ -16,7 +16,7 @@ export const loader = routeLoader(async ({ params: routeParams, searchParams }) 
   const params = { codigo: routeParams.codigo ?? "" };
 
   const { codigo } = params;
-  // Convite do painel (?convite=…): formato conferido aqui, validade no /api/token.
+  // Panel invite (?convite=…): format checked here, validity in /api/token.
   const { convite } = searchParams;
   const invite =
     typeof convite === "string" && INVITE_TOKEN_PATTERN.test(convite) ? convite : undefined;
@@ -25,13 +25,13 @@ export const loader = routeLoader(async ({ params: routeParams, searchParams }) 
   if (raw === undefined) redirect("/?erro=codigo");
   const code = roomCodeSchema.safeParse(raw);
   if (!code.success) redirect("/?erro=codigo");
-  // Um só endereço por sala: "/sala/ABC-..." vira "/sala/abc-...", igual ao link copiado.
+  // A single address per room: "/sala/ABC-..." becomes "/sala/abc-...", same as the copied link.
   if (code.data !== raw) redirect(roomLink(code.data, invite));
 
-  // Entrar em sala exige conta com e-mail confirmado; depois do login, volta para cá.
+  // Joining a room requires an account with a confirmed e-mail; after sign-in, it comes back here.
   const { user } = await requireUser(roomLink(code.data, invite));
   const { ACCESS_PASSWORD, MAX_PARTICIPANTS } = getEnv();
-  // Quem já está lá dentro, para a pré-entrada mostrar.
+  // Who is already inside, for the pre-join screen to show.
   const presence = await roomPresence(getDb(), code.data);
 
   return {

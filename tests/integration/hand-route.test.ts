@@ -6,7 +6,7 @@ import { z } from "zod";
 import * as schema from "@/server/db/schema";
 import { verifiedParticipant } from "./support/accounts";
 
-/** POST /api/sala/mao: o servidor grava o atributo no LiveKit (falso) com a identidade da conta. */
+/** POST /api/sala/mao: the server writes the attribute to the (fake) LiveKit with the account's identity. */
 const received: { path: string; body: Record<string, unknown> }[] = [];
 const fakeLiveKit = createServer((request, response) => {
   let body = "";
@@ -25,7 +25,7 @@ const fakeLiveKit = createServer((request, response) => {
 });
 await new Promise<void>((resolve) => fakeLiveKit.listen(0, "127.0.0.1", resolve));
 const address = fakeLiveKit.address();
-if (!address || typeof address === "string") throw new Error("sem porta");
+if (!address || typeof address === "string") throw new Error("no port");
 
 Object.assign(process.env, {
   LIVEKIT_URL: `ws://127.0.0.1:${address.port}`,
@@ -55,8 +55,8 @@ function post(body: unknown, cookie?: string, origin = "http://localhost:3000") 
   );
 }
 
-describe("levantar a mão", () => {
-  it("grava o atributo com a identidade da conta", async () => {
+describe("raise hand", () => {
+  it("writes the attribute with the account's identity", async () => {
     const ana = await verifiedParticipant(db, handler);
     const response = await post({ room: "Sala-Teste", raised: true }, ana.jar.header());
     expect(response.status).toBe(204);
@@ -72,7 +72,7 @@ describe("levantar a mão", () => {
     expect(received.at(-1)?.body).toMatchObject({ attributes: { hand: "" } });
   });
 
-  it("recusa sem conta, de outra origem e com pedido inválido", async () => {
+  it("rejects no account, foreign origin and invalid request", async () => {
     expect((await post({ room: "sala-teste", raised: true })).status).toBe(401);
     const bia = await verifiedParticipant(db, handler);
     const cookie = bia.jar.header();
@@ -83,7 +83,7 @@ describe("levantar a mão", () => {
     expect((await post({ room: "sala-teste", raised: "sim" }, cookie)).status).toBe(400);
   });
 
-  it("quem não está na sala recebe 409", async () => {
+  it("someone not in the room gets 409", async () => {
     const caio = await verifiedParticipant(db, handler);
     expect((await post({ room: "sala-vazia", raised: true }, caio.jar.header())).status).toBe(409);
   });

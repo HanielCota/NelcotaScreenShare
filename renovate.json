@@ -1,11 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":semanticCommitsDisabled", "helpers:pinGitHubActionDigests"],
+  "extends": ["config:recommended", ":semanticCommits", "helpers:pinGitHubActionDigests"],
   "timezone": "America/Sao_Paulo",
   "schedule": ["before 7am on monday"],
   "minimumReleaseAge": "3 days",
   "rangeStrategy": "pin",
-  "labels": ["dependências"],
+  "labels": ["dependencies"],
   "lockFileMaintenance": { "enabled": true, "schedule": ["before 7am on monday"] },
   "vulnerabilityAlerts": {
     "enabled": true,
@@ -14,7 +14,7 @@
   },
   "packageRules": [
     {
-      "description": "Segurança: auth e banco sempre em PR separado e revisado",
+      "description": "Security: auth and database always in a separate, reviewed PR",
       "matchPackageNames": [
         "better-auth",
         "@better-auth/**",
@@ -27,18 +27,25 @@
       "automerge": false
     },
     {
-      "description": "Next, React e tipos andam juntos",
-      "matchPackageNames": ["next", "react", "react-dom", "@types/react", "@types/react-dom"],
-      "groupName": "next e react"
+      "description": "React, React Router and types move together",
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom",
+        "react-router",
+        "@react-router/**"
+      ],
+      "groupName": "react"
     },
     {
-      "description": "Ferramentas de dev: patch entra sozinho com CI verde",
+      "description": "Dev tools: patches merge on their own with a green CI",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch"],
       "automerge": true
     },
     {
-      "description": "Postgres da imagem: só minor/patch automaticamente (major exige pg_upgrade)",
+      "description": "Image Postgres: only minor/patch automatically (major requires pg_upgrade)",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["postgres"],
       "matchUpdateTypes": ["major"],

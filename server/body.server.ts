@@ -1,6 +1,6 @@
 export class BodyTooLargeError extends Error {}
 
-/** Limita os bytes recebidos, inclusive sem Content-Length ou com UTF-8 multibyte. */
+/** Caps the received bytes, even without Content-Length or with multibyte UTF-8. */
 export async function readBodyText(request: Request, maxBytes: number): Promise<string> {
   if (Number(request.headers.get("content-length") ?? 0) > maxBytes) {
     throw new BodyTooLargeError("payload_too_large");
@@ -15,8 +15,8 @@ export async function readBodyText(request: Request, maxBytes: number): Promise<
       if (done) break;
       length += value.byteLength;
       if (length > maxBytes) {
-        // Cancelar destruiria o socket do adaptador Node antes da resposta 413.
-        // O handler responde com Connection: close; o resto do corpo não é armazenado.
+        // Cancelling would destroy the Node adapter's socket before the 413 response.
+        // The handler replies with Connection: close; the rest of the body is not stored.
         throw new BodyTooLargeError("payload_too_large");
       }
       chunks.push(value);

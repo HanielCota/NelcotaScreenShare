@@ -107,7 +107,7 @@
   cursor: default;
 }
 
-/* Fora do corpo, ao lado da mão levantada: não cobre o rosto. */
+/* Outside the body, next to the raised hand: does not cover the face. */
 .invitation {
   position: absolute;
   top: 18%;
@@ -232,7 +232,7 @@
   transition: opacity 180ms ease-out;
 }
 
-/* Virado para a direita, o "Zzz" sai do outro lado da cabeça (texto nunca espelha). */
+/* Facing right, the "Zzz" comes out of the other side of the head (text is never mirrored). */
 .root[data-facing="right"] .dreams {
   left: auto;
   right: 72%;

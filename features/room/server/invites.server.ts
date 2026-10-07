@@ -5,9 +5,9 @@ import type { Database, DbExecutor } from "@/server/db/index.server";
 import { roomInvites, roomInviteUses, rooms } from "@/server/db/schema";
 
 /**
- * Convites de sala: link com validade e/ou limite de pessoas, criado no
- * painel. Quem entra por um convite válido não precisa da senha de acesso.
- * O token só aparece uma vez (na criação); o banco guarda o SHA-256.
+ * Room invites: a link with an expiry and/or a people limit, created in the
+ * dashboard. Whoever joins with a valid invite does not need the access password.
+ * The token is shown only once (on creation); the database stores the SHA-256.
  */
 
 export function hashInviteToken(token: string): Buffer {
@@ -29,11 +29,11 @@ export async function createRoomInvite(
     .insert(roomInvites)
     .values({ ...input, tokenHash: hashInviteToken(token) })
     .returning({ id: roomInvites.id });
-  if (!invite) throw new Error("convite não foi gravado");
+  if (!invite) throw new Error("invite was not saved");
   return { id: invite.id, token };
 }
 
-/** Revoga (quem já entrou continua na sala; novas entradas são recusadas). */
+/** Revokes (whoever already joined stays in the room; new joins are refused). */
 export async function revokeRoomInvite(tx: DbExecutor, id: string) {
   const [invite] = await tx
     .update(roomInvites)
@@ -44,9 +44,9 @@ export async function revokeRoomInvite(tx: DbExecutor, id: string) {
 }
 
 /**
- * Usa o convite para esta pessoa e esta sala. Atômico: duas pessoas pegando
- * a última vaga ao mesmo tempo não passam do limite (linha travada).
- * Quem já usou o convite volta sem gastar outro uso.
+ * Redeems the invite for this person and this room. Atomic: two people taking
+ * the last spot at the same time do not exceed the limit (row lock).
+ * Whoever already used the invite comes back without spending another use.
  */
 export async function redeemRoomInvite(
   db: Database,

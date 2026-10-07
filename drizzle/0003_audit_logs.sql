@@ -25,8 +25,8 @@ CREATE INDEX "audit_logs_resource_idx" ON "audit_logs" USING btree ("resource_ty
 CREATE INDEX "audit_logs_action_idx" ON "audit_logs" USING btree ("action","created_at" DESC NULLS LAST);--> statement-breakpoint
 CREATE INDEX "audit_logs_request_id_idx" ON "audit_logs" USING btree ("request_id");--> statement-breakpoint
 ALTER TABLE "app_settings" ADD CONSTRAINT "app_settings_updated_by_admin_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."admin_users"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
--- ===== Escrito à mão: audit log imutável =====
--- UPDATE nunca; DELETE só para registros com mais de 5 anos (job de retenção).
+-- ===== Handwritten: immutable audit log =====
+-- UPDATE never; DELETE only for records older than 5 years (retention job).
 CREATE OR REPLACE FUNCTION audit_logs_guard() RETURNS trigger
   LANGUAGE plpgsql
   AS $$
@@ -41,7 +41,7 @@ BEGIN
 END $$;--> statement-breakpoint
 CREATE TRIGGER audit_logs_immutable BEFORE UPDATE OR DELETE ON audit_logs
   FOR EACH ROW EXECUTE FUNCTION audit_logs_guard();--> statement-breakpoint
--- O papel do app só insere e lê (o bootstrap pode ainda não ter rodado, ex.: testes).
+-- The app role only inserts and reads (the bootstrap may not have run yet, e.g. tests).
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nelcota_app') THEN

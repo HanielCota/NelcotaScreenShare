@@ -3,21 +3,21 @@ import { expect, test } from "vitest";
 import { disconnectReason } from "@/features/room/client/connection-errors";
 import { callDuration, formatCallDuration } from "@/features/room/domain/leave";
 
-test("duração da chamada em texto curto", () => {
+test("call duration as short text", () => {
   expect(formatCallDuration(30_000)).toBe("menos de 1 min");
   expect(formatCallDuration(-5)).toBe("menos de 1 min");
   expect(formatCallDuration(42 * 60_000 + 59_000)).toBe("42 min");
   expect(formatCallDuration(65 * 60_000)).toBe("1 h 05 min");
 });
 
-test("sem hora de entrada conhecida, não há duração (nunca NaN)", () => {
+test("without a known join time there is no duration (never NaN)", () => {
   expect(callDuration(1000, 61_000)).toBe(60_000);
   expect(callDuration(undefined, 61_000)).toBeUndefined();
   expect(callDuration(Number.NaN, 61_000)).toBeUndefined();
   expect(callDuration(5000, 1000)).toBe(0);
 });
 
-test("motivo da queda decide o título e as ações da tela de saída", () => {
+test("disconnect reason decides the leave screen title and actions", () => {
   expect(disconnectReason(DisconnectReason.DUPLICATE_IDENTITY)).toBe("elsewhere");
   expect(disconnectReason(DisconnectReason.PARTICIPANT_REMOVED)).toBe("removed");
   expect(disconnectReason(DisconnectReason.ROOM_DELETED)).toBe("ended");

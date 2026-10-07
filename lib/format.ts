@@ -1,6 +1,6 @@
 import { TZDate } from "@date-fns/tz";
 
-/** Formatação pt-BR, sempre no fuso de São Paulo (docs/archive/admin-plan.md §6). */
+/** pt-BR formatting, always in the São Paulo time zone (docs/archive/admin-plan.md §6). */
 const TIME_ZONE = "America/Sao_Paulo";
 
 const dateTime = new Intl.DateTimeFormat("pt-BR", {
@@ -19,11 +19,11 @@ export function formatNumber(value: number): string {
   return number.format(value);
 }
 
-/** "há 5 minutos", "ontem"… (a partir de `now`, para testes e renderização estável). */
+/** "há 5 minutos", "ontem"… (relative to `now`, for tests and stable rendering). */
 export function formatRelative(value: Date | string | number, now = Date.now()): string {
   const seconds = Math.round((new Date(value).getTime() - now) / 1000);
   const abs = Math.abs(seconds);
-  // Sem contagem de segundos: muda a cada render e não ajuda ninguém.
+  // No seconds count: it changes on every render and helps nobody.
   if (abs < 60) return "agora mesmo";
   if (abs < 3600) return relative.format(Math.round(seconds / 60), "minute");
   if (abs < 86_400) return relative.format(Math.round(seconds / 3600), "hour");
@@ -32,7 +32,7 @@ export function formatRelative(value: Date | string | number, now = Date.now()):
   return relative.format(Math.round(seconds / 31_536_000), "year");
 }
 
-/** "2026-10-06" → início do dia em São Paulo (como Date em UTC). */
+/** "2026-10-06" → start of the day in São Paulo (as a UTC Date). */
 export function startOfDayInSaoPaulo(day: string): Date | undefined {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
   if (!match) return undefined;
@@ -41,7 +41,7 @@ export function startOfDayInSaoPaulo(day: string): Date | undefined {
   return new Date(new TZDate(y, m - 1, d, 0, 0, 0, TIME_ZONE).getTime());
 }
 
-/** Fim do dia em São Paulo (início do dia seguinte), para filtros "até". */
+/** End of the day in São Paulo (start of the next day), for "até" (until) filters. */
 export function endOfDayInSaoPaulo(day: string): Date | undefined {
   const start = startOfDayInSaoPaulo(day);
   if (!start) return undefined;
@@ -50,7 +50,7 @@ export function endOfDayInSaoPaulo(day: string): Date | undefined {
   return new Date(new TZDate(y, m - 1, d + 1, 0, 0, 0, TIME_ZONE).getTime());
 }
 
-/** Duração curta em pt-BR: "45 s", "12 min", "1 h 05 min". */
+/** Short duration in pt-BR: "45 s", "12 min", "1 h 05 min". */
 export function formatDuration(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
   if (total < 60) return `${total} s`;
@@ -60,7 +60,7 @@ export function formatDuration(seconds: number): string {
   return `${hours} h ${String(minutes % 60).padStart(2, "0")} min`;
 }
 
-/** Duração entre duas datas; sem fim, "em andamento". */
+/** Duration between two dates; without an end, "em andamento". */
 export function formatSpan(start: Date | string, end: Date | string | null): string {
   if (!end) return "em andamento";
   return formatDuration((new Date(end).getTime() - new Date(start).getTime()) / 1000);

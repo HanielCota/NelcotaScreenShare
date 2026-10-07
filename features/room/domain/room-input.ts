@@ -2,16 +2,16 @@ import { INVITE_TOKEN_PATTERN } from "./invite-token";
 import { roomCodeSchema } from "@/features/room/domain/room-code";
 
 /**
- * O que a pessoa digitou ou colou na barra da home: nada (cria uma sala),
- * uma sala (código, link inteiro com ou sem convite, ou só o caminho) ou
- * algo que não é sala.
+ * What the person typed or pasted into the home page bar: nothing (creates a room),
+ * a room (code, full link with or without invite, or just the path) or
+ * something that is not a room.
  */
 export type RoomInput =
   | { kind: "empty" }
   | { kind: "room"; code: string; invite?: string }
   | { kind: "invalid"; reason: "not-a-room" | "bad-code" };
 
-/** Link de sala com ou sem protocolo: "https://x/sala/abc", "x.com/sala/abc", "/sala/abc". */
+/** Room link with or without protocol: "https://x/sala/abc", "x.com/sala/abc", "/sala/abc". */
 const ROOM_PATH = /(?:^|\/)sala\/([^/?#\s]+)/i;
 
 export function parseRoomInput(raw: string): RoomInput {
@@ -34,7 +34,7 @@ export function parseRoomInput(raw: string): RoomInput {
       : { kind: "room", code: code.data };
   }
 
-  // Link de outra coisa (ou de outro site) não é sala.
+  // A link to something else (or another site) is not a room.
   if (/^[a-z]+:\/\//i.test(text) || text.includes("/")) {
     return { kind: "invalid", reason: "not-a-room" };
   }

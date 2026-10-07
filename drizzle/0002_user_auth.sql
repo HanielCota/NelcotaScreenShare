@@ -83,7 +83,7 @@ CREATE UNIQUE INDEX "users_email_key" ON "users" USING btree (lower("email"));--
 CREATE INDEX "users_created_at_idx" ON "users" USING btree ("created_at" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "users"."deleted_at" is null;--> statement-breakpoint
 CREATE INDEX "users_last_seen_at_idx" ON "users" USING btree ("last_seen_at" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "users"."deleted_at" is null;--> statement-breakpoint
 CREATE INDEX "users_search_idx" ON "users" USING gin (f_unaccent(lower("name" || ' ' || "email")) gin_trgm_ops) WHERE "users"."deleted_at" is null;--> statement-breakpoint
--- ===== Escrito à mão: updated_at mantido pelo banco =====
+-- ===== Handwritten: updated_at maintained by the database =====
 CREATE TRIGGER users_set_updated_at BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();--> statement-breakpoint
 CREATE TRIGGER user_sessions_set_updated_at BEFORE UPDATE ON user_sessions

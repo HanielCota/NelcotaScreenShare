@@ -5,7 +5,7 @@ import { canShareScreen } from "@/features/room/domain/share-support";
 import type { ScreenShareControl } from "@/features/room/hooks/use-screen-share";
 import { InviteCard } from "./InviteCard";
 
-/** Ações disponíveis enquanto a pessoa está sozinha na sala. */
+/** Actions available while the person is alone in the room. */
 export function AloneWelcome({ code, share }: { code: string; share: ScreenShareControl }) {
   const shareSupported = canShareScreen();
 

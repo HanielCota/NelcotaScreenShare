@@ -29,8 +29,8 @@ async function participation(code: string, joinedDaysAgo: number) {
   return row!.id;
 }
 
-describe("manutenção", () => {
-  it("aplica a retenção e preserva o que está dentro do prazo", async () => {
+describe("maintenance", () => {
+  it("applies retention and keeps what is still within the period", async () => {
     const [oldToken] = await db
       .insert(schema.tokenRequests)
       .values({ roomCode: "velha", result: "granted", createdAt: ago(200) })
@@ -82,7 +82,7 @@ describe("manutenção", () => {
     expect(events.map((row) => row.id)).toEqual(["EV_novo"]);
   });
 
-  it("reprocessa só eventos pendentes que não acabaram de chegar", async () => {
+  it("reprocesses only pending events that did not just arrive", async () => {
     await db.insert(schema.livekitEvents).values([
       {
         id: "EV_pendente_antigo",

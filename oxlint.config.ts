@@ -1,7 +1,7 @@
 import { readdirSync } from "node:fs";
 import { defineConfig, type OxlintOverride } from "oxlint";
 
-/** Uma regra de UI por feature: dentro dela os imports são livres. */
+/** One UI rule per feature: imports inside it are free. */
 const FEATURES = readdirSync("features", { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name);
@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: ["typescript", "react", "import", "jsx-a11y", "oxc", "unicorn"],
   options: {
     typeAware: true,
-    // O compilador oficial fica em `pnpm typecheck`; evita duplicar o type-check experimental.
+    // The official compiler runs in `pnpm typecheck`; avoids duplicating the experimental type-check.
     typeCheck: false,
     reportUnusedDisableDirectives: "error",
     denyWarnings: true,
@@ -65,19 +65,19 @@ export default defineConfig({
     "import/no-cycle": ["error", { ignoreExternal: true }],
     "import/no-duplicates": "error",
     "import/no-unassigned-import": ["error", { allow: ["**/*.css"] }],
-    // Redundante com o TypeScript; conflita com o padrão "cleanup opcional" dos effects.
+    // Redundant with TypeScript; conflicts with the "optional cleanup" pattern of effects.
     "typescript/consistent-return": "off",
     "jsx-a11y/no-autofocus": "error",
 
-    // Tamanho e complexidade (docs/archive/refactor/03-target-architecture.md §4).
+    // Size and complexity (docs/archive/refactor/03-target-architecture.md §4).
     "eslint/max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
     "eslint/complexity": ["error", { max: 15 }],
   },
   overrides: [
-    // Camadas (docs/archive/refactor/03-target-architecture.md §2). Cada override diz o que
-    // a pasta NÃO pode importar; o resto é livre (sem ciclos, pelo import/no-cycle).
+    // Layers (docs/archive/refactor/03-target-architecture.md §2). Each override says what
+    // the folder must NOT import; the rest is free (no cycles, via import/no-cycle).
     {
-      // Genérico (UI compartilhada e utilitários): não conhece features, rotas nem servidor.
+      // Generic (shared UI and utilities): knows nothing about features, routes or the server.
       files: ["components/**", "lib/**"],
       rules: {
         "eslint/no-restricted-imports": [
@@ -87,20 +87,20 @@ export default defineConfig({
               {
                 group: ["@/features/*", "@/features/**", "@/app/*", "@/app/**"],
                 allowTypeImports: true,
-                message: "Código genérico não depende de features nem de rotas.",
+                message: "Generic code does not depend on features or routes.",
               },
               {
                 group: ["@/server", "@/server/**", "pg", "drizzle-orm", "drizzle-orm/*"],
                 allowTypeImports: true,
-                message: "Código genérico não acessa o servidor nem o banco.",
+                message: "Generic code does not access the server or the database.",
               },
             ],
           },
         ],
       },
     },
-    // UI e hooks das features: dados por props/loaders, mutações por actions; da UI de
-    // outra feature, só o que é público (mascote e aviso de compartilhamento).
+    // Feature UI and hooks: data via props/loaders, mutations via actions; from another
+    // feature's UI, only what is public (mascot and screen share notice).
     ...FEATURES.map((feature): OxlintOverride => ({
       files: [
         `features/${feature}/ui/**`,
@@ -126,7 +126,7 @@ export default defineConfig({
                   "livekit-server-sdk",
                 ],
                 allowTypeImports: true,
-                message: "UI não acessa o servidor: use props, loaders ou actions de rota.",
+                message: "UI does not access the server: use props, loaders or route actions.",
               },
               {
                 group: [
@@ -139,7 +139,7 @@ export default defineConfig({
                 ],
                 allowTypeImports: true,
                 message:
-                  "UI de outra feature não é pública (só o mascote e o aviso de compartilhamento).",
+                  "Another feature's UI is not public (only the mascot and the screen share notice).",
               },
             ],
           },
@@ -147,7 +147,7 @@ export default defineConfig({
       },
     })),
     {
-      // Domínio: TypeScript puro (testável sem React, roteador, banco ou SDK).
+      // Domain: plain TypeScript (testable without React, router, database or SDK).
       files: ["features/*/domain/**", "features/*/*/domain/**"],
       rules: {
         "eslint/no-restricted-imports": [
@@ -173,7 +173,7 @@ export default defineConfig({
                   "@/features/**/ui/**",
                 ],
                 allowTypeImports: true,
-                message: "domain/ é TypeScript puro: dependências entram por parâmetro.",
+                message: "domain/ is plain TypeScript: dependencies come in as parameters.",
               },
             ],
           },
@@ -181,7 +181,7 @@ export default defineConfig({
       },
     },
     {
-      // Infra do servidor: só o domínio das features (constantes e tipos puros).
+      // Server infra: only the features' domain (constants and pure types).
       files: ["server/**"],
       rules: {
         "eslint/no-restricted-imports": [
@@ -199,7 +199,7 @@ export default defineConfig({
                   "@/features/**/client/**",
                   "@/features/**/actions",
                 ],
-                message: "Infra não conhece features (exceto o domain/, que é puro).",
+                message: "Infra does not know about features (except domain/, which is pure).",
               },
             ],
           },
@@ -207,19 +207,19 @@ export default defineConfig({
       },
     },
     {
-      // Vendor (shadcn) e testes ficam fora dos limites de tamanho.
+      // Vendor (shadcn) and tests are exempt from the size limits.
       files: ["components/ui/**", "tests/**"],
       rules: { "eslint/max-lines": "off", "eslint/complexity": "off" },
     },
     {
-      // Fixtures de teste montam objetos parciais (DOM, respostas HTTP, contexto do
-      // Better Auth) de propósito; no código do app a regra continua valendo.
+      // Test fixtures build partial objects (DOM, HTTP responses, Better Auth
+      // context) on purpose; in app code the rule still applies.
       files: ["tests/**"],
       rules: { "typescript/no-unsafe-type-assertion": "off" },
     },
     {
       files: ["features/auth/ui/SignUpForm.tsx"],
-      // Oxlint 1.86 omite o token HTML válido `nickname` da lista desta regra.
+      // Oxlint 1.86 leaves the valid HTML token `nickname` out of this rule's list.
       // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill-field
       rules: { "jsx-a11y/autocomplete-valid": "off" },
     },
@@ -231,8 +231,8 @@ export default defineConfig({
         "features/security/ui/TwoFactorSettings.tsx",
         "features/auth/ui/TwoFactorCodeForm.tsx",
       ],
-      // Popovers abertos por ação da pessoa e telas de um único campo (código do
-      // 2FA, que a pessoa acabou de pedir): o foco inicial ajuda quem usa teclado.
+      // Popovers opened by the user's action and single-field screens (the 2FA
+      // code the user just requested): initial focus helps keyboard users.
       rules: { "jsx-a11y/no-autofocus": "off" },
     },
   ],

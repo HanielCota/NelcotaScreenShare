@@ -7,7 +7,7 @@ import { describeUserAgent } from "@/lib/user-agent";
 
 type ParticipantDetail = NonNullable<Awaited<ReturnType<typeof getParticipantDetail>>>;
 
-/** Dados da conta: cadastro, acesso, 2FA, bloqueio e anonimização. */
+/** Account data: sign-up, access, 2FA, blocking and anonymization. */
 export function ParticipantAccount({ account }: { account: ParticipantDetail["account"] }) {
   return (
     <Section title="Conta">
@@ -33,7 +33,7 @@ export function ParticipantAccount({ account }: { account: ParticipantDetail["ac
   );
 }
 
-/** Onde a conta está conectada agora. */
+/** Where the account is signed in right now. */
 export function ParticipantSessions({ sessions }: { sessions: ParticipantDetail["sessions"] }) {
   return (
     <Section
@@ -57,7 +57,7 @@ export function ParticipantSessions({ sessions }: { sessions: ParticipantDetail[
   );
 }
 
-/** Salas em que a pessoa entrou (as 100 mais recentes). */
+/** Rooms the person joined (the 100 most recent). */
 export function ParticipantTimeline({ timeline }: { timeline: ParticipantDetail["timeline"] }) {
   return (
     <Section

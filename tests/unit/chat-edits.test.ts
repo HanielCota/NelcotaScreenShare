@@ -10,7 +10,7 @@ import { decodeMessage, encodeMessage } from "@/features/room/domain/data-channe
 const message = { id: "m1", text: "senha 1234", author: "ana" };
 const empty: ChatEdits = new Map();
 
-test("quem escreveu edita e apaga a própria mensagem", () => {
+test("the author edits and deletes their own message", () => {
   const edited = recordChatEdit(empty, { type: "edit", id: "m1", text: "oi" }, "ana");
   expect(resolveChatText(edited, message)).toEqual({ text: "oi", edited: true, deleted: false });
 
@@ -18,19 +18,19 @@ test("quem escreveu edita e apaga a própria mensagem", () => {
   expect(resolveChatText(deleted, message)).toEqual({ text: "", edited: false, deleted: true });
 });
 
-test("mudança de outra pessoa não afeta a mensagem", () => {
+test("a change from someone else does not affect the message", () => {
   const edits = recordChatEdit(empty, { type: "delete", id: "m1" }, "bia");
   expect(resolveChatText(edits, message)).toEqual({
     text: "senha 1234",
     edited: false,
     deleted: false,
   });
-  // E não atrapalha a mudança legítima que chega depois.
+  // And it does not get in the way of the legitimate change that arrives later.
   const legit = recordChatEdit(edits, { type: "edit", id: "m1", text: "oi" }, "ana");
   expect(resolveChatText(legit, message).text).toBe("oi");
 });
 
-test("apagar é definitivo e editar sem mudar o texto não marca como editada", () => {
+test("deleting is final and editing without changing the text does not mark it edited", () => {
   const deleted = recordChatEdit(empty, { type: "delete", id: "m1" }, "ana");
   const after = recordChatEdit(deleted, { type: "edit", id: "m1", text: "voltei" }, "ana");
   expect(resolveChatText(after, message).deleted).toBe(true);
@@ -39,7 +39,7 @@ test("apagar é definitivo e editar sem mudar o texto não marca como editada", 
   expect(resolveChatText(same, message).edited).toBe(false);
 });
 
-test("valida o aviso recebido pelo canal de dados", () => {
+test("validates the notice received over the data channel", () => {
   const valid = encodeMessage({ type: "edit", id: "m1", text: "  oi  " });
   expect(decodeMessage(valid, chatEditSchema)).toEqual({ type: "edit", id: "m1", text: "oi" });
   expect(

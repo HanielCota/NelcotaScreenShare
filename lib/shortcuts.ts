@@ -1,4 +1,4 @@
-/** Atalhos de teclado da sala (ver `useShortcut`). Mostrados na navbar e no README. */
+/** Room keyboard shortcuts (see `useShortcut`). Shown in the navbar and in the README. */
 export const ROOM_SHORTCUTS = [
   { key: "M", action: "Liga e desliga o microfone" },
   { key: "S", action: "Compartilha a tela (ou para)" },

@@ -8,7 +8,7 @@ import { ROLES_REQUIRING_2FA } from "@/features/auth/domain/roles";
 export const meta = () => [{ title: "Segurança da conta · Nelcota" }];
 
 export const loader = routeLoader(async () => {
-  // Única página do painel acessível sem 2FA: é onde ele é configurado.
+  // The only panel page reachable without 2FA: it is where 2FA is set up.
   const admin = await requireAdmin(undefined, { allowWithoutTwoFactor: true });
   const mustSetUp = needsTwoFactorSetup(admin);
 

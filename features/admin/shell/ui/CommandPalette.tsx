@@ -19,8 +19,8 @@ import type { NavGroup } from "@/features/admin/shell/server/nav.server";
 import { NAV_ICONS } from "./nav-icons";
 
 /**
- * Command palette (Ctrl/⌘ K): navegação do painel, ações rápidas e busca de
- * salas (código) e participantes (nome ou e-mail, sem acento).
+ * Command palette (Ctrl/⌘ K): admin navigation, quick actions and search for
+ * rooms (code) and participants (name or e-mail, accent-insensitive).
  */
 export function CommandPalette({
   groups,
@@ -40,7 +40,7 @@ export function CommandPalette({
   const term = query.trim();
   const results = term.length >= 2 && search.input?.q === term ? search.result.data : undefined;
 
-  // Busca no servidor depois de uma pausa na digitação.
+  // Searches on the server after a pause in typing.
   useEffect(() => {
     if (term.length < 2) return;
     const timer = setTimeout(() => execute({ q: term }), 250);
@@ -71,7 +71,7 @@ export function CommandPalette({
       title="Buscar no painel"
       description="Digite para ir a uma tela ou executar uma ação."
     >
-      {/* Nesta versão do shadcn, o conteúdo precisa vir dentro de <Command> (contexto do cmdk). */}
+      {/* In this shadcn version, the content must be inside <Command> (cmdk context). */}
       <Command>
         <CommandInput
           placeholder="Ir para…, código da sala ou nome de alguém"
@@ -85,7 +85,7 @@ export function CommandPalette({
               {results.rooms.map((room) => (
                 <CommandItem
                   key={room.id}
-                  // O texto digitado no valor: o filtro local do cmdk não esconde o resultado.
+                  // The typed text goes in the value: cmdk's local filter does not hide the result.
                   value={`${term} sala ${room.code}`}
                   onSelect={() =>
                     run(() => {

@@ -33,19 +33,19 @@ interface FloatingReaction {
   id: number;
   emoji: Reaction;
   name: string;
-  /** Posição horizontal, em % da largura da tela. */
+  /** Horizontal position, in % of the screen width. */
   left: number;
 }
 
-/** Na tela ao mesmo tempo: o resto é descartado (spam não trava a sala). */
+/** On screen at the same time: the rest is dropped (spam does not freeze the room). */
 const MAX_VISIBLE = 24;
 const VISIBLE_MS = 3200;
-/** Intervalo mínimo entre reações enviadas por esta pessoa. */
+/** Minimum interval between reactions sent by this person. */
 const SEND_INTERVAL_MS = 250;
 
 const ReactionsContext = createContext<((emoji: Reaction) => void) | null>(null);
 
-/** Recebe e mostra as reações da sala; `useReact()` envia. */
+/** Receives and shows the room's reactions; `useReact()` sends. */
 export function ReactionsProvider({ children }: { children: ReactNode }) {
   const room = useRoomContext();
   const [items, setItems] = useState<FloatingReaction[]>([]);
@@ -78,7 +78,7 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  // Aviso quando alguém levanta a mão.
+  // Notice when someone raises their hand.
   useEffect(() => {
     const onAttributes = (changed: Record<string, string>, participant: Participant) => {
       if (participant.isLocal || !(HAND_ATTRIBUTE in changed)) return;
@@ -104,7 +104,7 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
 
 function useReact(): (emoji: Reaction) => void {
   const react = use(ReactionsContext);
-  if (!react) throw new Error("useReact precisa de um <ReactionsProvider>");
+  if (!react) throw new Error("useReact requires a <ReactionsProvider>");
   return react;
 }
 
@@ -150,7 +150,7 @@ function ReactionBubble({ item }: { item: FloatingReaction }) {
   );
 }
 
-/** Dock: reações rápidas e "levantar a mão" (atalho H). */
+/** Dock: quick reactions and "raise hand" (shortcut H). */
 export function ReactionsMenu() {
   const react = useReact();
   const [open, setOpen] = useState(false);

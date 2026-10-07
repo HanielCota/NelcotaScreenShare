@@ -1,12 +1,12 @@
 /**
- * Dados de desenvolvimento e de carga (docs/archive/admin-plan.md §4.6). Idempotente:
- * rodar de novo não duplica nada.
+ * Development and load-test data (docs/archive/admin-plan.md §4.6). Idempotent:
+ * running it again duplicates nothing.
  *
- *   pnpm db:seed                      → perfil "dev"
+ *   pnpm db:seed                      → "dev" profile
  *   pnpm db:seed --perfil=carga --linhas=300000
  *
- * Recusa produção e bancos fora da máquina local (use --forcar se for um
- * banco de teste remoto descartável).
+ * Refuses production and databases outside the local machine (use --forcar for a
+ * disposable remote test database).
  */
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
@@ -22,20 +22,22 @@ const args = new Map(
 );
 const profile = args.get("perfil") ?? "dev";
 const rows = Number(args.get("linhas") ?? 300_000);
-/** Senha de todos os participantes do seed (só em dev). */
-const SEED_PASSWORD = "senha-dev-1234";
+/** Password of every seeded participant (dev only). */
+const SEED_PASSWORD = "dev-password-1234";
 
 const url = process.env.DATABASE_URL ?? "";
 const local = /@(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//.test(url);
 if (process.env.NODE_ENV === "production" || (!local && !args.has("forcar"))) {
-  console.error("Seed recusado: só roda em banco local (ou com --forcar num banco descartável).");
+  console.error(
+    "Seed refused: it only runs on a local database (or with --forcar on a disposable one).",
+  );
   process.exit(1);
 }
 function openDb() {
   try {
     return getDb();
   } catch {
-    console.error("Defina DATABASE_URL.");
+    console.error("Set DATABASE_URL.");
     process.exit(1);
   }
 }
@@ -125,7 +127,7 @@ async function seedAudit(target: number) {
   return missing;
 }
 
-/** Carga: geração no próprio Postgres (generate_series), segundos para 300 mil linhas. */
+/** Load: generated inside Postgres (generate_series), seconds for 300k rows. */
 async function seedLoad(total: number) {
   const before = await db.execute<{ total: number }>(
     sql`select count(*)::int as total from audit_logs where metadata->>'seed' = 'carga'`,
@@ -158,9 +160,9 @@ async function seedLoad(total: number) {
 }
 
 /**
- * Salas, participações, compartilhamentos e pedidos de token, gerados no
- * Postgres. Determinístico (hashtext) e idempotente (códigos e sids fixos).
- * As 3 primeiras salas ficam ativas, com gente dentro.
+ * Rooms, participations, shares and token requests, generated in
+ * Postgres. Deterministic (hashtext) and idempotent (fixed codes and sids).
+ * The first 3 rooms stay active, with people inside.
  */
 async function seedRooms(count: number, prefix: string, userPattern: string) {
   const before = await db.execute<{ total: number }>(
@@ -215,7 +217,7 @@ async function seedRooms(count: number, prefix: string, userPattern: string) {
     update rooms r set peak_participants = (select count(*) from room_participations p where p.room_id = r.id)
     where r.code like ${`${prefix}%`} and r.peak_participants = 0
   `);
-  // Um pedido aceito por entrada e algumas recusas; só na primeira vez.
+  // One granted request per join plus some refusals; only the first time.
   await db.execute(sql`
     insert into token_requests (room_code, room_id, user_id, result, ip, created_at)
     select r.code, r.id, p.user_id,
@@ -238,17 +240,17 @@ if (profile === "carga") {
   const result = await seedLoad(rows);
   const loadRooms = await seedRooms(Math.ceil(rows / 15), "carga-", "carga%@exemplo.dev");
   await db.execute(sql`analyze rooms; analyze room_participations; analyze share_sessions;`);
-  console.info(`[seed] carga: +${loadRooms} salas com participações e compartilhamentos`);
+  console.info(`[seed] load: +${loadRooms} rooms with participations and shares`);
   console.info(
-    `[seed] carga: +${result.audit} auditoria, até ${result.participants} participantes (${Date.now() - started} ms)`,
+    `[seed] load: +${result.audit} audit, up to ${result.participants} participants (${Date.now() - started} ms)`,
   );
 } else {
   const participants = await seedParticipants(300);
   const audit = await seedAudit(2_000);
   const devRooms = await seedRooms(60, "seed-", "participante%@exemplo.dev");
-  console.info(`[seed] dev: +${devRooms} salas com participações e compartilhamentos`);
+  console.info(`[seed] dev: +${devRooms} rooms with participations and shares`);
   console.info(
-    `[seed] dev: +${participants} participantes (senha "${SEED_PASSWORD}"), +${audit} registros de auditoria (${Date.now() - started} ms)`,
+    `[seed] dev: +${participants} participants (password "${SEED_PASSWORD}"), +${audit} audit records (${Date.now() - started} ms)`,
   );
 }
 process.exit(0);

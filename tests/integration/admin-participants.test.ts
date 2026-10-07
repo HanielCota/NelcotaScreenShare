@@ -7,8 +7,8 @@ import * as schema from "@/server/db/schema";
 import { verifiedParticipant } from "./support/accounts";
 
 /**
- * Tela de participantes: ações em massa (por IDs e pelo filtro), desfazer,
- * anonimização e as consultas da lista, com auditoria de cada item.
+ * Participants page: bulk actions (by IDs and by filter), undo,
+ * anonymization and the list queries, with an audit entry per item.
  */
 const requestHeaders = { current: new Headers() };
 vi.mock("@/server/request-context.server", () => ({
@@ -38,7 +38,7 @@ beforeAll(async () => {
   viewer = await adminSession(db, "viewer");
 });
 
-/** Participantes "soltos" (sem sessão) com um marcador no nome, para filtrar. */
+/** "Loose" participants (no session) with a marker in the name, for filtering. */
 async function people(tag: string, count: number) {
   const rows = await db
     .insert(schema.users)
@@ -60,15 +60,15 @@ function auditsOf(action: string, ids: string[]) {
     .where(and(eq(schema.auditLogs.action, action), inArray(schema.auditLogs.resourceId, ids)));
 }
 
-describe("bloquear e desbloquear", () => {
-  test("bloqueio exige motivo, derruba as sessões e audita cada conta", async () => {
+describe("block and unblock", () => {
+  test("blocking requires a reason, drops the sessions and audits each account", async () => {
     const ana = await verifiedParticipant(db, handler);
     requestHeaders.current = admin.headers;
     const noReason = await actions.blockParticipantsAction({
       selection: { tipo: "ids", ids: [ana.id] },
       reason: " ",
     });
-    assert.ok(noReason.validationErrors, "sem motivo é recusado");
+    assert.ok(noReason.validationErrors, "no reason is rejected");
 
     const result = await actions.blockParticipantsAction({
       selection: { tipo: "ids", ids: [ana.id] },
@@ -87,7 +87,7 @@ describe("bloquear e desbloquear", () => {
     assert.equal(audit?.actorAdminId, admin.id);
     assert.deepEqual(audit?.metadata, { motivo: "Spam no chat" });
 
-    // Bloquear de novo não muda nada: erro claro, sem auditoria repetida.
+    // Blocking again changes nothing: a clear error, no repeated audit.
     const again = await actions.blockParticipantsAction({
       selection: { tipo: "ids", ids: [ana.id] },
       reason: "De novo",
@@ -96,7 +96,7 @@ describe("bloquear e desbloquear", () => {
     assert.equal((await auditsOf("user.block", [ana.id])).length, 1);
   });
 
-  test("leitor não bloqueia", async () => {
+  test("viewer cannot block", async () => {
     const [id = ""] = await people("Leitor", 1);
     requestHeaders.current = viewer.headers;
     const result = await actions.blockParticipantsAction({
@@ -106,7 +106,7 @@ describe("bloquear e desbloquear", () => {
     assert.equal(result.serverError, "Você não tem permissão para fazer isso.");
   });
 
-  test("todos os resultados do filtro: o servidor reaplica a busca", async () => {
+  test("all filter results: the server reapplies the search", async () => {
     const tag = `Filtro${Date.now()}`;
     const ids = await people(tag, 3);
     const outsider = await people(`Fora${Date.now()}`, 1);
@@ -129,7 +129,7 @@ describe("bloquear e desbloquear", () => {
     assert.deepEqual(unblocked.data, { count: 3 });
   });
 
-  test("filtro com mais de 10.000 resultados é recusado", async () => {
+  test("a filter with more than 10,000 results is rejected", async () => {
     const tag = `Muitos${Date.now()}`;
     await pool.query(
       `insert into users (name, email, email_verified)
@@ -150,8 +150,8 @@ describe("bloquear e desbloquear", () => {
   });
 });
 
-describe("excluir e desfazer", () => {
-  test("exclusão some da lista, derruba sessões e o desfazer restaura", async () => {
+describe("delete and undo", () => {
+  test("deletion removes from the list, drops sessions and undo restores", async () => {
     const bia = await verifiedParticipant(db, handler);
     requestHeaders.current = admin.headers;
     const removed = await actions.deleteParticipantsAction({
@@ -163,7 +163,7 @@ describe("excluir e desfazer", () => {
       loadParticipantParams(new URLSearchParams(`q=${encodeURIComponent(bia.email)}`)),
       50,
     );
-    assert.equal(list.items.length, 0, "excluído não aparece sem o filtro de status");
+    assert.equal(list.items.length, 0, "deleted does not show without the status filter");
     const deleted = await listParticipants(
       db,
       loadParticipantParams(
@@ -182,8 +182,8 @@ describe("excluir e desfazer", () => {
   });
 });
 
-describe("anonimizar (LGPD)", () => {
-  test("só o owner, com a palavra de confirmação; tira o nome do histórico", async () => {
+describe("anonymize (LGPD)", () => {
+  test("owner only, with the confirmation word; removes the name from history", async () => {
     const caio = await verifiedParticipant(db, handler, { name: "Caio Real" });
     const [room] = await db
       .insert(schema.rooms)
@@ -208,7 +208,7 @@ describe("anonimizar (LGPD)", () => {
     requestHeaders.current = owner.headers;
     const wrongWord = await actions.anonymizeParticipantAction({
       id: caio.id,
-      // @ts-expect-error: a palavra errada é justamente o que se testa
+      // @ts-expect-error: the wrong word is exactly what is being tested
       confirmation: "anonimizar",
     });
     assert.ok(wrongWord.validationErrors);
@@ -227,12 +227,12 @@ describe("anonimizar (LGPD)", () => {
       .from(schema.roomParticipations)
       .where(eq(schema.roomParticipations.userId, caio.id));
     assert.equal(participation?.displayName, null);
-    // Anonimizada não volta pelo "restaurar".
+    // An anonymized account does not come back through "restore".
     const restore = await actions.restoreParticipantsAction({ ids: [caio.id] });
     assert.equal(restore.serverError, "Nada para restaurar.");
   });
 
-  test("sessão antiga do owner precisa entrar de novo", async () => {
+  test("an old owner session must sign in again", async () => {
     const [id = ""] = await people("Antiga", 1);
     const stale = await adminSession(db, "owner");
     await db
@@ -245,8 +245,8 @@ describe("anonimizar (LGPD)", () => {
   });
 });
 
-describe("lista", () => {
-  test("busca sem acento e ordenação por participações", async () => {
+describe("list", () => {
+  test("accent-insensitive search and sorting by participations", async () => {
     const tag = `Busca${Date.now()}`;
     const [joao = "", maria = ""] = (
       await db
@@ -277,7 +277,7 @@ describe("lista", () => {
     );
   });
 
-  test("o contador de participações acompanha as entradas", async () => {
+  test("the participations counter tracks the joins", async () => {
     const [id = ""] = await people("Contador", 1);
     const [room] = await db
       .insert(schema.rooms)

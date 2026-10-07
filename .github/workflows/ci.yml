@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   quality:
-    name: Lint, formatação, tipos e auditoria
+    name: Lint, formatting, types and audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -27,19 +27,23 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
-      - name: Código, exports e dependências sem uso (knip)
+      - name: Unused code, exports and dependencies (knip)
         run: pnpm knip
-      - name: Duplicação abaixo do limite (jscpd)
+        env:
+          # The Vitest and Playwright configs (loaded by knip) only enable the integration and
+          # E2E projects when this is set; knip reads them but never connects to the database.
+          TEST_DATABASE_URL: postgres://knip:knip@127.0.0.1:5432/knip
+      - name: Duplication below the threshold (jscpd)
         run: pnpm dup
-      - name: Schema e migrações em dia (nenhuma migração pendente)
+      - name: Schema and migrations up to date (no pending migration)
         run: |
           pnpm db:generate
           test -z "$(git status --porcelain drizzle)" || { git status drizzle; exit 1; }
-      - name: Dependências de produção sem vulnerabilidade alta/crítica
+      - name: Production dependencies without high/critical vulnerabilities
         run: pnpm audit --prod --audit-level=high
 
   test:
-    name: Testes (unitários + integração no Postgres)
+    name: Tests (unit + integration on Postgres)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -65,12 +69,12 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: cobertura
+          name: coverage
           path: coverage/
           retention-days: 14
 
   build:
-    name: Build de produção
+    name: Production build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -82,11 +86,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm build:scripts
-      - name: Imagem Docker (a mesma do deploy) monta sem erro
+      - name: Docker image (the same as deploy) builds without errors
         run: docker build --tag nelcota-ci .
 
   e2e:
-    name: E2E (Playwright, Postgres e LiveKit reais)
+    name: E2E (real Playwright, Postgres and LiveKit)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -111,7 +115,7 @@ jobs:
           node-version: 26.9.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: LiveKit de desenvolvimento
+      - name: Development LiveKit
         run: |
           docker run -d --name lk --network host \
             -e LIVEKIT_KEYS="$LIVEKIT_API_KEY: $LIVEKIT_API_SECRET" \

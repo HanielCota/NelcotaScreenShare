@@ -17,13 +17,13 @@ interface RoomSessionProps {
   passwordRequired: boolean;
   invite?: string;
   maxParticipants: number;
-  /** Pessoas na sala agora (null: desconhecido). */
+  /** People in the room now (null: unknown). */
   presence: { online: number } | null;
 }
 
 type Phase =
   | { kind: "prejoin" }
-  /** `startedAt`: quando entrou, para o resumo da saída (mantido entre tentativas). */
+  /** `startedAt`: when they joined, for the leave summary (kept across attempts). */
   | { kind: "room"; choices: JoinChoices; attempt: number; startedAt: number }
   | { kind: "left"; reason: LeaveReason; message?: string; durationMs?: number };
 
@@ -38,7 +38,7 @@ export function RoomSession({
 }: RoomSessionProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "prejoin" });
 
-  // Nova tentativa com token novo: o anterior pode ter expirado (TTL de 10 min).
+  // New attempt with a new token: the previous one may have expired (10 min TTL).
   async function retry(choices: JoinChoices, attempt: number, startedAt: number) {
     const result = await requestToken({ room: code, password: choices.password, invite });
     if (!result.ok) {

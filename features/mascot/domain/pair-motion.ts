@@ -5,7 +5,7 @@ export interface PairGeometry {
   size: number;
 }
 
-/** Posições reais e fases compartilham um relógio; só a chegada permite cumprimentar. */
+/** Real positions and phases share one clock; only arrival allows the greeting. */
 export function createPairMotion(random: () => number = Math.random) {
   let geometry: PairGeometry | undefined;
   let phase: PairPhase = "rest";
@@ -77,7 +77,7 @@ export function createPairMotion(random: () => number = Math.random) {
     get state() {
       return { phase, visitor, resident, suspended };
     },
-    /** Só usa quadros durante deslocamentos; repouso e poses usam um timer. */
+    /** Only uses frames while moving; rest and poses use a timer. */
     get nextIn() {
       if (phase === "approach" || phase === "return" || (phase === "hit" && !arrived())) return 0;
       return Math.max(remaining, 100);

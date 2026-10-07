@@ -2,10 +2,10 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 /**
- * Cartão das telas de acesso (login, 2FA, senha, convite), do admin e do app.
- * Dentro do layout dividido do app (`data-layout="split"`), vira o próprio
- * formulário: sem fundo de cartão e sem o ícone (o mascote ao lado já faz
- * esse papel).
+ * Card for the access screens (sign-in, 2FA, password, invitation), for admin and app.
+ * Inside the app's split layout (`data-layout="split"`), it becomes the form
+ * itself: no card background and no icon (the mascot beside it already plays
+ * that role).
  */
 export function AuthCard({
   icon: Icon,
@@ -18,7 +18,7 @@ export function AuthCard({
   icon: LucideIcon;
   title: string;
   description?: ReactNode;
-  /** Acima do título (ex.: as abas Entrar | Criar conta, contexto da sala). */
+  /** Above the title (e.g. the Entrar | Criar conta tabs, room context). */
   top?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;

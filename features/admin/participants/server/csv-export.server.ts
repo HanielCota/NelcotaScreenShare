@@ -3,10 +3,10 @@ import { STATUS_LABELS } from "@/features/admin/participants/domain/labels";
 import { iterateParticipants } from "@/features/admin/participants/server/queries.server";
 import { loadParticipantParams } from "@/features/admin/participants/domain/search-params";
 
-/** CSV dos participantes com os filtros da tela (exige `participant.export`). */
+/** Participants CSV with the screen filters (requires `participant.export`). */
 export const exportCsv = csvExportRoute({
   permission: { participant: ["export"] },
-  // "user.export" é o nome já gravado no audit log (decisão em aberto: Q5).
+  // "user.export" is the name already stored in the audit log (open decision: Q5).
   audit: { action: "user.export", resourceType: "user" },
   filename: "participantes",
   header: [

@@ -51,8 +51,8 @@ export const loader = ({ request, context }: LoaderFunctionArgs) =>
     };
   });
 
-// O nonce acompanha o documento durante as navegações; só uma nova página recebe outro.
-// A configuração e o cabeçalho também acompanham alterações de conta e do painel.
+// The nonce stays with the document across navigations; only a new page gets a new one.
+// Settings and the header also follow account and admin panel changes.
 
 export function Layout({ children }: { children: ReactNode }) {
   const data = useLoaderData<typeof loader>();

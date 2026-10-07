@@ -1,13 +1,13 @@
 /**
- * Mensagens em pt-BR para os erros do Better Auth. Login e recuperação usam
- * sempre a mesma frase para e-mail inexistente e senha errada (não revelam
- * quem tem conta).
+ * pt-BR messages for Better Auth errors. Sign-in and recovery always use
+ * the same sentence for a nonexistent e-mail and a wrong password (they do not
+ * reveal who has an account).
  */
 const BY_CODE: Record<string, string> = {
   INVALID_EMAIL_OR_PASSWORD: "E-mail ou senha incorretos.",
   EMAIL_NOT_VERIFIED: "Confirme seu e-mail antes de entrar. Enviamos um novo link agora.",
   USER_ALREADY_EXISTS: "Confira seu e-mail para continuar.",
-  // Só com a confirmação de e-mail desligada (com ela, a resposta é genérica).
+  // Only with e-mail confirmation turned off (with it, the response is generic).
   USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
     "Já existe uma conta com esse e-mail. Entre com sua senha ou recupere a senha.",
   FAILED_TO_CREATE_SESSION: "E-mail ou senha incorretos.",
@@ -36,13 +36,13 @@ export function authErrorMessage(
 ): string {
   if (!error) return fallback ?? "Algo deu errado. Tente de novo.";
   if (error.code && BY_CODE[error.code]) return BY_CODE[error.code] ?? "";
-  // 429: a mensagem do servidor já vem em pt-BR (bloqueio por tentativas ou rate limit).
+  // 429: the server message is already in pt-BR (lockout after attempts or rate limit).
   if (error.status === 429) {
     return error.message?.startsWith("Muitas")
       ? error.message
       : "Muitas tentativas. Aguarde um minuto.";
   }
-  // Conta desativada: mensagem configurada no servidor, em pt-BR.
+  // Disabled account: message configured on the server, in pt-BR.
   if (error.status === 403 && error.message?.includes("desativada")) return error.message;
   return fallback ?? "Algo deu errado. Tente de novo.";
 }

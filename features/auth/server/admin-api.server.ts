@@ -2,8 +2,8 @@ import { getAdminSession, needsTwoFactorSetup, type AdminSession } from "./admin
 import { can, type PermissionRequest } from "./permissions.server";
 
 /**
- * Autorização de Route Handlers do painel (CSV etc.): a mesma regra das
- * actions. Devolve a sessão ou a resposta de erro pronta.
+ * Authorization for the panel's Route Handlers (CSV etc.): the same rule as the
+ * actions. Returns the session or the ready error response.
  */
 export async function requireAdminApi(
   permission: PermissionRequest,

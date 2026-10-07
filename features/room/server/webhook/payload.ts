@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { leaveReason } from "@/server/db/schema";
 
-/** Formato JSON do protobuf (`WebhookEvent.toJson()`): bigint vira string, enum vira nome. */
+/** Protobuf JSON format (`WebhookEvent.toJson()`): bigint becomes a string, enum becomes its name. */
 const timestampSchema = z.coerce.number().nonnegative().optional();
 export const webhookPayloadSchema = z.object({
   id: z.string().optional(),
@@ -29,10 +29,10 @@ export const webhookPayloadSchema = z.object({
 export type WebhookPayload = z.infer<typeof webhookPayloadSchema>;
 export type WebhookParticipant = NonNullable<WebhookPayload["participant"]>;
 
-/** Motivo de saída gravado (o enum do banco). */
+/** Stored leave reason (the database enum). */
 export type LeaveReason = (typeof leaveReason.enumValues)[number];
 
-/** Motivo do LiveKit (DisconnectReason) para o motivo gravado. */
+/** LiveKit reason (DisconnectReason) to the stored reason. */
 export function leaveReasonFrom(reason: string | undefined): LeaveReason {
   switch (reason) {
     case "CLIENT_INITIATED":
@@ -50,7 +50,7 @@ export function leaveReasonFrom(reason: string | undefined): LeaveReason {
   }
 }
 
-/** Horário do evento (o LiveKit manda em segundos). */
+/** Event time (LiveKit sends it in seconds). */
 export function occurredAt(payload: WebhookPayload): Date {
   return payload.createdAt ? new Date(payload.createdAt * 1000) : new Date();
 }

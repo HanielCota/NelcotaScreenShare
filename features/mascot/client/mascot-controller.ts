@@ -28,22 +28,22 @@ import { createSleepClock } from "./sleep-clock";
 import { pageReactions } from "./page-reactions";
 import { attachTouch } from "./touch";
 
-/** O que o componente informa ao controlador (lido na hora, sem recriar nada). */
+/** What the component tells the controller (read on demand, without recreating anything). */
 export interface MascotInputs {
   base: () => Expression;
   canSleep: () => boolean;
   activity: () => MascotActivity;
-  /** Nível da voz (0–1) para o "ouvindo". */
+  /** Voice level (0–1) for "listening". */
   voice: () => number;
 }
 
 /**
- * O comportamento do mascote: junta o que acontece na tela (mouse, foco,
- * digitação, avisos do sistema) numa expressão e num olhar, e anima o rosto.
+ * The mascot's behavior: combines what happens on screen (mouse, focus,
+ * typing, system signals) into an expression and a gaze, and animates the face.
  *
- * - Expressão: motivos com prazo e prioridade (engine/reasons.ts).
- * - Regras por expressão: engine/rules.ts.
- * - Olhar: geometria da tela (dom/gaze.ts). Desenho: dom/face-animator.ts.
+ * - Expression: reasons with deadline and priority (engine/reasons.ts).
+ * - Per-expression rules: engine/rules.ts.
+ * - Gaze: screen geometry (dom/gaze.ts). Drawing: dom/face-animator.ts.
  */
 export function createMascotController(
   root: HTMLElement,
@@ -59,9 +59,9 @@ export function createMascotController(
   let current: Expression = inputs.base();
   let reasonTimer = 0;
   let bodyAnimation: Animation | undefined;
-  /** Atualização agendada pro próximo quadro (vários eventos no mesmo quadro viram uma). */
+  /** Update scheduled for the next frame (several events in the same frame become one). */
   let queuedUpdate = 0;
-  /** Depois de desmontado, atualizações atrasadas (timers) não fazem mais nada. */
+  /** After unmount, late updates (timers) do nothing. */
   let disposed = false;
   let onScreen = true;
 
@@ -119,7 +119,7 @@ export function createMascotController(
     update,
   });
 
-  // ---------- Expressão e olhar ----------
+  // ---------- Expression and gaze ----------
 
   function setReason(reason: Reason, expression: Expression, durationMs?: number) {
     reasons.set(reason, expression, durationMs);
@@ -130,7 +130,7 @@ export function createMascotController(
     if (reasons.delete(reason)) update();
   }
 
-  /** Senha escondida: olhos fechados. Mostrando: espia com um olho só (mas não dormindo). */
+  /** Hidden password: eyes closed. Shown: peeks with one eye only (but not while asleep). */
   function eyeOverride(): readonly [number, number] | undefined {
     const field = focusedPasswordField();
     if (!field || current === "asleep") return undefined;
@@ -141,7 +141,7 @@ export function createMascotController(
     return toFaceState(EXPRESSIONS[current], eyeOverride());
   }
 
-  /** O outro mascote do par (andando ou se cumprimentando, um olha para o outro). */
+  /** The other mascot of the pair (walking or greeting, they look at each other). */
   function partner(): Element | undefined {
     return [
       ...(root.closest("[data-mascot-pair]")?.querySelectorAll("[data-slot=mascot]") ?? []),
@@ -161,7 +161,7 @@ export function createMascotController(
     return gazeFor(face, target, pointer);
   }
 
-  /** Agenda uma reavaliação pro próximo motivo que vai vencer. */
+  /** Schedules a re-evaluation for the next reason that will expire. */
   function scheduleReasonExpiry() {
     window.clearTimeout(reasonTimer);
     const next = reasons.nextExpiry();
@@ -170,18 +170,18 @@ export function createMascotController(
     }
   }
 
-  /** Mãos e gestos que a expressão atual não permite param aqui. */
+  /** Hands and gestures that the current expression does not allow stop here. */
   function settleGestures(previous: Expression, eyes: readonly [number, number] | undefined) {
     if (previous === "presenting" && current !== "presenting") hands.cancel();
-    // A pose fechada tem prioridade sobre um aceno iniciado antes do foco na senha.
+    // The closed pose takes priority over a wave started before the password got focus.
     if (eyes || isSleeping(current)) hands.cancel();
     if (personality.active && (eyes || blocksPlay(current))) personality.cancel();
-    // Une pose sustentada à atenção no palco; a rotina de mão não cobre olhos de senha.
+    // Pairs a held pose with attention on the stage; the hand routine does not cover password eyes.
     if (current === "presenting" && !eyes && !reducedMotion()) hands.hold();
     if (eyes || current === "asleep" || reducedMotion()) animator.cancelBlink();
   }
 
-  /** Movimento reduzido: sem molas nem animações, direto à pose final. */
+  /** Reduced motion: no springs or animations, straight to the final pose. */
   function snapToTargets() {
     root.getAnimations().forEach((animation) => animation.cancel());
     hands.cancel();
@@ -189,7 +189,7 @@ export function createMascotController(
     animator.snap();
   }
 
-  /** Recalcula expressão e olhar e anima até eles (ou pula direto, com movimento reduzido). */
+  /** Recomputes expression and gaze and animates towards them (or jumps straight there, with reduced motion). */
   function update() {
     if (disposed) return;
     const previous = current;
@@ -203,9 +203,9 @@ export function createMascotController(
     else if (!document.hidden && onScreen) animator.start();
   }
 
-  /** Pra eventos frequentes (mouse, seleção, rolagem): recalcula uma vez por quadro. */
+  /** For frequent events (mouse, selection, scroll): recomputes once per frame. */
   function requestUpdate() {
-    // Fora da tela: não mede nem anima a cada movimento do mouse (o olhar se acerta ao voltar).
+    // Off screen: does not measure or animate on every mouse move (the gaze catches up on return).
     if (disposed || queuedUpdate || !onScreen) return;
     queuedUpdate = requestAnimationFrame(() => {
       queuedUpdate = 0;
@@ -213,7 +213,7 @@ export function createMascotController(
     });
   }
 
-  /** Movimento do corpo inteiro; desligado com movimento reduzido. */
+  /** Whole-body motion; turned off with reduced motion. */
   function move({ keyframes, options }: Motion) {
     bodyAnimation?.cancel();
     bodyAnimation = undefined;
@@ -222,7 +222,7 @@ export function createMascotController(
     return bodyAnimation;
   }
 
-  // ---------- Sono ----------
+  // ---------- Sleep ----------
 
   const sleep = createSleepClock({
     personality,
@@ -238,7 +238,7 @@ export function createMascotController(
     sleep.activity();
   }
 
-  // ---------- Eventos ----------
+  // ---------- Events ----------
 
   const touch = attachTouch({
     root,
@@ -270,7 +270,7 @@ export function createMascotController(
     }),
   );
 
-  // Pausa animações fora da tela ou com a aba escondida.
+  // Pauses animations off screen or with the tab hidden.
   function pauseMotion() {
     root.dataset.motion = "paused";
     animator.pause();
@@ -286,11 +286,11 @@ export function createMascotController(
   sleep.check();
   update();
 
-  /** Mudou a atividade (andando, apresentando…): a expressão de contexto acompanha. */
+  /** The activity changed (walking, presenting…): the context expression follows. */
   function syncContext() {
     const nextActivity = inputs.activity();
-    // Andar e ficar parado se alternam no par da home a cada poucos segundos:
-    // um carinho ou "toca aqui" em andamento continua; o resto interrompe.
+    // Walking and standing still alternate in the home page pair every few seconds:
+    // a pat or "high five" in progress continues; anything else is interrupted.
     if (nextActivity !== "idle" && nextActivity !== "walking") personality.cancel();
     if (nextActivity === "idle") clearReason("context");
     else {
@@ -331,10 +331,10 @@ export function createMascotController(
   visibility.observe(root);
 
   return {
-    /** A expressão de repouso mudou. */
+    /** The resting expression changed. */
     update,
     syncContext,
-    /** Ligou ou desligou o sono: desligado no meio do cochilo, acorda na hora. */
+    /** Sleep was turned on or off: turned off mid-nap, it wakes up immediately. */
     resetSleep() {
       if (!inputs.canSleep() && reasons.delete("sleep")) update();
       sleep.restart();

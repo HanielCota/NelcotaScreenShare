@@ -1,7 +1,7 @@
 /**
- * Header com o IP real do cliente, calculado no middleware a partir do
- * X-Forwarded-For e de TRUSTED_PROXY_HOPS. É sempre sobrescrito no middleware, então
- * o que o cliente mandar nesse header nunca chega ao app.
+ * Header with the client's real IP, computed in the middleware from
+ * X-Forwarded-For and TRUSTED_PROXY_HOPS. It is always overwritten in the middleware, so
+ * whatever the client sends in this header never reaches the app.
  */
 export const CLIENT_IP_HEADER = "x-client-ip";
 
@@ -11,11 +11,11 @@ export function clientIpFrom(headers: Headers): string | undefined {
 }
 
 /**
- * IP do cliente atrás de proxies confiáveis. Cada proxy acrescenta ao fim do
- * X-Forwarded-For o IP de quem falou com ele; os valores à esquerda vêm do
- * cliente e podem ser forjados. Com `trustedHops` proxies na frente do app
- * (Traefik = 1; Cloudflare + Traefik = 2), o IP real é o `trustedHops`-ésimo
- * a partir do fim.
+ * Client IP behind trusted proxies. Each proxy appends to the end of
+ * X-Forwarded-For the IP of whoever talked to it; the values on the left come from the
+ * client and can be forged. With `trustedHops` proxies in front of the app
+ * (Traefik = 1; Cloudflare + Traefik = 2), the real IP is the `trustedHops`-th
+ * from the end.
  */
 export function getClientIp(headers: Headers, trustedHops = 1): string {
   const hops =

@@ -24,7 +24,7 @@ function newCaller() {
 }
 const PASSWORD = "senha-do-participante-1";
 
-/** Sem SMTP, o e-mail vai para o log: pega o link do último e-mail para `to`. */
+/** Without SMTP, the email goes to the log: grabs the link from the last email to `to`. */
 function captureMail() {
   const mails: { to: string; body: string }[] = [];
   vi.spyOn(logger, "warn").mockImplementation((entry: unknown) => {
@@ -40,8 +40,8 @@ function captureMail() {
   };
 }
 
-describe("cadastro", () => {
-  test("e-mail novo e e-mail já cadastrado têm a mesma resposta", async () => {
+describe("sign-up", () => {
+  test("new email and already registered email get the same response", async () => {
     const call = newCaller();
     const mail = captureMail();
     const body = { name: "Lia", email: "lia@exemplo.com", password: PASSWORD };
@@ -54,7 +54,7 @@ describe("cadastro", () => {
       Object.keys(first.body as object).toSorted(),
     );
     await new Promise((resolve) => setTimeout(resolve, 50));
-    // O dono do e-mail recebe a confirmação e depois o aviso da tentativa.
+    // The email owner gets the verification and then the attempt notice.
     assert.equal(mail.count("lia@exemplo.com"), 2);
     const rows = await db
       .select()
@@ -64,7 +64,7 @@ describe("cadastro", () => {
     assert.equal(rows[0]?.name, "Lia");
   });
 
-  test("sem confirmar o e-mail não entra; o link confirma e já entra", async () => {
+  test("cannot sign in without verifying the email; the link verifies and signs in", async () => {
     const call = newCaller();
     const mail = captureMail();
     await call("/sign-up/email", {
@@ -77,7 +77,7 @@ describe("cadastro", () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     const link = mail.linkFor("mel@exemplo.com");
-    assert.ok(link, "link de confirmação no e-mail");
+    assert.ok(link, "verification link in the email");
     const url = new URL(link);
     const jar = new CookieJar();
     const verify = await auth.handler(
@@ -93,11 +93,11 @@ describe("cadastro", () => {
     const session = await call("/get-session", { method: "GET", jar });
     assert.ok(
       session.body && typeof session.body === "object" && "user" in session.body,
-      "entrou após confirmar",
+      "signed in after verifying",
     );
   });
 
-  test("senha curta é recusada", async () => {
+  test("short password is rejected", async () => {
     const res = await newCaller()("/sign-up/email", {
       body: { name: "Nina", email: "nina@exemplo.com", password: "curta" },
     });
@@ -106,7 +106,7 @@ describe("cadastro", () => {
 });
 
 describe("login", () => {
-  test("conta bloqueada pelo painel não abre sessão", async () => {
+  test("account blocked from the admin panel gets no session", async () => {
     const ana = await verifiedParticipant(db, handler);
     await db.update(schema.users).set({ blockedAt: new Date() }).where(eq(schema.users.id, ana.id));
     const res = await newCaller()("/sign-in/email", {
@@ -115,7 +115,7 @@ describe("login", () => {
     assert.notEqual(res.status, 200);
   });
 
-  test("bloqueio por tentativas vale para participantes, separado do admin", async () => {
+  test("attempt lockout applies to participants, separate from admin", async () => {
     const bia = await verifiedParticipant(db, handler);
     for (let i = 0; i < 5; i++) {
       const res = await makeCaller(
@@ -139,15 +139,15 @@ describe("login", () => {
     assert.equal(failure?.scope, "user");
   });
 
-  test("cookie da conta não serve no painel admin", async () => {
+  test("account cookie does not work in the admin panel", async () => {
     const caio = await verifiedParticipant(db, handler);
     assert.ok(caio.jar.has("nelcota."));
     assert.equal(caio.jar.has("nelcota-admin"), false);
   });
 });
 
-describe("foto de perfil", () => {
-  test("cadastro valida a foto com as mesmas regras da atualização", async () => {
+describe("profile photo", () => {
+  test("sign-up validates the photo with the same rules as the update", async () => {
     const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
     const invalidImages = [
       "https://example.com/photo.png",
@@ -177,10 +177,10 @@ describe("foto de perfil", () => {
     );
   });
 
-  test("salva e remove a foto da própria conta; recusa URLs, SVG e imagens grandes", async () => {
+  test("saves and removes the account's own photo; rejects URLs, SVG and large images", async () => {
     const participant = await verifiedParticipant(db, handler);
     const call = newCaller();
-    // WebP de 1 px: o endpoint recebe o formato produzido pelo editor.
+    // 1 px WebP: the endpoint receives the format produced by the editor.
     const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
     const saved = await call("/update-user", { body: { image }, jar: participant.jar });
     assert.equal(saved.status, 200);

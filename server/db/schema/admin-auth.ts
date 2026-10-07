@@ -15,9 +15,9 @@ import { ADMIN_ROLES } from "@/features/auth/domain/roles";
 import { createdAt, id, timestamptz, updatedAt } from "./columns";
 
 /**
- * Tabelas da instância de admin do Better Auth (`/api/admin/auth`). As chaves
- * TypeScript seguem os nomes de campo do Better Auth; as colunas são snake_case.
- * Ver `server/auth/admin.ts` (modelName de cada tabela).
+ * Tables of the Better Auth admin instance (`/api/admin/auth`). The TypeScript
+ * keys follow Better Auth's field names; the columns are snake_case.
+ * See `server/auth/admin.ts` (modelName of each table).
  */
 const roleList = sql.raw(ADMIN_ROLES.map((role) => `'${role}'`).join(", "));
 
@@ -30,7 +30,7 @@ export const adminUsers = pgTable(
     emailVerified: boolean("email_verified").notNull().default(false),
     image: text("image"),
     twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
-    // Plugin admin: papel e desativação (banned = conta desativada pelo owner).
+    // Admin plugin: role and deactivation (banned = account deactivated by the owner).
     role: text("role").notNull().default("viewer"),
     banned: boolean("banned").notNull().default(false),
     banReason: text("ban_reason"),
@@ -56,7 +56,7 @@ export const adminSessions = pgTable(
     expiresAt: timestamptz("expires_at").notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    // Plugin admin. A impersonação fica desligada, mas o campo faz parte do schema.
+    // Admin plugin. Impersonation is disabled, but the field is part of the schema.
     impersonatedBy: uuid("impersonated_by"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -73,7 +73,7 @@ export const adminAccounts = pgTable(
       .references(() => adminUsers.id, { onDelete: "cascade" }),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
-    // Hash argon2id (provider "credential"). Os campos OAuth ficam vazios.
+    // argon2id hash (provider "credential"). The OAuth fields stay empty.
     password: text("password"),
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
@@ -110,7 +110,7 @@ export const adminTwoFactors = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => adminUsers.id, { onDelete: "cascade" }),
-    // Cifrados pelo Better Auth com o segredo da instância.
+    // Encrypted by Better Auth with the instance secret.
     secret: text("secret").notNull(),
     backupCodes: text("backup_codes").notNull(),
     verified: boolean("verified").notNull().default(true),
@@ -130,8 +130,8 @@ export const adminRateLimits = pgTable("admin_rate_limits", {
 export const inviteStatus = pgEnum("invite_status", ["pending", "accepted", "revoked", "expired"]);
 
 /**
- * Convite de admin (o cadastro público é desligado). O token só existe no link
- * enviado; aqui fica o SHA-256 dele. `invited_by` nulo = convite do script de bootstrap.
+ * Admin invitation (public sign-up is disabled). The token only exists in the link
+ * that was sent; its SHA-256 is stored here. Null `invited_by` = invitation from the bootstrap script.
  */
 export const adminInvitations = pgTable(
   "admin_invitations",

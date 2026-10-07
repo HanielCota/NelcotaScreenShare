@@ -1,16 +1,16 @@
 export interface MicrophoneOption {
-  /** Valor escolhido: "" segue o padrão do sistema. */
+  /** Chosen value: "" follows the system default. */
   value: string;
   /**
-   * Outros IDs que apontam para este aparelho: o físico, quando o valor é "",
-   * e "communications" no aparelho de chamadas. Uma escolha salva com um deles
-   * continua marcando o aparelho que de fato está sendo capturado.
+   * Other IDs that point to this device: the physical one, when the value is "",
+   * and "communications" on the calls device. A choice saved with one of them
+   * keeps marking the device that is actually being captured.
    */
   aliases: string[];
   label: string;
-  /** Etiquetas curtas: "Padrão", "Chamadas". */
+  /** Short badges: "Padrão", "Chamadas". */
   badges: string[];
-  /** Detalhe útil, só quando informa algo ("Bluetooth"). */
+  /** Useful detail, only when it tells something ("Bluetooth"). */
   detail?: string;
   kind: "system" | "microphone" | "headset" | "camera";
 }
@@ -19,7 +19,7 @@ type AudioDevice = Pick<MediaDeviceInfo, "deviceId" | "label">;
 
 const WRAPPER_PREFIX = /^(?:default|padr[aã]o|communications|comunica[cç][oõ]es)\s*-\s*/i;
 
-/** Limpa apenas os invólucros conhecidos; o ID usado na captura não muda. */
+/** Strips only the known wrappers; the ID used for capture does not change. */
 export function microphoneLabel(label: string, fallback: string): string {
   const clean = label
     .replace(WRAPPER_PREFIX, "")
@@ -37,14 +37,14 @@ function deviceKind(label: string): MicrophoneOption["kind"] {
   return "microphone";
 }
 
-/** Entrada "default"/"communications" do Chrome aponta para qual aparelho real. */
+/** Which real device Chrome's "default"/"communications" entry points to. */
 function sameDevice(alias: AudioDevice | undefined, device: AudioDevice): boolean {
   return !!alias?.label && alias.label.replace(WRAPPER_PREFIX, "").trim() === device.label.trim();
 }
 
 /**
- * Uma opção por aparelho. O padrão do sistema e o de chamadas viram etiquetas
- * no próprio aparelho; escolher o "Padrão" segue o sistema (valor "").
+ * One option per device. The system default and the calls default become badges
+ * on the device itself; choosing "Padrão" follows the system (value "").
  */
 export function microphoneOptions(devices: readonly AudioDevice[]): MicrophoneOption[] {
   const system = devices.find((device) => device.deviceId === "default");
@@ -69,12 +69,12 @@ export function microphoneOptions(devices: readonly AudioDevice[]): MicrophoneOp
   });
 
   if (systemDevice) {
-    // O padrão vai primeiro: é a escolha mais comum.
+    // The default goes first: it is the most common choice.
     const index = physical.indexOf(systemDevice);
     options.unshift(...options.splice(index, 1));
     return options;
   }
-  // Sem saber qual aparelho é o padrão (outros navegadores): opção própria.
+  // Without knowing which device is the default (other browsers): a separate option.
   return [
     {
       value: "",

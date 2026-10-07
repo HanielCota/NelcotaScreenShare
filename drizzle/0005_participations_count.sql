@@ -1,6 +1,6 @@
 ALTER TABLE "users" ADD COLUMN "participations_count" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
 CREATE INDEX "users_participations_idx" ON "users" USING btree ("participations_count" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "users"."deleted_at" is null;--> statement-breakpoint
--- ===== Escrito à mão: contador de participações por participante =====
+-- ===== Handwritten: per-participant participations counter =====
 CREATE OR REPLACE FUNCTION users_count_participations() RETURNS trigger
   LANGUAGE plpgsql
   AS $$

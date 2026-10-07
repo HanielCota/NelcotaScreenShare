@@ -1,8 +1,8 @@
 /**
- * Script inline que roda só no HTML do servidor (antes da primeira pintura).
- * No cliente vira `text/plain`: o React avisa ao renderizar <script> e ele
- * nunca executaria mesmo. `suppressHydrationWarning` cobre a diferença de
- * `type` e o `nonce`, que o navegador esconde depois de ler.
+ * Inline script that only runs in the server HTML (before the first paint).
+ * On the client it becomes `text/plain`: React warns when rendering <script> and
+ * it would never run anyway. `suppressHydrationWarning` covers the `type`
+ * difference and the `nonce`, which the browser hides after reading it.
  */
 export function InlineScript({ html, nonce }: { html: string; nonce?: string }) {
   return (

@@ -3,8 +3,8 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Painel que abre do dock: mesmo vidro, mesma distância e a mesma entrada
- * (sobe e cresce a partir do botão) em todos os menus da sala.
+ * Panel that opens from the dock: same glass, same offset and the same entrance
+ * (rises and grows from the button) in every room menu.
  */
 export function DockPopoverContent({
   className,
@@ -33,7 +33,7 @@ export function DockPopoverContent({
   );
 }
 
-/** Título do painel, alinhado com o texto das opções. */
+/** Panel title, aligned with the options' text. */
 export function DockPopoverTitle({ children, hint }: { children: ReactNode; hint?: ReactNode }) {
   return (
     <div className="px-3 pt-2 pb-2.5">

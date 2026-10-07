@@ -1,4 +1,4 @@
-/** Descrição curta do dispositivo a partir do user agent ("Chrome no Windows"). */
+/** Short device description from the user agent ("Chrome no Windows"). */
 export function describeUserAgent(ua: string | null | undefined): string {
   if (!ua) return "Dispositivo desconhecido";
   const browser = /Edg\//.test(ua)

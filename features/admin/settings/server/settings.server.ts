@@ -5,9 +5,9 @@ import { appSettings } from "@/server/db/schema";
 import { logger } from "@/server/logger.server";
 
 /**
- * Configurações do app editadas no /admin. Cada grupo é uma linha em
- * `app_settings` (chave + JSON) com um schema Zod próprio e valores padrão:
- * banco fora do ar, sem linha ou com JSON inválido, valem os padrões.
+ * App settings edited in /admin. Each group is one row in
+ * `app_settings` (key + JSON) with its own Zod schema and default values:
+ * with the database down, no row or invalid JSON, the defaults apply.
  */
 interface SettingGroup<T> {
   key: string;
@@ -15,7 +15,7 @@ interface SettingGroup<T> {
   defaults: T;
 }
 
-/** Saturação do mascote por tema (filtro CSS `saturate`): 0 = cinza, 1 = original, 2 = vivo. */
+/** Mascot saturation per theme (CSS `saturate` filter): 0 = gray, 1 = original, 2 = vivid. */
 export const MASCOT_SATURATION = { min: 0, max: 2, step: 0.05 } as const;
 
 const saturation = z
@@ -36,14 +36,14 @@ export const mascotSettings: SettingGroup<{
 export type MascotSettings = z.infer<typeof mascotSettings.schema>;
 
 /**
- * Cache em memória, por processo: o layout lê o mascote em toda página e o
- * valor quase nunca muda. Salvar limpa o cache; o TTL só limita o atraso se um
- * dia houver mais de uma instância.
+ * In-memory cache, per process: the layout reads the mascot on every page and the
+ * value almost never changes. Saving clears the cache; the TTL only bounds the delay
+ * if there is ever more than one instance.
  */
 const CACHE_TTL_MS = 60_000;
 const cache = new Map<string, { value: unknown; expiresAt: number }>();
 
-/** Avisa a falha de leitura uma vez por minuto, não a cada página. */
+/** Reports the read failure once per minute, not on every page. */
 let lastReadErrorAt = 0;
 
 async function readRaw(db: Database, key: string): Promise<unknown> {
@@ -54,11 +54,11 @@ async function readRaw(db: Database, key: string): Promise<unknown> {
   return row?.value;
 }
 
-/** `db`: conexão a usar (testes); omitido usa a do app. */
+/** `db`: connection to use (tests); when omitted, the app's connection is used. */
 export async function getSetting<T>(group: SettingGroup<T>, db: Database = getDb()): Promise<T> {
   const hit = cache.get(group.key);
   if (hit && hit.expiresAt > Date.now()) {
-    // O cache precisa da mesma validação dos valores lidos do banco.
+    // The cache needs the same validation as values read from the database.
     const cached = group.schema.safeParse(hit.value);
     if (cached.success) return cached.data;
   }
@@ -67,10 +67,10 @@ export async function getSetting<T>(group: SettingGroup<T>, db: Database = getDb
     const parsed = group.schema.safeParse(await readRaw(db, group.key));
     if (parsed.success) value = parsed.data;
   } catch (error) {
-    // Banco fora do ar não pode derrubar a página: segue com o padrão, sem cachear.
+    // A database outage must not break the page: fall back to the default, without caching.
     if (Date.now() - lastReadErrorAt > 60_000) {
       lastReadErrorAt = Date.now();
-      logger.error({ err: error, setting: group.key }, "falha ao ler configuração");
+      logger.error({ err: error, setting: group.key }, "failed to read setting");
     }
     return group.defaults;
   }
@@ -79,8 +79,8 @@ export async function getSetting<T>(group: SettingGroup<T>, db: Database = getDb
 }
 
 /**
- * Valida e grava (upsert). Lança `ZodError` para valor inválido. Aceita uma
- * transação para gravar junto com o audit log; `updatedBy` = admin que mudou.
+ * Validates and writes (upsert). Throws `ZodError` for an invalid value. Accepts a
+ * transaction to write together with the audit log; `updatedBy` = admin who changed it.
  */
 export async function saveSetting<T>(
   group: SettingGroup<T>,
@@ -100,12 +100,12 @@ export async function saveSetting<T>(
   return value;
 }
 
-/** Limpa o cache depois do commit (a transação pode ter gravado por último). */
+/** Clears the cache after the commit (the transaction may have written last). */
 export function invalidateSetting(key: string) {
   cache.delete(key);
 }
 
-/** Só para testes: esquece o cache entre casos. */
+/** Tests only: forgets the cache between cases. */
 export function clearSettingsCache() {
   cache.clear();
 }

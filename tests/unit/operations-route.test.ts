@@ -33,7 +33,7 @@ function dispatch(id: string, init?: RequestInit) {
   });
 }
 
-test("operações desconhecidas ou métodos errados não executam a operação", async () => {
+test("unknown operations or wrong methods do not run the operation", async () => {
   expect((await dispatch("toString")).status).toBe(404);
   const response = await dispatch("auth-acceptInvitation", { method: "GET", body: undefined });
   expect(response.status).toBe(405);
@@ -41,7 +41,7 @@ test("operações desconhecidas ou métodos errados não executam a operação",
   expect(handle).not.toHaveBeenCalled();
 });
 
-test("POST de outra origem é recusado antes da operação", async () => {
+test("cross-origin POST is rejected before the operation", async () => {
   expect(
     (await dispatch("auth-acceptInvitation", { headers: { origin: "https://outro.example" } }))
       .status,
@@ -49,7 +49,7 @@ test("POST de outra origem é recusado antes da operação", async () => {
   expect(handle).not.toHaveBeenCalled();
 });
 
-test("JSON inválido e corpo excessivo não executam a operação", async () => {
+test("invalid JSON and oversized body do not run the operation", async () => {
   expect((await dispatch("auth-acceptInvitation", { body: "[" })).status).toBe(400);
   expect(
     (await dispatch("auth-acceptInvitation", { body: "x".repeat(1024 * 1024 + 1) })).status,
@@ -57,7 +57,7 @@ test("JSON inválido e corpo excessivo não executam a operação", async () => 
   expect(handle).not.toHaveBeenCalled();
 });
 
-test("aceite de convite redireciona no servidor antes da revalidação da página", async () => {
+test("accepting an invitation redirects on the server before page revalidation", async () => {
   handle.mockImplementation(async () => {
     expect(requestHeaders().get("origin")).toBe("http://localhost");
     return { data: { accepted: true } };
@@ -68,7 +68,7 @@ test("aceite de convite redireciona no servidor antes da revalidação da págin
   expect(handle).toHaveBeenCalledWith({ token: "convite" });
 });
 
-test("erros de validação continuam no formulário e respostas não são cacheadas", async () => {
+test("validation errors stay on the form and responses are not cached", async () => {
   handle.mockResolvedValue({ serverError: "Convite expirado." });
   const response = await dispatch("auth-acceptInvitation");
   expect(response.headers.get("Location")).toBeNull();

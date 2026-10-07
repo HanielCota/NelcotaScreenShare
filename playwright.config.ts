@@ -4,18 +4,18 @@ import { defineConfig, devices } from "@playwright/test";
 import { E2E_ACCESS_PASSWORD, E2E_PORT, E2E_URL } from "./tests/e2e/support/env";
 
 /**
- * E2E dos fluxos críticos (docs/archive/refactor/04-migration-plan.md §1).
- * Precisa do Postgres e do LiveKit de desenvolvimento (docs/development.md).
- * O app usa E2E_PORT (3100 por padrão) e um banco próprio (nelcota_e2e), recriado a cada execução.
+ * E2E of the critical flows (docs/archive/refactor/04-migration-plan.md §1).
+ * Needs the development Postgres and LiveKit (docs/development.md).
+ * The app uses E2E_PORT (3100 by default) and its own database (nelcota_e2e), recreated on every run.
  */
 const local = existsSync(".env.local") ? parseEnv(readFileSync(".env.local", "utf8")) : {};
 const env = { ...local, ...process.env };
-// O global-setup (mesmo processo) recria o banco do E2E a partir desta URL.
+// The global-setup (same process) recreates the E2E database from this URL.
 process.env.TEST_DATABASE_URL ??= local.TEST_DATABASE_URL;
 
 function e2eDatabaseUrl(): string {
   const base = env.TEST_DATABASE_URL;
-  if (!base) throw new Error("Defina TEST_DATABASE_URL (Postgres de testes) para rodar o E2E.");
+  if (!base) throw new Error("Set TEST_DATABASE_URL (test Postgres) to run the E2E.");
   const url = new URL(base);
   url.pathname = "/nelcota_e2e";
   return url.toString();
@@ -24,7 +24,7 @@ function e2eDatabaseUrl(): string {
 export default defineConfig({
   testDir: "tests/e2e",
   globalSetup: "tests/e2e/global-setup.ts",
-  // Salas reais no LiveKit: um teste por vez deixa o resultado previsível.
+  // Real rooms on LiveKit: one test at a time keeps results predictable.
   workers: 1,
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
@@ -46,7 +46,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         launchOptions: {
           args: [
-            // Microfone e tela falsos, sem diálogo de permissão.
+            // Fake microphone and screen, without a permission dialog.
             "--use-fake-ui-for-media-stream",
             "--use-fake-device-for-media-stream",
             "--auto-select-desktop-capture-source=Entire screen",

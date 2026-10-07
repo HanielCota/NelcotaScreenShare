@@ -5,14 +5,14 @@ import { useMicLevel } from "./use-mic-level";
 import { useMicPermission } from "./use-mic-permission";
 import type { MicrophoneCheck } from "@/features/room/domain/microphone-check";
 
-/** O microfone salvo só muda por esta tela, que já guarda a escolha no estado. */
+/** The saved microphone only changes through this screen, which already keeps the choice in state. */
 function subscribeNothing(): () => void {
   return () => {};
 }
 
 /**
- * Microfone na pré-entrada: ligado ou não, permissão do navegador, aparelho
- * escolhido (lembrado), erro e o medidor ao vivo. `paused`: entrando na sala.
+ * Microphone in the pre-join screen: on or off, browser permission, chosen
+ * device (remembered), error and the live meter. `paused`: joining the room.
  */
 export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement | null>) {
   const [enabled, setEnabled] = useState(true);
@@ -21,13 +21,13 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [check, setCheck] = useState<{ deviceId: string | undefined; state: MicrophoneCheck }>();
   const { permission, setPermission, request } = useMicPermission();
-  // Escolha feita nesta tela; antes disso vale o microfone da última vez.
-  // `null` é "Padrão do sistema" escolhido de propósito.
+  // Choice made on this screen; before that, the microphone from last time applies.
+  // `null` is "Padrão do sistema" chosen on purpose.
   const [chosen, setChosen] = useState<string | null>();
   const saved = useSyncExternalStore(subscribeNothing, savedMicrophone, () => undefined);
   const deviceId = chosen === undefined ? saved : (chosen ?? undefined);
-  // Medidor ao vivo sozinho: com a permissão dada e o microfone ligado, ninguém
-  // precisa achar um botão "Testar" (leigo não testa e entra mudo).
+  // Live meter on its own: with permission granted and the microphone on, nobody
+  // has to find a "Testar" button (non-technical users do not test and join muted).
   const testing = enabled && permission === "granted" && !error && !paused;
   const blocked = permission === "denied";
 
@@ -53,7 +53,7 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
     deviceId,
     testing,
     blocked,
-    /** Entra sem microfone (desligado ou bloqueado pelo navegador). */
+    /** Joins without a microphone (turned off or blocked by the browser). */
     joinsMuted: !enabled || blocked,
     setEnabled(next: boolean) {
       setEnabled(next);

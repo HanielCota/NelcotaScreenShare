@@ -9,17 +9,17 @@ interface RateLimitResult {
 }
 
 export interface RateLimiter {
-  /** Conta uma tentativa e diz se ela ainda cabe no limite. */
+  /** Counts an attempt and says whether it still fits within the limit. */
   hit(key: string): RateLimitResult;
-  /** Diz se mais uma tentativa caberia, sem contar nada. */
+  /** Says whether one more attempt would fit, without counting anything. */
   peek(key: string): RateLimitResult;
-  /** Esquece a chave (ex.: senha certa zera as tentativas erradas). */
+  /** Forgets the key (e.g. a correct password clears the wrong attempts). */
   reset(key: string): void;
 }
 
 /**
- * Rate limit de janela fixa, em memória. Suficiente para uma única instância
- * (o caso deste app no Coolify). Para várias réplicas, troque por Redis.
+ * Fixed-window, in-memory rate limit. Enough for a single instance
+ * (this app's case on Coolify). For multiple replicas, switch to Redis.
  */
 export function createRateLimiter({
   limit,

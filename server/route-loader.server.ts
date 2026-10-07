@@ -3,7 +3,7 @@ import { withRequest } from "./request-context.server";
 
 type RouteRequest = LoaderFunctionArgs & { searchParams: Record<string, string> };
 
-/** Escopo e URL comuns; cada rota continua declarando sua consulta e autorização. */
+/** Shared scope and URL; each route still declares its own query and authorization. */
 export function routeLoader<T>(load: (args: RouteRequest) => T) {
   return (args: LoaderFunctionArgs): T =>
     withRequest(args.request, args.context, () =>

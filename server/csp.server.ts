@@ -1,11 +1,11 @@
 /**
- * Content-Security-Policy do app. A origem do LiveKit só é conhecida em runtime
- * (LIVEKIT_URL), por isso o cabeçalho é montado no middleware do servidor.
+ * The app's Content-Security-Policy. The LiveKit origin is only known at runtime
+ * (LIVEKIT_URL), so the header is built in the server middleware.
  *
- * Scripts só com o nonce da requisição + 'strict-dynamic' (o que eles
- * carregarem herda a confiança): script injetado por XSS não roda. Estilos
- * mantêm 'unsafe-inline' porque nonce não cobre atributos `style` (React,
- * Radix e GSAP usam). Conexões só para o próprio app e o LiveKit.
+ * Scripts only with the request nonce + 'strict-dynamic' (whatever they
+ * load inherits the trust): a script injected via XSS does not run. Styles
+ * keep 'unsafe-inline' because a nonce does not cover `style` attributes (React,
+ * Radix and GSAP use them). Connections only to the app itself and LiveKit.
  */
 export function buildCsp({
   livekitUrl,
@@ -17,19 +17,19 @@ export function buildCsp({
   livekitUrl: string;
   dev: boolean;
   nonce: string;
-  /** Com Sentry ligado, o navegador envia erros para a origem do DSN. */
+  /** With Sentry enabled, the browser sends errors to the DSN's origin. */
   sentryDsn?: string | undefined;
   devWebSocketOrigin?: string;
 }): string {
   const livekit = new URL(livekitUrl);
   const secure = livekit.protocol === "wss:";
-  // O SDK fala WebSocket com o servidor e, em falhas, consulta /rtc/validate via HTTP(S).
+  // The SDK talks WebSocket to the server and, on failures, queries /rtc/validate over HTTP(S).
   const livekitWs = `${livekit.protocol}//${livekit.host}`;
   const livekitHttp = `${secure ? "https" : "http"}://${livekit.host}`;
 
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
-    // React usa eval só em desenvolvimento, para reconstruir stacks de erro.
+    // React uses eval only in development, to rebuild error stacks.
     "script-src": [
       "'self'",
       `'nonce-${nonce}'`,
@@ -55,7 +55,7 @@ export function buildCsp({
   };
 
   const policy = Object.entries(directives).map(([name, values]) => `${name} ${values.join(" ")}`);
-  // Só com LiveKit em wss: com ws:// (dev local) o navegador "subiria" a conexão para wss e quebraria.
+  // Only with LiveKit on wss: with ws:// (local dev) the browser would "upgrade" the connection to wss and break it.
   if (secure && !dev) policy.push("upgrade-insecure-requests");
   return policy.join("; ");
 }

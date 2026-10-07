@@ -10,7 +10,7 @@ import { formatDateTime, formatRelative } from "@/lib/format";
 import { AuditDetail } from "./AuditDetail";
 import { AuditFilters, type AuditFilterOptions } from "./AuditFilters";
 
-/** Abre o painel de detalhes a partir da célula (as colunas ficam fora do render). */
+/** Opens the details panel from the cell (the columns are defined outside render). */
 const OpenDetailContext = createContext<(row: AuditRow) => void>(() => {});
 
 function DetailButton({ row }: { row: AuditRow }) {

@@ -3,7 +3,7 @@ import AdminNotFound from "./AdminNotFound";
 import { RotateCcw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-/** Erro inesperado numa página do painel: mensagem sem detalhes internos + código para o suporte. */
+/** Unexpected error on an admin page: message without internal details + a code for support. */
 export function AdminErrorBoundary() {
   const error = useRouteError();
   const revalidator = useRevalidator();

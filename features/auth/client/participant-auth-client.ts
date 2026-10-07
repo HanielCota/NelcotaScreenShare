@@ -1,7 +1,7 @@
 import { twoFactorClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
-/** Cliente do Better Auth das contas de participantes (/api/auth). */
+/** Better Auth client for participant accounts (/api/auth). */
 export const authClient = createAuthClient({
   basePath: "/api/auth",
   plugins: [

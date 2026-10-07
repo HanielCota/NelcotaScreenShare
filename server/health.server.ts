@@ -3,15 +3,15 @@ import { getDb } from "@/server/db/index.server";
 import { getEnv } from "@/server/env.server";
 import { logger } from "@/server/logger.server";
 
-/** Vivacidade: só o processo responde (HEALTHCHECK do container). */
+/** Liveness: only the process answers (container HEALTHCHECK). */
 export function liveness() {
   return Response.json({ status: "ok" }, { headers: { "Cache-Control": "no-store" } });
 }
 
 /**
- * Prontidão: o app consegue falar com o banco? Usado pelo smoke test do deploy
- * e pelo monitor de uptime. O HEALTHCHECK do container usa /api/health (só o
- * processo), para uma queda do banco não derrubar o app em loop de reinício.
+ * Readiness: can the app talk to the database? Used by the deploy smoke test
+ * and by the uptime monitor. The container HEALTHCHECK uses /api/health (process
+ * only), so a database outage does not knock the app into a restart loop.
  */
 export async function readiness() {
   const headers = { "Cache-Control": "no-store" };
@@ -26,7 +26,7 @@ export async function readiness() {
       new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 2_000)),
     ]);
   } catch (error) {
-    logger.warn({ err: error }, "readiness: banco indisponível");
+    logger.warn({ err: error }, "readiness: database unavailable");
     return Response.json(
       { status: "unavailable", version, database: "down" },
       { status: 503, headers },

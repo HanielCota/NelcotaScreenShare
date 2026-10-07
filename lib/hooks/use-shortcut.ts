@@ -8,8 +8,8 @@ function isTyping(target: EventTarget | null): boolean {
 }
 
 /**
- * Atalho de uma tecla, sem modificadores. Ignorado enquanto a pessoa digita
- * (chat, campos) e com a tecla segurada. `key` em minúsculas, como "m".
+ * Single-key shortcut, without modifiers. Ignored while the person is typing
+ * (chat, fields) and while the key is held down. `key` in lowercase, like "m".
  */
 export function useShortcut(key: string, onPress: () => void, enabled = true) {
   const handle = useEffectEvent(onPress);

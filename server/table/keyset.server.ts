@@ -3,15 +3,15 @@ import { z } from "zod";
 import type { DbExecutor } from "@/server/db/index.server";
 
 /**
- * Paginação keyset (docs/archive/admin-plan.md §2.6): `WHERE (col, id) < (v, id)`
- * em vez de OFFSET, estável com centenas de milhares de linhas e com empates
- * na coluna de ordenação (o id desempata). Anterior/próxima com cursores.
+ * Keyset pagination (docs/archive/admin-plan.md §2.6): `WHERE (col, id) < (v, id)`
+ * instead of OFFSET, stable with hundreds of thousands of rows and with ties
+ * in the sort column (the id breaks ties). Previous/next with cursors.
  */
 export type Direction = "asc" | "desc";
 type PageDirection = "next" | "prev";
 
 const cursorSchema = z.object({
-  /** Valor da coluna de ordenação (datas em ISO). */
+  /** Value of the sort column (dates in ISO). */
   v: z.union([z.string().max(200), z.number(), z.null()]),
   id: z.string().max(64),
 });
@@ -21,7 +21,7 @@ function encodeCursor(cursor: Cursor): string {
   return Buffer.from(JSON.stringify(cursor)).toString("base64url");
 }
 
-/** Cursor inválido (mexido à mão) vira "primeira página", sem erro. */
+/** An invalid (hand-edited) cursor becomes "first page", without an error. */
 export function decodeCursor(raw: string | null | undefined): Cursor | undefined {
   if (!raw || raw.length > 500) return undefined;
   try {
@@ -34,9 +34,9 @@ export function decodeCursor(raw: string | null | undefined): Cursor | undefined
 
 export interface SortColumn<TRow> {
   column: AnyColumn;
-  /** Valor do cursor a partir de uma linha. */
+  /** Cursor value from a row. */
   valueOf: (row: TRow) => string | number | null;
-  /** Converte o valor do cursor de volta para comparar no SQL. */
+  /** Converts the cursor value back for comparison in SQL. */
   parse?: (value: string | number | null) => unknown;
 }
 
@@ -44,7 +44,7 @@ function flip(direction: Direction): Direction {
   return direction === "asc" ? "desc" : "asc";
 }
 
-/** Condição "depois do cursor" para a ordem efetiva da consulta. */
+/** "After the cursor" condition for the query's effective order. */
 function afterCursor(
   sort: Pick<SortColumn<unknown>, "column" | "parse">,
   idColumn: AnyColumn,
@@ -55,7 +55,7 @@ function afterCursor(
   const value = sort.parse ? sort.parse(cursor.v) : cursor.v;
   const beyond = order === "desc" ? lt : gt;
   if (value === null) {
-    // Ao voltar, os nulos vêm primeiro e os valores preenchidos vêm depois.
+    // When going back, nulls come first and filled values come after.
     return or(
       and(sql`${sort.column} is null`, beyond(idColumn, cursor.id)),
       page === "prev" ? sql`${sort.column} is not null` : undefined,
@@ -77,7 +77,7 @@ export interface KeysetQuery<TRow> {
   limit: number;
 }
 
-/** WHERE e ORDER BY da página pedida (a de "anterior" consulta na ordem inversa). */
+/** WHERE and ORDER BY of the requested page (the "previous" one queries in reverse order). */
 export function keysetClauses<TRow>(query: KeysetQuery<TRow>) {
   const order = query.page === "prev" ? flip(query.direction) : query.direction;
   const by = order === "desc" ? desc : asc;
@@ -99,7 +99,7 @@ export interface Page<TRow> {
   prevCursor: string | null;
 }
 
-/** Monta a página a partir das `limit + 1` linhas lidas. */
+/** Builds the page from the `limit + 1` rows read. */
 export function keysetPage<TRow extends { id: string }>(
   rows: TRow[],
   query: KeysetQuery<TRow>,
@@ -119,7 +119,7 @@ export function keysetPage<TRow extends { id: string }>(
   };
 }
 
-/** Total até 10.000 (acima disso, "mais de 10.000"): COUNT(*) inteiro custaria caro. */
+/** Total up to 10,000 (above that, "more than 10,000"): a full COUNT(*) would be expensive. */
 export const COUNT_CAP = 10_000;
 
 export async function approximateCount(
@@ -134,9 +134,9 @@ export async function approximateCount(
 }
 
 /**
- * Timestamps no cursor: o texto exato do Postgres (microssegundos). Um `Date`
- * do JS só guarda milissegundos e faria a linha da fronteira repetir ou sumir.
- * Selecione a coluna com `timestampKey(col)` e compare com `parse`.
+ * Timestamps in the cursor: Postgres's exact text (microseconds). A JS `Date`
+ * only keeps milliseconds and would make the boundary row repeat or disappear.
+ * Select the column with `timestampKey(col)` and compare with `parse`.
  */
 export function timestampKey(column: AnyColumn) {
   return sql<string>`${column}::text`;
@@ -148,9 +148,9 @@ export const timestampCursor = {
 };
 
 /**
- * Coluna ordenável genérica: o cursor guarda o valor como texto do Postgres
- * (exato, inclusive microssegundos) e volta com cast para o tipo da coluna.
- * Selecione `key` como `sortKey` na consulta.
+ * Generic sortable column: the cursor stores the value as Postgres text
+ * (exact, including microseconds) and casts it back to the column type.
+ * Select `key` as `sortKey` in the query.
  */
 export function sortableColumn<TRow extends { sortKey: string | null }>(
   column: AnyColumn,

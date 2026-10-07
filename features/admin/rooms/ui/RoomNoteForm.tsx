@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { updateRoomNoteAction } from "@/features/admin/rooms/actions";
 
-/** Nota interna da sala: só o painel vê. */
+/** Internal room note: only the admin panel sees it. */
 export function RoomNoteForm({
   id,
   note,

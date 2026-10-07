@@ -14,7 +14,7 @@ function value(v: unknown): string {
   return typeof v === "string" ? v : JSON.stringify(v);
 }
 
-/** Painel lateral com tudo o que foi registrado num evento (antes → depois, detalhes). */
+/** Side panel with everything recorded for an event (before → after, details). */
 export function AuditDetail({ row, onClose }: { row: AuditRow | null; onClose: () => void }) {
   return (
     <Sheet open={row !== null} onOpenChange={(open) => (open ? null : onClose())}>

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { CHAT_GROUP_GAP_MS, chatGroupStarts, chatParts } from "@/features/room/domain/chat-format";
 
-test("agrupa mensagens seguidas da mesma pessoa até o intervalo limite", () => {
+test("groups consecutive messages from the same person up to the gap limit", () => {
   expect(
     chatGroupStarts([
       { author: "ana", timestamp: 0 },
@@ -13,7 +13,7 @@ test("agrupa mensagens seguidas da mesma pessoa até o intervalo limite", () => 
   ).toEqual([true, false, true, true, true]);
 });
 
-test("separa links do texto e deixa a pontuação final fora do link", () => {
+test("splits links from text and leaves trailing punctuation out of the link", () => {
   expect(chatParts("veja https://exemplo.com/a?b=1, e depois http://x.dev.")).toEqual([
     { type: "text", value: "veja " },
     { type: "link", value: "https://exemplo.com/a?b=1" },

@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 /**
- * Mensagens trocadas pelo canal de dados do LiveKit. Chegam de outros
- * navegadores, então tudo é validado antes de virar estado.
+ * Messages exchanged over the LiveKit data channel. They come from other
+ * browsers, so everything is validated before it becomes state.
  */
 export const TOPICS = {
   reaction: "nelcota.reaction",
@@ -14,7 +14,7 @@ export type Reaction = (typeof REACTIONS)[number];
 
 export const reactionSchema = z.object({ emoji: z.enum(REACTIONS) });
 
-/** Ponto na tela compartilhada, em frações (0–1) da imagem do vídeo. */
+/** Point on the shared screen, as fractions (0–1) of the video image. */
 export const pointerSchema = z.object({
   trackSid: z.string().min(1).max(64),
   x: z.number().min(0).max(1),
@@ -22,10 +22,10 @@ export const pointerSchema = z.object({
 });
 export type PointerMessage = z.infer<typeof pointerSchema>;
 
-/** Atributo do participante para "levantar a mão". */
+/** Participant attribute for "raise hand". */
 export const HAND_ATTRIBUTE = "hand";
 
-/** Limite do chat (o LiveKit aceita mais; mensagens longas atrapalham a leitura). */
+/** Chat limit (LiveKit accepts more; long messages hurt readability). */
 export const CHAT_MAX_LENGTH = 500;
 
 const encoder = new TextEncoder();
@@ -45,10 +45,10 @@ export function decodeMessage<T>(payload: Uint8Array, schema: z.ZodType<T>): T |
 }
 
 /**
- * Limite no RECEPTOR: o remetente já espaça os envios, mas um cliente
- * modificado poderia inundar os outros. Aceita no máximo uma mensagem por
- * remetente a cada `minGapMs` (metade do intervalo de envio, folga para o
- * jitter da rede juntar duas mensagens legítimas).
+ * Limit on the RECEIVER: the sender already spaces out its sends, but a modified
+ * client could flood the others. Accepts at most one message per
+ * sender every `minGapMs` (half the send interval, leaving room for
+ * network jitter to bunch two legitimate messages together).
  */
 export function createReceiveThrottle(minGapMs: number, now: () => number = Date.now) {
   const last = new Map<string, number>();

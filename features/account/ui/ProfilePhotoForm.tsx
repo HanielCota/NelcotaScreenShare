@@ -49,9 +49,9 @@ async function preparePhoto(file: File) {
 }
 
 /**
- * Foto do cartão de identidade: o próprio avatar é o controle. Sem foto, abre
- * o seletor de arquivo; com foto, um menu para trocar ou remover. A prévia só
- * vale depois de "Salvar foto". `children` é o texto ao lado do avatar.
+ * Identity card photo: the avatar itself is the control. Without a photo, it opens
+ * the file picker; with a photo, a menu to change or remove it. The preview only
+ * takes effect after "Salvar foto". `children` is the text beside the avatar.
  */
 export function ProfilePhotoForm({
   name,
@@ -100,7 +100,7 @@ export function ProfilePhotoForm({
       if (failure) return setError(authErrorMessage(failure, "Não foi possível salvar a foto."));
       toast.success(draft === null ? "Foto de perfil removida." : "Foto de perfil atualizada.");
       void revalidator.revalidate();
-      // Mantém a prévia até o servidor devolver a imagem atualizada.
+      // Keeps the preview until the server returns the updated image.
     } catch {
       setError("Não foi possível salvar a foto. Tente novamente.");
     } finally {
@@ -179,7 +179,7 @@ export function ProfilePhotoForm({
         ref={input}
         type="file"
         accept={PROFILE_PHOTO.mimeTypes.join(",")}
-        // Fora da árvore de acessibilidade: o controle é o botão do avatar.
+        // Outside the accessibility tree: the control is the avatar button.
         hidden
         aria-label="Escolher foto de perfil"
         disabled={busy}

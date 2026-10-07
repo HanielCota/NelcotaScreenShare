@@ -9,7 +9,7 @@ export type ProjectionResult = "projected" | "ignored";
 
 const ROOM_CODE = new RegExp(ROOM_CODE_PATTERN);
 
-/** O que todo handler recebe: o evento já validado, a sala e o horário. */
+/** What every handler receives: the already validated event, the room and the time. */
 interface EventContext {
   tx: DbExecutor;
   payload: WebhookPayload;
@@ -27,7 +27,7 @@ const roomStarted: Handler = async ({ tx, payload, code, at }) => {
 
 const roomFinished: Handler = async ({ tx, code, at }) => {
   const roomId = await ensureRoom(tx, code, at, { reopen: false });
-  // Atividade depois deste horário (evento atrasado de uma sala já reaberta) mantém a sala ativa.
+  // Activity after this time (a late event from an already reopened room) keeps the room active.
   await tx
     .update(rooms)
     .set({ status: "finished", finishedAt: sql`greatest(${rooms.startedAt}, ${at}::timestamptz)` })
@@ -82,7 +82,7 @@ const participantLeft: Handler = async ({ tx, payload, code, at }) => {
   return "projected";
 };
 
-/** Áudio da tela publicado depois do vídeo: marca o compartilhamento aberto. */
+/** Screen audio published after the video: marks the open share. */
 const screenAudioPublished: Handler = async ({ tx, payload, code, at }) => {
   if (!payload.participant) return "ignored";
   const roomId = await ensureRoom(tx, code, at, { reopen: true });
@@ -94,7 +94,7 @@ const screenAudioPublished: Handler = async ({ tx, payload, code, at }) => {
   return "projected";
 };
 
-/** Compartilhamento de tela começou ou terminou (a ordem de chegada não importa). */
+/** Screen share started or ended (arrival order does not matter). */
 const screenTrack: Handler = async ({ tx, payload, code, at }) => {
   const { participant, track } = payload;
   if (!participant || !track) return "ignored";
@@ -109,7 +109,7 @@ const screenTrack: Handler = async ({ tx, payload, code, at }) => {
       trackSid: track.sid,
       startedAt: at,
       endedAt: published ? participation.leftAt : at,
-      // O áudio da tela costuma ser publicado antes do vídeo: procura no log bruto.
+      // Screen audio is usually published before the video: look it up in the raw log.
       withAudio: sql`exists (
         select 1 from ${livekitEvents}
         where ${livekitEvents.event} = 'track_published'
@@ -120,7 +120,7 @@ const screenTrack: Handler = async ({ tx, payload, code, at }) => {
     })
     .onConflictDoUpdate({
       target: shareSessions.trackSid,
-      // Chegou a saída antes da entrada: a entrada só antecipa o início.
+      // The end arrived before the start: the start only moves the beginning earlier.
       set: published
         ? {
             startedAt: sql`least(${shareSessions.startedAt}, excluded.started_at)`,
@@ -133,7 +133,7 @@ const screenTrack: Handler = async ({ tx, payload, code, at }) => {
   return "projected";
 };
 
-/** Faixas: só a tela (vídeo) e o áudio dela importam. */
+/** Tracks: only the screen (video) and its audio matter. */
 const trackChanged: Handler = async (ctx) => {
   const source = ctx.payload.track?.source;
   if (source === "SCREEN_SHARE_AUDIO") {
@@ -152,7 +152,7 @@ const HANDLERS: Record<string, Handler> = {
   track_unpublished: trackChanged,
 };
 
-/** Aplica um evento às tabelas. Idempotente: aplicar de novo não muda nada. */
+/** Applies an event to the tables. Idempotent: applying it again changes nothing. */
 export async function projectEvent(
   tx: DbExecutor,
   payload: WebhookPayload,

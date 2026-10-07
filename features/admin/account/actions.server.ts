@@ -8,8 +8,8 @@ import { getDb } from "@/server/db/index.server";
 import { adminSessions } from "@/server/db/schema";
 
 /**
- * Encerra uma sessão da PRÓPRIA conta. O navegador só conhece o ID; o token
- * (que vale como credencial) é buscado aqui, restrito ao admin logado.
+ * Ends a session of the admin's OWN account. The browser only knows the ID; the token
+ * (which works as a credential) is looked up here, restricted to the signed-in admin.
  */
 export const revokeOwnSession = defineAdminOperation(
   { name: "account.revokeSession", allowWithoutTwoFactor: true, audit: "required" },
@@ -41,7 +41,7 @@ export const revokeOwnSession = defineAdminOperation(
   },
 );
 
-/** Encerra todas as sessões da própria conta, menos a atual. */
+/** Ends every session of the admin's own account except the current one. */
 export const revokeOtherOwnSessions = defineAdminOperation(
   {
     name: "account.revokeOtherSessions",

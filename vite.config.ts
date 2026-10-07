@@ -10,7 +10,7 @@ export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL(".", import.meta.url)) } },
   server: { host: "127.0.0.1" },
   optimizeDeps: {
-    // Evita reconstruir o cache durante o primeiro formulário ou navegação.
+    // Avoids rebuilding the cache during the first form submission or navigation.
     noDiscovery: true,
     include: [
       "better-auth/react",

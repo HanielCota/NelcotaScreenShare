@@ -1,6 +1,6 @@
 import { presenceText } from "@/features/room/domain/join";
 
-/** "Quem já está lá dentro": responde "estou no lugar certo? já começou?". */
+/** "Who is already inside": answers "am I in the right place? has it started?". */
 export function PresenceLine({
   presence,
   max,

@@ -13,13 +13,13 @@ interface TouchContext {
   current(): Expression;
   activity(): MascotActivity;
   visible(): boolean;
-  /** Dormindo ou sonolento: não acena ao terminar de carregar. */
+  /** Asleep or sleepy: does not wave when loading finishes. */
   sleeping(): boolean;
 }
 
 /**
- * Interações com o próprio mascote: encolhe no toque e reage ao soltar em cima
- * dele (arrastar pra fora desfaz); acena quando o mouse chega.
+ * Interactions with the mascot itself: shrinks on touch and reacts on release over
+ * it (dragging away cancels); waves when the mouse arrives.
  */
 export function attachTouch(ctx: TouchContext) {
   const { root, hands, personality } = ctx;
@@ -47,7 +47,7 @@ export function attachTouch(ctx: TouchContext) {
     if (action === "pet") personality.pet();
     else if (action === "high-five") personality.highFive();
   };
-  /** Mouse chegou: oferece um "toca aqui" ou só acena (não muito seguido). */
+  /** The mouse arrived: offers a "high five" or just waves (not too often). */
   const greet = () => {
     ctx.onActivity();
     if (ctx.activity() !== "idle" || personality.active) return;
@@ -57,7 +57,7 @@ export function attachTouch(ctx: TouchContext) {
     if (!personality.offerHighFive()) hands.wave();
   };
 
-  // O primeiro aceno acontece quando todas as camadas (imagens) estão visíveis.
+  // The first wave happens when all layers (images) are visible.
   const images = [...root.querySelectorAll("img")];
   let greeted = false;
   const greetWhenReady = () => {

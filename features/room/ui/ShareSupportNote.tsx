@@ -15,16 +15,16 @@ const DOT_COLORS = { ok: "bg-success", warn: "bg-warning", info: "bg-brand-soft"
 const noop = () => () => {};
 
 /**
- * "Vai funcionar aqui?": o que o navegador de quem está vendo consegue fazer
- * na sala. No servidor não dá para saber, então a linha só aparece depois de
- * hidratar (sem piscar um texto errado).
+ * "Will it work here?": what the viewer's browser can do
+ * in the room. The server cannot know, so the line only appears after
+ * hydration (without flashing wrong text).
  */
 export function ShareSupportNote({
   className,
   variant = "line",
 }: {
   className?: string;
-  /** "line": telas de acesso. "badge": rodapé. "prejoin": orientação do próximo passo. */
+  /** "line": access screens. "badge": footer. "prejoin": guidance for the next step. */
   variant?: "line" | "badge" | "prejoin";
 }) {
   const support = useSyncExternalStore<ShareSupport | null>(noop, currentShareSupport, () => null);
@@ -50,8 +50,8 @@ export function ShareSupportNote({
     );
   }
   if (variant === "badge") {
-    // "Tudo certo" cabe numa linha; aviso (Safari, celular) mostra a orientação,
-    // porque no celular não há "passar o mouse" para ler um title.
+    // "All good" fits in one line; a warning (Safari, phone) shows the guidance,
+    // because on a phone there is no "hover" to read a title.
     const showDetail = tone !== "ok" && detail;
     return (
       <p

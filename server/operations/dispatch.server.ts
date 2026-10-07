@@ -11,9 +11,9 @@ export type OperationHandlers = Record<
 
 interface Dispatch {
   operations: OperationHandlers;
-  /** Operações só de leitura: atendidas por GET. As demais, só por POST. */
+  /** Read-only operations: served by GET. The others, only by POST. */
   readOperations: ReadonlySet<string>;
-  /** Para onde a operação leva quando dá certo (303 em vez do JSON). */
+  /** Where the operation leads on success (303 instead of the JSON). */
   successRedirects: Readonly<Record<string, string>>;
 }
 
@@ -28,8 +28,8 @@ async function readInput(request: Request): Promise<unknown> {
 }
 
 /**
- * `loader`/`action` de `/api/operations/:operation`: confere método e origem,
- * lê a entrada e chama a operação registrada no escopo da requisição.
+ * `loader`/`action` of `/api/operations/:operation`: checks method and origin,
+ * reads the input and calls the registered operation in the request scope.
  */
 export function operationDispatcher({ operations, readOperations, successRedirects }: Dispatch) {
   return async function dispatch({

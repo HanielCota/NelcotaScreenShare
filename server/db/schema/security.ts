@@ -4,9 +4,9 @@ import { createdAt, id } from "./columns";
 export const authScope = pgEnum("auth_scope", ["admin", "user"]);
 
 /**
- * Senhas erradas, para o bloqueio por tentativas (o Better Auth só bloqueia o
- * 2FA). O e-mail fica como HMAC: não guarda e-mails de quem nem tem conta.
- * Retenção: 30 dias (job de limpeza).
+ * Wrong passwords, for the attempt-based lockout (Better Auth only locks
+ * 2FA). The e-mail is stored as an HMAC: it does not keep e-mails of people without an account.
+ * Retention: 30 days (cleanup job).
  */
 export const loginFailures = pgTable(
   "login_failures",

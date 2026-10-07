@@ -1,14 +1,14 @@
 import { createLoader, parseAsInteger, parseAsString, parseAsStringLiteral } from "nuqs/server";
 import { pageParsers, periodParsers } from "@/lib/table-params";
 
-/** Estado da lista de compartilhamentos na URL. */
+/** Screen share list state in the URL. */
 export const shareParsers = {
   ...pageParsers,
-  /** Parte do código da sala. */
+  /** Part of the room code. */
   sala: parseAsString.withDefault(""),
   audio: parseAsStringLiteral(["com", "sem"] as const),
   situacao: parseAsStringLiteral(["andamento", "finalizados"] as const),
-  /** Duração mínima em minutos (só compartilhamentos finalizados). */
+  /** Minimum duration in minutes (finished screen shares only). */
   min: parseAsInteger,
   ...periodParsers,
 };

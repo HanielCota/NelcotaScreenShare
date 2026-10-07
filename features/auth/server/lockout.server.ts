@@ -7,11 +7,11 @@ import { loginFailures } from "@/server/db/schema";
 export type AuthScope = "admin" | "user";
 
 /**
- * Bloqueio por senhas erradas (o Better Auth só bloqueia o 2FA):
- * - por conta (HMAC do e-mail): a cada 5 erros em 24 h o bloqueio dobra,
- *   começando em 15 min e indo até 24 h;
- * - por IP: 20 erros em 15 min bloqueiam o IP por 15 min.
- * A mensagem para quem tenta é sempre a mesma, exista a conta ou não.
+ * Lockout after wrong passwords (Better Auth only locks 2FA):
+ * - per account (HMAC of the e-mail): every 5 failures in 24 h the lockout doubles,
+ *   starting at 15 min and going up to 24 h;
+ * - per IP: 20 failures in 15 min lock the IP for 15 min.
+ * The message for whoever is trying is always the same, whether the account exists or not.
  */
 export const LOCKOUT = {
   perAccount: 5,
@@ -33,12 +33,12 @@ export function emailHash(secret: string, scope: AuthScope, email: string): stri
     .digest("hex");
 }
 
-/** Só IPs válidos vão para a coluna `inet` (o resto vira NULL). */
+/** Only valid IPs go to the `inet` column (the rest becomes NULL). */
 function validIp(ip: string | undefined): string | null {
   return ip && isIP(ip) ? ip : null;
 }
 
-/** Duração do bloqueio depois de `failures` erros: 0, ou 15 min dobrando a cada 5. */
+/** Lockout duration after `failures` failures: 0, or 15 min doubling every 5. */
 export function lockDurationMs(failures: number): number {
   const level = Math.floor(failures / LOCKOUT.perAccount);
   if (level < 1) return 0;
@@ -117,7 +117,7 @@ export async function recordFailure(
     .values({ scope, emailHash: hash, ip: validIp(ip), createdAt: now });
 }
 
-/** Login certo zera os erros da conta (os do IP continuam contando). */
+/** A correct sign-in resets the account's failures (the IP's keep counting). */
 export async function clearFailures(
   db: Database,
   { scope, hash }: { scope: AuthScope; hash: string },
@@ -127,7 +127,7 @@ export async function clearFailures(
     .where(and(eq(loginFailures.scope, scope), eq(loginFailures.emailHash, hash)));
 }
 
-/** Retenção: erros com mais de 30 dias saem (job diário). */
+/** Retention: failures older than 30 days are removed (daily job). */
 export async function purgeOldFailures(db: Database, now = new Date()): Promise<number> {
   const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const deleted = await db

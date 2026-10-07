@@ -2,8 +2,8 @@ import { useId, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Grupo de ajustes com âncora (`/conta#id`): título fora do cartão e as linhas
- * dentro, separadas por divisórias. `danger` marca a zona de exclusão.
+ * Settings group with an anchor (`/conta#id`): title outside the card and the rows
+ * inside, separated by dividers. `danger` marks the deletion zone.
  */
 export function SettingsSection({
   id,
@@ -23,7 +23,7 @@ export function SettingsSection({
     <section
       id={id}
       aria-labelledby={headingId}
-      // Alvo de âncora (/conta#seguranca): recebe o foco ao pular para a seção.
+      // Anchor target (/conta#seguranca): receives focus when jumping to the section.
       tabIndex={-1}
       className="flex scroll-mt-6 flex-col gap-3 outline-none"
     >
@@ -48,7 +48,7 @@ export function SettingsSection({
   );
 }
 
-/** Rótulo e explicação à esquerda; o controle à direita (empilha no celular). */
+/** Label and explanation on the left; the control on the right (stacks on mobile). */
 export function SettingsRow({
   title,
   description,
@@ -87,7 +87,7 @@ export function SettingsRowLabel({
   );
 }
 
-/** Lista que ocupa a largura toda do cartão (ex.: sessões). */
+/** List that takes the full card width (e.g. sessions). */
 export function SettingsBlock({ children }: { children: ReactNode }) {
   return <div className="px-5 py-3 sm:px-6">{children}</div>;
 }

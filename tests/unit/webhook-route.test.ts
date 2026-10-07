@@ -25,7 +25,7 @@ const body = JSON.stringify({
   createdAt: "1791300000",
 });
 
-/** Cabeçalho como o LiveKit envia: JWT com o sha256 do corpo. */
+/** Header as LiveKit sends it: a JWT carrying the sha256 of the body. */
 async function signature(payload: string, secret = SECRET): Promise<string> {
   const token = new AccessToken(KEY, secret);
   token.sha256 = createHash("sha256").update(payload).digest("base64");
@@ -45,7 +45,7 @@ function post(payload: string, authorization?: string) {
   );
 }
 
-test("evento assinado com o banco fora do ar: registra no log e pede reenvio (503)", async () => {
+test("signed event with the database down: logs it and asks for a retry (503)", async () => {
   const logs: unknown[] = [];
   vi.spyOn(logger, "info").mockImplementation((entry: unknown) => {
     logs.push(entry);
@@ -61,27 +61,27 @@ test("evento assinado com o banco fora do ar: registra no log e pede reenvio (50
   assert.deepEqual(line.participant, { identity: "ana-1234", name: "Ana" });
 });
 
-test("recusa sem assinatura", async () => {
+test("rejects without a signature", async () => {
   assert.equal((await post(body)).status, 401);
 });
 
-test("recusa assinatura com outro segredo", async () => {
+test("rejects a signature made with another secret", async () => {
   const forged = await signature(body, "outro-segredo-0123456789abcdef0123456789");
   assert.equal((await post(body, forged)).status, 401);
 });
 
-test("recusa corpo alterado depois de assinado", async () => {
+test("rejects a body changed after signing", async () => {
   const signed = await signature(body);
   const tampered = body.replace("Ana", "Eva");
   assert.equal((await post(tampered, signed)).status, 401);
 });
 
-test("recusa corpo grande demais sem ler a assinatura", async () => {
+test("rejects an oversized body without reading the signature", async () => {
   const huge = JSON.stringify({ event: "room_started", padding: "x".repeat(70 * 1024) });
   assert.equal((await post(huge, await signature(huge))).status, 413);
 });
 
-test("limite do webhook conta bytes UTF-8, mesmo sem Content-Length", async () => {
+test("webhook limit counts UTF-8 bytes, even without Content-Length", async () => {
   const huge = JSON.stringify({ event: "room_started", padding: "é".repeat(33 * 1024) });
   assert.ok(huge.length < 64 * 1024);
   assert.equal((await post(huge, await signature(huge))).status, 413);

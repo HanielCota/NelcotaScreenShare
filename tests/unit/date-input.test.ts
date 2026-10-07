@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { formatDateInput, parseDateInput } from "@/lib/date-input";
 
-test("o filtro preserva o dia local na ida e na volta, inclusive em ano bissexto", () => {
+test("the filter keeps the local day on the round trip, including in leap years", () => {
   for (const value of ["2026-10-06", "2024-02-29", "2026-01-01", "2026-12-31"]) {
     const date = parseDateInput(value)!;
     const [year, month, day] = value.split("-").map(Number);
@@ -11,7 +11,7 @@ test("o filtro preserva o dia local na ida e na volta, inclusive em ano bissexto
   }
 });
 
-test("datas inválidas vindas da URL não são normalizadas para outro dia", () => {
+test("invalid dates from the URL are not normalized to another day", () => {
   for (const value of [
     null,
     "",

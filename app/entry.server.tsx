@@ -47,7 +47,7 @@ export default function handleRequest(
           reportServerError(error, request.headers.get("x-request-id"));
           logger.error(
             { err: error, request_id: request.headers.get("x-request-id") },
-            "falha ao renderizar página",
+            "failed to render page",
           );
         },
       },
@@ -68,9 +68,6 @@ export default function handleRequest(
 export const handleError: HandleErrorFunction = (error, { request }) => {
   if (!request.signal.aborted) {
     reportServerError(error, request.headers.get("x-request-id"));
-    logger.error(
-      { err: error, request_id: request.headers.get("x-request-id") },
-      "falha na requisição",
-    );
+    logger.error({ err: error, request_id: request.headers.get("x-request-id") }, "request failed");
   }
 };

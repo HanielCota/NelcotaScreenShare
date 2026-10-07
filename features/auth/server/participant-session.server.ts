@@ -21,23 +21,23 @@ export interface UserSession {
 }
 
 /**
- * Sessão do participante (DAL), uma vez por render. Conta bloqueada ou
- * excluída = sem sessão (o bloqueio também encerra as sessões no painel).
+ * Participant session (DAL), once per render. Blocked or deleted account =
+ * no session (blocking in the panel also ends the sessions).
  */
 export const getUserSession = cache(async (): Promise<UserSession | null> => {
   const result = await getUserAuth().api.getSession({ headers: requestHeaders() });
   if (!result) return null;
   const { user, session } = result;
   if (user.blockedAt || user.deletedAt) return null;
-  // Último acesso (no máximo uma escrita por hora por pessoa).
+  // Last access (at most one write per hour per person).
   await getDb()
     .update(users)
     .set({ lastSeenAt: sql`now()` })
     .where(
       sql`${users.id} = ${user.id} and (${users.lastSeenAt} is null or ${users.lastSeenAt} < now() - interval '1 hour')`,
     )
-    // Só uma estatística: falhar aqui não pode impedir a página de abrir.
-    .catch((error: unknown) => logger.warn({ err: error }, "falha ao gravar último acesso"));
+    // Just a statistic: failing here must not prevent the page from opening.
+    .catch((error: unknown) => logger.warn({ err: error }, "failed to record last access"));
   return {
     user: {
       id: user.id,
@@ -52,8 +52,8 @@ export const getUserSession = cache(async (): Promise<UserSession | null> => {
 });
 
 /**
- * Exige login (e e-mail verificado, quando REQUIRE_EMAIL_VERIFICATION está
- * ligada); senão manda para /entrar ou /verificar-email e volta depois.
+ * Requires sign-in (and a verified e-mail, when REQUIRE_EMAIL_VERIFICATION is
+ * on); otherwise redirects to /entrar or /verificar-email and comes back afterwards.
  */
 export async function requireUser(
   returnTo: string,

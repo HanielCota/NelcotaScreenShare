@@ -7,10 +7,10 @@ import type { MascotActivity } from "@/features/mascot/domain/personality";
 type Controller = ReturnType<typeof createMascotController>;
 
 /**
- * Liga o mascote ao React. O comportamento todo fica no controlador
- * (dom/mascot-controller.ts); aqui só se monta, desmonta e repassa as props.
- * As props vão por referência: mudar a atividade ou a expressão de repouso não
- * desmonta nada (sono, erro, olhar), só pede um recálculo.
+ * Connects the mascot to React. All the behavior lives in the controller
+ * (dom/mascot-controller.ts); here it is only mounted, unmounted and given the props.
+ * Props are passed by reference: changing the activity or the resting expression does not
+ * tear anything down (sleep, error, gaze), it only requests a recompute.
  */
 export function useMascot(
   rootRef: RefObject<HTMLDivElement | null>,

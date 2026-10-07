@@ -30,7 +30,7 @@ const base: AuditParams = {
 };
 
 beforeAll(async () => {
-  // 125 linhas em só 3 horários: empates de propósito (o id desempata).
+  // 125 rows across only 3 timestamps: deliberate ties (the id breaks them).
   await pool.query(`
     insert into audit_logs (action, resource_type, resource_id, created_at)
     select case when g % 5 = 0 then 'room.close' else 'auth.sign_in' end, 'teste', g::text,
@@ -51,9 +51,9 @@ async function walk(params: AuditParams, limit: number) {
   return { seen, pages };
 }
 
-describe("paginação keyset", () => {
+describe("keyset pagination", () => {
   for (const ordem of ["asc", "desc"] as const) {
-    test(`último acesso ${ordem}: percorre e volta entre valores preenchidos e nulos`, async () => {
+    test(`last seen ${ordem}: walks forward and back across filled and null values`, async () => {
       const q = `nulos-${ordem}`;
       await db.insert(schema.users).values(
         Array.from({ length: 7 }, (_, index) => ({
@@ -78,7 +78,7 @@ describe("paginação keyset", () => {
       while (page.nextCursor) {
         page = await listParticipants(db, { ...params, cursor: page.nextCursor }, 2);
         pages.push(page);
-        assert.ok(pages.length <= 4, "a navegação não repete páginas");
+        assert.ok(pages.length <= 4, "navigation does not repeat pages");
       }
       const all = pages.flatMap((entry) => entry.items);
       assert.equal(all.length, 7);
@@ -103,17 +103,17 @@ describe("paginação keyset", () => {
     });
   }
 
-  test("avança por tudo sem repetir nem pular, na ordem certa", async () => {
+  test("walks through everything without repeating or skipping, in the right order", async () => {
     const { seen, pages } = await walk(base, 10);
     assert.equal(seen.length, 125);
     assert.equal(new Set(seen).size, 125);
     assert.equal(pages.length, 13);
-    assert.equal(pages[0]?.prevCursor, null, "primeira página não tem anterior");
+    assert.equal(pages[0]?.prevCursor, null, "first page has no previous");
     const times = pages.flatMap((page) => page.items.map((row) => row.createdAt));
     assert.deepEqual(times, times.toSorted().toReversed());
   });
 
-  test("volta página por página até a primeira, com os mesmos itens", async () => {
+  test("goes back page by page to the first, with the same items", async () => {
     const { pages } = await walk(base, 10);
     let current = pages.at(-1);
     for (let index = pages.length - 2; index >= 0; index--) {
@@ -122,20 +122,20 @@ describe("paginação keyset", () => {
       assert.deepEqual(
         current.items.map((row) => row.id),
         pages[index]?.items.map((row) => row.id),
-        `página ${index + 1}`,
+        `page ${index + 1}`,
       );
     }
     assert.equal(current?.prevCursor, null);
   });
 
-  test("ordem crescente e filtro por ação", async () => {
+  test("ascending order and action filter", async () => {
     const asc = await walk({ ...base, ordem: "asc", acao: "room.close" }, 7);
     assert.equal(asc.seen.length, 25);
     const times = asc.pages.flatMap((page) => page.items.map((row) => row.createdAt));
     assert.deepEqual(times, times.toSorted());
   });
 
-  test("microssegundos não fazem a fronteira repetir nem sumir", async () => {
+  test("microseconds do not make the boundary repeat or vanish", async () => {
     await pool.query(`
       insert into audit_logs (action, resource_type, resource_id, created_at)
       select 'auth.lockout', 'micro', g::text,
@@ -156,13 +156,13 @@ describe("paginação keyset", () => {
     );
   });
 
-  test("cursor adulterado vira primeira página", async () => {
+  test("tampered cursor falls back to the first page", async () => {
     const page = await listAuditLogs(db, { ...base, cursor: "lixo!!" }, 10);
     assert.equal(page.items.length, 10);
     assert.equal(page.prevCursor, null);
   });
 
-  test(`total aproximado para em ${COUNT_CAP}`, async () => {
+  test(`approximate total stops at ${COUNT_CAP}`, async () => {
     await pool.query(`
       insert into audit_logs (action, resource_type, created_at)
       select 'auth.sign_in', 'carga', now() from generate_series(1, ${COUNT_CAP + 5})`);

@@ -1,8 +1,8 @@
 import { defineConfig } from "drizzle-kit";
 
 /**
- * `pnpm db:generate` cria a migração SQL em `drizzle/` a partir do schema;
- * `pnpm db:migrate` (ou o job de deploy) aplica as pendentes. Nunca no boot do app.
+ * `pnpm db:generate` creates the SQL migration in `drizzle/` from the schema;
+ * `pnpm db:migrate` (or the deploy job) applies the pending ones. Never at app boot.
  */
 export default defineConfig({
   dialect: "postgresql",

@@ -16,10 +16,10 @@ import {
 
 const SIGN_IN_PATH = "/sign-in/email";
 
-/** Ações críticas exigem login recente: Better Auth (freshAge) e actions usam a mesma janela. */
+/** Critical actions require a recent sign-in: Better Auth (freshAge) and actions use the same window. */
 export const FRESH_SESSION_SECONDS = 10 * 60;
 
-/** Limites por IP comuns ao painel e às contas de participantes (janela em segundos). */
+/** Per-IP limits shared by the panel and participant accounts (window in seconds). */
 export const AUTH_RATE_LIMIT_RULES = {
   [SIGN_IN_PATH]: { window: 60, max: 5 },
   "/request-password-reset": { window: 60, max: 3 },
@@ -27,7 +27,7 @@ export const AUTH_RATE_LIMIT_RULES = {
   "/two-factor/verify-totp": { window: 60, max: 10 },
   "/two-factor/verify-backup-code": { window: 60, max: 5 },
 };
-/** Login concluído pelo segundo fator (TOTP ou backup code). */
+/** Sign-in completed by the second factor (TOTP or backup code). */
 const TWO_FACTOR_SIGN_IN = new Set(["/two-factor/verify-totp", "/two-factor/verify-backup-code"]);
 
 function lockedMessage(seconds: number): string {
@@ -78,18 +78,18 @@ async function validatePasswordReset(
   }
 }
 
-/** Auditoria nunca derruba o login: falha vira log. */
+/** Auditing never breaks sign-in: a failure becomes a log entry. */
 async function safeAudit(fn: () => Promise<void>) {
   try {
     await fn();
   } catch (error) {
-    logger.error({ err: error }, "falha ao gravar auditoria de autenticação");
+    logger.error({ err: error }, "failed to write authentication audit");
   }
 }
 
 /**
- * Hooks do Better Auth: bloqueio por senhas erradas (admins e participantes,
- * separados por `scope`) e, no painel admin, auditoria dos eventos de login.
+ * Better Auth hooks: lockout after wrong passwords (admins and participants,
+ * separated by `scope`) and, in the admin panel, auditing of sign-in events.
  */
 export function authHooks(
   db: Database,
@@ -164,13 +164,13 @@ export function authHooks(
             hash,
             ip: ctx.headers ? clientIpFrom(ctx.headers) : undefined,
           });
-          logger.warn({ event: `${scope}.sign_in_failed` }, "login recusado");
+          logger.warn({ event: `${scope}.sign_in_failed` }, "sign-in refused");
           if (audit) {
             await safeAudit(() =>
               recordAudit(db, "system", {
                 action: "auth.sign_in_failed",
                 resourceType: "admin_user",
-                // Só um pedaço do HMAC: agrupa tentativas sem guardar o e-mail.
+                // Only part of the HMAC: groups attempts without storing the e-mail.
                 metadata: { email_hash: hash.slice(0, 16) },
               }),
             );
@@ -179,7 +179,7 @@ export function authHooks(
         return;
       }
       await clearFailures(db, { scope, hash });
-      // Sem 2FA, a sessão nasce aqui; com 2FA, no verify (acima).
+      // Without 2FA, the session is born here; with 2FA, in verify (above).
       const userId = ctx.context.newSession?.user.id;
       if (audit && userId) {
         await safeAudit(() =>

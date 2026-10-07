@@ -6,8 +6,8 @@ import { logger } from "@/server/logger.server";
 export type TokenResult = (typeof tokenRequests.$inferInsert)["result"];
 
 /**
- * Registra um pedido ao /api/token (segurança, métricas e o IP da entrada).
- * Falhar aqui nunca impede a entrada na sala: só vai para o log.
+ * Records a request to /api/token (security, metrics and the join IP).
+ * Failing here never blocks joining the room: it only goes to the log.
  */
 export async function recordTokenRequest(entry: {
   roomCode: string;
@@ -26,6 +26,6 @@ export async function recordTokenRequest(entry: {
       ip: entry.ip,
     });
   } catch (error) {
-    logger.error({ err: error, result: entry.result }, "falha ao registrar pedido de token");
+    logger.error({ err: error, result: entry.result }, "failed to record token request");
   }
 }

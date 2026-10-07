@@ -9,10 +9,10 @@ import { inboxLink } from "@/features/auth/domain/email-suggest";
 import { FormError } from "@/components/FormError";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 
-/** O servidor aceita um reenvio por minuto; a contagem evita o clique recusado. */
+/** The server accepts one resend per minute; the countdown avoids a refused click. */
 const RESEND_COOLDOWN = 60;
 
-/** Depois do cadastro (ou ao tentar entrar numa sala sem confirmar o e-mail). */
+/** After sign-up (or when trying to join a room without confirming the e-mail). */
 export function VerifyEmailPanel({
   email,
   returnTo,

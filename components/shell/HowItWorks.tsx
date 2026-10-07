@@ -6,7 +6,7 @@ const STEPS = [
   "Clique em compartilhar e escolha a tela inteira, uma janela ou uma aba.",
 ];
 
-/** "Como funciona" da navbar (home e telas de acesso). */
+/** Navbar "Como funciona" (home and access screens). */
 export function HowItWorks({ className }: { className?: string }) {
   return (
     <NavPopover trigger="Como funciona" label="Como funciona" className={className}>

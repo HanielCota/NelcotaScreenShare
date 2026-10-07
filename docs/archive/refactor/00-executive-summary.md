@@ -1,71 +1,71 @@
-# 00 — Resumo executivo
+# 00 — Executive summary
 
-> **Status:** plano executado em 2026-10-06 (branch `refactor/arquitetura`). O resultado, as métricas antes → depois e os desvios do plano estão em [06-execution.md](06-execution.md).
+> **Status:** plan executed on 2026-10-06 (branch `refactor/arquitetura`). The result, the before → after metrics and the deviations from the plan are in [06-execution.md](06-execution.md).
 
-## O diagnóstico em uma frase
+## The diagnosis in one sentence
 
-O projeto **não está bagunçado por inteiro**. O servidor é disciplinado: zero `any`, `strict`, Zod em todas as bordas, DAL com `server-only`, nenhum import circular e só 2,24% de duplicação. A dor está concentrada em **quatro focos**, e os guardrails que deveriam conter esses focos **não estão rodando**.
+The project is **not a mess as a whole**. The server is disciplined: zero `any`, `strict`, Zod at every edge, a DAL with `server-only`, no circular imports and only 2.24% duplication. The pain is concentrated in **four hot spots**, and the guardrails that should contain them **are not running**.
 
-## O que está errado (por custo)
+## What is wrong (by cost)
 
-1. **Os guardrails não protegem nada.** `pnpm lint` falha com 44 erros, e o repositório não tem `git remote`, então o CI e o deploy descritos nunca rodaram (D-051).
-2. **Não há rede de segurança no fluxo principal.** Nenhum teste do cliente e nenhum E2E: pré-entrada, conexão, compartilhamento de tela e saída estão descobertos (D-046).
-3. **Há arquivos-deus no caminho crítico**:
-   - `use-mascot.ts` (um `useEffect` de cerca de 590 linhas, crescendo com o WIP);
-   - `PreJoin.tsx` (complexidade 39);
-   - `RoomView.tsx` (conexão, layout e erros juntos);
-   - `POST /api/token` (165 linhas, regra de negócio no handler, SDK instanciado dentro).
-4. **A organização mudou de critério no meio do caminho**:
-   - `features/` existe só para o admin;
-   - `components/` importa actions de `app/`;
-   - há três pastas de auth;
-   - `lib/` virou gaveta de domínio;
-   - nomes misturam pt/en, e `TokenResult` tem dois significados.
-5. **A duplicação está concentrada no painel**: 4 exportações CSV, 4 `iterate`/`list`/filtros de período, e filtros de tabela 90% iguais.
-6. **O banco "opcional" é falso**: 27 desvios `if (!db)` que nunca rodam, com tipos que mentem.
+1. **The guardrails protect nothing.** `pnpm lint` fails with 44 errors, and the repository has no `git remote`, so the described CI and deploy have never run (D-051).
+2. **There is no safety net on the main flow.** No client tests and no E2E: pre-join, connection, screen sharing and leaving are uncovered (D-046).
+3. **There are god files on the critical path**:
+   - `use-mascot.ts` (a `useEffect` of about 590 lines, growing with the WIP);
+   - `PreJoin.tsx` (complexity 39);
+   - `RoomView.tsx` (connection, layout and errors together);
+   - `POST /api/token` (165 lines, business rules in the handler, SDK instantiated inside).
+4. **The organization changed criteria halfway through**:
+   - `features/` exists only for the admin;
+   - `components/` imports actions from `app/`;
+   - there are three auth folders;
+   - `lib/` became a domain junk drawer;
+   - names mix pt/en, and `TokenResult` has two meanings.
+5. **Duplication is concentrated in the panel**: 4 CSV exports, 4 `iterate`/`list`/period filters, and table filters that are 90% identical.
+6. **The "optional" database is fake**: 27 `if (!db)` branches that never run, with types that lie.
 
-Em paralelo, a leitura achou **achados fora do escopo, a corrigir em PRs próprios**:
+In parallel, the review turned up **out-of-scope findings, to be fixed in their own PRs**:
 
-- **Open redirect** pós-login via `?voltar=/%09/evil.com` (S-01, confirmado no código).
-- **Endpoints do plugin admin do Better Auth expostos** sem 2FA nem auditoria (S-02).
-- **Exclusão de conta sem rate limit** (S-03).
-- **Falha de conexão mostra "Você saiu da sala"** em vez de "Tentar de novo" (B-01).
-- **Eventos do webhook perdidos sem reprocessamento** (B-03).
-- **`create-owner` provavelmente quebrado na imagem Docker** (B-04).
+- Post-login **open redirect** via `?voltar=/%09/evil.com` (S-01, confirmed in the code).
+- **Better Auth admin plugin endpoints exposed** without 2FA or audit (S-02).
+- **Account deletion without rate limiting** (S-03).
+- **A connection failure shows "Você saiu da sala"** ("You left the room") instead of "Tentar de novo" ("Try again") (B-01).
+- **Webhook events lost without reprocessing** (B-03).
+- **`create-owner` probably broken in the Docker image** (B-04).
 
-## O que propomos
+## What we propose
 
-**Pastas por feature + o Data Access Layer que o próprio Next 16 recomenda + núcleo puro só onde existe regra.** Não é Clean Architecture completa.
+**Feature folders + the Data Access Layer that Next 16 itself recommends + a pure core only where there are rules.** Not full Clean Architecture.
 
-- `features/{room, home, mascot, auth, account, participants, admin/*}`, cada uma com `ui/` → `actions.ts` → `server/` (queries e commands com Drizzle direto) → `domain/` (TS puro).
-- `components/`, `lib/` e `server/` ficam só para o que é **genérico** e para infraestrutura.
-- **Uma única "porta"** (o gateway do LiveKit server SDK para emitir o token). Sem repositórios, sem interface para banco ou e-mail e sem biblioteca de `Result`. Os testes de integração com Postgres real já fazem melhor esse papel.
-- **As fronteiras ficam impostas pelo oxlint** que já existe (`no-restricted-imports` por pasta + `no-cycle`), com knip, jscpd e `drizzle-kit check` no CI. O dependency-cruiser foi descartado porque o TypeScript 7 instalado não expõe a API JS de que ele precisa (verificado).
-- **Exemplo validável**: `/api/token` vira borda HTTP de cerca de 30 linhas, mais orquestração no servidor, decisão pura testável por ramo e gateway do SDK, **com o mesmo contrato, as mesmas mensagens e a mesma ordem de checagens** (doc 03 §6).
+- `features/{room, home, mascot, auth, account, participants, admin/*}`, each with `ui/` → `actions.ts` → `server/` (queries and commands with Drizzle directly) → `domain/` (pure TS).
+- `components/`, `lib/` and `server/` are only for what is **generic** and for infrastructure.
+- **A single "port"** (the LiveKit server SDK gateway for issuing the token). No repositories, no interface for database or e-mail and no `Result` library. Integration tests against a real Postgres already play that role better.
+- **Boundaries are enforced by the existing oxlint** (`no-restricted-imports` per folder + `no-cycle`), with knip, jscpd and `drizzle-kit check` in CI. dependency-cruiser was ruled out because the installed TypeScript 7 doesn't expose the JS API it needs (verified).
+- **Verifiable example**: `/api/token` becomes an HTTP edge of about 30 lines, plus orchestration on the server, a pure decision testable per branch and an SDK gateway, **with the same contract, the same messages and the same order of checks** (doc 03 §6).
 
-## Esforço e ordem recomendada
+## Effort and recommended order
 
-| Ordem | Fase                                                                                                                                    | Horas       | Risco        |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------ |
-| 0     | Correções de segurança S-01..S-03 (PRs próprios, fora do refactor)                                                                      | ~3          | baixo        |
-| 1     | **Fase 0**: lint verde, CI real, código morto, knip/jscpd, **Playwright com 8 fluxos** e testes de caracterização                       | 22          | baixo        |
-| 2     | **Fase 1**: transversais (banco não opcional, env único, constantes, `server-only`)                                                     | 6           | baixo        |
-| 3     | **Fase 2**: helpers do painel (CSV, períodos, iterate) e DAL fora das páginas                                                           | 7           | baixo        |
-| 4     | **Fase 3**: features nesta ordem: settings/busca → painel → auth/conta → home → mascote → **sala ao vivo** (por último, a mais crítica) | 58          | baixo → alto |
-| 5     | **Fase 4**: quebrar os componentes grandes e ajustar a fronteira server/client                                                          | 8           | médio        |
-| 6     | **Fase 5**: README, ADRs, apertar a catraca do lint                                                                                     | 5           | baixo        |
-|       | **Total do refactor**                                                                                                                   | **≈ 106 h** |              |
+| Order | Phase                                                                                                                                 | Hours       | Risk       |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- |
+| 0     | Security fixes S-01..S-03 (own PRs, outside the refactor)                                                                             | ~3          | low        |
+| 1     | **Phase 0**: green lint, real CI, dead code, knip/jscpd, **Playwright with 8 flows** and characterization tests                       | 22          | low        |
+| 2     | **Phase 1**: cross-cutting (non-optional database, single env, constants, `server-only`)                                              | 6           | low        |
+| 3     | **Phase 2**: panel helpers (CSV, periods, iterate) and DAL out of the pages                                                           | 7           | low        |
+| 4     | **Phase 3**: features in this order: settings/search → panel → auth/account → home → mascot → **live room** (last, the most critical) | 58          | low → high |
+| 5     | **Phase 4**: split the large components and adjust the server/client boundary                                                         | 8           | medium     |
+| 6     | **Phase 5**: README, ADRs, tighten the lint ratchet                                                                                   | 5           | low        |
+|       | **Refactor total**                                                                                                                    | **≈ 106 h** |            |
 
-Cada fase é deployável e entrega valor sozinha, então dá para **parar depois de qualquer uma** com o projeto melhor do que antes. O refactor **não tem nenhuma migração de banco**. Os quick wins (menos de 1 h cada) estão no doc 04 §3.
+Each phase is deployable and delivers value on its own, so you can **stop after any of them** with the project better than before. The refactor has **no database migration**. The quick wins (under 1 h each) are in doc 04 §3.
 
-## Documentos
+## Documents
 
-| Doc                                                    | Conteúdo                                                                                                        |
-| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| [01-inventory.md](01-inventory.md)                     | Árvore anotada, grafo de imports, rotas e actions, fluxos, dependências e métricas                              |
-| [02-diagnosis.md](02-diagnosis.md)                     | 55 problemas com evidência, achados fora do escopo (11 de segurança e 14 bugs) e ranking dos 10 que mais custam |
-| [03-target-architecture.md](03-target-architecture.md) | Camadas, regra de dependência, árvore alvo, exemplo ponta a ponta, decisões e onde não aplicar SOLID            |
-| [04-migration-plan.md](04-migration-plan.md)           | Rede de segurança, fases com critérios e rollback, quick wins, métricas e riscos                                |
-| [05-open-decisions.md](05-open-decisions.md)           | 5 perguntas, 9 premissas e as limitações da análise                                                             |
+| Doc                                                    | Contents                                                                                                     |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| [01-inventory.md](01-inventory.md)                     | Annotated tree, import graph, routes and actions, flows, dependencies and metrics                            |
+| [02-diagnosis.md](02-diagnosis.md)                     | 55 problems with evidence, out-of-scope findings (11 security and 14 bugs) and a ranking of the 10 costliest |
+| [03-target-architecture.md](03-target-architecture.md) | Layers, dependency rule, target tree, end-to-end example, decisions and where not to apply SOLID             |
+| [04-migration-plan.md](04-migration-plan.md)           | Safety net, phases with criteria and rollback, quick wins, metrics and risks                                 |
+| [05-open-decisions.md](05-open-decisions.md)           | 5 questions, 9 assumptions and the limitations of the analysis                                               |
 
-**Próximo passo:** aprovar a arquitetura-alvo (doc 03) e a ordem das fases (doc 04) e responder Q1–Q5 do doc 05. Nada será implementado antes disso.
+**Next step:** approve the target architecture (doc 03) and the phase order (doc 04) and answer Q1–Q5 in doc 05. Nothing will be implemented before that.

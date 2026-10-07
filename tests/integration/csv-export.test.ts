@@ -5,8 +5,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import * as schema from "@/server/db/schema";
 
 /**
- * As quatro exportações CSV do painel: cabeçalho, BOM, separador, auditoria
- * da exportação e recusa sem sessão ou sem permissão.
+ * The admin panel's four CSV exports: header, BOM, separator, auditing
+ * of the export and rejection without a session or permission.
  */
 const requestHeaders = { current: new Headers() };
 vi.mock("@/server/request-context.server", () => ({
@@ -85,7 +85,7 @@ const EXPECTED = {
   },
 } as const;
 
-/** Texto do CSV sem perder o BOM (o `Response.text()` o remove ao decodificar). */
+/** CSV text without losing the BOM (`Response.text()` strips it when decoding). */
 async function csvText(response: Response): Promise<string> {
   return new TextDecoder("utf-8", { ignoreBOM: true }).decode(await response.arrayBuffer());
 }
@@ -96,9 +96,9 @@ async function call(name: keyof typeof routes, query = "") {
   );
 }
 
-describe("exportação CSV", () => {
+describe("CSV export", () => {
   for (const name of Object.keys(routes) as (keyof typeof routes)[]) {
-    it(`${name}: CSV com BOM e ";", e a exportação fica na auditoria`, async () => {
+    it(`${name}: CSV with BOM and ";", and the export is recorded in the audit log`, async () => {
       requestHeaders.current = owner.headers;
       const response = await call(name);
       expect(response.status).toBe(200);
@@ -120,14 +120,14 @@ describe("exportação CSV", () => {
     });
   }
 
-  it("filtro da tela vale na exportação (busca por código)", async () => {
+  it("the page filter applies to the export (search by code)", async () => {
     requestHeaders.current = owner.headers;
     const text = await csvText(await call("salas", `?q=${roomCode}`));
     const lines = text.slice(1).split("\r\n").filter(Boolean);
     expect(lines).toHaveLength(2);
   });
 
-  it("sem sessão: 401; sem permissão de exportar: 403", async () => {
+  it("no session: 401; no export permission: 403", async () => {
     requestHeaders.current = new Headers();
     expect((await call("salas")).status).toBe(401);
     requestHeaders.current = viewer.headers;
@@ -136,7 +136,7 @@ describe("exportação CSV", () => {
         async (name) => (await call(name)).status,
       ),
     );
-    // O leitor (viewer) vê as tabelas, mas não exporta nenhuma.
+    // The viewer sees the tables but cannot export any of them.
     expect(forbidden).toEqual([403, 403, 403, 403]);
   });
 });

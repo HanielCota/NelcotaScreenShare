@@ -10,8 +10,8 @@ import { toast } from "sonner";
 import { participantName } from "@/features/room/domain/participant-label";
 
 /**
- * Avisos curtos do que acontece na sala: quem entrou, quem saiu e quem
- * começou a mostrar a tela. Somem sozinhos e não precisam de clique.
+ * Short notices of what happens in the room: who joined, who left and who
+ * started showing their screen. They disappear on their own and need no click.
  */
 export function useRoomNotices() {
   const room = useRoomContext();

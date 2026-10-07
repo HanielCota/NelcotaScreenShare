@@ -1,6 +1,6 @@
-# Postgres local com a mesma configuração e os mesmos papéis da produção.
+# Local Postgres with the same configuration and roles as production.
 #   docker compose -f docker-compose.dev.yml up -d
-# Usuários: nelcota (superusuário, só para testes), nelcota_migrator, nelcota_app, nelcota_readonly.
+# Users: nelcota (superuser, tests only), nelcota_migrator, nelcota_app, nelcota_readonly.
 name: nelcota-dev-db
 services:
   postgres:

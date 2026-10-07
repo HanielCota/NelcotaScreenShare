@@ -14,14 +14,14 @@ import { participantName } from "@/features/room/domain/participant-label";
 import { useTimeouts } from "@/lib/hooks/use-timeouts";
 import { cn } from "@/lib/utils";
 
-/** Apontador na tela compartilhada: um ponto que aparece para todos por alguns segundos. */
+/** Pointer on the shared screen: a dot that appears for everyone for a few seconds. */
 interface Ping extends PointerMessage {
   id: number;
   name: string;
 }
 
 const PING_MS = 2500;
-/** Intervalo mínimo entre pontos enviados por esta pessoa. */
+/** Minimum interval between points sent by this person. */
 const SEND_INTERVAL_MS = 150;
 
 export function usePointers() {
@@ -57,7 +57,7 @@ export function usePointers() {
   return { pings, pointAt };
 }
 
-/** Área da imagem dentro do <video> (`object-contain` deixa faixas pretas). */
+/** Image area inside the <video> (`object-contain` leaves black bars). */
 function useContentBox(videoRef: RefObject<HTMLVideoElement | null>) {
   const [box, setBox] = useState<ReturnType<typeof contentBox>>();
 
@@ -74,7 +74,7 @@ function useContentBox(videoRef: RefObject<HTMLVideoElement | null>) {
     update();
     const observer = new ResizeObserver(update);
     observer.observe(video);
-    // "resize" dispara quando a resolução do vídeo muda (ex.: troca de janela).
+    // "resize" fires when the video resolution changes (e.g. switching windows).
     video.addEventListener("resize", update);
     video.addEventListener("loadedmetadata", update);
     return () => {

@@ -4,8 +4,8 @@ import { loadAuditParams } from "@/features/admin/audit/domain/search-params";
 import { actionLabel, resourceLabel } from "@/features/admin/audit/domain/labels";
 
 /**
- * CSV do audit log com os filtros da tela, em stream (lotes keyset de 1.000).
- * Exige `audit.export`; a própria exportação fica registrada no audit log.
+ * Audit log CSV with the screen filters, streamed (keyset batches of 1,000).
+ * Requires `audit.export`; the export itself is recorded in the audit log.
  */
 export const exportCsv = csvExportRoute({
   permission: { audit: ["export"] },

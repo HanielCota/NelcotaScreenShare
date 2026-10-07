@@ -3,15 +3,15 @@
 @import "shadcn/tailwind.css";
 
 /*
- * A variante `dark:` sempre se aplica: os componentes do shadcn usam `dark:` para
- * cores que aqui já são tokens, e os tokens mudam com o tema (veja data-theme).
+ * The `dark:` variant always applies: shadcn components use `dark:` for
+ * colors that are already tokens here, and the tokens change with the theme (see data-theme).
  */
 @custom-variant dark (&:where(:root, :root *));
 
 /*
- * Tokens de design (tema escuro, o padrão). Fundo grafite #17181A, superfícies
- * #1F2023 / #26272B, bordas white/8% e destaques verde-menta do mascote.
- * O tema claro redefine os mesmos tokens em `:root[data-theme="light"]`.
+ * Design tokens (dark theme, the default). Graphite background #17181A, surfaces
+ * #1F2023 / #26272B, white/8% borders and the mascot's mint-green accents.
+ * The light theme redefines the same tokens in `:root[data-theme="light"]`.
  */
 @theme {
   --color-canvas: #17181a;
@@ -25,7 +25,7 @@
   --color-ink-muted: #a1a1aa;
   --color-ink-subtle: #9696a0;
 
-  /* Menta com texto verde-escuro e uma versão clara para texto, ícones e foco. */
+  /* Mint with dark-green text and a light variant for text, icons and focus. */
   --color-brand: #a2e1b2;
   --color-brand-hover: #b8ebc5;
   --color-brand-soft: #cdf2d6;
@@ -41,9 +41,9 @@
 }
 
 /*
- * Sombra suave das superfícies de vidro. Fica fora do @theme de propósito:
- * o Tailwind copia o valor de sombras do @theme no build, e aí a versão do
- * tema claro (abaixo) nunca era usada. Com @utility, a classe lê a variável.
+ * Soft shadow for glass surfaces. Kept outside @theme on purpose:
+ * Tailwind copies shadow values from @theme at build time, so the light
+ * theme version (below) was never used. With @utility, the class reads the variable.
  */
 :root {
   --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 20px 50px -20px rgb(0 0 0 / 0.7);
@@ -53,7 +53,7 @@
   box-shadow: var(--shadow-soft);
 }
 
-/* Ponte com as variáveis que os componentes do shadcn esperam. */
+/* Bridge to the variables shadcn components expect. */
 @theme inline {
   --font-sans: var(--font-manrope), "Manrope", sans-serif;
   --font-heading: var(--font-manrope), "Manrope", sans-serif;
@@ -113,7 +113,7 @@
   --border: rgb(255 255 255 / 0.08);
   --input: rgb(255 255 255 / 0.1);
   --ring: var(--color-brand-soft);
-  /* Sidebar do painel: aponta para os tokens, então acompanha o tema claro/escuro. */
+  /* Admin panel sidebar: points at the tokens, so it follows the light/dark theme. */
   --sidebar: var(--color-surface);
   --sidebar-foreground: var(--color-ink);
   --sidebar-primary: var(--color-brand);
@@ -125,10 +125,10 @@
 }
 
 /*
- * Tema claro sem ofuscar: nada de branco puro. Fundo cinza quente #E6E4DF, a
- * superfície mais clara para em #EFEDE9 e o texto é grafite, não preto.
- * `brand-soft` vira verde escuro (no claro ele é usado como texto e ícone).
- * Contraste de texto ≥ 4,5:1 em todas as superfícies.
+ * A light theme that does not glare: no pure white. Warm gray background #E6E4DF, the
+ * lightest surface stops at #EFEDE9 and text is graphite, not black.
+ * `brand-soft` becomes dark green (in light mode it is used for text and icons).
+ * Text contrast ≥ 4.5:1 on every surface.
  */
 :root[data-theme="light"] {
   color-scheme: light;
@@ -174,7 +174,7 @@
   --input: rgb(40 36 28 / 0.14);
 }
 
-/* Saturação do mascote, editada no /admin (o layout define os valores por tema). */
+/* Mascot saturation, edited in /admin (the layout sets the per-theme values). */
 :root {
   --mascot-saturation: var(--mascot-saturation-dark, 1);
 }
@@ -269,7 +269,7 @@
     margin: 0;
   }
 
-  /* PasswordInput já oferece seu próprio botão de mostrar/ocultar. */
+  /* PasswordInput already provides its own show/hide button. */
   input[type="password"]::-ms-reveal {
     display: none;
   }
@@ -312,14 +312,14 @@
 }
 
 @layer components {
-  /* Superfície "vidro" usada nas barras flutuantes. */
+  /* "Glass" surface used by the floating bars. */
   .glass {
     @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl backdrop-saturate-150;
   }
 
   /*
-   * Medidor do microfone em cápsulas: a máscara recorta o trilho e o
-   * preenchimento (que só muda de escala) em barrinhas arredondadas.
+   * Pill-shaped microphone meter: the mask cuts the track and the
+   * fill (which only changes scale) into small rounded bars.
    */
   .mic-meter {
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14'%3E%3Crect width='5' height='14' rx='2.5'/%3E%3C/svg%3E");
@@ -342,9 +342,9 @@
 }
 
 /*
- * Botões "estilo Apple" (telas de acesso): cápsula, preenchimento sem borda,
- * peso medium e um leve "apertar" ao clicar. Fora de @layer de propósito:
- * vence as classes do componente Button sem mudar o botão do resto do app.
+ * "Apple-style" buttons (access screens): pill shape, borderless fill,
+ * medium weight and a slight "press" on click. Outside @layer on purpose:
+ * it beats the Button component classes without changing the button elsewhere in the app.
  */
 .apple-buttons [data-slot="button"] {
   border-radius: 9999px;
@@ -356,7 +356,7 @@
     opacity 180ms ease;
 }
 
-/* Botão padrão: alvo de toque confortável e texto de 16 px (leitura fácil). */
+/* Default button: comfortable touch target and 16 px text (easy to read). */
 .apple-buttons [data-slot="button"][data-size="default"] {
   height: 2.5rem;
   padding-inline: 1rem;
@@ -382,7 +382,7 @@
   outline-offset: 2px;
 }
 
-/* Secundário: cinza translúcido, como os botões "gray" do iOS. */
+/* Secondary: translucent gray, like iOS "gray" buttons. */
 .apple-buttons [data-slot="button"][data-variant="outline"],
 .apple-buttons [data-slot="button"][data-variant="secondary"] {
   background-color: color-mix(in oklch, var(--color-ink) 9%, transparent);
@@ -394,7 +394,7 @@
   background-color: color-mix(in oklch, var(--color-ink) 14%, transparent);
 }
 
-/* Discreto: só o texto na cor da marca. */
+/* Subtle: just the text in the brand color. */
 .apple-buttons [data-slot="button"][data-variant="ghost"] {
   color: var(--color-brand-soft);
 }

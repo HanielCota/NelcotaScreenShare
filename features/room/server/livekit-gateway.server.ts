@@ -5,14 +5,14 @@ import { roomService } from "./room-service.server";
 
 const TOKEN_TTL = "10m";
 
-/** O app só usa microfone e tela: o token não deixa publicar câmera. */
+/** The app only uses microphone and screen: the token does not allow publishing a camera. */
 const PUBLISH_SOURCES = [
   TrackSource.MICROPHONE,
   TrackSource.SCREEN_SHARE,
   TrackSource.SCREEN_SHARE_AUDIO,
 ];
 
-/** O que a emissão do token precisa do LiveKit (nos testes, um objeto literal). */
+/** What token issuing needs from LiveKit (an object literal in tests). */
 export interface LiveKitGateway {
   countParticipants: (room: string) => Promise<number>;
   signToken: (grant: TokenGrant) => Promise<string>;
@@ -24,7 +24,7 @@ export const liveKitGateway: LiveKitGateway = {
       const participants = await roomService().listParticipants(room);
       return participants.length;
     } catch (error) {
-      // Sala ainda não existe: ninguém dentro.
+      // Room does not exist yet: nobody inside.
       if (error instanceof ServerError && error.status === 404) return 0;
       throw error;
     }
@@ -32,8 +32,8 @@ export const liveKitGateway: LiveKitGateway = {
 
   async signToken({ identity, name, room }) {
     const env = getEnv();
-    // Identidade = conta: a mesma pessoa em duas abas ocupa um só lugar na sala
-    // (o LiveKit desconecta a conexão anterior) e os eventos ligam na conta certa.
+    // Identity = account: the same person in two tabs takes a single spot in the room
+    // (LiveKit disconnects the previous connection) and events map to the right account.
     const token = new AccessToken(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET, {
       identity,
       name,
@@ -45,12 +45,12 @@ export const liveKitGateway: LiveKitGateway = {
       canPublish: true,
       canPublishSources: PUBLISH_SOURCES,
       canSubscribe: true,
-      // Chat, reações e apontador usam o canal de dados.
+      // Chat, reactions and pointer use the data channel.
       canPublishData: true,
-      // Sem canUpdateOwnMetadata: ele deixaria trocar o próprio nome na sala.
-      // "Levantar a mão" passa pelo servidor (/api/sala/mao).
+      // No canUpdateOwnMetadata: it would allow changing one's own name in the room.
+      // "Raise hand" goes through the server (/api/sala/mao).
     });
-    // Rede de segurança: o próprio LiveKit recusa entradas acima do limite.
+    // Safety net: LiveKit itself refuses joins above the limit.
     token.roomConfig = new RoomConfiguration({ maxParticipants: env.MAX_PARTICIPANTS });
     return token.toJwt();
   },

@@ -1,4 +1,4 @@
-/** Cliente HTTP mínimo para o handler do Better Auth, como o navegador faria. */
+/** Minimal HTTP client for the Better Auth handler, as the browser would do it. */
 const ORIGIN = "http://localhost:3000";
 
 export interface AuthCallResult {
@@ -56,7 +56,7 @@ export function makeCaller(
     try {
       parsed = text ? JSON.parse(text) : null;
     } catch {
-      // resposta não-JSON (ex.: redirect)
+      // non-JSON response (e.g. redirect)
     }
     return { status: response.status, body: parsed, cookies: new Map() };
   };

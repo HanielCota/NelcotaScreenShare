@@ -2,8 +2,8 @@ import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 
 /**
- * Abas "Entrar | Criar conta". São links (cada tela tem seu endereço), e o
- * destino de volta, com o convite, passa junto.
+ * "Entrar | Criar conta" tabs. They are links (each screen has its own address),
+ * and the return destination, with the invite, is carried along.
  */
 export function AccessTabs({
   current,

@@ -5,7 +5,7 @@ import { getAdminAuth } from "./admin-auth.server";
 import { can, type PermissionRequest } from "./permissions.server";
 import { isAdminRole, ROLES_REQUIRING_2FA, type AdminRole } from "@/features/auth/domain/roles";
 
-/** Máximo absoluto de uma sessão, mesmo com uso contínuo. */
+/** Absolute maximum for a session, even with continuous use. */
 const ADMIN_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface AdminSession {
@@ -20,9 +20,9 @@ export interface AdminSession {
 }
 
 /**
- * Sessão de admin da requisição (DAL): validada no banco a cada requisição
- * (sem cache em cookie), uma vez por render graças ao `cache` do React.
- * Conta desativada, papel desconhecido ou sessão além do máximo absoluto = sem sessão.
+ * Admin session of the request (DAL): validated in the database on every request
+ * (no cookie cache), once per render thanks to React's `cache`.
+ * Disabled account, unknown role or session past the absolute maximum = no session.
  */
 export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
   const auth = getAdminAuth();
@@ -34,8 +34,8 @@ export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
   if (Date.now() - new Date(session.createdAt).getTime() > ADMIN_SESSION_MAX_AGE_MS) {
     await auth.api
       .revokeSession({ body: { token: session.token }, headers: requestHeaders() })
-      // A sessão já é recusada aqui; a revogação só limpa o banco mais cedo.
-      .catch((error: unknown) => logger.warn({ err: error }, "falha ao revogar sessão vencida"));
+      // The session is already refused here; revoking only cleans the database sooner.
+      .catch((error: unknown) => logger.warn({ err: error }, "failed to revoke expired session"));
     return null;
   }
   return {
@@ -60,9 +60,9 @@ export function needsTwoFactorSetup(admin: AdminSession): boolean {
 }
 
 /**
- * Exige admin logado (e, por padrão, com 2FA quando o papel exige) e a
- * permissão pedida. Use no topo de páginas e layouts do painel. As operações
- * usam o mesmo critério pelo `defineAdminOperation`, e as rotas de API pelo
+ * Requires a signed-in admin (and, by default, with 2FA when the role requires it)
+ * and the requested permission. Use at the top of panel pages and layouts. Operations
+ * use the same criteria through `defineAdminOperation`, and API routes through
  * `requireAdminApi`.
  */
 export async function requireAdmin(

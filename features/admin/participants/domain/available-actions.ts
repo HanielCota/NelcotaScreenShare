@@ -4,12 +4,12 @@ export interface ParticipantState {
   status: ParticipantStatus;
   verified: boolean;
   anonymized: boolean;
-  /** Sessões abertas agora. */
+  /** Sessions open right now. */
   sessions: number;
   can: { update: boolean; delete: boolean; anonymize: boolean };
 }
 
-/** Quais ações aparecem no detalhe do participante, pelo status e pelas permissões. */
+/** Which actions show on the participant detail, by status and permissions. */
 export function availableActions({
   status,
   verified,

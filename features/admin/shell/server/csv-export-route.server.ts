@@ -6,9 +6,9 @@ import { csvResponse } from "@/server/table/csv-export.server";
 
 interface CsvExport<TParams extends { cursor: unknown; dir: unknown }, TRow> {
   permission: PermissionRequest;
-  /** Registro da exportação no audit log (com os filtros usados). */
+  /** Audit log entry for the export (with the filters used). */
   audit: { action: string; resourceType: string };
-  /** Nome do arquivo, sem a data e a extensão. */
+  /** File name, without the date and the extension. */
   filename: string;
   header: string[];
   loadParams: (search: URLSearchParams) => TParams;
@@ -17,8 +17,8 @@ interface CsvExport<TParams extends { cursor: unknown; dir: unknown }, TRow> {
 }
 
 /**
- * Handler de uma exportação CSV do painel: autoriza, registra a exportação na
- * auditoria (antes de transmitir) e manda as linhas em stream.
+ * Handler for an admin panel CSV export: authorizes, records the export in the
+ * audit log (before streaming) and streams the rows.
  */
 export function csvExportRoute<TParams extends { cursor: unknown; dir: unknown }, TRow>(
   spec: CsvExport<TParams, TRow>,

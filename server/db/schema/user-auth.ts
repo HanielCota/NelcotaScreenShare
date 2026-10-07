@@ -13,27 +13,27 @@ import {
 import { createdAt, id, timestamptz, updatedAt } from "./columns";
 
 /**
- * Contas de participantes: segunda instância do Better Auth (`/api/auth`),
- * isolada das contas de admin. Chaves TypeScript = nomes de campo do Better
- * Auth; colunas em snake_case. Ver `server/auth/user.ts`.
+ * Participant accounts: second Better Auth instance (`/api/auth`),
+ * isolated from the admin accounts. TypeScript keys = Better Auth field
+ * names; columns in snake_case. See `server/auth/user.ts`.
  */
 export const users = pgTable(
   "users",
   {
     id: id(),
-    // Nome mostrado na sala.
+    // Name shown in the room.
     name: text("name").notNull(),
     email: text("email").notNull(),
     emailVerified: boolean("email_verified").notNull().default(false),
     image: text("image"),
     twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
     lastSeenAt: timestamptz("last_seen_at"),
-    // Mantido por trigger em room_participations (ordenar a lista sem COUNT por página).
+    // Maintained by a trigger on room_participations (sorts the list without a COUNT per page).
     participationsCount: integer("participations_count").notNull().default(0),
-    // Bloqueio pelo painel: login e entrada em salas recusados.
+    // Blocked from the panel: sign-in and joining rooms are refused.
     blockedAt: timestamptz("blocked_at"),
     blockReason: text("block_reason"),
-    // LGPD: e-mail e nome trocados por valores sem dados pessoais.
+    // LGPD: e-mail and name replaced with values without personal data.
     anonymizedAt: timestamptz("anonymized_at"),
     deletedAt: timestamptz("deleted_at"),
     createdAt: createdAt(),

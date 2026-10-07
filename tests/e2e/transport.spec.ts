@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { E2E_URL } from "./support/env";
 
-test("corpo excessivo recebe 413 sem destruir a conexão antes da resposta", async ({ request }) => {
+test("an oversized body gets 413 without destroying the connection before the response", async ({
+  request,
+}) => {
   const response = await request.post("/api/operations/auth-acceptInvitation", {
     headers: { origin: E2E_URL },
     data: { input: "x".repeat(1024 * 1024 + 1) },
@@ -9,7 +11,7 @@ test("corpo excessivo recebe 413 sem destruir a conexão antes da resposta", asy
   expect(response.status()).toBe(413);
 });
 
-test("webhook limita bytes UTF-8 em uma requisição chunked sem Content-Length", async () => {
+test("webhook limits UTF-8 bytes in a chunked request without Content-Length", async () => {
   const body = new TextEncoder().encode(JSON.stringify({ padding: "é".repeat(33 * 1024) }));
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {

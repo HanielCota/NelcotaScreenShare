@@ -2,7 +2,7 @@ import { gazeAt, IDLE, type Gaze, type Point } from "@/features/mascot/domain/ey
 
 export { IDLE, type Gaze } from "@/features/mascot/domain/eye-tracking";
 
-/** Vira o rosto enquanto a senha está sendo digitada. */
+/** Turns the face away while the password is being typed. */
 const LOOK_AWAY: Gaze = {
   x: -0.95,
   y: -0.75,
@@ -11,15 +11,15 @@ const LOOK_AWAY: Gaze = {
   rightX: -0.95,
   rightY: -0.75,
 };
-/** Campos com texto digitável: sem posição do mouse, o olhar segue o cursor de texto. */
+/** Fields with typeable text: without a mouse position, the gaze follows the text caret. */
 const TEXT_INPUT_TYPES = new Set(["text", "email", "password", "search", "tel", "url"]);
 
 const measure = typeof document === "undefined" ? null : document.createElement("canvas");
 
 /**
- * Olhar do rosto (`face`) na direção de um ponto da tela. Mascote espelhado
- * (`facing="right"`): mira o ponto refletido no eixo do rosto, e o espelho
- * do desenho traz o olhar de volta para o ponto certo.
+ * Gaze of the face (`face`) towards a point on the screen. Mirrored mascot
+ * (`facing="right"`): aims at the point reflected across the face's axis, and the drawing's
+ * mirroring brings the gaze back to the right point.
  */
 function lookAt(face: Element, point: Point): Gaze {
   const rect = face.getBoundingClientRect();
@@ -33,7 +33,7 @@ function center(element: Element): Point {
   return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 }
 
-/** Ponto do texto digitado onde está o cursor (ou o fim do texto). */
+/** Point in the typed text where the caret is (or the end of the text). */
 function caretPoint(input: HTMLInputElement): Point {
   const rect = input.getBoundingClientRect();
   const style = getComputedStyle(input);
@@ -45,7 +45,7 @@ function caretPoint(input: HTMLInputElement): Point {
     try {
       end = input.selectionEnd ?? end;
     } catch {
-      // type="email" não expõe a seleção: usa o fim do texto.
+      // type="email" does not expose the selection: use the end of the text.
     }
     width = context.measureText(input.value.slice(0, end)).width;
   }
@@ -56,7 +56,7 @@ function caretPoint(input: HTMLInputElement): Point {
   return { x, y: rect.top + rect.height * 0.62 };
 }
 
-/** Campo de senha com foco (escondida ou, com "Mostrar senha", visível). */
+/** Focused password field (hidden or, with "Mostrar senha", visible). */
 export function focusedPasswordField(): HTMLInputElement | undefined {
   const active = document.activeElement;
   if (!(active instanceof HTMLInputElement)) return undefined;
@@ -66,8 +66,8 @@ export function focusedPasswordField(): HTMLInputElement | undefined {
 }
 
 /**
- * Um aviso tem prioridade sobre o mouse. Digitação e foco descartam o ponteiro antigo no hook.
- * Senhas sempre desviam o olhar, inclusive quando o ponteiro está sobre o campo.
+ * A signal takes priority over the mouse. Typing and focus discard the old pointer in the hook.
+ * Passwords always avert the gaze, even when the pointer is over the field.
  */
 export function gazeFor(
   face: Element,
@@ -81,7 +81,7 @@ export function gazeFor(
   if (active instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(active.type)) {
     return active.type === "password" ? LOOK_AWAY : lookAt(face, caretPoint(active));
   }
-  // Texto livre (várias linhas): olha pro campo, como quem acompanha o que está sendo escrito.
+  // Free text (multiple lines): looks at the field, like someone following what is being written.
   if (active instanceof HTMLTextAreaElement) return lookAt(face, center(active));
   if (
     active instanceof HTMLInputElement ||

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { createMicrophoneCheck } from "@/features/room/domain/microphone-check";
 
-test("silêncio, ruído baixo e picos isolados não confirmam o teste", () => {
+test("silence, low noise and isolated peaks do not confirm the check", () => {
   const check = createMicrophoneCheck();
   expect(check(0, 0)).toBe("waiting");
   expect(check(0.02, 50)).toBe("waiting");
@@ -11,7 +11,7 @@ test("silêncio, ruído baixo e picos isolados não confirmam o teste", () => {
   expect(check(0.8, 250)).toBe("waiting");
 });
 
-test("áudio sustentado confirma a captura e o resultado permanece depois do silêncio", () => {
+test("sustained audio confirms the capture and the result persists after silence", () => {
   const check = createMicrophoneCheck();
   for (let time = 0; time < 200; time += 50) expect(check(0.1, time)).toBe("waiting");
   expect(check(0.1, 200)).toBe("detected");
@@ -21,7 +21,7 @@ test("áudio sustentado confirma a captura e o resultado permanece depois do sil
   expect(check(0.2, 5050)).toBe("confirmed");
 });
 
-test("uma pausa nos quadros não conta como áudio contínuo", () => {
+test("a gap in frames does not count as continuous audio", () => {
   const check = createMicrophoneCheck();
   expect(check(0.2, 0)).toBe("waiting");
   expect(check(0.2, 5000)).toBe("waiting");
@@ -29,7 +29,7 @@ test("uma pausa nos quadros não conta como áudio contínuo", () => {
   expect(check(0.2, 5200)).toBe("detected");
 });
 
-test("uma nova captura começa sem a confirmação do aparelho anterior", () => {
+test("a new capture starts without the previous device confirmation", () => {
   const old = createMicrophoneCheck();
   old(0.2, 0);
   expect(old(0.2, 200)).toBe("detected");

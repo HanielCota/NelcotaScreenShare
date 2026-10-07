@@ -2,8 +2,8 @@ import { runMigrations } from "../../scripts/migrate";
 import { adminQuery, ident, testDatabases } from "./db";
 
 /**
- * Uma vez por execução: recria o banco-modelo e aplica todas as migrações nele.
- * Testa de quebra que as migrações sobem do zero.
+ * Once per run: recreates the template database and applies every migration to it.
+ * As a bonus, this tests that migrations run from scratch.
  */
 export default async function setup() {
   const url = process.env.TEST_DATABASE_URL;

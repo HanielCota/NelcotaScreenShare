@@ -6,7 +6,7 @@ function request(user: string) {
   return new Request("http://localhost/", { headers: { "x-user": user } });
 }
 
-test("loaders paralelos da mesma requisição compartilham apenas sua sessão", async () => {
+test("parallel loaders of the same request share only their own session", async () => {
   const load = vi.fn(async () => {
     await Promise.resolve();
     return requestHeaders().get("x-user");
@@ -20,10 +20,10 @@ test("loaders paralelos da mesma requisição compartilham apenas sua sessão", 
   ]);
   expect(results).toEqual(["Ana", "Ana", "Bia"]);
   expect(load).toHaveBeenCalledTimes(2);
-  expect(() => requestHeaders()).toThrow("requisição HTTP");
+  expect(() => requestHeaders()).toThrow("HTTP request");
 });
 
-test("uma nova requisição não reaproveita a sessão da anterior", async () => {
+test("a new request does not reuse the previous request session", async () => {
   const session = requestMemo(async () => requestHeaders().get("x-user"));
   expect(await withRequest(request("Ana"), new RouterContextProvider(), session)).toBe("Ana");
   expect(await withRequest(request("Bia"), new RouterContextProvider(), session)).toBe("Bia");

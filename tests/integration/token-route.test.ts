@@ -9,8 +9,8 @@ import * as schema from "@/server/db/schema";
 import { verifiedParticipant } from "./support/accounts";
 
 /**
- * POST /api/token de ponta a ponta: conta real no Postgres e um LiveKit falso
- * que responde ao ListParticipants (Twirp/JSON) conforme o nome da sala.
+ * POST /api/token end to end: a real account in Postgres and a fake LiveKit
+ * that answers ListParticipants (Twirp/JSON) based on the room name.
  */
 const ACCESS = "senha-de-acesso-123";
 const jsonObject = z.record(z.string(), z.unknown());
@@ -96,14 +96,14 @@ function claims(token: string): Record<string, unknown> {
   return jsonObject.parse(JSON.parse(Buffer.from(payload, "base64url").toString()));
 }
 
-describe("acesso", () => {
-  test("sem conta: 401", async () => {
+describe("access", () => {
+  test("no account: 401", async () => {
     const response = await post({ room: "sala-ok", password: ACCESS });
     assert.equal(response.status, 401);
     assert.equal(await errorCode(response), "unauthenticated");
   });
 
-  test("outra origem: 403", async () => {
+  test("foreign origin: 403", async () => {
     const ana = await verifiedParticipant(db, handler);
     const response = await post(
       { room: "sala-ok", password: ACCESS },
@@ -112,7 +112,7 @@ describe("acesso", () => {
     assert.equal(response.status, 403);
   });
 
-  test("e-mail deixou de estar confirmado: 403", async () => {
+  test("email is no longer verified: 403", async () => {
     const bia = await verifiedParticipant(db, handler);
     await db.update(schema.users).set({ emailVerified: false }).where(eq(schema.users.id, bia.id));
     const response = await post(
@@ -123,7 +123,7 @@ describe("acesso", () => {
     assert.equal(await errorCode(response), "email_unverified");
   });
 
-  test("conta bloqueada pelo painel: 403", async () => {
+  test("account blocked from the admin panel: 403", async () => {
     const caio = await verifiedParticipant(db, handler);
     await db
       .update(schema.users)
@@ -139,10 +139,10 @@ describe("acesso", () => {
 });
 
 describe("token", () => {
-  test("identidade e nome vêm da conta; só microfone e tela", async () => {
+  test("identity and name come from the account; only microphone and screen", async () => {
     const dani = await verifiedParticipant(db, handler, { name: "Dani Souza" });
     const response = await post(
-      // Um "name" mandado pelo navegador é ignorado (não está no schema).
+      // A "name" sent by the browser is ignored (it is not in the schema).
       { room: "Sala-Teste", password: ACCESS, name: "Impostor" },
       { cookie: dani.jar.header() },
     );
@@ -157,11 +157,11 @@ describe("token", () => {
     assert.equal(video.room, "sala-teste");
     assert.deepEqual(video.canPublishSources, ["microphone", "screen_share", "screen_share_audio"]);
     assert.equal(video.canPublishData, true);
-    // Sem trocar o próprio nome na sala: a mão levantada passa pelo servidor.
+    // No changing one's own name in the room: the raised hand goes through the server.
     assert.equal(video.canUpdateOwnMetadata, undefined);
   });
 
-  test("sala nova, sala cheia e LiveKit com erro", async () => {
+  test("new room, full room and LiveKit error", async () => {
     const edu = await verifiedParticipant(db, handler);
     const cookie = edu.jar.header();
     assert.equal((await post({ room: "sala-nova", password: ACCESS }, { cookie })).status, 200);
@@ -173,7 +173,7 @@ describe("token", () => {
     assert.equal(await errorCode(broken), "server_error");
   });
 
-  test("valida o corpo", async () => {
+  test("validates the body", async () => {
     const fe = await verifiedParticipant(db, handler);
     const cookie = fe.jar.header();
     for (const body of [
@@ -187,7 +187,7 @@ describe("token", () => {
     }
   });
 
-  test("senha de acesso errada: 5 chances por IP", async () => {
+  test("wrong access password: 5 attempts per IP", async () => {
     const gil = await verifiedParticipant(db, handler);
     const cookie = gil.jar.header();
     const ip = freshIp();
@@ -201,7 +201,7 @@ describe("token", () => {
     assert.ok(Number(blocked.headers.get("retry-after")) > 60);
   });
 
-  test("limite de 20 pedidos por minuto por conta, mesmo trocando de IP", async () => {
+  test("limit of 20 requests per minute per account, even when switching IPs", async () => {
     const hugo = await verifiedParticipant(db, handler);
     const cookie = hugo.jar.header();
     for (let i = 0; i < 20; i++) {
@@ -220,8 +220,8 @@ function requestsOf(roomCode: string) {
     .orderBy(schema.tokenRequests.createdAt);
 }
 
-describe("registro em token_requests", () => {
-  test("cada resultado vira uma linha, com conta e IP", async () => {
+describe("logging to token_requests", () => {
+  test("each result becomes a row, with account and IP", async () => {
     const ivo = await verifiedParticipant(db, handler);
     const cookie = ivo.jar.header();
     const room = `sala-registro-${Date.now().toString(36)}`;
@@ -239,7 +239,7 @@ describe("registro em token_requests", () => {
     assert.equal(rows[2]?.ip, "198.51.100.9");
   });
 
-  test("sala cheia, erro do LiveKit e corpo inválido também ficam registrados", async () => {
+  test("full room, LiveKit error and invalid body are logged too", async () => {
     const ju = await verifiedParticipant(db, handler);
     const cookie = ju.jar.header();
     const before = await db
@@ -266,7 +266,7 @@ describe("registro em token_requests", () => {
   });
 });
 
-/** Convite para a sala (criada se ainda não existir), como o painel faria. */
+/** Invite to the room (created if it does not exist yet), as the admin panel would do. */
 async function inviteFor(
   code: string,
   { maxUses = null, expiresAt = null }: { maxUses?: number | null; expiresAt?: Date | null } = {},
@@ -286,19 +286,19 @@ async function inviteFor(
   });
 }
 
-describe("convites de sala", () => {
-  test("convite válido entra sem a senha de acesso", async () => {
+describe("room invites", () => {
+  test("valid invite joins without the access password", async () => {
     const kai = await verifiedParticipant(db, handler);
     const room = `sala-conv-${Date.now().toString(36)}`;
     const { token } = await inviteFor(room);
     const response = await post({ room, invite: token }, { cookie: kai.jar.header() });
     assert.equal(response.status, 200);
-    // Sem o convite, a senha continua obrigatória.
+    // Without the invite, the password is still required.
     const without = await post({ room }, { cookie: kai.jar.header() });
     assert.equal(without.status, 401);
   });
 
-  test("limite conta pessoas: quem já usou volta; a próxima pessoa é recusada", async () => {
+  test("limit counts people: whoever already used it can return; the next person is rejected", async () => {
     const room = `sala-lim-${Date.now().toString(36)}`;
     const { id, token } = await inviteFor(room, { maxUses: 1 });
     const leo = await verifiedParticipant(db, handler);
@@ -320,7 +320,7 @@ describe("convites de sala", () => {
     assert.equal(logged?.result, "invite_invalid");
   });
 
-  test("expirado, revogado, de outra sala ou forjado: recusado", async () => {
+  test("expired, revoked, from another room or forged: rejected", async () => {
     const nil = await verifiedParticipant(db, handler);
     const cookie = nil.jar.header();
     const room = `sala-rec-${Date.now().toString(36)}`;
@@ -338,7 +338,7 @@ describe("convites de sala", () => {
     }
   });
 
-  test("sala cheia não gasta uso do convite", async () => {
+  test("full room does not use up an invite use", async () => {
     const { id, token } = await inviteFor("sala-cheia", { maxUses: 3 });
     const ota = await verifiedParticipant(db, handler);
     const response = await post(

@@ -1,7 +1,7 @@
 import { gte, lt, type AnyColumn, type SQL } from "drizzle-orm";
 import { endOfDayInSaoPaulo, startOfDayInSaoPaulo } from "@/lib/format";
 
-/** Filtro "de/até" das tabelas do painel: dias inteiros no fuso de São Paulo. */
+/** "from/until" filter of the panel tables: whole days in the São Paulo time zone. */
 export function periodFilters(
   column: AnyColumn,
   { de, ate }: { de: string | null; ate: string | null },

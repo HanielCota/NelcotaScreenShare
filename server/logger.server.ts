@@ -3,9 +3,9 @@ import { createRequire } from "node:module";
 import { logLevelSchema } from "@/server/env.server";
 
 /**
- * Logger estruturado do servidor. Produção: JSON no stdout (o Coolify coleta),
- * sem transports nem worker threads. Desenvolvimento: `pino-pretty` legível.
- * Segredos e dados pessoais sensíveis são mascarados em qualquer nível.
+ * Structured server logger. Production: JSON on stdout (Coolify collects it),
+ * no transports or worker threads. Development: readable `pino-pretty`.
+ * Secrets and sensitive personal data are masked at every level.
  */
 export const logger: Logger = pino({
   level:

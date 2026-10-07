@@ -5,30 +5,30 @@ import { defineConfig } from "vitest/config";
 
 const root = fileURLToPath(new URL("./", import.meta.url));
 
-// Do .env.local só interessa o banco de testes; o resto do ambiente local não
-// pode influenciar os testes (eles definem as próprias variáveis).
+// Only the test database matters from .env.local; the rest of the local environment
+// must not influence the tests (they set their own variables).
 if (!process.env.TEST_DATABASE_URL && existsSync(`${root}.env.local`)) {
   const local = parseEnv(readFileSync(`${root}.env.local`, "utf8"));
   if (local.TEST_DATABASE_URL) process.env.TEST_DATABASE_URL = local.TEST_DATABASE_URL;
 }
 
 if (!process.env.TEST_DATABASE_URL) {
-  // Sem o banco de testes, a integração não roda: avisa em vez de sumir calada.
-  console.warn("[vitest] TEST_DATABASE_URL ausente: só os testes unitários vão rodar.");
+  // Without the test database, integration tests do not run: warn instead of silently skipping.
+  console.warn("[vitest] TEST_DATABASE_URL missing: only unit tests will run.");
 }
 
 /**
- * Dois projetos:
- * - `unit`: sem banco, sempre roda.
- * - `integration`: Postgres real. Só entra com TEST_DATABASE_URL (um banco
- *   descartável); cada arquivo recebe uma cópia limpa de um banco-modelo migrado.
+ * Two projects:
+ * - `unit`: no database, always runs.
+ * - `integration`: real Postgres. Only enabled with TEST_DATABASE_URL (a disposable
+ *   database); each file gets a clean copy of a migrated template database.
  */
 export default defineConfig({
   resolve: {
     alias: [{ find: /^@\//, replacement: root }],
   },
   test: {
-    // Logs só atrapalham a saída dos testes (os espiões do logger continuam valendo).
+    // Logs only clutter the test output (logger spies keep working).
     env: { LOG_LEVEL: "silent" },
     restoreMocks: true,
     unstubEnvs: true,
@@ -59,7 +59,7 @@ export default defineConfig({
       include: ["server/**", "features/**", "lib/**", "components/**", "app/routes/api/**"],
       exclude: ["components/ui/**"],
       reporter: ["text-summary", "html", "json-summary"],
-      // Catraca: o mínimo só sobe. Valores do baseline da refatoração (unit + integração).
+      // Ratchet: the minimum only goes up. Values from the refactor baseline (unit + integration).
       thresholds: { statements: 34, branches: 29, functions: 28, lines: 35 },
     },
   },

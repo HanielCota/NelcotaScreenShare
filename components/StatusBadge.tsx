@@ -10,7 +10,7 @@ const TONES = {
 
 export type BadgeTone = keyof typeof TONES;
 
-/** Selo de status das tabelas e detalhes (cor + texto, nunca só cor). */
+/** Status badge for tables and details (color + text, never color alone). */
 export function StatusBadge({ tone, children }: { tone: BadgeTone; children: React.ReactNode }) {
   return (
     <span

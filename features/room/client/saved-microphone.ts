@@ -1,6 +1,6 @@
 const MIC_KEY = "nelcota:microfone";
 
-/** Microfone escolhido da última vez neste navegador (conveniência; pode não existir). */
+/** Microphone chosen last time in this browser (convenience; may not exist). */
 export function savedMicrophone(): string | undefined {
   try {
     return localStorage.getItem(MIC_KEY) ?? undefined;
@@ -14,6 +14,6 @@ export function saveMicrophone(deviceId: string | undefined) {
     if (deviceId) localStorage.setItem(MIC_KEY, deviceId);
     else localStorage.removeItem(MIC_KEY);
   } catch {
-    // Armazenamento bloqueado: só não lembra a escolha.
+    // Storage blocked: it just does not remember the choice.
   }
 }

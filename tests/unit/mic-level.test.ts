@@ -49,7 +49,7 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
-/** Executado com os hooks simulados acima para controlar o ciclo de captura. */
+/** Runs with the hooks mocked above to control the capture lifecycle. */
 function MicLevelHarness() {
   const meter = { style: { transform: "" } } as HTMLDivElement;
   const events = {
@@ -72,7 +72,7 @@ function tick(time: number, value: number) {
   for (const callback of pending) callback(time);
 }
 
-test("publica mudanças do teste sem renderizar a cada quadro e limpa a captura", async () => {
+test("publishes check changes without rendering every frame and cleans up the capture", async () => {
   const { meter, events, level, cleanup } = MicLevelHarness();
   await vi.waitFor(() => expect(events.onCheck).toHaveBeenCalledWith("waiting", "mic-a"));
   for (let time = 50; time <= 300; time += 50) tick(time, 0.1);
@@ -93,7 +93,7 @@ test("publica mudanças do teste sem renderizar a cada quadro e limpa a captura"
   expect(meter.style.transform).toBe("scaleX(0)");
 });
 
-test("uma captura cancelada antes de abrir não publica estado nem mantém o microfone", async () => {
+test("a capture cancelled before opening publishes no state and does not keep the microphone", async () => {
   const pending = Promise.withResolvers<{ stop: typeof stop }>();
   capture.createTrack.mockReturnValue(pending.promise);
   const { events, cleanup } = MicLevelHarness();
@@ -105,7 +105,7 @@ test("uma captura cancelada antes de abrir não publica estado nem mantém o mic
   expect(frames.size).toBe(0);
 });
 
-test("cancelar durante a lista de aparelhos impede que a captura antiga atualize a tela", async () => {
+test("cancelling during device enumeration stops the old capture from updating the screen", async () => {
   const pending = Promise.withResolvers<{ kind: string; deviceId: string }[]>();
   devices.mockReturnValue(pending.promise);
   const { events, cleanup } = MicLevelHarness();

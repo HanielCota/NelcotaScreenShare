@@ -1,7 +1,7 @@
 import { useId, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
-/** Seção do aviso com âncora: número, título e uma frase de contexto. */
+/** Notice section with an anchor: number, title and a context sentence. */
 export function PrivacySection({
   id,
   index,
@@ -39,7 +39,7 @@ export function PrivacySection({
   );
 }
 
-/** Cartão com linhas separadas por divisórias, no padrão de /conta. */
+/** Card with rows separated by dividers, following the /conta pattern. */
 export function PrivacyList({ children }: { children: ReactNode }) {
   return (
     <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
@@ -48,7 +48,7 @@ export function PrivacyList({ children }: { children: ReactNode }) {
   );
 }
 
-/** Linha com ícone à esquerda; `aside` mostra um destaque à direita (ex.: prazo). */
+/** Row with an icon on the left; `aside` shows a highlight on the right (e.g. a period). */
 export function PrivacyItem({
   icon: Icon,
   title,

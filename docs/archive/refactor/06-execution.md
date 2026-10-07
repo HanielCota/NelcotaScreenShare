@@ -1,88 +1,88 @@
-# 06 — Execução da refatoração
+# 06 — Refactoring execution
 
-> Executada em 2026-10-06 na branch `refactor/arquitetura`, a partir do estado analisado (`07e1259`, que inclui o WIP do mascote). São 17 commits pequenos, cada um com lint, tipos, testes e E2E verdes. Os commits de **movimentação** ficaram separados dos de **extração**, para facilitar a revisão e o revert.
+> Executed on 2026-10-06 on the `refactor/arquitetura` branch, starting from the analyzed state (`07e1259`, which includes the mascot WIP). There are 17 small commits, each with green lint, types, tests and E2E. The **move** commits were kept separate from the **extraction** commits, to make review and revert easier.
 
-## O que foi feito, por fase
+## What was done, by phase
 
-| Commit                          | Fase      | Conteúdo                                                                                                                                                                                                                                |
-| ------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `7fbdd68`                       | Segurança | S-01: open redirect (`safeReturnPath` pelo parser de URL). S-02: rotas HTTP do plugin admin fechadas. S-03: limite de senhas erradas ao excluir a conta. S-04: `bootstrap.sql` refaz os REVOKE                                          |
-| `9dffacd`                       | Segurança | S-11/B-03: retenção LGPD + reprojeção a cada 6 h. S-05: token sem `canUpdateOwnMetadata`, com "mão" por `POST /api/sala/mao`. S-10: corpo do webhook limitado, limite no receptor, sem câmera no `Permissions-Policy`. S-09, S-06, S-07 |
-| `923eb85`                       | Bugs      | B-01, B-02, B-04 (create-owner na imagem, **testado no container**), B-05 a B-13                                                                                                                                                        |
-| `d7835db`, `61e8606`            | Fase 0    | Lint verde; 12 fluxos E2E (Playwright); teste dos papéis do Postgres; knip, jscpd, cobertura com catraca, limites de tamanho e complexidade; CI com E2E, `docker build` e checagem de schema                                            |
-| `771b2b7`                       | Fase 1    | Banco não opcional (27 desvios mortos removidos); env validado num lugar só; constantes de auth unificadas; `PASSWORD_LIMITS` em todo lugar                                                                                             |
-| `7e4161c`                       | Fase 2    | Exportações CSV por uma fábrica, com stream de verdade (`pull`); filtros de período e iteração comuns; dados LGPD num módulo próprio                                                                                                    |
-| `ecaae1c`                       | 3a/3b     | Painel em `features/admin/*`; peças genéricas em `components/`; `AuditTable` dividida                                                                                                                                                   |
-| `495bb1f`                       | 3d        | Auth e conta em `features/auth` e `features/account`; `SessionList` recebe as actions por prop                                                                                                                                          |
-| `4927aa3`                       | 3e        | Home como Server Component com ilhas client                                                                                                                                                                                             |
-| `daa4900`                       | 3g        | Mascote: hook de 666 linhas dividido em controlador, animador, reações, sono, sinais e regras puras; listeners globais compartilhados                                                                                                   |
-| `21aad0e`, `a7c966d`, `8987fef` | 3f        | Sala: movimentação; token e webhook em camadas; PreJoin, RoomView e ScreenStage divididos; fronteiras no lint                                                                                                                           |
-| `618d126`                       | Fase 4    | Páginas de detalhe em Server Components; catraca do lint zerada                                                                                                                                                                         |
-| (este)                          | Fase 5    | README atualizado, ADRs (`docs/adr/0001` a `0004`), este registro                                                                                                                                                                       |
+| Commit                          | Phase    | Contents                                                                                                                                                                                                                                         |
+| ------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `7fbdd68`                       | Security | S-01: open redirect (`safeReturnPath` via the URL parser). S-02: admin plugin HTTP routes closed. S-03: limit on wrong passwords when deleting the account. S-04: `bootstrap.sql` redoes the REVOKEs                                             |
+| `9dffacd`                       | Security | S-11/B-03: LGPD retention + reprojection every 6 h. S-05: token without `canUpdateOwnMetadata`, with "hand" via `POST /api/sala/mao`. S-10: webhook body size capped, limit on the receiver, no camera in `Permissions-Policy`. S-09, S-06, S-07 |
+| `923eb85`                       | Bugs     | B-01, B-02, B-04 (create-owner in the image, **tested in the container**), B-05 to B-13                                                                                                                                                          |
+| `d7835db`, `61e8606`            | Phase 0  | Green lint; 12 E2E flows (Playwright); Postgres roles test; knip, jscpd, coverage with a ratchet, size and complexity limits; CI with E2E, `docker build` and schema check                                                                       |
+| `771b2b7`                       | Phase 1  | Non-optional database (27 dead branches removed); env validated in one place; auth constants unified; `PASSWORD_LIMITS` everywhere                                                                                                               |
+| `7e4161c`                       | Phase 2  | CSV exports through a factory, with real streaming (`pull`); shared period filters and iteration; LGPD data in its own module                                                                                                                    |
+| `ecaae1c`                       | 3a/3b    | Panel in `features/admin/*`; generic pieces in `components/`; `AuditTable` split                                                                                                                                                                 |
+| `495bb1f`                       | 3d       | Auth and account in `features/auth` and `features/account`; `SessionList` receives the actions via props                                                                                                                                         |
+| `4927aa3`                       | 3e       | Home as a Server Component with client islands                                                                                                                                                                                                   |
+| `daa4900`                       | 3g       | Mascot: 666-line hook split into controller, animator, reactions, sleep, signals and pure rules; shared global listeners                                                                                                                         |
+| `21aad0e`, `a7c966d`, `8987fef` | 3f       | Room: move; token and webhook in layers; PreJoin, RoomView and ScreenStage split; boundaries in the linter                                                                                                                                       |
+| `618d126`                       | Phase 4  | Detail pages as Server Components; lint ratchet down to zero                                                                                                                                                                                     |
+| (this one)                      | Phase 5  | README updated, ADRs (`docs/adr/0001` to `0004`), this log                                                                                                                                                                                       |
 
-## Métricas: antes → depois
+## Metrics: before → after
 
-"Antes" é o commit `07e1259`, o estado analisado. As medições foram feitas com as mesmas ferramentas do inventário.
+"Before" is commit `07e1259`, the analyzed state. Measurements were taken with the same tools as the inventory.
 
-| Métrica                                                       | Antes                 | Depois                                         | Meta (doc 04)                    |
-| ------------------------------------------------------------- | --------------------- | ---------------------------------------------- | -------------------------------- |
-| `pnpm lint`                                                   | 44 erros              | **0**                                          | 0                                |
-| Maior arquivo não-vendor                                      | 666 (`use-mascot.ts`) | 360 linhas, 300 úteis (`mascot-controller.ts`) | ≤ 300 úteis ✓                    |
-| Arquivos acima de 300 linhas úteis                            | 6                     | **0** (sem lista de exceções)                  | 0 ✓                              |
-| Maior complexidade                                            | 39 (`PreJoin`)        | **14**                                         | ≤ 15 ✓                           |
-| Funções com complexidade > 12                                 | 23                    | 13                                             | ≤ 8 ✗ (todas ≤ 14)               |
-| `any` / casts inseguros no app                                | 0 / 18                | 0 / **0**                                      | 0 ✓                              |
-| `if (!db)` / `db!`                                            | 27 / 19               | **0 / 0**                                      | 0 ✓                              |
-| Duplicação (jscpd)                                            | 2,24% (51 clones)     | **1,67%** (34 clones)                          | ≤ 1,5% ✗ (perto)                 |
-| knip: arquivos / deps / exports sem uso                       | 2 / 1 / 36            | **0 / 0 / 0**                                  | 0 ✓                              |
-| Imports `components → app`                                    | 5                     | **0** (barrados pelo lint)                     | 0 ✓                              |
-| Testes                                                        | 141 (sem E2E)         | **201 + 12 E2E**                               | 8 fluxos E2E ✓                   |
-| Cobertura de linhas, unit + integração (inclui `components/`) | 32,7%                 | **35,3%**                                      | catraca ✓                        |
-| Cobertura do domínio puro (`domain/` + `engine/`)             | —                     | **90,5%**                                      | ≥ 90% ✓                          |
-| Cobertura de `features/*/server` + DAL                        | —                     | 85,3%                                          | ≥ 80% ✓                          |
-| Cobertura de `server/` (infra)                                | —                     | 78,8%                                          | ≥ 80% ✗ (perto)                  |
-| Tempo de `pnpm build`                                         | ~7–15 s               | ~17 s                                          | não piorar ≈ (variação de cache) |
-| JS da home (gzip)                                             | 215 KB                | **211 KB** (−2%)                               | −10% ✗                           |
-| JS de `/entrar` (gzip)                                        | 226 KB                | **188 KB** (−17%)                              | —                                |
-| JS de `/admin/salas` (gzip)                                   | 176 KB                | **139 KB** (−21%)                              | —                                |
-| JS da sala (gzip)                                             | 405 KB                | 410 KB (+1%)                                   | não piorar ✗ (+5 KB)             |
+| Metric                                                     | Before                | After                                             | Target (doc 04)             |
+| ---------------------------------------------------------- | --------------------- | ------------------------------------------------- | --------------------------- |
+| `pnpm lint`                                                | 44 errors             | **0**                                             | 0                           |
+| Largest non-vendor file                                    | 666 (`use-mascot.ts`) | 360 lines, 300 effective (`mascot-controller.ts`) | ≤ 300 effective ✓           |
+| Files above 300 effective lines                            | 6                     | **0** (no exception list)                         | 0 ✓                         |
+| Highest complexity                                         | 39 (`PreJoin`)        | **14**                                            | ≤ 15 ✓                      |
+| Functions with complexity > 12                             | 23                    | 13                                                | ≤ 8 ✗ (all ≤ 14)            |
+| `any` / unsafe casts in the app                            | 0 / 18                | 0 / **0**                                         | 0 ✓                         |
+| `if (!db)` / `db!`                                         | 27 / 19               | **0 / 0**                                         | 0 ✓                         |
+| Duplication (jscpd)                                        | 2.24% (51 clones)     | **1.67%** (34 clones)                             | ≤ 1.5% ✗ (close)            |
+| knip: unused files / deps / exports                        | 2 / 1 / 36            | **0 / 0 / 0**                                     | 0 ✓                         |
+| `components → app` imports                                 | 5                     | **0** (blocked by the linter)                     | 0 ✓                         |
+| Tests                                                      | 141 (no E2E)          | **201 + 12 E2E**                                  | 8 E2E flows ✓               |
+| Line coverage, unit + integration (includes `components/`) | 32.7%                 | **35.3%**                                         | ratchet ✓                   |
+| Pure domain coverage (`domain/` + `engine/`)               | —                     | **90.5%**                                         | ≥ 90% ✓                     |
+| `features/*/server` + DAL coverage                         | —                     | 85.3%                                             | ≥ 80% ✓                     |
+| `server/` (infra) coverage                                 | —                     | 78.8%                                             | ≥ 80% ✗ (close)             |
+| `pnpm build` time                                          | ~7–15 s               | ~17 s                                             | no worse ≈ (cache variance) |
+| Home JS (gzip)                                             | 215 KB                | **211 KB** (−2%)                                  | −10% ✗                      |
+| `/entrar` JS (gzip)                                        | 226 KB                | **188 KB** (−17%)                                 | —                           |
+| `/admin/salas` JS (gzip)                                   | 176 KB                | **139 KB** (−21%)                                 | —                           |
+| Room JS (gzip)                                             | 405 KB                | 410 KB (+1%)                                      | no worse ✗ (+5 KB)          |
 
-Sobre as metas não atingidas:
+On the missed targets:
 
-- **Sala +5 KB:** são os módulos novos (hub de listeners do mascote, limite no receptor, chamada da mão pelo servidor) e o custo de dividir arquivos.
-- **Home −2%:** quase todo o JS da home vem do SDK do LiveKit, do Zod e do GSAP, não do código do app.
+- **Room +5 KB:** these are the new modules (mascot listener hub, limit on the receiver, raising the hand through the server) and the cost of splitting files.
+- **Home −2%:** almost all of the home's JS comes from the LiveKit SDK, Zod and GSAP, not from the app's code.
 
-## Desvios do plano (decididos durante a execução)
+## Deviations from the plan (decided during execution)
 
-| Item do plano                                      | O que aconteceu                                                                        | Motivo                                                                                                                                                                                           |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `useFormSubmit` para o par `pending`/`error` (×11) | **Não feito**                                                                          | O hook só embrulharia dois `useState`, sem tirar complexidade de lugar nenhum                                                                                                                    |
-| `SignInForm` único com `scope`                     | **Não feito**; as peças comuns (`FormError`, `PasswordInput`) foram para `components/` | Os dois formulários diferem de propósito (mascote, sugestão de e-mail, validação). Juntar exigiria condicionais por todo lado                                                                    |
-| Renomear `{ tipo, busca }` das ações em massa      | **Adiado** (ADR 0004)                                                                  | É contrato entre tabela, action e testes; vale mudar junto com a próxima mudança dessa área                                                                                                      |
-| `"use client"` menor que o baseline                | **87 arquivos** (antes 73)                                                             | Dividir componentes client gera mais arquivos client. A home, o `BrandPanel`, as seções de detalhe e a `Section` passaram a ser servidor, e o JS por página caiu nas telas de acesso e do painel |
-| Exceções de lint "nomeadas por fase"               | A lista foi **zerada** na Fase 4                                                       | —                                                                                                                                                                                                |
+| Plan item                                            | What happened                                                                        | Reason                                                                                                                                                                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useFormSubmit` for the `pending`/`error` pair (×11) | **Not done**                                                                         | The hook would only wrap two `useState`s, without moving complexity out of anywhere                                                                                                                     |
+| A single `SignInForm` with `scope`                   | **Not done**; the shared pieces (`FormError`, `PasswordInput`) went to `components/` | The two forms differ on purpose (mascot, e-mail suggestion, validation). Merging them would require conditionals everywhere                                                                             |
+| Rename `{ tipo, busca }` in bulk actions             | **Postponed** (ADR 0004)                                                             | It is a contract between table, action and tests; worth changing together with the next change in that area                                                                                             |
+| Fewer `"use client"` than the baseline               | **87 files** (previously 73)                                                         | Splitting client components produces more client files. The home, `BrandPanel`, the detail sections and `Section` became server components, and the JS per page dropped on the access and panel screens |
+| Lint exceptions "named by phase"                     | The list was **reduced to zero** in Phase 4                                          | —                                                                                                                                                                                                       |
 
-## Mudanças de comportamento (bugs e segurança, de propósito)
+## Behavior changes (bugs and security, on purpose)
 
-Todas estão nos commits de segurança e de bugs. As principais que se notam no uso:
+All of them are in the security and bug commits. The main ones noticeable in use:
 
-- O login não aceita mais um `?voltar=` que leve para outro site.
-- A senha errada ao excluir a conta é limitada a 5 tentativas em 15 min.
-- **Levantar a mão** agora passa pelo servidor. O E2E confirmou com o LiveKit real.
-- Uma falha ao conectar mostra **"Não deu para conectar / Tentar de novo"** em vez de "Você saiu da sala".
-- Cancelar o seletor de tela não mostra mais um aviso de microfone.
-- O link "Acompanhar ao vivo" (página inexistente) saiu do detalhe da sala.
-- As iniciais do avatar seguem a mesma regra (primeiro e último nome) na pré-entrada e na sala.
-- Os botões do mascote saíram da ordem do Tab.
-- As tabelas do painel deixaram de oferecer "selecionar todos" acima do limite que o servidor recusa.
+- Login no longer accepts a `?voltar=` that leads to another site.
+- Wrong passwords when deleting the account are limited to 5 attempts in 15 min.
+- **Raising the hand** now goes through the server. The E2E confirmed it with the real LiveKit.
+- A connection failure shows **"Não deu para conectar / Tentar de novo"** ("Couldn't connect / Try again") instead of "Você saiu da sala" ("You left the room").
+- Cancelling the screen picker no longer shows a microphone warning.
+- The "Acompanhar ao vivo" ("Watch live") link (a nonexistent page) was removed from the room detail.
+- Avatar initials follow the same rule (first and last name) in the pre-join and in the room.
+- The mascot buttons were removed from the Tab order.
+- The panel tables no longer offer "selecionar todos" ("select all") above the limit the server rejects.
 
-## O que fica com você
+## What is left to you
 
-1. **Remote e CI (Q1).** O CI e o deploy só rodam com o repositório no GitHub. O workflow de deploy já recusa disparos vindos de fork.
-2. **Primeira manutenção em produção.** Na primeira rodada (1 min após o boot), a retenção apaga o que estiver fora do prazo: pedidos de token e IPs com mais de 6 meses, nomes com mais de 12, eventos e falhas de login com mais de 30 dias. O app é novo, então deve haver pouco ou nada a apagar. Se houver dado antigo a preservar, ajuste `RETENTION_DAYS` em `features/maintenance/maintenance.ts` antes do deploy.
-3. **Coolify.** Para ter rollback de verdade, aponte o recurso para a tag `:<sha>` (README, seção do App).
-4. **Decisões de produto ainda abertas:**
-   - auditoria `user.export` → `participant.export` (Q5);
-   - duração de sala reaberta (B-14);
-   - IP desconhecido compartilhando o mesmo limite (S-08, aceito: com o Traefik, o `X-Forwarded-For` sempre existe).
-5. **Merge.** A branch `refactor/arquitetura` está pronta para revisão. Ela também inclui o seu WIP do mascote, num commit próprio (`07e1259`).
+1. **Remote and CI (Q1).** CI and deploy only run with the repository on GitHub. The deploy workflow already rejects triggers coming from forks.
+2. **First maintenance run in production.** On the first round (1 min after boot), retention deletes whatever is past its deadline: token requests and IPs older than 6 months, names older than 12, events and login failures older than 30 days. The app is new, so there should be little or nothing to delete. If there is old data to preserve, adjust `RETENTION_DAYS` in `features/maintenance/maintenance.ts` before the deploy.
+3. **Coolify.** For real rollback, point the resource to the `:<sha>` tag (README, App section).
+4. **Product decisions still open:**
+   - audit `user.export` → `participant.export` (Q5);
+   - duration of a reopened room (B-14);
+   - unknown IP sharing the same limit (S-08, accepted: with Traefik, `X-Forwarded-For` is always present).
+5. **Merge.** The `refactor/arquitetura` branch is ready for review. It also includes your mascot WIP, in its own commit (`07e1259`).

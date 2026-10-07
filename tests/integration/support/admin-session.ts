@@ -5,8 +5,8 @@ import * as schema from "@/server/db/schema";
 import { CookieJar, makeCaller } from "./http-auth";
 
 /**
- * Admin real (convite aceito + login pelo handler) para chamar operações
- * com `requestHeaders()` simulado. Defina ADMIN_AUTH_SECRET antes de importar.
+ * Real admin (accepted invitation + sign-in through the handler) to call operations
+ * with a simulated `requestHeaders()`. Set ADMIN_AUTH_SECRET before importing.
  */
 const PASSWORD = "senha-forte-do-admin-123";
 let counter = 0;
@@ -37,7 +37,7 @@ export async function adminSession(
   const call = makeCaller(auth.handler, ADMIN_AUTH_BASE_PATH, `198.18.0.${counter % 250}`);
   const res = await call("/sign-in/email", { body: { email, password: PASSWORD }, jar });
   assert.equal(res.status, 200);
-  // Depois do login (antes, o Better Auth pediria o 2FA). O DAL só confere a flag.
+  // After sign-in (before it, Better Auth would ask for 2FA). The DAL only checks the flag.
   await db
     .update(schema.adminUsers)
     .set({ twoFactorEnabled: true })

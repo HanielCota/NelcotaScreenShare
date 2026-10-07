@@ -1,48 +1,48 @@
-# Guia da arquitetura atual
+# Current architecture guide
 
-O app usa React Router 8 Framework Mode, Vite e SSR. Os guias de [desenvolvimento](development.md), [contas e painel](accounts-and-admin.md) e [deploy](deployment.md) cobrem o resto. A decisão de framework está no [ADR 0005](adr/0005-react-router-framework.md).
+The app uses React Router 8 Framework Mode, Vite and SSR. The [development](development.md), [accounts and panel](accounts-and-admin.md) and [deployment](deployment.md) guides cover the rest. The framework decision is in [ADR 0005](adr/0005-react-router-framework.md).
 
-## Organização
+## Layout
 
-| Pasta                      | Responsabilidade                                                          |
-| -------------------------- | ------------------------------------------------------------------------- |
-| `app/routes.ts`            | URLs e hierarquia de layouts explícitas                                   |
-| `app/routes/`              | Páginas públicas, conta e sala                                            |
-| `app/routes/access/`       | Cadastro, login, recuperação e verificação do participante                |
-| `app/routes/admin/access/` | Login, recuperação, 2FA e convites administrativos                        |
-| `app/routes/admin/panel/`  | Páginas administrativas com autorização em cada loader                    |
-| `app/routes/api/`          | Endpoints finos (`apiLoader`/`apiAction`), espelhando a URL               |
-| `app/operations.server.ts` | Registro das operações chamadas pelo navegador                            |
-| `features/`                | UI, operações, consultas, handlers de API e regras de cada domínio        |
-| `components/`, `lib/`      | UI e utilitários genéricos (`components/shell/`: cabeçalho, navbar, tema) |
-| `server/`                  | Só infraestrutura: ambiente, banco, requisição, logs, rotas e operações   |
-| `tests/`                   | Testes unitários, integração com Postgres e E2E                           |
-| `drizzle/`                 | Migrações SQL e metadados versionados                                     |
-| `deploy/`                  | Configuração do Postgres e do LiveKit                                     |
-| `public/`, `design/`       | Assets usados pelo app e proveniência do mascote                          |
+| Folder                     | Responsibility                                                                |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| `app/routes.ts`            | Explicit URLs and layout hierarchy                                            |
+| `app/routes/`              | Public pages, account and room                                                |
+| `app/routes/access/`       | Participant sign-up, login, recovery and verification                         |
+| `app/routes/admin/access/` | Admin login, recovery, 2FA and invitations                                    |
+| `app/routes/admin/panel/`  | Admin pages with authorization in every loader                                |
+| `app/routes/api/`          | Thin endpoints (`apiLoader`/`apiAction`), mirroring the URL                   |
+| `app/operations.server.ts` | Registry of the operations called by the browser                              |
+| `features/`                | UI, operations, queries, API handlers and rules for each domain               |
+| `components/`, `lib/`      | Generic UI and utilities (`components/shell/`: header, navbar, theme)         |
+| `server/`                  | Infrastructure only: environment, database, request, logs, routes, operations |
+| `tests/`                   | Unit tests, Postgres integration and E2E                                      |
+| `drizzle/`                 | SQL migrations and versioned metadata                                         |
+| `deploy/`                  | Postgres and LiveKit configuration                                            |
+| `public/`, `design/`       | Assets used by the app and the mascot's provenance                            |
 
-`types/css.d.ts` estende os tipos do React para aceitar variáveis CSS nos estilos dos componentes.
+`types/css.d.ts` extends React's types to accept CSS variables in component styles.
 
-Os nomes de arquivo são em inglês. As URLs e os valores persistidos existentes continuam em português. As rotas são declaradas por caminho em `app/routes.ts`.
+File names are in English. Existing URLs and persisted values stay in Portuguese. Routes are declared by path in `app/routes.ts`.
 
-Loaders leem dados e autorizam acesso. Actions executam mutações. Operações compartilhadas ficam em `features/*/actions.server.ts`, com descritores públicos em `actions.ts`. O código privado usa `.server.ts`; regras puras ficam em `domain/`. O build e o Oxlint verificam essas fronteiras.
+Loaders read data and authorize access. Actions perform mutations. Shared operations live in `features/*/actions.server.ts`, with public descriptors in `actions.ts`. Private code uses `.server.ts`; pure rules live in `domain/`. The build and Oxlint check these boundaries.
 
-Toda feature segue o mesmo padrão, com só as subpastas de que precisa: `domain/` (TypeScript puro), `server/` (consultas, mutações e handlers das rotas de API), `client/` (navegador, fora do React), `hooks/` e `ui/` (React), e `actions.ts`/`actions.server.ts` na raiz. As subfeatures do painel (`features/admin/*`) seguem o mesmo padrão. A rota de API só liga a URL ao handler da feature:
+Every feature follows the same pattern, with only the subfolders it needs: `domain/` (pure TypeScript), `server/` (queries, mutations and API route handlers), `client/` (browser, outside React), `hooks/` and `ui/` (React), and `actions.ts`/`actions.server.ts` at the root. The panel subfeatures (`features/admin/*`) follow the same pattern. An API route only wires the URL to the feature's handler:
 
 ```ts
 export const action = apiAction(requestRoomToken);
 ```
 
-O mecanismo das operações tem um lugar por papel: descritor e hook em `lib/operations/`, validação, erros e despacho HTTP em `server/operations/`, políticas de acesso (admin, participante, público) em `features/auth/server/operation-policies.server.ts` e o registro em `app/operations.server.ts`.
+The operations mechanism has one place per role: descriptor and hook in `lib/operations/`, validation, errors and HTTP dispatch in `server/operations/`, access policies (admin, participant, public) in `features/auth/server/operation-policies.server.ts` and the registry in `app/operations.server.ts`.
 
-`node_modules/`, `.react-router/`, `build/`, `dist/`, cobertura e relatórios são gerados pelas ferramentas e ficam fora do Git. `.env.local` guarda a configuração local. As migrações em `drizzle/` fazem parte do código mantido.
+`node_modules/`, `.react-router/`, `build/`, `dist/`, coverage and reports are generated by the tools and stay out of Git. `.env.local` holds the local configuration. The migrations in `drizzle/` are part of the maintained code.
 
-## Decisões
+## Decisions
 
-- [ADR 0001: organização por feature](adr/0001-feature-folders-and-dal.md) — detalhes específicos do framework substituídos pelo ADR 0005.
-- [ADR 0002: gateway do LiveKit](adr/0002-single-livekit-gateway.md).
-- [ADR 0003: fronteiras no Oxlint](adr/0003-oxlint-boundaries.md).
-- [ADR 0004: idioma e nomes](adr/0004-language-and-naming.md).
+- [ADR 0001: feature folders](adr/0001-feature-folders-and-dal.md) — framework-specific details superseded by ADR 0005.
+- [ADR 0002: LiveKit gateway](adr/0002-single-livekit-gateway.md).
+- [ADR 0003: Oxlint boundaries](adr/0003-oxlint-boundaries.md).
+- [ADR 0004: language and naming](adr/0004-language-and-naming.md).
 - [ADR 0005: React Router Framework Mode](adr/0005-react-router-framework.md).
 
-Os [planos históricos](archive/README.md) preservam o diagnóstico e as decisões das etapas anteriores. Este guia, o README principal e os ADRs descrevem a estrutura atual.
+The [historical plans](archive/README.md) preserve the diagnosis and decisions of earlier stages. This guide, the main README and the ADRs describe the current structure.
