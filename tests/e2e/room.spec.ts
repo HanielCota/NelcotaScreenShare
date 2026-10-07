@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { joinRoom, newParticipant, newRoomCode, newVisitor } from "./support/session";
-import { E2E_ACCESS_PASSWORD } from "./support/env";
+import { E2E_ACCESS_PASSWORD, E2E_URL } from "./support/env";
 
 /** Fake shared screen: an animated canvas instead of the browser's picker. */
 async function fakeScreenCapture(page: Page) {
@@ -41,6 +41,27 @@ test.describe("room access", () => {
 });
 
 test.describe("pre-join", () => {
+  test("without JavaScript, the room password cannot be submitted into the URL", async ({
+    browser,
+  }) => {
+    const person = await newParticipant(browser, "Sem JavaScript");
+    const context = await browser.newContext({
+      baseURL: E2E_URL,
+      storageState: await person.context.storageState(),
+      javaScriptEnabled: false,
+    });
+    const page = await context.newPage();
+    const path = `/sala/${newRoomCode()}`;
+    await page.goto(path);
+    await expect(page.getByRole("button", { name: /Entrar na sala/ })).toBeDisabled();
+    await expect(page.locator("form")).toHaveAttribute("method", "post");
+    await page.getByLabel("Senha da sala (quem te convidou sabe)").fill(E2E_ACCESS_PASSWORD);
+    await page.getByLabel("Senha da sala (quem te convidou sabe)").press("Enter");
+    await expect(page).toHaveURL(`${E2E_URL}${path}`);
+    await context.close();
+    await person.context.close();
+  });
+
   test("a wrong password shows the error on the field", async ({ browser }) => {
     const ana = await newParticipant(browser, "Ana Teste");
     const response = await ana.page.goto(`/sala/${newRoomCode()}`);
