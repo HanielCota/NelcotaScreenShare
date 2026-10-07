@@ -57,6 +57,13 @@
       "when": 1791383951511,
       "tag": "0007_audit_trigger_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791394851209,
+      "tag": "0008_performance_indexes",
+      "breakpoints": true
     }
   ]
 }
