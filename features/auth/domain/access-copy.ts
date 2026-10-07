@@ -1,7 +1,20 @@
 import { accessContext } from "./access-context";
 
+const ADMIN_LINES: Record<string, string> = {
+  "/admin/entrar": "Que bom te ver de novo. Vamos cuidar do Nelcota?",
+  "/admin/verificar-2fa": "Só falta o código do seu app autenticador.",
+  "/admin/recuperar-senha": "Acontece. Vamos recuperar seu acesso ao painel.",
+  "/admin/redefinir-senha": "Escolhe uma senha nova. Eu não olho, prometo.",
+};
+
 /** Mascot lines depending on the screen and the destination room. */
 export function mascotLine(pathname: string, returnTo: string | null): string {
+  if (pathname.startsWith("/admin/convite/")) {
+    return "Boas-vindas à equipe! Vamos criar seu acesso.";
+  }
+  const adminLine = ADMIN_LINES[pathname];
+  if (adminLine) return adminLine;
+
   const context = accessContext(returnTo ?? "/");
   const room = context.kind === "room" ? context.code : undefined;
   const invited = context.kind === "room" && context.invited;
