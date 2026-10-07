@@ -29,6 +29,8 @@ interface PreJoinProps {
   presence: RoomPresence | null;
   maxParticipants: number;
   onJoin: (choices: JoinChoices) => void;
+  /** Download the call UI while the token request is in flight. */
+  onPrepareJoin?: () => void;
 }
 
 const subscribeNothing = () => () => {};
@@ -52,6 +54,7 @@ export function PreJoin({
   presence,
   maxParticipants,
   onJoin,
+  onPrepareJoin,
 }: PreJoinProps) {
   const scope = useRef<HTMLFormElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -68,10 +71,10 @@ export function PreJoin({
       mm.add(MOTION_QUERIES.motion, () => {
         gsap.fromTo(
           scope.current,
-          { y: 24, opacity: 0, scale: 0.96 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.8 },
+          { y: 12, opacity: 0, scale: 0.985 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.28 },
         );
-        gsap.from("[data-anim=row]", { y: 12, opacity: 0, stagger: 0.06, delay: 0.15 });
+        gsap.from("[data-anim=row]", { y: 6, opacity: 0, duration: 0.2, stagger: 0.025 });
       });
     },
     { scope },
@@ -111,6 +114,7 @@ export function PreJoin({
 
     setFormError(undefined);
     setSubmitting(true);
+    onPrepareJoin?.();
     const result = await requestToken({ room: code, password, invite });
     if (!result.ok) {
       const failure = joinFailure(result.code);
@@ -196,7 +200,14 @@ export function PreJoin({
       ) : null}
 
       <div data-anim="row" className="flex w-full flex-col items-center gap-2.5">
-        <Button type="submit" size="lg" disabled={joinDisabled} className="h-12! w-full">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={joinDisabled}
+          onMouseEnter={onPrepareJoin}
+          onFocus={onPrepareJoin}
+          className="h-12! w-full"
+        >
           {submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           {submitting ? "Entrando…" : mic.joinsMuted ? "Entrar só ouvindo" : "Entrar na sala"}
           {submitting ? null : <ArrowRight aria-hidden="true" />}
