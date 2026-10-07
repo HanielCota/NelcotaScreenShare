@@ -24,10 +24,7 @@ const eventObject = z.record(z.string(), z.unknown());
 const MAX_BODY_BYTES = 64 * 1024;
 
 function tooLarge() {
-  return Response.json(
-    { error: "payload_too_large" },
-    { status: 413, headers: { Connection: "close" } },
-  );
+  return Response.json({ error: "payload_too_large" }, { status: 413 });
 }
 
 /**
