@@ -84,19 +84,21 @@ export async function listShares(
     limit,
   };
   const clauses = keysetClauses(query);
-  const rows = await baseQuery(db)
+  const rowsQuery = baseQuery(db)
     .where(and(...where, clauses.where))
     .orderBy(...clauses.orderBy)
     .limit(clauses.limit);
-  const page = keysetPage(rows, query);
-  const total = count
-    ? await approximateCount(
+
+  const totalQuery = count
+    ? approximateCount(
         db,
         sql`select 1 from ${shareSessions}
           inner join ${rooms} on ${rooms.id} = ${shareSessions.roomId}
           ${where.length > 0 ? sql`where ${and(...where)}` : sql``}`,
       )
     : { total: 0, capped: false };
+  const [rows, total] = await Promise.all([rowsQuery, totalQuery]);
+  const page = keysetPage(rows, query);
   return {
     items: page.items.map(({ sortKey: _, ...row }): ShareRow => ({
       ...row,
