@@ -4,7 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
 import { E2E_ACCESS_PASSWORD, E2E_PORT, E2E_URL } from "./tests/e2e/support/env";
 
 /**
- * E2E dos fluxos críticos (docs/archive/refactor/04-plano-de-migracao.md §1).
+ * E2E dos fluxos críticos (docs/archive/refactor/04-migration-plan.md §1).
  * Precisa do Postgres e do LiveKit de desenvolvimento (README → "Desenvolvimento").
  * O app usa E2E_PORT (3100 por padrão) e um banco próprio (nelcota_e2e), recriado a cada execução.
  */

@@ -13,7 +13,8 @@
 - **Nomes de arquivo**:
   - componentes React em `PascalCase.tsx`;
   - hooks em `use-*.ts`;
-  - o resto em `kebab-case.ts`.
+  - o resto em `kebab-case.ts`;
+  - documentos (ADRs, guias e planos em `docs/`) também têm nome em inglês e `kebab-case.md`; o conteúdo continua em português.
 - **Termos do domínio**: `participant` é a pessoa que entra em salas (tabela `users`); `admin` é a conta do painel. `TokenFetchResult` (resultado do pedido no navegador) é diferente do registro em `token_requests`.
 - **Sem barrel files.** Os imports são diretos ao arquivo, com o alias `@/`.
 

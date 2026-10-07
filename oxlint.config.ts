@@ -69,12 +69,12 @@ export default defineConfig({
     "typescript/consistent-return": "off",
     "jsx-a11y/no-autofocus": "error",
 
-    // Tamanho e complexidade (docs/archive/refactor/03-arquitetura-alvo.md §4).
+    // Tamanho e complexidade (docs/archive/refactor/03-target-architecture.md §4).
     "eslint/max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
     "eslint/complexity": ["error", { max: 15 }],
   },
   overrides: [
-    // Camadas (docs/archive/refactor/03-arquitetura-alvo.md §2). Cada override diz o que
+    // Camadas (docs/archive/refactor/03-target-architecture.md §2). Cada override diz o que
     // a pasta NÃO pode importar; o resto é livre (sem ciclos, pelo import/no-cycle).
     {
       // Genérico (UI compartilhada e utilitários): não conhece features, rotas nem servidor.
