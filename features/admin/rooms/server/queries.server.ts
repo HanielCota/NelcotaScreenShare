@@ -81,7 +81,7 @@ export async function listRooms(
     limit,
   };
   const clauses = keysetClauses(query);
-  const rows = await db
+  const rowsQuery = db
     .select({
       id: rooms.id,
       code: rooms.code,
@@ -102,10 +102,12 @@ export async function listRooms(
     .where(and(...where, clauses.where))
     .orderBy(...clauses.orderBy)
     .limit(clauses.limit);
-  const page = keysetPage(rows, query);
-  const total = count
-    ? await approximateCount(db, sql`select 1 from ${rooms} where ${and(...where)}`)
+
+  const totalQuery = count
+    ? approximateCount(db, sql`select 1 from ${rooms} where ${and(...where)}`)
     : { total: 0, capped: false };
+  const [rows, total] = await Promise.all([rowsQuery, totalQuery]);
+  const page = keysetPage(rows, query);
   return {
     items: page.items.map(({ sortKey: _, deletedAt, ...row }): RoomRow => ({
       ...row,
