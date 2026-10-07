@@ -2,20 +2,34 @@ import { expect, test } from "@playwright/test";
 import { E2E_URL } from "./support/env";
 import { newVisitor, PASSWORD } from "./support/session";
 
+const PNG_PIXEL = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+  "base64",
+);
+
 test("sign-up through the UI, account page and ending the other session", async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
   const email = `gil.${Date.now()}@exemplo.dev`;
 
   await page.goto("/cadastro");
-  // The theme is chosen right on the access screen.
+  // Theme and photo are chosen right on the access screen.
   await page.getByRole("radio", { name: "Claro", exact: true }).check();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("main [data-slot=avatar-fallback] svg")).toBeVisible();
+  await page
+    .locator("main input[type=file]")
+    .setInputFiles({ name: "avatar.png", mimeType: "image/png", buffer: PNG_PIXEL });
+  await expect(page.getByRole("button", { name: "Trocar foto de perfil" })).toBeVisible();
   await page.getByLabel("Seu nome").fill("Gil Teste");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(`${E2E_URL}/`);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator('a[href="/conta"] [data-slot=avatar-image]')).toHaveAttribute(
+    "src",
+    /^data:image\/webp;base64,/,
+  );
 
   // A second session (another "device") to end from the account page.
   const other = await newVisitor(browser);
@@ -68,10 +82,7 @@ test("profile photo: preview, persistence on the account and avatar on the home 
   await fileInput.setInputFiles({
     name: "avatar.png",
     mimeType: "image/png",
-    buffer: Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-      "base64",
-    ),
+    buffer: PNG_PIXEL,
   });
   await expect(page.getByRole("button", { name: "Salvar foto", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Salvar foto", exact: true }).click();
