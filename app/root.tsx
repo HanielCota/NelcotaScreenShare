@@ -73,7 +73,8 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="robots" content="noindex, nofollow" />
         <meta name="theme-color" content={THEME_COLOR.dark} />
         <meta name="color-scheme" content="dark light" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" sizes="192x192" />
         <Meta />
         <Links nonce={nonce} />
         <InlineScript nonce={nonce} html={THEME_INIT_SCRIPT} />
