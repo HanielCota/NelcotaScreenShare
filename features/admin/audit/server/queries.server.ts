@@ -138,7 +138,7 @@ export async function listAuditLogs(
     limit,
   };
   const clauses = keysetClauses(query);
-  const rows = await db
+  const rowsQuery = db
     .select(selection)
     .from(auditLogs)
     .leftJoin(adminUsers, eq(adminUsers.id, auditLogs.actorAdminId))
@@ -146,14 +146,16 @@ export async function listAuditLogs(
     .where(and(...where, clauses.where))
     .orderBy(...clauses.orderBy)
     .limit(clauses.limit);
-  const page = keysetPage(rows, query);
+
   // The export iterates in batches and does not need the total for each batch.
-  const total = count
-    ? await approximateCount(
+  const totalQuery = count
+    ? approximateCount(
         db,
         sql`select 1 from ${auditLogs} ${where.length ? sql`where ${and(...where)}` : sql``}`,
       )
     : { total: 0, capped: false };
+  const [rows, total] = await Promise.all([rowsQuery, totalQuery]);
+  const page = keysetPage(rows, query);
   return {
     items: page.items.map(toRow),
     nextCursor: page.nextCursor,
