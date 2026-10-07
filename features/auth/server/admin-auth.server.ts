@@ -89,7 +89,8 @@ function createAdminAuth(db: Database, secret: string) {
       sendResetPassword: async ({ user, url }) => {
         const mail = mailLayout({
           title: "Redefinir senha do painel Nelcota",
-          intro: `Olá, ${user.name}. Recebemos um pedido para redefinir a senha do painel admin. O link vale por 30 minutos e só pode ser usado uma vez.`,
+          intro: `Olá, ${user.name}. Recebemos um pedido para redefinir a senha do painel. Use o botão abaixo para escolher uma nova senha.`,
+          notice: "Link válido por 30 minutos · Uso único",
           action: { label: "Definir nova senha", url },
           outro: "Se não foi você, ignore este e-mail: sua senha continua a mesma.",
         });

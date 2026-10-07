@@ -86,7 +86,8 @@ function createUserAuth(db: Database, secret: string) {
           "Redefinir sua senha do Nelcota",
           mailLayout({
             title: "Redefinir senha",
-            intro: `Olá, ${user.name}. Recebemos um pedido para redefinir sua senha. O link vale por 30 minutos e só pode ser usado uma vez.`,
+            intro: `Olá, ${user.name}. Recebemos um pedido para redefinir sua senha. Use o botão abaixo para escolher uma nova senha.`,
+            notice: "Link válido por 30 minutos · Uso único",
             action: { label: "Definir nova senha", url },
             outro: "Se não foi você, ignore este e-mail: sua senha continua a mesma.",
           }),
@@ -119,7 +120,8 @@ function createUserAuth(db: Database, secret: string) {
           "Confirme seu e-mail no Nelcota",
           mailLayout({
             title: "Confirme seu e-mail",
-            intro: `Olá, ${user.name}. Confirme seu e-mail para entrar em salas e compartilhar a tela. O link vale por 24 horas.`,
+            intro: `Olá, ${user.name}. Confirme seu e-mail para entrar em salas e compartilhar a tela.`,
+            notice: "Link válido por 24 horas",
             action: { label: "Confirmar e-mail", url },
             outro: "Se você não criou uma conta no Nelcota, ignore este e-mail.",
           }),
