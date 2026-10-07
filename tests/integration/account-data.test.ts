@@ -29,8 +29,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 const { GET } = await import("@/app/api/conta/dados/route");
-const { deleteMyAccount } = await import("@/app/conta/actions");
-const { getUserAuth } = await import("@/server/auth/user");
+const { deleteMyAccount } = await import("@/features/account/actions");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

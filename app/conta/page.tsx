@@ -1,21 +1,20 @@
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
+import { revokeMyOtherSessions, revokeMySession } from "@/features/account/actions";
 import Link from "next/link";
-import {
-  ChangeEmailForm,
-  ChangePasswordForm,
-  DataAndDeletion,
-  ProfileForm,
-  Section,
-} from "@/components/account/AccountForms";
-import { UserSignOutButton } from "@/components/account/UserSignOutButton";
+import { Section } from "@/features/account/ui/AccountSection";
+import { ChangeEmailForm } from "@/features/account/ui/ChangeEmailForm";
+import { ChangePasswordForm } from "@/features/account/ui/ChangePasswordForm";
+import { DataAndDeletion } from "@/features/account/ui/DataAndDeletion";
+import { ProfileForm } from "@/features/account/ui/ProfileForm";
+import { UserSignOutButton } from "@/features/account/ui/UserSignOutButton";
 import { NavBar, NavBrand, NavDivider } from "@/components/NavBar";
-import { SessionList } from "@/components/auth/SessionList";
-import { TwoFactorSettings } from "@/components/auth/TwoFactorSettings";
+import { SessionList } from "@/features/auth/ui/SessionList";
+import { TwoFactorSettings } from "@/features/auth/ui/TwoFactorSettings";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { safeReturnPath } from "@/lib/return-path";
-import { listActiveSessions } from "@/server/auth/sessions";
-import { requireUser } from "@/server/auth/user-session";
+import { safeReturnPath } from "@/features/auth/domain/return-path";
+import { listActiveSessions } from "@/features/auth/server/sessions";
+import { requireUser } from "@/features/auth/server/participant-session";
 import { getDb } from "@/server/db";
 import { userSessions } from "@/server/db/schema";
 import { getEnv } from "@/server/env";
@@ -90,8 +89,9 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
         />
         <Section title="Sessões ativas" description="Onde sua conta está conectada agora.">
           <SessionList
-            scope="user"
             currentId={current.session.id}
+            revokeSession={revokeMySession}
+            revokeOtherSessions={revokeMyOtherSessions}
             sessions={sessions.map((row) => ({
               ...row,
               createdAt: row.createdAt.toISOString(),

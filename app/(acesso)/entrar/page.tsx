@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SignInForm } from "@/components/account/SignInForm";
-import { accessContext } from "@/lib/access-context";
-import { safeReturnPath } from "@/lib/return-path";
-import { getUserSession } from "@/server/auth/user-session";
+import { SignInForm } from "@/features/auth/ui/SignInForm";
+import { accessContext } from "@/features/auth/domain/access-context";
+import { safeReturnPath } from "@/features/auth/domain/return-path";
+import { getUserSession } from "@/features/auth/server/participant-session";
 
 export const metadata: Metadata = { title: "Entrar" };
 

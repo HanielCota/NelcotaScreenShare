@@ -8,7 +8,7 @@ export async function register() {
 
     // Retenção (LGPD) e eventos do LiveKit que falharam: a cada 6 h, no próprio processo.
     const [{ scheduleMaintenance }, { getDb }, { logger }] = await Promise.all([
-      import("@/server/maintenance"),
+      import("@/features/maintenance/maintenance"),
       import("@/server/db"),
       import("@/server/logger"),
     ]);

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SignUpForm } from "@/components/account/SignUpForm";
-import { accessContext } from "@/lib/access-context";
-import { safeReturnPath } from "@/lib/return-path";
-import { getUserSession } from "@/server/auth/user-session";
+import { SignUpForm } from "@/features/auth/ui/SignUpForm";
+import { accessContext } from "@/features/auth/domain/access-context";
+import { safeReturnPath } from "@/features/auth/domain/return-path";
+import { getUserSession } from "@/features/auth/server/participant-session";
 import { getEnv } from "@/server/env";
 
 export const metadata: Metadata = { title: "Criar conta" };

@@ -10,7 +10,7 @@
  */
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
-import { hashPassword } from "@/server/auth/password";
+import { hashPassword } from "@/features/auth/server/password";
 import { getDb } from "@/server/db";
 import { auditLogs, userAccounts, users } from "@/server/db/schema";
 

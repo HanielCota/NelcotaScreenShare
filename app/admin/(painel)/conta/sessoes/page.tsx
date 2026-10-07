@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { SessionList } from "@/components/auth/SessionList";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { listActiveSessions } from "@/server/auth/sessions";
+import { revokeOtherOwnSessions, revokeOwnSession } from "@/features/admin/account/actions";
+import { SessionList } from "@/features/auth/ui/SessionList";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { listActiveSessions } from "@/features/auth/server/sessions";
 import { getDb } from "@/server/db";
 import { adminSessions } from "@/server/db/schema";
 
@@ -20,8 +21,9 @@ export default async function AccountSessionsPage() {
         </p>
       </div>
       <SessionList
-        scope="admin"
         currentId={admin.session.id}
+        revokeSession={revokeOwnSession}
+        revokeOtherSessions={revokeOtherOwnSessions}
         sessions={rows.map((row) => ({
           ...row,
           createdAt: row.createdAt.toISOString(),

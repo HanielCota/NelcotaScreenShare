@@ -27,9 +27,10 @@ vi.mock("next/cache", () => ({
 }));
 
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
-const { getAdminAuth, ADMIN_AUTH_BASE_PATH } = await import("@/server/auth/admin");
-const { acceptAdminInvitation, createAdminInvitation } = await import("@/server/auth/invitations");
-const { saveMascotSettings } = await import("@/app/admin/(painel)/configuracoes/actions");
+const { getAdminAuth, ADMIN_AUTH_BASE_PATH } = await import("@/features/auth/server/admin-auth");
+const { acceptAdminInvitation, createAdminInvitation } =
+  await import("@/features/auth/server/admin-invitations");
+const { saveMascotSettings } = await import("@/features/admin/settings/actions");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

@@ -1,5 +1,3 @@
-"use client";
-
 import { NavPopover } from "@/components/NavBar";
 
 const STEPS = [

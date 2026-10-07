@@ -27,7 +27,7 @@ Object.assign(process.env, {
   ACCESS_PASSWORD: "",
 });
 
-const { getUserAuth } = await import("@/server/auth/user");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth");
 const { POST } = await import("@/app/api/token/route");
 const { NextRequest } = await import("next/server");
 

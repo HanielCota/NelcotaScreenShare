@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { accessContext } from "@/lib/access-context";
-import { mascotLine } from "@/lib/access-copy";
-import { inboxLink, suggestEmail } from "@/lib/email-suggest";
-import { passwordStrength } from "@/lib/password-rules";
+import { accessContext } from "@/features/auth/domain/access-context";
+import { mascotLine } from "@/features/auth/domain/access-copy";
+import { inboxLink, suggestEmail } from "@/features/auth/domain/email-suggest";
+import { passwordStrength } from "@/features/auth/domain/password-rules";
 
 test("sugere o domínio comum mais próximo, e só quando parece erro", () => {
   assert.equal(suggestEmail("ana@gmial.com"), "ana@gmail.com");

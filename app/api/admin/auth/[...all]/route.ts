@@ -1,5 +1,5 @@
-import { getAdminAuth } from "@/server/auth/admin";
-import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/auth/origin-guard";
+import { getAdminAuth } from "@/features/auth/server/admin-auth";
+import { forbiddenCrossSite, isCrossSiteMutation } from "@/features/auth/server/origin-guard";
 
 /** Better Auth da instância de admin (login, 2FA, sessões, redefinição de senha). */
 async function handle(request: Request): Promise<Response> {

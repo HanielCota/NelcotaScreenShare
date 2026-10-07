@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ResetPasswordForm } from "@/components/auth/PasswordForms";
+import { ResetPasswordForm } from "@/features/auth/ui/PasswordForms";
 
 export const metadata: Metadata = { title: "Nova senha" };
 

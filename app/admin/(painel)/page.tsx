@@ -1,7 +1,7 @@
 import { KeyRound, MonitorSmartphone, Settings2 } from "lucide-react";
 import Link from "next/link";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { can } from "@/server/auth/permissions";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { can } from "@/features/auth/server/permissions";
 
 export default async function AdminHomePage() {
   const admin = await requireAdmin({ dashboard: ["read"] });
@@ -33,9 +33,7 @@ export default async function AdminHomePage() {
     <>
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Olá, {firstName}</h1>
-        <p className="mt-1 text-ink-muted">
-          Métricas, salas e usuários chegam nas próximas fases do painel.
-        </p>
+        <p className="mt-1 text-ink-muted">Escolha uma área do painel para começar.</p>
       </div>
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {links.map(({ href, icon: Icon, title, text }) => (

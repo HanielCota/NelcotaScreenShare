@@ -10,7 +10,10 @@
  */
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { createAdminInvitation, OWNER_BOOTSTRAP_TTL_MS } from "@/server/auth/invitations";
+import {
+  createAdminInvitation,
+  OWNER_BOOTSTRAP_TTL_MS,
+} from "@/features/auth/server/admin-invitations";
 import { getDb } from "@/server/db";
 import { adminUsers } from "@/server/db/schema";
 

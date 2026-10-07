@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { pageInfo } from "@/components/data-table/page-info";
 import { createSerializer } from "nuqs/server";
-import { RoomsTable } from "@/features/salas/components/RoomsTable";
-import { listRooms } from "@/features/salas/queries";
-import { loadRoomParams, roomParsers } from "@/features/salas/search-params";
+import { RoomsTable } from "@/features/admin/rooms/ui/RoomsTable";
+import { listRooms } from "@/features/admin/rooms/queries";
+import { loadRoomParams, roomParsers } from "@/features/admin/rooms/search-params";
 import { PAGE_SIZE } from "@/lib/table-params";
-import { requireAdmin } from "@/server/auth/admin-session";
-import { can } from "@/server/auth/permissions";
+import { requireAdmin } from "@/features/auth/server/admin-session";
+import { can } from "@/features/auth/server/permissions";
 import { getDb } from "@/server/db";
 
 export const metadata: Metadata = { title: "Salas" };
@@ -29,12 +30,7 @@ export default async function RoomsPage({ searchParams }: PageProps<"/admin/sala
       </div>
       <RoomsTable
         rows={page.items}
-        page={{
-          nextCursor: page.nextCursor,
-          prevCursor: page.prevCursor,
-          total: page.total,
-          capped: page.capped,
-        }}
+        page={pageInfo(page)}
         canDelete={can(role, { room: ["delete"] })}
         exportHref={
           can(role, { room: ["export"] })

@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
-const { createReasons } = await import("../../components/mascot/reasons");
-const { EXPRESSIONS, toFaceState } = await import("../../components/mascot/face");
-const { springStep } = await import("../../components/mascot/spring");
-const { createHandMotions } = await import("../../components/mascot/hand-motions");
-const { avatarFrame } = await import("../../components/mascot/avatar-frames");
-const { idleSleep } = await import("../../components/mascot/sleep");
+const { createReasons } = await import("../../features/mascot/engine/reasons");
+const { EXPRESSIONS, toFaceState } = await import("../../features/mascot/engine/face");
+const { springStep } = await import("../../features/mascot/engine/spring");
+const { createHandMotions } = await import("../../features/mascot/dom/hand-motions");
+const { avatarFrame } = await import("../../features/mascot/engine/avatar-frames");
+const { idleSleep } = await import("../../features/mascot/engine/sleep");
 const { gazeAt, pupilOffset, eyelidOffset, EYE_SHAPES, POSE_EYES, IDLE } =
-  await import("../../components/mascot/eye-tracking");
+  await import("../../features/mascot/engine/eye-tracking");
 
 test("a curva e o traço da pálpebra ficam completamente fora do olho aberto", () => {
   for (const { ry } of EYE_SHAPES) {

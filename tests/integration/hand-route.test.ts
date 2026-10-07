@@ -34,7 +34,7 @@ Object.assign(process.env, {
 
 const { POST } = await import("@/app/api/sala/mao/route");
 const { NextRequest } = await import("next/server");
-const { getUserAuth } = await import("@/server/auth/user");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

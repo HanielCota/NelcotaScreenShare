@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ForgotPasswordForm } from "@/components/auth/PasswordForms";
+import { ForgotPasswordForm } from "@/features/auth/ui/PasswordForms";
 
 export const metadata: Metadata = { title: "Recuperar senha" };
 

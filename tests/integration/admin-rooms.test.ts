@@ -20,9 +20,9 @@ vi.mock("next/cache", () => ({ revalidatePath: () => {}, refresh: () => {} }));
 
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { adminSession } = await import("./support/admin-session");
-const actions = await import("@/features/salas/actions");
-const { hashInviteToken } = await import("@/server/rooms/invites");
-const { searchPanelAction } = await import("@/features/busca/actions");
+const actions = await import("@/features/admin/rooms/actions");
+const { hashInviteToken } = await import("@/features/room/server/invites");
+const { searchPanelAction } = await import("@/features/admin/search/actions");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

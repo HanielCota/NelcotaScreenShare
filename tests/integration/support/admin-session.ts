@@ -18,9 +18,9 @@ export async function adminSession(
   role: AdminRoleName,
   { ip = "192.0.2.50" }: { ip?: string } = {},
 ) {
-  const { getAdminAuth, ADMIN_AUTH_BASE_PATH } = await import("@/server/auth/admin");
+  const { getAdminAuth, ADMIN_AUTH_BASE_PATH } = await import("@/features/auth/server/admin-auth");
   const { acceptAdminInvitation, createAdminInvitation } =
-    await import("@/server/auth/invitations");
+    await import("@/features/auth/server/admin-invitations");
   const auth = getAdminAuth();
   assert.ok(auth);
   counter += 1;

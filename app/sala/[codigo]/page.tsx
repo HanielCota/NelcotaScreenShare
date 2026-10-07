@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { RoomSession } from "@/components/room/RoomSession";
-import { requireUser } from "@/server/auth/user-session";
+import { RoomSession } from "@/features/room/ui/RoomSession";
+import { requireUser } from "@/features/auth/server/participant-session";
 import { getDb } from "@/server/db";
 import { getEnv } from "@/server/env";
-import { roomPresence } from "@/server/rooms/presence";
-import { decodeRoomParam, roomCodeSchema, roomLink } from "@/lib/livekit";
-import { INVITE_TOKEN_PATTERN } from "@/lib/invite";
+import { roomPresence } from "@/features/room/server/presence";
+import { decodeRoomParam, roomCodeSchema, roomLink } from "@/features/room/domain/room-code";
+import { INVITE_TOKEN_PATTERN } from "@/features/room/domain/invite-token";
 
 export async function generateMetadata({ params }: PageProps<"/sala/[codigo]">): Promise<Metadata> {
   const { codigo } = await params;

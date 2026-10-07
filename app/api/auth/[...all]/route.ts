@@ -1,5 +1,5 @@
-import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/auth/origin-guard";
-import { getUserAuth } from "@/server/auth/user";
+import { forbiddenCrossSite, isCrossSiteMutation } from "@/features/auth/server/origin-guard";
+import { getUserAuth } from "@/features/auth/server/participant-auth";
 
 /** Better Auth das contas de participantes (cadastro, login, verificação, 2FA). */
 async function handle(request: Request): Promise<Response> {

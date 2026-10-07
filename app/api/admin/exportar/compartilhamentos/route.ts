@@ -1,6 +1,6 @@
 import { csvExportRoute } from "@/features/admin/csv-export-route";
-import { iterateShares } from "@/features/compartilhamentos/queries";
-import { loadShareParams } from "@/features/compartilhamentos/search-params";
+import { iterateShares } from "@/features/admin/shares/queries";
+import { loadShareParams } from "@/features/admin/shares/search-params";
 
 /** CSV dos compartilhamentos com os filtros da tela (exige `shareSession.export`). */
 export const GET = csvExportRoute({

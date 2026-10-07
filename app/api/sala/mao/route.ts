@@ -1,11 +1,11 @@
 import { ServerError } from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { roomCodeSchema } from "@/lib/livekit";
-import { HAND_ATTRIBUTE } from "@/lib/room-data";
-import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/auth/origin-guard";
-import { getUserAuth } from "@/server/auth/user";
-import { roomService } from "@/server/livekit/room-service";
+import { roomCodeSchema } from "@/features/room/domain/room-code";
+import { HAND_ATTRIBUTE } from "@/features/room/domain/data-channel";
+import { forbiddenCrossSite, isCrossSiteMutation } from "@/features/auth/server/origin-guard";
+import { getUserAuth } from "@/features/auth/server/participant-auth";
+import { roomService } from "@/features/room/server/room-service";
 import { createRateLimiter } from "@/server/rate-limit";
 import { requestLogger } from "@/server/request-log";
 
