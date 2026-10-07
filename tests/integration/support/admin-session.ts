@@ -5,8 +5,8 @@ import * as schema from "@/server/db/schema";
 import { CookieJar, makeCaller } from "./http-auth";
 
 /**
- * Admin real (convite aceito + login pelo handler) para chamar Server Actions
- * com `headers()` simulado. Defina ADMIN_AUTH_SECRET antes de importar.
+ * Admin real (convite aceito + login pelo handler) para chamar operações
+ * com `requestHeaders()` simulado. Defina ADMIN_AUTH_SECRET antes de importar.
  */
 const PASSWORD = "senha-forte-do-admin-123";
 let counter = 0;
