@@ -1,9 +1,10 @@
 import { and, eq, isNull, lte, sql } from "drizzle-orm";
 import { ROOM_CODE_PATTERN } from "@/features/room/domain/room-code";
 import type { DbExecutor } from "@/server/db/index.server";
-import { livekitEvents, roomParticipations, rooms, shareSessions } from "@/server/db/schema";
+import { roomParticipations, rooms, shareSessions } from "@/server/db/schema";
 import { leaveReasonFrom, occurredAt, type WebhookPayload } from "./payload";
 import { closeShares, ensureParticipation, ensureRoom, updatePeak } from "./records.server";
+import { reconcileShareAudio } from "./share-audio.server";
 
 export type ProjectionResult = "projected" | "ignored";
 
@@ -46,6 +47,8 @@ const roomFinished: Handler = async ({ tx, code, at }) => {
       ),
     );
   await closeShares(tx, eq(shareSessions.roomId, roomId), at);
+  await updatePeak(tx, roomId);
+  await reconcileShareAudio(tx, roomId, code);
   return "projected";
 };
 
@@ -79,18 +82,17 @@ const participantLeft: Handler = async ({ tx, payload, code, at }) => {
       ),
     );
   await closeShares(tx, eq(shareSessions.participationId, participation.id), at);
+  await updatePeak(tx, roomId);
+  await reconcileShareAudio(tx, roomId, code);
   return "projected";
 };
 
-/** Screen audio published after the video: marks the open share. */
-const screenAudioPublished: Handler = async ({ tx, payload, code, at }) => {
+/** Audio can arrive before or after its video, including after the share has ended. */
+const screenAudioChanged: Handler = async ({ tx, payload, code, at }) => {
   if (!payload.participant) return "ignored";
-  const roomId = await ensureRoom(tx, code, at, { reopen: true });
-  const participation = await ensureParticipation(tx, roomId, code, payload.participant, at);
-  await tx
-    .update(shareSessions)
-    .set({ withAudio: true })
-    .where(and(eq(shareSessions.participationId, participation.id), isNull(shareSessions.endedAt)));
+  const roomId = await ensureRoom(tx, code, at, { reopen: payload.event === "track_published" });
+  await ensureParticipation(tx, roomId, code, payload.participant, at);
+  await reconcileShareAudio(tx, roomId, code);
   return "projected";
 };
 
@@ -109,14 +111,6 @@ const screenTrack: Handler = async ({ tx, payload, code, at }) => {
       trackSid: track.sid,
       startedAt: at,
       endedAt: published ? participation.leftAt : at,
-      // Screen audio is usually published before the video: look it up in the raw log.
-      withAudio: sql`exists (
-        select 1 from ${livekitEvents}
-        where ${livekitEvents.event} = 'track_published'
-          and ${livekitEvents.payload}->'track'->>'source' = 'SCREEN_SHARE_AUDIO'
-          and ${livekitEvents.payload}->'participant'->>'sid' = ${participant.sid}
-          and ${livekitEvents.occurredAt} between ${at}::timestamptz - interval '30 seconds'
-          and ${at}::timestamptz + interval '30 seconds')`,
     })
     .onConflictDoUpdate({
       target: shareSessions.trackSid,
@@ -130,6 +124,7 @@ const screenTrack: Handler = async ({ tx, payload, code, at }) => {
             endedAt: sql`greatest(${shareSessions.startedAt}, least(${shareSessions.endedAt}, excluded.ended_at))`,
           },
     });
+  await reconcileShareAudio(tx, roomId, code);
   return "projected";
 };
 
@@ -137,7 +132,7 @@ const screenTrack: Handler = async ({ tx, payload, code, at }) => {
 const trackChanged: Handler = async (ctx) => {
   const source = ctx.payload.track?.source;
   if (source === "SCREEN_SHARE_AUDIO") {
-    return ctx.payload.event === "track_published" ? screenAudioPublished(ctx) : "ignored";
+    return screenAudioChanged(ctx);
   }
   return source === "SCREEN_SHARE" ? screenTrack(ctx) : "ignored";
 };
