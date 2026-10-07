@@ -1,13 +1,13 @@
-"use client";
-
 import { ExternalLink, Loader2, MailCheck } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router";
 import { useEffect, useState } from "react";
 import { AuthCard } from "./AuthCard";
 import { celebrateMascot, upsetMascot } from "@/features/mascot/events";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { inboxLink } from "@/features/auth/domain/email-suggest";
+import { FormError } from "@/components/FormError";
+import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 
 /** O servidor aceita um reenvio por minuto; a contagem evita o clique recusado. */
 const RESEND_COOLDOWN = 60;
@@ -21,8 +21,8 @@ export function VerifyEmailPanel({
   returnTo: string;
 }) {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "wait">("idle");
-  // Começa contando: quem chega aqui acabou de receber um link.
-  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
+  const [cooldown, setCooldown] = useState(0);
+  const [error, setError] = useState<string>();
   const inbox = email ? inboxLink(email) : undefined;
 
   useEffect(() => {
@@ -34,12 +34,21 @@ export function VerifyEmailPanel({
   async function resend() {
     if (!email || cooldown > 0) return;
     setStatus("sending");
-    const { error } = await authClient.sendVerificationEmail({ email, callbackURL: returnTo });
-    setCooldown(RESEND_COOLDOWN);
-    if (error?.status === 429) {
+    setError(undefined);
+    const { error: failure } = await authClient.sendVerificationEmail({
+      email,
+      callbackURL: returnTo,
+    });
+    if (failure?.status === 429) {
+      setCooldown(RESEND_COOLDOWN);
       setStatus("wait");
       upsetMascot("worried");
+    } else if (failure) {
+      setStatus("idle");
+      setError(authErrorMessage(failure, "Não foi possível enviar o link. Tente de novo."));
+      upsetMascot("worried");
     } else {
+      setCooldown(RESEND_COOLDOWN);
       setStatus("sent");
       celebrateMascot();
     }
@@ -52,19 +61,20 @@ export function VerifyEmailPanel({
       description={
         email ? (
           <>
-            Enviamos um link para <strong className="break-all text-ink">{email}</strong>. Abra o
-            e-mail e toque em “Confirmar e-mail”. O link vale por 24 horas.
+            Abra o e-mail de confirmação enviado para{" "}
+            <strong className="break-all text-ink">{email}</strong> e toque em “Confirmar e-mail”. O
+            link vale por 24 horas. Se precisar, peça outro abaixo.
           </>
         ) : (
-          "Enviamos um link de confirmação para o seu e-mail. Abra e toque em “Confirmar e-mail”."
+          "Abra o e-mail de confirmação e toque em “Confirmar e-mail”."
         )
       }
       footer={
         <Link
-          href={`/entrar?voltar=${encodeURIComponent(returnTo)}`}
-          className="font-semibold text-brand-soft hover:underline"
+          to={`/entrar?voltar=${encodeURIComponent(returnTo)}`}
+          className="font-medium text-brand-soft hover:underline"
         >
-          Já confirmei: entrar
+          Já confirmei meu e-mail
         </Link>
       }
     >
@@ -101,6 +111,7 @@ export function VerifyEmailPanel({
             <span className="text-danger">Aguarde um minuto antes de pedir outro link.</span>
           ) : null}
         </p>
+        <FormError message={error} />
       </div>
     </AuthCard>
   );

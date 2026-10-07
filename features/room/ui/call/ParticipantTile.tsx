@@ -1,11 +1,10 @@
-"use client";
-
 import { useIsMuted, useIsSpeaking } from "@livekit/components-react";
 import { Track, type Participant } from "livekit-client";
 import { MicOff, MonitorUp } from "lucide-react";
 import { useRef } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { initials, participantName } from "@/features/room/domain/participant-label";
+import { participantName } from "@/features/room/domain/participant-label";
+import { initials } from "@/lib/initials";
 
 interface ParticipantTileProps {
   participant: Participant;
@@ -74,7 +73,7 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
           />
           <div
             aria-hidden="true"
-            className="grid size-14 place-items-center rounded-full bg-surface-3 text-lg font-bold text-ink ring-1 ring-line"
+            className="grid size-14 place-items-center rounded-full bg-surface-3 text-lg font-medium text-ink ring-1 ring-line"
           >
             {initials(name)}
           </div>
@@ -96,7 +95,7 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
             </span>
           ) : null}
         </div>
-        <span className="w-full truncate text-center text-sm font-semibold lg:text-left lg:text-base">
+        <span className="w-full truncate text-center text-sm font-medium lg:text-left lg:text-base">
           {participant.isLocal ? "Você" : name}
         </span>
         {isSpeaking ? <span className="sr-only">{name} está falando</span> : null}
@@ -126,14 +125,14 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
         <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgb(255_255_255/0.04),transparent)]" />
 
         <div
-          className="grid size-20 place-items-center rounded-full bg-surface-3 text-2xl font-bold text-ink ring-1 ring-line sm:size-24 sm:text-3xl"
+          className="grid size-20 place-items-center rounded-full bg-surface-3 text-2xl font-medium text-ink ring-1 ring-line sm:size-24 sm:text-3xl"
           aria-hidden="true"
         >
           {initials(name)}
         </div>
 
         <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2">
-          <span className="glass inline-flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold">
+          <span className="glass inline-flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium">
             <span className="truncate">
               {name}
               {participant.isLocal ? (

@@ -1,7 +1,6 @@
-"use client";
-
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRevalidator } from "react-router";
+
 import { useId, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { FormError } from "@/components/FormError";
@@ -12,12 +11,14 @@ import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
 import { formText } from "@/lib/utils";
+import { useCloseRow } from "./settings/ExpandableRow";
 
 export function ChangePasswordForm() {
-  const router = useRouter();
-  const ids = { current: useId(), next: useId(), confirm: useId() };
+  const revalidator = useRevalidator();
+  const ids = { current: useId(), next: useId(), confirm: useId(), hint: useId() };
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
+  const closeRow = useCloseRow();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,24 +38,24 @@ export function ChangePasswordForm() {
     setPending(false);
     if (failure) return setError(authErrorMessage(failure, "Senha atual incorreta."));
     form.reset();
+    closeRow?.();
     toast.success("Senha alterada. As outras sessões foram encerradas.");
-    router.refresh();
+    void revalidator.revalidate();
   }
 
   return (
     <form
+      method="post"
       onSubmit={(event) => void handleSubmit(event)}
       noValidate
-      className="grid gap-3 sm:max-w-sm"
+      className="grid max-w-sm gap-3"
     >
       <div className="flex flex-col gap-2">
         <Label htmlFor={ids.current}>Senha atual</Label>
         <PasswordInput id={ids.current} name="current" autoComplete="current-password" required />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor={ids.next}>
-          Nova senha (mínimo de {PASSWORD_LIMITS.user.min} caracteres)
-        </Label>
+        <Label htmlFor={ids.next}>Nova senha</Label>
         <PasswordInput
           id={ids.next}
           name="next"
@@ -62,17 +63,36 @@ export function ChangePasswordForm() {
           required
           minLength={PASSWORD_LIMITS.user.min}
           maxLength={PASSWORD_LIMITS.user.max}
+          aria-describedby={ids.hint}
         />
+        <p id={ids.hint} className="text-xs text-ink-muted">
+          Mínimo de {PASSWORD_LIMITS.user.min} caracteres.
+        </p>
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor={ids.confirm}>Repita a nova senha</Label>
         <PasswordInput id={ids.confirm} name="confirm" autoComplete="new-password" required />
       </div>
       <FormError message={error} />
-      <Button type="submit" disabled={pending} className="justify-self-start">
-        {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
-        Trocar senha
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={pending}>
+          {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
+          Salvar nova senha
+        </Button>
+        {closeRow ? (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={(event) => {
+              event.currentTarget.form?.reset();
+              setError(undefined);
+              closeRow();
+            }}
+          >
+            Cancelar
+          </Button>
+        ) : null}
+      </div>
     </form>
   );
 }

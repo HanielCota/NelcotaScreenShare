@@ -1,9 +1,8 @@
-"use client";
-
 import { RoomAudioRenderer, RoomContext } from "@livekit/components-react";
 import { useRoomConnection } from "@/features/room/hooks/use-room-connection";
 import { ReactionsProvider } from "@/features/room/ui/dock/Reactions";
 import type { JoinChoices } from "@/features/room/domain/join";
+import type { LeaveNotice } from "@/features/room/domain/leave";
 import { ConnectError } from "./ConnectError";
 import { RoomLayout } from "./RoomLayout";
 
@@ -11,7 +10,7 @@ interface RoomViewProps {
   code: string;
   choices: JoinChoices;
   maxParticipants: number;
-  onLeave: (message?: string) => void;
+  onLeave: (notice?: LeaveNotice) => void;
   onRetry: () => Promise<void>;
 }
 
@@ -24,7 +23,12 @@ export function RoomView({ code, choices, maxParticipants, onLeave, onRetry }: R
       <ConnectError
         message={connectError}
         onRetry={onRetry}
-        onBack={() => onLeave("Não foi possível conectar. Tente entrar novamente.")}
+        onBack={() =>
+          onLeave({
+            reason: "failed",
+            message: "Não foi possível conectar. Tente entrar novamente.",
+          })
+        }
       />
     );
   }

@@ -1,7 +1,5 @@
-"use client";
-
-import { ArrowRight, Loader2, Ticket } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, ArrowRight, Headphones, Loader2, Ticket } from "lucide-react";
+import { Link } from "react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { upsetMascot } from "@/features/mascot/events";
@@ -70,7 +68,7 @@ export function PreJoin({
     passwordRef.current?.focus();
   }, []);
 
-  /** Erro na tentativa: mensagem, foco, mascote e um tremidinho no formulário. */
+  /** Mostra o erro e leva o foco ao campo que precisa de correção. */
   function showFailure(message: string, failure: ReturnType<typeof joinFailure>) {
     setFormError({ message, field: failure.passwordField ? "password" : undefined });
     if (failure.passwordField) passwordRef.current?.focus();
@@ -129,34 +127,37 @@ export function PreJoin({
       ref={scope}
       onSubmit={(event) => void handleSubmit(event)}
       noValidate
-      className="apple-buttons flex w-full max-w-md flex-col items-center gap-6"
+      className="apple-buttons flex w-full max-w-lg flex-col items-center gap-5"
     >
-      {/* Topo: mascote, a sala, quem já está lá e o convite para o time. */}
-      <header data-anim="row" className="flex flex-col items-center gap-3 text-center">
+      <header data-anim="row" className="flex w-full flex-col items-center gap-2 text-center">
         <Mascot
-          className="size-28 sm:size-32"
-          sizes="(min-width: 640px) 384px, 336px"
+          className="size-20 sm:size-24"
+          sizes="(min-width: 640px) 288px, 240px"
           canSleep={!mic.testing && !submitting}
           activity={submitting ? "waiting" : mic.testing ? "listening" : "idle"}
           voiceLevelRef={mic.levelRef}
         />
         <div className="flex flex-col items-center gap-2">
-          <p className="text-base font-medium text-ink-muted">Você está entrando na sala</p>
-          <h1 className="max-w-full font-mono text-3xl font-semibold tracking-tight break-all sm:text-4xl">
-            {code}
-          </h1>
+          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">Pronto para entrar?</h1>
+          <div className="flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1">
+            <p className="text-sm text-ink-muted">
+              Sala{" "}
+              <span translate="no" className="font-sans font-medium text-ink tabular-nums">
+                {code}
+              </span>
+            </p>
+            <InviteLinkButton code={code} />
+          </div>
           <PresenceLine presence={presence} max={maxParticipants} />
           {invite ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3.5 py-1.5 text-sm font-semibold text-ink">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3.5 py-1.5 text-sm font-medium text-ink">
               <Ticket className="size-3.5 text-brand-soft" aria-hidden="true" />
               Você tem convite: não precisa de senha
             </span>
           ) : null}
         </div>
-        <InviteLinkButton code={code} />
       </header>
 
-      {/* Lista agrupada (estilo Ajustes): quem você é e o seu microfone. */}
       <div
         data-anim="row"
         className="w-full divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface"
@@ -179,19 +180,28 @@ export function PreJoin({
         </p>
       ) : null}
 
-      <div data-anim="row" className="flex w-full flex-col items-center gap-3">
-        <Button type="submit" size="lg" disabled={submitting} className="w-full">
+      <div data-anim="row" className="flex w-full flex-col items-center gap-2.5">
+        <Button type="submit" size="lg" disabled={submitting} className="h-12! w-full">
           {submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           {submitting ? "Entrando…" : mic.joinsMuted ? "Entrar só ouvindo" : "Entrar na sala"}
           {submitting ? null : <ArrowRight aria-hidden="true" />}
         </Button>
-        <ShareSupportNote variant="badge" className="text-sm" />
         <Link
-          href="/"
-          className="rounded-md py-1 text-base text-ink-muted transition-colors hover:text-ink"
+          to="/"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
+          <ArrowLeft className="size-4" aria-hidden="true" />
           Voltar ao início
         </Link>
+        <div className="mt-2 flex flex-col items-center gap-1 text-center text-sm text-ink-muted">
+          {mic.enabled ? (
+            <p className="inline-flex items-center gap-1.5">
+              <Headphones className="size-3.5 shrink-0" aria-hidden="true" />
+              Use fones de ouvido para evitar eco.
+            </p>
+          ) : null}
+          <ShareSupportNote variant="prejoin" />
+        </div>
       </div>
     </form>
   );

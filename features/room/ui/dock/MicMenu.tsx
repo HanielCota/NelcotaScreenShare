@@ -1,30 +1,45 @@
-"use client";
-
 import { useMediaDeviceSelect, useRoomContext } from "@livekit/components-react";
 import { Check, ChevronUp } from "lucide-react";
 import { Popover } from "radix-ui";
 import { useState } from "react";
 import { toast } from "sonner";
 import { saveMicrophone } from "@/features/room/client/saved-microphone";
+import { microphoneOptions } from "@/features/room/domain/microphone-options";
+import {
+  DeviceBadges,
+  DeviceIcon,
+  selectedMicrophoneIndex,
+} from "@/features/room/ui/MicrophoneDevice";
 import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";
+import { DockPopoverContent, DockPopoverTitle } from "./DockPopover";
 
-/** Escolha do microfone dentro da sala. Só aparece com mais de um dispositivo. */
-export function MicMenu() {
+/**
+ * Escolha do microfone dentro da sala, com a mesma lista da pré-entrada (um
+ * item por aparelho, etiquetas de padrão). Só aparece com mais de um aparelho.
+ */
+export function MicMenu({ disabled = false }: { disabled?: boolean }) {
   const room = useRoomContext();
   const [open, setOpen] = useState(false);
   const { devices, activeDeviceId, setActiveMediaDevice } = useMediaDeviceSelect({
     kind: "audioinput",
     room,
   });
+  // Sem a entrada "default" (Firefox, Safari), a opção genérica não teria para onde apontar.
+  const hasDefault = devices.some((device) => device.deviceId === "default");
+  const options = microphoneOptions(devices).filter(
+    (option) => option.kind !== "system" || hasDefault,
+  );
 
-  if (devices.length < 2) return null;
+  if (options.length < 2) return null;
+  const selectedIndex = selectedMicrophoneIndex(options, activeDeviceId);
 
-  async function choose(deviceId: string) {
+  async function choose(value: string) {
     setOpen(false);
     try {
-      await setActiveMediaDevice(deviceId);
-      saveMicrophone(deviceId);
+      // "" segue o padrão do sistema: no LiveKit é o aparelho "default".
+      await setActiveMediaDevice(value || "default");
+      saveMicrophone(value || undefined);
     } catch {
       toast.error("Não foi possível trocar o microfone. Confira se ele está conectado.");
     }
@@ -36,49 +51,51 @@ export function MicMenu() {
         <DockButton
           label="Escolher microfone"
           pressed={open}
-          iconClassName="w-7"
-          className="-ml-1 max-sm:hidden"
+          disabled={disabled}
+          tone={open ? "active" : "default"}
+          iconClassName="w-7 rounded-l-none rounded-r-xl border-0 border-l border-line-strong sm:w-8"
         >
-          <ChevronUp className="size-4" aria-hidden="true" />
+          <ChevronUp
+            className={cn("size-4 transition-transform duration-200", open && "rotate-180")}
+            aria-hidden="true"
+          />
         </DockButton>
       </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          side="top"
-          align="start"
-          sideOffset={14}
-          collisionPadding={16}
-          aria-label="Microfones"
-          className="glass z-50 w-[min(20rem,calc(100vw-2rem))] rounded-2xl p-2 outline-none"
-        >
-          <p className="px-3 pt-2 pb-2.5 text-sm font-semibold tracking-tight">Microfone</p>
-          <ul className="flex flex-col gap-1">
-            {devices.map((device, index) => {
-              const active = device.deviceId === activeDeviceId;
-              return (
-                <li key={device.deviceId}>
-                  <button
-                    type="button"
-                    autoFocus={active}
-                    aria-current={active || undefined}
-                    onClick={() => void choose(device.deviceId)}
-                    className={cn(
-                      "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-surface-3 focus-visible:bg-surface-3",
-                      active ? "font-semibold text-ink" : "text-ink-muted",
-                    )}
-                  >
-                    <Check
-                      className={cn("size-4 shrink-0 text-brand-soft", !active && "invisible")}
-                      aria-hidden="true"
-                    />
-                    <span className="truncate">{device.label || `Microfone ${index + 1}`}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </Popover.Content>
-      </Popover.Portal>
+      <DockPopoverContent
+        align="start"
+        aria-label="Microfones"
+        className="w-[min(22rem,calc(100vw-2rem))]"
+      >
+        <DockPopoverTitle>Microfone</DockPopoverTitle>
+        <ul className="flex flex-col gap-0.5">
+          {options.map((option, index) => {
+            const active = index === selectedIndex;
+            return (
+              <li key={option.value || "default"}>
+                <button
+                  type="button"
+                  autoFocus={active}
+                  aria-current={active || undefined}
+                  onClick={() => void choose(option.value)}
+                  className="flex min-h-12 w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left text-sm transition-colors hover:bg-surface-3 focus-visible:bg-surface-3 focus-visible:outline-none active:bg-surface-3/70"
+                >
+                  <DeviceIcon kind={option.kind} />
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className={cn("truncate", active ? "font-semibold" : "text-ink")}>
+                      {option.label}
+                    </span>
+                    <DeviceBadges option={option} />
+                  </span>
+                  <Check
+                    className={cn("size-4 shrink-0 text-brand-soft", !active && "invisible")}
+                    aria-hidden="true"
+                  />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </DockPopoverContent>
     </Popover.Root>
   );
 }

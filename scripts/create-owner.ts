@@ -13,8 +13,8 @@ import { z } from "zod";
 import {
   createAdminInvitation,
   OWNER_BOOTSTRAP_TTL_MS,
-} from "@/features/auth/server/admin-invitations";
-import { getDb } from "@/server/db";
+} from "@/features/auth/server/admin-invitations.server";
+import { getDb } from "@/server/db/index.server";
 import { adminUsers } from "@/server/db/schema";
 
 const args = process.argv.slice(2);

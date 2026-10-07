@@ -32,11 +32,10 @@
   --color-brand-ink: #14281c;
 
   --color-danger: #f87171;
-  --color-success: #4ade80;
   --color-warning: #fbbf24;
-
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --color-info: #60a5fa;
+  --color-violet: #a78bfa;
+  --color-warning: #fbbf24;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -56,6 +55,9 @@
 
 /* Ponte com as variáveis que os componentes do shadcn esperam. */
 @theme inline {
+  --font-sans: var(--font-manrope), "Manrope", sans-serif;
+  --font-heading: var(--font-manrope), "Manrope", sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -150,6 +152,8 @@
   --color-danger: #b02e2e;
   --color-success: #1f8a48;
   --color-warning: #a8701a;
+  --color-info: #2058c9;
+  --color-violet: #6b3fc4;
 
   --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.45) inset, 0 10px 28px -18px rgb(40 34 20 / 0.28);
 
@@ -185,7 +189,7 @@
   }
 
   html {
-    @apply bg-canvas font-sans text-ink antialiased;
+    @apply bg-canvas font-sans font-normal text-ink antialiased;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -195,8 +199,28 @@
 
   h1,
   h2,
-  h3 {
-    @apply tracking-tight text-balance;
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-medium tracking-tight text-balance;
+  }
+
+  b,
+  strong {
+    @apply font-semibold;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    @apply font-sans;
+  }
+
+  button,
+  [role="button"] {
+    @apply font-medium;
   }
 
   :focus-visible {
@@ -211,12 +235,97 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-ink-muted) 55%, transparent) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--color-ink-muted) 55%, transparent);
+    background-clip: padding-box;
+  }
+
+  input[type="number"] {
+    appearance: textfield;
+  }
+
+  input::-webkit-inner-spin-button,
+  input::-webkit-outer-spin-button,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-decoration {
+    appearance: none;
+    margin: 0;
+  }
+
+  /* PasswordInput já oferece seu próprio botão de mostrar/ocultar. */
+  input[type="password"]::-ms-reveal {
+    display: none;
+  }
+
+  input,
+  textarea {
+    caret-color: var(--color-brand-soft);
+  }
+
+  input {
+    --autofill-surface: var(--color-surface);
+  }
+
+  input[data-slot="input"] {
+    --autofill-surface: var(--color-surface-2);
+  }
+
+  input:autofill,
+  input:-webkit-autofill {
+    -webkit-text-fill-color: var(--color-ink);
+    caret-color: var(--color-brand-soft);
+    box-shadow: 0 0 0 1000px var(--autofill-surface) inset;
+  }
+
+  input:autofill:focus-visible {
+    outline: 2px solid var(--color-brand-soft);
+    outline-offset: 2px;
+  }
+}
+
+@media (forced-colors: active) {
+  * {
+    scrollbar-color: auto;
+  }
+  input:autofill,
+  input:-webkit-autofill {
+    -webkit-text-fill-color: CanvasText;
+    box-shadow: none;
+  }
 }
 
 @layer components {
   /* Superfície "vidro" usada nas barras flutuantes. */
   .glass {
     @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl backdrop-saturate-150;
+  }
+
+  /*
+   * Medidor do microfone em cápsulas: a máscara recorta o trilho e o
+   * preenchimento (que só muda de escala) em barrinhas arredondadas.
+   */
+  .mic-meter {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14'%3E%3Crect width='5' height='14' rx='2.5'/%3E%3C/svg%3E");
+    mask-repeat: repeat-x;
+    mask-position: left center;
+    mask-size: 10px 14px;
   }
 }
 
@@ -228,9 +337,13 @@
   }
 }
 
+.toaster[data-sonner-toaster] {
+  font-family: var(--font-sans);
+}
+
 /*
  * Botões "estilo Apple" (telas de acesso): cápsula, preenchimento sem borda,
- * peso semibold e um leve "apertar" ao clicar. Fora de @layer de propósito:
+ * peso medium e um leve "apertar" ao clicar. Fora de @layer de propósito:
  * vence as classes do componente Button sem mudar o botão do resto do app.
  */
 .apple-buttons [data-slot="button"] {

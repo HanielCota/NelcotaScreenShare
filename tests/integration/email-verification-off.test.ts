@@ -23,13 +23,12 @@ assert.ok(address && typeof address !== "string");
 
 Object.assign(process.env, {
   REQUIRE_EMAIL_VERIFICATION: "false",
-  NEXT_PUBLIC_LIVEKIT_URL: `ws://127.0.0.1:${address.port}`,
+  LIVEKIT_URL: `ws://127.0.0.1:${address.port}`,
   ACCESS_PASSWORD: "",
 });
 
-const { getUserAuth } = await import("@/features/auth/server/participant-auth");
-const { POST } = await import("@/app/api/token/route");
-const { NextRequest } = await import("next/server");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
+const { POST } = await import("@/app/routes/api/token.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -55,7 +54,7 @@ describe("confirmação de e-mail desligada", () => {
     assert.equal(user?.emailVerified, false);
 
     const response = await POST(
-      new NextRequest("http://localhost:3000/api/token", {
+      new Request("http://localhost:3000/api/token", {
         method: "POST",
         headers: {
           "content-type": "application/json",

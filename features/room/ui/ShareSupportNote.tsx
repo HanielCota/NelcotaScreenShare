@@ -1,5 +1,3 @@
-"use client";
-
 import { CircleCheck, Info, TriangleAlert } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import {
@@ -26,13 +24,31 @@ export function ShareSupportNote({
   variant = "line",
 }: {
   className?: string;
-  /** "line": ícone e frase (telas de acesso). "badge": selo de status discreto (rodapé). */
-  variant?: "line" | "badge";
+  /** "line": telas de acesso. "badge": rodapé. "prejoin": orientação do próximo passo. */
+  variant?: "line" | "badge" | "prejoin";
 }) {
   const support = useSyncExternalStore<ShareSupport | null>(noop, currentShareSupport, () => null);
   if (!support) return null;
   const { tone, title, detail } = SHARE_SUPPORT_TEXT[support];
   const Icon = ICONS[tone];
+  if (variant === "prejoin") {
+    const canShare = support === "full" || support === "screen-only" || support === "safari";
+    return (
+      <div
+        className={cn(
+          "flex max-w-full flex-col gap-1 text-center text-sm text-ink-muted",
+          className,
+        )}
+      >
+        <p>
+          {canShare
+            ? "Você poderá compartilhar sua tela depois de entrar."
+            : "Depois de entrar, você poderá conversar e assistir."}
+        </p>
+        {detail ? <p className="text-xs text-ink-subtle">{detail}</p> : null}
+      </div>
+    );
+  }
   if (variant === "badge") {
     // "Tudo certo" cabe numa linha; aviso (Safari, celular) mostra a orientação,
     // porque no celular não há "passar o mouse" para ler um title.
@@ -59,7 +75,7 @@ export function ShareSupportNote({
     <p className={cn("flex gap-2.5 text-sm leading-snug", className)}>
       <Icon className={cn("mt-px size-4 shrink-0", ICON_COLORS[tone])} aria-hidden="true" />
       <span>
-        <span className="font-semibold text-ink">{title}</span>
+        <span className="font-medium text-ink">{title}</span>
         {detail ? <span className="text-ink-muted"> {detail}</span> : null}
       </span>
     </p>

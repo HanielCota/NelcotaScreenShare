@@ -1,7 +1,5 @@
-"use client";
-
 import { Copy, Link2, Plus, XCircle } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
+import { useOperation } from "@/lib/use-operation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -16,7 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SELECT_CLASS } from "@/components/data-table/filters";
+import { ChoiceSelect } from "@/components/ChoiceSelect";
+import { FormError } from "@/components/FormError";
 import { formatDateTime } from "@/lib/format";
 import { createInviteAction, revokeInviteAction } from "@/features/admin/rooms/actions";
 
@@ -59,12 +58,16 @@ function CreateInviteDialog({
 }) {
   const ids = { label: useId(), uses: useId(), validity: useId(), link: useId() };
   const [link, setLink] = useState<string | null>(null);
-  const create = useAction(createInviteAction, {
+  const [usesError, setUsesError] = useState<string>();
+  const create = useOperation(createInviteAction, {
     onSuccess: ({ data }) => setLink(data.link),
     onError: ({ error }) => toast.error(error.serverError ?? "Confira os campos e tente de novo."),
   });
   const close = (next: boolean) => {
-    if (!next) setLink(null);
+    if (!next) {
+      setLink(null);
+      setUsesError(undefined);
+    }
     onOpenChange(next);
   };
 
@@ -111,6 +114,7 @@ function CreateInviteDialog({
           </div>
         ) : (
           <form
+            noValidate
             className="flex flex-col gap-4"
             onSubmit={(event) => {
               event.preventDefault();
@@ -121,11 +125,24 @@ function CreateInviteDialog({
                 return typeof value === "string" ? value : "";
               };
               const uses = field("uses").trim();
+              const maxUses = uses ? Number(uses) : null;
+              const badInput =
+                event.currentTarget.querySelector<HTMLInputElement>('input[name="uses"]')?.validity
+                  .badInput;
+              if (
+                badInput ||
+                (maxUses !== null && (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 1000))
+              ) {
+                setUsesError("Informe um limite inteiro entre 1 e 1.000 pessoas.");
+                event.currentTarget.querySelector<HTMLInputElement>('input[name="uses"]')?.focus();
+                return;
+              }
+              setUsesError(undefined);
               const validity = field("validity");
               create.execute({
                 roomId,
                 label: field("label"),
-                maxUses: uses ? Number(uses) : null,
+                maxUses,
                 validityHours: validity ? Number(validity) : null,
               });
             }}
@@ -150,25 +167,24 @@ function CreateInviteDialog({
                   type="number"
                   min={1}
                   max={1000}
+                  aria-invalid={usesError ? true : undefined}
+                  aria-describedby={usesError ? `${ids.uses}-error` : undefined}
+                  onChange={() => setUsesError(undefined)}
                   placeholder="Sem limite"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor={ids.validity}>Validade</Label>
-                <select
+                <ChoiceSelect
                   id={ids.validity}
                   name="validity"
                   defaultValue="24"
-                  className={SELECT_CLASS}
-                >
-                  {VALIDITY_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  className="h-11 w-full bg-surface-2"
+                  options={VALIDITY_OPTIONS}
+                />
               </div>
             </div>
+            <FormError id={`${ids.uses}-error`} message={usesError} />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => close(false)}>
                 Cancelar
@@ -196,7 +212,7 @@ export function InvitesPanel({
   can: { create: boolean; revoke: boolean };
 }) {
   const [open, setOpen] = useState(false);
-  const revoke = useAction(revokeInviteAction, {
+  const revoke = useOperation(revokeInviteAction, {
     onSuccess: () => toast.success("Convite revogado."),
     onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível revogar."),
   });

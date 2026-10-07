@@ -6,7 +6,12 @@ import type { MascotActivity } from "./personality";
  */
 export type PairPhase = "rest" | "approach" | "ready" | "hit" | "cheer" | "return";
 
-export const PAIR_STEP_MS = { walk: 3200, turn: 250, ready: 450, hit: 450, cheer: 800 } as const;
+export const PAIR_STEP_MS = { walk: 3200, ready: 450, hit: 450, cheer: 800 } as const;
+
+/** Descanso real entre encontros; a variação evita uma repetição mecânica. */
+export function nextPairRest(random = Math.random()): number {
+  return 6000 + random * 4000;
+}
 
 /** O que cada mascote do par está fazendo em cada fase (abrindo a sala: esperando). */
 export function pairActivity(phase: PairPhase, pending: boolean): MascotActivity {

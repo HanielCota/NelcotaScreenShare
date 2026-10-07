@@ -7,8 +7,9 @@ import * as schema from "@/server/db/schema";
 
 /** Tela de salas: excluir/restaurar, nota interna e convites. */
 const requestHeaders = { current: new Headers() };
-vi.mock("next/headers", () => ({
-  headers: async () => requestHeaders.current,
+vi.mock("@/server/request-context.server", () => ({
+  requestMemo: (load: () => unknown) => load,
+  requestHeaders: () => requestHeaders.current,
   cookies: async () => ({
     get: () => undefined,
     getAll: () => [],
@@ -16,13 +17,11 @@ vi.mock("next/headers", () => ({
     delete: () => {},
   }),
 }));
-vi.mock("next/cache", () => ({ revalidatePath: () => {}, refresh: () => {} }));
-
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { adminSession } = await import("./support/admin-session");
-const actions = await import("@/features/admin/rooms/actions");
-const { hashInviteToken } = await import("@/features/room/server/invites");
-const { searchPanelAction } = await import("@/features/admin/search/actions");
+const actions = await import("@/features/admin/rooms/actions.server");
+const { hashInviteToken } = await import("@/features/room/server/invites.server");
+const { searchPanelAction } = await import("@/features/admin/search/actions.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

@@ -1,13 +1,13 @@
-"use client";
-
 import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate, useRevalidator } from "react-router";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 
 export function UserSignOutButton() {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const [pending, setPending] = useState(false);
   return (
     <Button
@@ -17,8 +17,8 @@ export function UserSignOutButton() {
       onClick={() => {
         setPending(true);
         void authClient.signOut().finally(() => {
-          router.replace("/entrar?aviso=saiu");
-          router.refresh();
+          void navigate("/entrar?aviso=saiu", { replace: true });
+          void revalidator.revalidate();
         });
       }}
     >

@@ -6,14 +6,16 @@ import { afterAll, describe, test, vi } from "vitest";
 import { z } from "zod";
 import * as schema from "@/server/db/schema";
 import { verifiedParticipant } from "./support/accounts";
+import { makeCaller } from "./support/http-auth";
 
 /**
  * Direitos do titular (LGPD): "baixar meus dados" inclui o histórico de salas
  * e a exclusão da conta tira o nome das participações.
  */
 const requestHeaders = { current: new Headers() };
-vi.mock("next/headers", () => ({
-  headers: async () => requestHeaders.current,
+vi.mock("@/server/request-context.server", () => ({
+  requestMemo: (load: () => unknown) => load,
+  requestHeaders: () => requestHeaders.current,
   cookies: async () => ({
     get: () => undefined,
     getAll: () => [],
@@ -21,16 +23,15 @@ vi.mock("next/headers", () => ({
     delete: () => {},
   }),
 }));
-vi.mock("next/cache", () => ({ revalidatePath: () => {}, refresh: () => {} }));
-vi.mock("next/navigation", () => ({
+vi.mock("@/server/http.server", () => ({
   redirect: (url: string) => {
     throw new Error(`redirect:${url}`);
   },
 }));
 
-const { GET } = await import("@/app/api/conta/dados/route");
-const { deleteMyAccount } = await import("@/features/account/actions");
-const { getUserAuth } = await import("@/features/auth/server/participant-auth");
+const { GET } = await import("@/app/routes/api/account-data.server");
+const { deleteMyAccount } = await import("@/features/account/actions.server");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -86,6 +87,52 @@ const exportSchema = z.object({
 });
 
 describe("dados do titular", () => {
+  test("exclusão invalida recuperações pendentes e recusa tokens residuais", async () => {
+    const user = await verifiedParticipant(db, handler);
+    const auth = await getUserAuth().$context;
+    const token = crypto.randomUUID();
+    const identifier = `reset-password:${token}`;
+    const recovery = { identifier, value: user.id, expiresAt: new Date(Date.now() + 30 * 60_000) };
+    await auth.internalAdapter.createVerificationValue(recovery);
+    requestHeaders.current = new Headers({ cookie: user.jar.header() });
+    const deleted = await deleteMyAccount({ password: user.password });
+    assert.equal(deleted.serverError, undefined);
+    assert.equal(await auth.internalAdapter.findVerificationValue(identifier), null);
+    const call = makeCaller(handler, "/api/auth", "192.0.2.79");
+    const body = { token, newPassword: "nova-senha-forte-123" };
+    assert.equal((await call("/reset-password", { body })).status, 400);
+    // Cobre tokens legados ou gravados por uma requisição concorrente à exclusão.
+    await auth.internalAdapter.createVerificationValue(recovery);
+    assert.equal((await call("/reset-password", { body })).status, 400);
+    assert.equal(
+      (await call(`/reset-password?token=${token}`, { body: { newPassword: body.newPassword } }))
+        .status,
+      400,
+    );
+    assert.equal(
+      await db.query.userAccounts.findFirst({ where: eq(schema.userAccounts.userId, user.id) }),
+      undefined,
+    );
+  });
+
+  test("recuperação de senha continua funcionando para conta ativa", async () => {
+    const user = await verifiedParticipant(db, handler);
+    const auth = await getUserAuth().$context;
+    const token = crypto.randomUUID();
+    await auth.internalAdapter.createVerificationValue({
+      identifier: `reset-password:${token}`,
+      value: user.id,
+      expiresAt: new Date(Date.now() + 30 * 60_000),
+    });
+    const call = makeCaller(handler, "/api/auth", "192.0.2.80");
+    const newPassword = "nova-senha-ativa-123";
+    assert.equal((await call("/reset-password", { body: { token, newPassword } })).status, 200);
+    assert.equal(
+      (await call("/sign-in/email", { body: { email: user.email, password: newPassword } })).status,
+      200,
+    );
+  });
+
   test("a exportação traz salas, compartilhamentos e pedidos de entrada", async () => {
     const lia = await verifiedParticipant(db, handler);
     const { code } = await withHistory(lia.id);

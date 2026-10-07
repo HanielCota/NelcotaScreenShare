@@ -8,7 +8,7 @@ const FEATURES = readdirSync("features", { withFileTypes: true })
 
 export default defineConfig({
   $schema: "./node_modules/oxlint/configuration_schema.json",
-  plugins: ["typescript", "react", "nextjs", "import", "jsx-a11y", "oxc", "unicorn"],
+  plugins: ["typescript", "react", "import", "jsx-a11y", "oxc", "unicorn"],
   options: {
     typeAware: true,
     // O compilador oficial fica em `pnpm typecheck`; evita duplicar o type-check experimental.
@@ -26,19 +26,20 @@ export default defineConfig({
     es2024: true,
   },
   ignorePatterns: [
-    ".next/**",
+    ".react-router/**",
     "node_modules/**",
-    "out/**",
+    "dist/**",
     "build/**",
     "coverage/**",
     "output/**",
     ".playwright-cli/**",
-    "next-env.d.ts",
+    "test-results/**",
+    "playwright-report/**",
   ],
   settings: {
-    next: { rootDir: "." },
     "jsx-a11y": {
-      components: { Link: "a", Image: "img", Input: "input", Label: "label" },
+      components: { Link: "a", Input: "input", Label: "label" },
+      attributes: { href: ["href", "to"] },
     },
   },
   rules: {
@@ -63,18 +64,17 @@ export default defineConfig({
     "react/react-in-jsx-scope": "off",
     "import/no-cycle": ["error", { ignoreExternal: true }],
     "import/no-duplicates": "error",
-    "import/no-unassigned-import": ["error", { allow: ["server-only", "**/*.css"] }],
+    "import/no-unassigned-import": ["error", { allow: ["**/*.css"] }],
     // Redundante com o TypeScript; conflita com o padrão "cleanup opcional" dos effects.
     "typescript/consistent-return": "off",
     "jsx-a11y/no-autofocus": "error",
-    "nextjs/no-img-element": "error",
-    "nextjs/no-async-client-component": "error",
-    // Tamanho e complexidade (docs/refactor/03-arquitetura-alvo.md §4).
+
+    // Tamanho e complexidade (docs/archive/refactor/03-arquitetura-alvo.md §4).
     "eslint/max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
     "eslint/complexity": ["error", { max: 15 }],
   },
   overrides: [
-    // Camadas (docs/refactor/03-arquitetura-alvo.md §2). Cada override diz o que
+    // Camadas (docs/archive/refactor/03-arquitetura-alvo.md §2). Cada override diz o que
     // a pasta NÃO pode importar; o resto é livre (sem ciclos, pelo import/no-cycle).
     {
       // Genérico (UI compartilhada e utilitários): não conhece features, rotas nem servidor.
@@ -99,7 +99,7 @@ export default defineConfig({
         ],
       },
     },
-    // UI e hooks das features: dados por props/RSC, mutações por actions; da UI de
+    // UI e hooks das features: dados por props/loaders, mutações por actions; da UI de
     // outra feature, só o que é público (mascote e aviso de compartilhamento).
     ...FEATURES.map((feature): OxlintOverride => ({
       files: [
@@ -125,7 +125,7 @@ export default defineConfig({
                   "livekit-server-sdk",
                 ],
                 allowTypeImports: true,
-                message: "UI não acessa o servidor: use props, um Server Component ou uma action.",
+                message: "UI não acessa o servidor: use props, loaders ou actions de rota.",
               },
               {
                 group: [
@@ -145,7 +145,7 @@ export default defineConfig({
       },
     })),
     {
-      // Domínio: TypeScript puro (testável sem React, Next, banco ou SDK).
+      // Domínio: TypeScript puro (testável sem React, roteador, banco ou SDK).
       files: ["features/*/domain/**", "features/mascot/engine/**"],
       rules: {
         "eslint/no-restricted-imports": [
@@ -156,8 +156,8 @@ export default defineConfig({
                 group: [
                   "react",
                   "react-dom",
-                  "next",
-                  "next/*",
+                  "react-router",
+                  "react-router/*",
                   "pg",
                   "drizzle-orm",
                   "drizzle-orm/*",

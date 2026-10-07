@@ -1,7 +1,6 @@
-"use client";
-
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRevalidator } from "react-router";
+
 import { useId, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { FormError } from "@/components/FormError";
@@ -15,10 +14,13 @@ import { formText } from "@/lib/utils";
 
 /** Nome mostrado na sala. */
 export function ProfileForm({ name }: { name: string }) {
-  const router = useRouter();
+  const revalidator = useRevalidator();
   const nameId = useId();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
+  const [value, setValue] = useState(name);
+  // Sem mudança, não há o que salvar.
+  const unchanged = value.trim() === name;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -30,31 +32,39 @@ export function ProfileForm({ name }: { name: string }) {
     setPending(false);
     if (failure) return setError(authErrorMessage(failure));
     toast.success("Nome atualizado. Ele vale a partir da próxima sala em que você entrar.");
-    router.refresh();
+    void revalidator.revalidate();
   }
 
   return (
     <form
+      method="post"
       onSubmit={(event) => void handleSubmit(event)}
       noValidate
-      className="flex flex-col gap-3 sm:max-w-sm"
+      className="flex flex-col gap-2"
     >
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={nameId}>Nome na sala</Label>
+      <Label htmlFor={nameId} className="sr-only">
+        Nome na sala
+      </Label>
+      <div className="flex flex-wrap gap-2">
         <Input
           id={nameId}
           name="name"
-          defaultValue={name}
+          value={value}
+          onChange={(event) => {
+            setValue(event.target.value);
+            setError(undefined);
+          }}
           maxLength={32}
           required
-          className="h-11"
+          aria-invalid={error ? true : undefined}
+          className="h-10 min-w-0 flex-1 basis-48"
         />
+        <Button type="submit" disabled={pending || unchanged}>
+          {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
+          Salvar
+        </Button>
       </div>
       <FormError message={error} />
-      <Button type="submit" disabled={pending} className="self-start">
-        {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
-        Salvar nome
-      </Button>
     </form>
   );
 }

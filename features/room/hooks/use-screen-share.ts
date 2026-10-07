@@ -1,5 +1,3 @@
-"use client";
-
 import { useLocalParticipant } from "@livekit/components-react";
 import { ScreenSharePresets } from "livekit-client";
 import { useState } from "react";

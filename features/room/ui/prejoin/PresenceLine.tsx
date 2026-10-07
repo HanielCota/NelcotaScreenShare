@@ -15,10 +15,10 @@ export function PresenceLine({
   }
   if (line.kind === "empty") return <p className="text-base text-ink-muted">{line.text}</p>;
   return (
-    <p className="inline-flex items-center gap-2 text-base font-semibold text-ink">
+    <p className="inline-flex items-center gap-2 text-base font-medium text-ink">
       <span className="relative flex size-2" aria-hidden="true">
-        <span className="absolute inset-0 animate-ping rounded-full bg-success/60 motion-reduce:hidden" />
-        <span className="relative size-2 rounded-full bg-success" />
+        <span className="bg-success/60 absolute inset-0 animate-ping rounded-full motion-reduce:hidden" />
+        <span className="bg-success relative size-2 rounded-full" />
       </span>
       {line.text}
     </p>

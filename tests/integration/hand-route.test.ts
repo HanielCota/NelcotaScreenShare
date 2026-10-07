@@ -28,13 +28,12 @@ const address = fakeLiveKit.address();
 if (!address || typeof address === "string") throw new Error("sem porta");
 
 Object.assign(process.env, {
-  NEXT_PUBLIC_LIVEKIT_URL: `ws://127.0.0.1:${address.port}`,
+  LIVEKIT_URL: `ws://127.0.0.1:${address.port}`,
   AUTH_SECRET: "segredo-participantes-de-teste-0123456789abcdef",
 });
 
-const { POST } = await import("@/app/api/sala/mao/route");
-const { NextRequest } = await import("next/server");
-const { getUserAuth } = await import("@/features/auth/server/participant-auth");
+const { POST } = await import("@/app/routes/api/hand.server");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -48,7 +47,7 @@ function post(body: unknown, cookie?: string, origin = "http://localhost:3000") 
   const headers = new Headers({ "content-type": "application/json", origin });
   if (cookie) headers.set("cookie", cookie);
   return POST(
-    new NextRequest("http://localhost:3000/api/sala/mao", {
+    new Request("http://localhost:3000/api/sala/mao", {
       method: "POST",
       headers,
       body: JSON.stringify(body),

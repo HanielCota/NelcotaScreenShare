@@ -4,6 +4,7 @@ import {
   DisconnectReason,
   MediaDeviceFailure,
 } from "livekit-client";
+import type { LeaveReason } from "@/features/room/domain/leave";
 
 /** Erros do LiveKit (conexão, queda, microfone) em mensagens para a pessoa. */
 
@@ -47,6 +48,21 @@ export function disconnectMessage(reason: DisconnectReason | undefined): string 
       return "A conexão caiu. Verifique sua internet e toque em Entrar de novo.";
     default:
       return undefined;
+  }
+}
+
+/** Queda da conexão já aberta, no motivo que a tela de saída entende. */
+export function disconnectReason(reason: DisconnectReason | undefined): LeaveReason {
+  switch (reason) {
+    case DisconnectReason.DUPLICATE_IDENTITY:
+      return "elsewhere";
+    case DisconnectReason.PARTICIPANT_REMOVED:
+      return "removed";
+    case DisconnectReason.ROOM_DELETED:
+    case DisconnectReason.ROOM_CLOSED:
+      return "ended";
+    default:
+      return "dropped";
   }
 }
 

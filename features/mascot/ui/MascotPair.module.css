@@ -1,7 +1,5 @@
 .scene {
   --mascot-size: 112px;
-  --walker-home: 16%;
-  --travel: 0px;
   position: relative;
   width: 100%;
   height: var(--mascot-size);
@@ -27,45 +25,24 @@
 }
 
 .resident {
-  left: calc(100% - var(--walker-home));
-}
-
-.visitor,
-.resident {
-  /* Duração definida no componente (WALK_MS), para o relógio e a animação baterem. */
-  transition: transform var(--walk-duration, 3200ms) linear;
+  left: 84%;
 }
 
 .visitor {
-  left: var(--walker-home);
+  left: 16%;
 }
 
-.scene[data-phase="approach"] .visitor,
-.scene[data-phase="ready"] .visitor {
-  transform: translateX(calc(var(--travel) - var(--mascot-size) * 0.04));
+.scene[data-positioned="true"] .visitor,
+.scene[data-positioned="true"] .resident {
+  left: 0;
 }
 
-.scene[data-phase="approach"] .resident,
-.scene[data-phase="ready"] .resident {
-  transform: translateX(calc(var(--mascot-size) * 0.04 - var(--travel)));
+.scene[data-positioned="true"] .visitor {
+  transform: translateX(var(--visitor-x));
 }
 
-.scene[data-phase="hit"] .visitor,
-.scene[data-phase="cheer"] .visitor {
-  transform: translateX(var(--travel));
-}
-
-.scene[data-phase="hit"] .resident,
-.scene[data-phase="cheer"] .resident {
-  transform: translateX(calc(var(--travel) * -1));
-}
-
-.scene[data-phase="hit"] .visitor,
-.scene[data-phase="cheer"] .visitor,
-.scene[data-phase="hit"] .resident,
-.scene[data-phase="cheer"] .resident {
-  transition-duration: 180ms;
-  transition-timing-function: ease-out;
+.scene[data-positioned="true"] .resident {
+  transform: translateX(var(--resident-x));
 }
 
 .scene[data-phase="hit"] .actor {
@@ -87,7 +64,7 @@
   background: var(--color-surface-2);
   white-space: nowrap;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   opacity: 0;
   pointer-events: none;
 }
@@ -115,16 +92,13 @@
   animation: contact 450ms ease-out;
 }
 
-.scene[data-pending="true"] .visitor,
-.scene[data-pending="true"] .resident,
-.scene[data-suspended="true"] .visitor,
-.scene[data-suspended="true"] .resident {
-  transition: none;
-}
-
 .scene[data-suspended="true"] .actor,
 .scene[data-suspended="true"] .contact {
-  animation: none;
+  animation-play-state: paused;
+}
+
+.scene[data-suspended="true"] .message {
+  opacity: 0;
 }
 
 @keyframes touch {
@@ -169,11 +143,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .visitor,
-  .resident {
-    transition: none;
-    transform: none;
-  }
   .scene[data-phase="hit"] .actor,
   .scene[data-phase="cheer"] .actor,
   .scene[data-phase="hit"] .contact {

@@ -1,5 +1,3 @@
-"use client";
-
 import { useRef, type ReactNode } from "react";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 

@@ -1,7 +1,9 @@
-"use client";
-
 import { createAudioAnalyser, createLocalAudioTrack, MediaDeviceFailure } from "livekit-client";
 import { useEffect, useEffectEvent, useRef, type RefObject } from "react";
+import {
+  createMicrophoneCheck,
+  type MicrophoneCheck,
+} from "@/features/room/domain/microphone-check";
 
 interface MicLevelEvents {
   /** Microfones disponíveis (depois da permissão, com nome). */
@@ -10,6 +12,7 @@ interface MicLevelEvents {
   onMissingDevice: () => void;
   onPermissionDenied: () => void;
   onError: (error: unknown) => void;
+  onCheck: (state: MicrophoneCheck, deviceId: string | undefined) => void;
 }
 
 /**
@@ -28,6 +31,7 @@ export function useMicLevel(
   const onMissingDevice = useEffectEvent(events.onMissingDevice);
   const onPermissionDenied = useEffectEvent(events.onPermissionDenied);
   const onError = useEffectEvent(events.onError);
+  const onCheck = useEffectEvent(events.onCheck);
 
   useEffect(() => {
     const meter = meterRef.current;
@@ -60,10 +64,20 @@ export function useMicLevel(
         onDevices(inputs);
         if (deviceId && !inputs.some((d) => d.deviceId === deviceId)) onMissingDevice();
 
+        const check = createMicrophoneCheck();
+        let checkState: MicrophoneCheck = "waiting";
+        onCheck(checkState, deviceId);
+
         const tick = () => {
           const volume = Math.min(1, analyser.calculateVolume() * 2.5);
           levelRef.current = volume;
-          meter.style.transform = `scaleX(${volume.toFixed(3)})`;
+          // Curva perceptiva: fala normal enche boa parte do medidor, não só a ponta.
+          meter.style.transform = `scaleX(${Math.sqrt(volume).toFixed(3)})`;
+          const next = check(volume, performance.now());
+          if (next !== checkState) {
+            checkState = next;
+            onCheck(next, deviceId);
+          }
           frame = requestAnimationFrame(tick);
         };
         tick();

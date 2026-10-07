@@ -1,5 +1,3 @@
-"use client";
-
 import {
   useAudioPlayback,
   useConnectionState,
@@ -15,7 +13,8 @@ import { pickFocusedShare } from "@/features/room/domain/focus";
 import { useRoomAnimations } from "@/features/room/hooks/use-room-animations";
 import { useRoomNotices } from "@/features/room/hooks/use-room-notices";
 import { useScreenShare } from "@/features/room/hooks/use-screen-share";
-import { ChatPanel, useChatState } from "@/features/room/ui/dock/Chat";
+import { useChatState } from "@/features/room/hooks/use-chat-state";
+import { ChatPanel } from "@/features/room/ui/dock/Chat";
 import { ControlDock } from "@/features/room/ui/dock/ControlDock";
 import { ScreenStage } from "@/features/room/ui/stage/ScreenStage";
 import { cn } from "@/lib/utils";
@@ -40,7 +39,7 @@ function ConnectionNotices({ connection }: { connection: Connection }) {
     <div className="absolute top-20 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2">
       {connection !== "connected" ? (
         <output aria-live="polite">
-          <span className="glass flex items-center gap-2.5 rounded-full px-5 py-3 text-base font-semibold">
+          <span className="glass flex items-center gap-2.5 rounded-full px-5 py-3 text-base font-medium">
             <Mascot className="size-14" sizes="168px" canSleep={false} activity="waiting" />
             {reconnecting ? <WifiOff className="size-5 text-warning" aria-hidden="true" /> : null}
             <Loader2 className="size-5 animate-spin text-ink-muted" aria-hidden="true" />
@@ -138,7 +137,10 @@ export function RoomLayout({
 
   return (
     <div ref={scope} className="relative flex h-dvh flex-col overflow-hidden bg-canvas">
-      <header data-anim="topbar" className="relative z-20 px-3 pt-3 sm:px-6 sm:pt-4">
+      <header
+        data-anim="topbar"
+        className={cn("relative z-20 px-3 pt-3 sm:px-6 sm:pt-4", chat.open && "lg:pr-[26.5rem]")}
+      >
         <RoomTopBar
           code={code}
           participants={participants}

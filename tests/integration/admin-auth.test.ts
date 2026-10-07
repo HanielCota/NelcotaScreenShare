@@ -3,12 +3,18 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { eq, like } from "drizzle-orm";
 import { Pool } from "pg";
 import { afterAll, describe, test } from "vitest";
-import { ADMIN_AUTH_BASE_PATH, createAdminAuthForTests } from "@/features/auth/server/admin-auth";
-import { forbiddenCrossSite, isCrossSiteMutation } from "@/features/auth/server/origin-guard";
+import {
+  ADMIN_AUTH_BASE_PATH,
+  createAdminAuthForTests,
+} from "@/features/auth/server/admin-auth.server";
+import {
+  forbiddenCrossSite,
+  isCrossSiteMutation,
+} from "@/features/auth/server/origin-guard.server";
 import {
   acceptAdminInvitation,
   createAdminInvitation,
-} from "@/features/auth/server/admin-invitations";
+} from "@/features/auth/server/admin-invitations.server";
 import * as schema from "@/server/db/schema";
 import { CookieJar, makeCaller } from "./support/http-auth";
 import { totpFromUri } from "./support/totp";

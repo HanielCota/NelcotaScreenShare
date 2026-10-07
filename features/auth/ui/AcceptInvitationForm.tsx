@@ -1,8 +1,6 @@
-"use client";
-
 import { Loader2, UserPlus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useAction } from "next-safe-action/hooks";
+
+import { useOperation } from "@/lib/use-operation";
 import { useId, useState, type FormEvent } from "react";
 import { acceptInvitation } from "@/features/auth/actions";
 import { AuthCard } from "./AuthCard";
@@ -25,14 +23,11 @@ export function AcceptInvitationForm({
   email: string;
   roleLabel: string;
 }) {
-  const router = useRouter();
   const nameId = useId();
   const passwordId = useId();
   const confirmId = useId();
   const [localError, setLocalError] = useState<string>();
-  const accept = useAction(acceptInvitation, {
-    onSuccess: () => router.replace("/admin/entrar?aviso=convite"),
-  });
+  const accept = useOperation(acceptInvitation);
   const serverError =
     accept.result.serverError ??
     (accept.result.validationErrors ? "Confira os campos e tente de novo." : undefined);
@@ -65,7 +60,7 @@ export function AcceptInvitationForm({
         </>
       }
     >
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <form method="post" onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor={nameId}>Seu nome</Label>
           <Input

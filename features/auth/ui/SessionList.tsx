@@ -1,10 +1,9 @@
-"use client";
-
 import { Loader2, Monitor } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
+import { useOperation } from "@/lib/use-operation";
 import { toast } from "sonner";
 import type { revokeMyOtherSessions, revokeMySession } from "@/features/account/actions";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
 
@@ -25,50 +24,62 @@ export function SessionList({
   currentId,
   revokeSession,
   revokeOtherSessions,
+  variant = "card",
 }: {
   sessions: SessionRow[];
   currentId: string;
   revokeSession: typeof revokeMySession;
   revokeOtherSessions: typeof revokeMyOtherSessions;
+  /** `plain`: sem cartão próprio, para quem já está dentro de um (ex.: /conta). */
+  variant?: "card" | "plain";
 }) {
-  const revokeOne = useAction(revokeSession, {
+  const plain = variant === "plain";
+  const revokeOne = useOperation(revokeSession, {
     onSuccess: () => toast.success("Sessão encerrada."),
     onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
   });
-  const revokeOthers = useAction(revokeOtherSessions, {
+  const revokeOthers = useOperation(revokeOtherSessions, {
     onSuccess: ({ data }) =>
       toast.success(
         data.revoked === 0
           ? "Não havia outras sessões."
-          : `${data.revoked} sessão(ões) encerrada(s).`,
+          : data.revoked === 1
+            ? "1 sessão encerrada."
+            : `${data.revoked} sessões encerradas.`,
       ),
     onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
   });
   const others = sessions.filter((session) => session.id !== currentId).length;
 
   return (
-    <section className="glass rounded-2xl p-2 sm:p-3" aria-label="Lista de sessões">
+    <section
+      className={plain ? undefined : "glass rounded-2xl p-2 sm:p-3"}
+      aria-label="Lista de sessões"
+    >
       <ul className="flex flex-col">
         {sessions.map((session) => {
           const current = session.id === currentId;
           return (
             <li
               key={session.id}
-              className="flex flex-wrap items-center gap-3 rounded-xl px-3 py-3 [&+&]:border-t [&+&]:border-line"
+              className={cn(
+                "flex flex-wrap items-center gap-3 py-3 [&+&]:border-t [&+&]:border-line",
+                plain ? "px-0" : "rounded-xl px-3",
+              )}
             >
               <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-surface-2">
                 <Monitor className="size-5 text-brand-soft" aria-hidden="true" />
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="flex items-center gap-2 font-semibold">
+                <span className="flex items-center gap-2 font-medium">
                   {describeUserAgent(session.userAgent)}
                   {current ? (
-                    <span className="rounded-md bg-brand px-1.5 py-0.5 text-[0.7rem] font-bold text-brand-ink">
+                    <span className="rounded-md bg-brand px-1.5 py-0.5 text-[0.7rem] font-semibold text-brand-ink">
                       Este dispositivo
                     </span>
                   ) : null}
                 </span>
-                <span className="text-sm text-ink-muted">
+                <span className="text-sm [overflow-wrap:anywhere] text-ink-muted">
                   {session.ipAddress ?? "IP desconhecido"} · entrou em{" "}
                   {formatDateTime(session.createdAt)} · ativo{" "}
                   <time dateTime={session.updatedAt} suppressHydrationWarning>
@@ -91,7 +102,12 @@ export function SessionList({
         })}
       </ul>
       {others > 0 ? (
-        <div className="flex justify-end border-t border-line px-3 pt-3 pb-1">
+        <div
+          className={cn(
+            "flex justify-end border-t border-line pt-3 pb-1",
+            plain ? "px-0 pb-2" : "px-3",
+          )}
+        >
           <Button
             variant="outline"
             disabled={revokeOthers.isPending}

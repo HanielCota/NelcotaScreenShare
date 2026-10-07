@@ -1,8 +1,6 @@
-"use client";
-
 import { Check, Circle, Loader2, UserPlus } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate, useRevalidator } from "react-router";
+
 import { useId, useRef, useState, type FormEvent } from "react";
 import { AccessTabs } from "./AccessTabs";
 import { EmailField, forgetTypedEmail } from "./EmailField";
@@ -83,7 +81,8 @@ export function SignUpForm({
   /** Com a confirmação desligada, o cadastro já entra na conta. */
   verificationRequired: boolean;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const ids = { name: useId(), email: useId(), password: useId(), guide: useId(), error: useId() };
   const nameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -140,12 +139,14 @@ export function SignUpForm({
     forgetTypedEmail();
     celebrateMascot();
     if (verificationRequired) {
-      router.replace(`/verificar-email?email=${encodeURIComponent(email)}&voltar=${back}`);
+      void navigate(`/verificar-email?email=${encodeURIComponent(email)}&voltar=${back}`, {
+        replace: true,
+      });
       return;
     }
     // Sem confirmação, o Better Auth já abriu a sessão: segue para onde a pessoa ia.
-    router.replace(returnTo);
-    router.refresh();
+    void navigate(returnTo, { replace: true });
+    void revalidator.revalidate();
   }
 
   return (
@@ -162,6 +163,7 @@ export function SignUpForm({
       top={<AccessTabs current="cadastro" returnTo={returnTo} />}
     >
       <form
+        method="post"
         onSubmit={(event) => void handleSubmit(event)}
         onChange={(event) => {
           // Nome e e-mail entram na conta da força: senha com eles fica "Fraca".
@@ -211,9 +213,9 @@ export function SignUpForm({
         <p className="text-center text-xs text-ink-subtle">
           Ao criar a conta, você concorda com o{" "}
           <Link
-            href="/privacidade"
+            to="/privacidade"
             target="_blank"
-            className="font-semibold text-brand-soft hover:underline"
+            className="font-medium text-brand-soft hover:underline"
           >
             aviso de privacidade
           </Link>

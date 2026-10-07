@@ -1,5 +1,3 @@
-"use client";
-
 import { Loader2 } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -63,6 +61,7 @@ export function ConfirmDialog({
     >
       <DialogContent>
         <form
+          noValidate
           className="flex flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault();
@@ -89,7 +88,8 @@ export function ConfirmDialog({
           {typedConfirmation ? (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={typedId}>
-                Digite <strong className="font-mono">{typedConfirmation}</strong> para confirmar
+                Digite <strong className="font-sans tabular-nums">{typedConfirmation}</strong> para
+                confirmar
               </Label>
               <Input
                 id={typedId}

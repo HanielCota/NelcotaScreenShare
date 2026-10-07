@@ -1,10 +1,13 @@
-"use client";
-
 import { useSequentialRoomConnectDisconnect } from "@livekit/components-react";
 import { DisconnectReason, Room, RoomEvent } from "livekit-client";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { toast } from "sonner";
-import { connectErrorMessage, disconnectMessage } from "@/features/room/client/connection-errors";
+import {
+  connectErrorMessage,
+  disconnectMessage,
+  disconnectReason,
+} from "@/features/room/client/connection-errors";
+import type { LeaveNotice } from "@/features/room/domain/leave";
 import type { JoinChoices } from "@/features/room/domain/join";
 import { MIC_ERROR_TOAST } from "@/features/room/client/toast-ids";
 
@@ -15,7 +18,8 @@ import { MIC_ERROR_TOAST } from "@/features/room/client/toast-ids";
  */
 export function useRoomConnection(
   choices: JoinChoices,
-  onLeave: (message?: string) => void,
+  /** Sem aviso: a pessoa saiu de propósito. */
+  onLeave: (notice?: LeaveNotice) => void,
 ): { room: Room; connectError: string | undefined; leave: () => void } {
   const [room] = useState(
     () =>
@@ -36,9 +40,12 @@ export function useRoomConnection(
 
   const handleUnexpectedDisconnect = useEffectEvent((reason?: DisconnectReason) => {
     if (leavingRef.current || reason === DisconnectReason.CLIENT_INITIATED) return;
-    onLeave(
-      disconnectMessage(reason) ?? "Você foi desconectado. Verifique sua internet e entre de novo.",
-    );
+    onLeave({
+      reason: disconnectReason(reason),
+      message:
+        disconnectMessage(reason) ??
+        "Você foi desconectado. Verifique sua internet e entre de novo.",
+    });
   });
 
   useEffect(() => {

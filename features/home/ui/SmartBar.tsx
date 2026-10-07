@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ArrowRight,
   CircleAlert,
@@ -27,7 +25,7 @@ interface SmartBarProps {
 /** Tecla desenhada como tecla de verdade (borda de baixo mais grossa). */
 function Keycap({ children }: { children: ReactNode }) {
   return (
-    <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-b-2 border-line-strong bg-surface-2 px-1.5 font-sans text-xs font-semibold text-ink">
+    <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-b-2 border-line-strong bg-surface-2 px-1.5 font-sans text-xs font-medium text-ink">
       {children}
     </kbd>
   );
@@ -74,7 +72,7 @@ function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "e
             <span className="sr-only">Sala encontrada:</span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 py-0.5 pr-2.5 pl-2">
               <Video className="size-3.5 text-brand-soft" aria-hidden="true" />
-              <span className="font-mono font-semibold text-ink">{input.code}</span>
+              <span className="font-sans font-medium text-ink tabular-nums">{input.code}</span>
             </span>
             {input.invite ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface-2 py-0.5 pr-2.5 pl-2 text-xs font-medium">
@@ -186,7 +184,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
         ) : null}
         <div
           className={cn(
-            "relative z-10 flex h-16 items-center gap-2 rounded-full border border-line bg-surface pr-2 pl-5 shadow-[0_12px_32px_-20px_rgb(0_0_0/0.45)] transition-colors focus-within:border-brand/60",
+            "relative z-10 flex h-16 items-center gap-2 rounded-full border border-line bg-surface pr-2 pl-5 shadow-[0_12px_32px_-20px_rgb(0_0_0/0.45)] transition-colors focus-within:border-brand/60 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
             hint.tone === "error" && "border-danger/60 focus-within:border-danger/70",
           )}
         >
@@ -211,7 +209,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-brand px-5 text-base font-semibold text-brand-ink transition-[transform,background-color] duration-200 hover:bg-brand-hover active:scale-[0.97] disabled:opacity-60 motion-reduce:active:scale-100"
+            className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-brand px-5 text-base font-medium text-brand-ink transition-[transform,background-color] duration-200 hover:bg-brand-hover active:scale-[0.97] disabled:opacity-60 motion-reduce:active:scale-100"
           >
             {pending ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />

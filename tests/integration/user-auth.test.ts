@@ -6,9 +6,9 @@ import { afterAll, describe, test, vi } from "vitest";
 import {
   createUserAuthForTests,
   USER_AUTH_BASE_PATH,
-} from "@/features/auth/server/participant-auth";
+} from "@/features/auth/server/participant-auth.server";
 import * as schema from "@/server/db/schema";
-import { logger } from "@/server/logger";
+import { logger } from "@/server/logger.server";
 import { verifiedParticipant } from "./support/accounts";
 import { CookieJar, makeCaller } from "./support/http-auth";
 
@@ -143,5 +143,70 @@ describe("login", () => {
     const caio = await verifiedParticipant(db, handler);
     assert.ok(caio.jar.has("nelcota."));
     assert.equal(caio.jar.has("nelcota-admin"), false);
+  });
+});
+
+describe("foto de perfil", () => {
+  test("cadastro valida a foto com as mesmas regras da atualização", async () => {
+    const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
+    const invalidImages = [
+      "https://example.com/photo.png",
+      "data:image/svg+xml;base64,PHN2Zz4=",
+      "data:image/webp;base64," + "A".repeat(180_001),
+      "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
+    ];
+    for (const invalid of invalidImages) {
+      const email = `foto-invalida-${crypto.randomUUID()}@exemplo.com`;
+      const rejected = await newCaller()("/sign-up/email", {
+        body: { name: "Foto", email, password: PASSWORD, image: invalid },
+      });
+      assert.equal(rejected.status, 400);
+      assert.equal(
+        await db.query.users.findFirst({ where: eq(schema.users.email, email) }),
+        undefined,
+      );
+    }
+    const email = `foto-valida-${crypto.randomUUID()}@exemplo.com`;
+    const saved = await newCaller()("/sign-up/email", {
+      body: { name: "Foto", email, password: PASSWORD, image },
+    });
+    assert.equal(saved.status, 200);
+    assert.equal(
+      (await db.query.users.findFirst({ where: eq(schema.users.email, email) }))?.image,
+      image,
+    );
+  });
+
+  test("salva e remove a foto da própria conta; recusa URLs, SVG e imagens grandes", async () => {
+    const participant = await verifiedParticipant(db, handler);
+    const call = newCaller();
+    // WebP de 1 px: o endpoint recebe o formato produzido pelo editor.
+    const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
+    const saved = await call("/update-user", { body: { image }, jar: participant.jar });
+    assert.equal(saved.status, 200);
+    const [row] = await db
+      .select({ image: schema.users.image })
+      .from(schema.users)
+      .where(eq(schema.users.id, participant.id));
+    assert.equal(row?.image, image);
+    for (const invalid of [
+      "https://example.com/photo.png",
+      "data:image/svg+xml;base64,PHN2Zz4=",
+      "data:image/webp;base64," + "A".repeat(180_001),
+      "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
+    ]) {
+      const rejected = await call("/update-user", {
+        body: { image: invalid },
+        jar: participant.jar,
+      });
+      assert.equal(rejected.status, 400);
+    }
+    const removed = await call("/update-user", { body: { image: null }, jar: participant.jar });
+    assert.equal(removed.status, 200);
+    const [cleared] = await db
+      .select({ image: schema.users.image })
+      .from(schema.users)
+      .where(eq(schema.users.id, participant.id));
+    assert.equal(cleared?.image, null);
   });
 });

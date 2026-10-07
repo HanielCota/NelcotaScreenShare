@@ -3,12 +3,12 @@ import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { AccessToken } from "livekit-server-sdk";
-import { NextRequest } from "next/server";
 import { Pool } from "pg";
 import { afterAll, describe, test } from "vitest";
-import { POST } from "@/app/api/livekit/webhook/route";
+import { POST } from "@/app/routes/api/livekit-webhook.server";
 import * as schema from "@/server/db/schema";
-import { reprocessPendingEvents } from "@/features/room/server/webhook/projector";
+import { reprocessPendingEvents } from "@/features/room/server/webhook/projector.server";
+import { anonymizeParticipant } from "@/features/participants/server/operations.server";
 
 /**
  * Webhook do LiveKit de ponta a ponta: eventos assinados como o LiveKit envia
@@ -86,7 +86,7 @@ async function send(input: EventInput | string) {
   const token = new AccessToken(KEY, SECRET);
   token.sha256 = createHash("sha256").update(body).digest("base64");
   const response = await POST(
-    new NextRequest("http://localhost/api/livekit/webhook", {
+    new Request("http://localhost/api/livekit/webhook", {
       method: "POST",
       headers: {
         "content-type": "application/webhook+json",
@@ -113,6 +113,139 @@ function participationsOf(roomId: string) {
 }
 
 describe("projeção dos eventos", () => {
+  test("entradas simultâneas da mesma conta em salas distintas são projetadas", async () => {
+    const id = await newUser("Simultanea");
+    const codes = [newRoom(), newRoom()];
+    await Promise.all(
+      codes.map((room) =>
+        send({
+          event: "participant_joined",
+          room,
+          at: T,
+          participant: { identity: id, name: "Simultanea", joinedAt: T, sid: `PA_${room}` },
+        }),
+      ),
+    );
+    for (const code of codes) {
+      const room = await roomByCode(code);
+      const all = await participationsOf(room.id);
+      assert.equal(all.length, 1);
+      assert.equal(all[0]?.userId, id);
+      const events = await db
+        .select()
+        .from(schema.livekitEvents)
+        .where(eq(schema.livekitEvents.roomName, code));
+      assert.ok(events.every((event) => event.processedAt !== null && event.error === null));
+    }
+    const user = await db.query.users.findFirst({ where: eq(schema.users.id, id) });
+    assert.equal(user?.participationsCount, 2);
+  });
+
+  test("webhooks posteriores à anonimização não restauram nomes, nem em novas conexões", async () => {
+    const code = newRoom();
+    const id = await newUser("Pessoa");
+    const participant = { identity: id, name: "Nome Original", joinedAt: T };
+    await send({ event: "participant_joined", room: code, at: T, participant });
+    await db.transaction((tx) => anonymizeParticipant(tx, id));
+    await send({ event: "participant_left", room: code, at: T + 30, participant });
+    await send({
+      event: "participant_joined",
+      room: code,
+      at: T + 40,
+      participant: { ...participant, sid: `PA_nova_${code}`, joinedAt: T + 40 },
+    });
+    const room = await roomByCode(code);
+    const all = await participationsOf(room.id);
+    assert.equal(all.length, 2);
+    assert.ok(all.every((row) => row.displayName === null));
+    assert.ok(all.every((row) => row.userId === id));
+  });
+
+  test("encerramento recebido antes da entrada e da tela fecha registros atrasados", async () => {
+    const code = newRoom();
+    const participant = { identity: "atrasado", joinedAt: T + 1 };
+    await send({ event: "room_started", room: code, at: T });
+    await send({ event: "room_finished", room: code, at: T + 60 });
+    await send({ event: "participant_joined", room: code, at: T + 1, participant });
+    await send({
+      event: "track_published",
+      room: code,
+      at: T + 10,
+      participant,
+      track: { sid: `TR_atrasada_${code}`, source: "SCREEN_SHARE" },
+    });
+    const room = await roomByCode(code);
+    assert.equal(room.status, "finished");
+    const [participation] = await participationsOf(room.id);
+    assert.equal(participation?.leftAt?.getTime(), (T + 60) * 1000);
+    assert.equal(participation?.leaveReason, "room_closed");
+    const [share] = await db
+      .select()
+      .from(schema.shareSessions)
+      .where(eq(schema.shareSessions.roomId, room.id));
+    assert.equal(share?.endedAt?.getTime(), (T + 60) * 1000);
+    assert.equal(share?.durationSeconds, 50);
+    // Uma saída ainda anterior ao encerramento corrige a estimativa da sala.
+    await send({
+      event: "participant_left",
+      room: code,
+      at: T + 50,
+      participant: { ...participant, reason: "CLIENT_INITIATED" },
+    });
+    const [left] = await participationsOf(room.id);
+    const [ended] = await db
+      .select()
+      .from(schema.shareSessions)
+      .where(eq(schema.shareSessions.roomId, room.id));
+    assert.equal(left?.leftAt?.getTime(), (T + 50) * 1000);
+    assert.equal(left?.leaveReason, "left");
+    assert.equal(ended?.durationSeconds, 40);
+  });
+
+  test("entrada antiga continua encerrada quando chega depois da reabertura", async () => {
+    const code = newRoom();
+    await send({ event: "room_started", room: code, at: T });
+    await send({ event: "room_finished", room: code, at: T + 60 });
+    await send({
+      event: "participant_joined",
+      room: code,
+      at: T + 120,
+      participant: { identity: "nova-abertura", joinedAt: T + 120 },
+    });
+    await send({
+      event: "participant_joined",
+      room: code,
+      at: T + 1,
+      participant: { identity: "abertura-antiga", joinedAt: T + 1 },
+    });
+    const room = await roomByCode(code);
+    assert.equal(room.status, "active");
+    const all = await participationsOf(room.id);
+    assert.equal(
+      all.find((row) => row.livekitIdentity === "abertura-antiga")?.leftAt?.getTime(),
+      (T + 60) * 1000,
+    );
+    assert.equal(all.find((row) => row.livekitIdentity === "nova-abertura")?.leftAt, null);
+  });
+
+  test("tela recebida depois da saída herda o encerramento da participação", async () => {
+    const code = newRoom();
+    const participant = { identity: `saida-${code}`, joinedAt: T };
+    await send({ event: "participant_left", room: code, at: T + 50, participant });
+    await send({
+      event: "track_published",
+      room: code,
+      at: T + 10,
+      participant,
+      track: { sid: `TR_saida_${code}`, source: "SCREEN_SHARE" },
+    });
+    const [share] = await db
+      .select()
+      .from(schema.shareSessions)
+      .where(eq(schema.shareSessions.trackSid, `TR_saida_${code}`));
+    assert.equal(share?.durationSeconds, 40);
+  });
+
   test("sala completa: entrada, compartilhamento com áudio, saída e encerramento", async () => {
     const code = newRoom();
     const ana = await newUser("Ana");

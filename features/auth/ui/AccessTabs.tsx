@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,11 +22,11 @@ export function AccessTabs({
       {tabs.map((tab) => (
         <Link
           key={tab.id}
-          href={tab.href}
+          to={tab.href}
           replace
           aria-current={tab.id === current ? "page" : undefined}
           className={cn(
-            "-mb-px border-b-2 border-transparent pb-2.5 text-sm font-semibold text-ink-muted transition-colors hover:text-ink",
+            "-mb-px border-b-2 border-transparent pb-2.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink",
             tab.id === current && "border-brand text-ink",
           )}
         >

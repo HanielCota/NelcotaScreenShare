@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef } from "react";
 
 /** setTimeout que some junto com o componente (nada roda depois de desmontar). */

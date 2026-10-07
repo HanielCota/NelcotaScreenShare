@@ -1,7 +1,7 @@
-import Link from "next/link";
+import { Link } from "react-router";
 import { Facts, Section } from "@/components/Section";
 import { LEAVE_REASON_LABELS } from "@/features/admin/audit/labels";
-import type { getRoomDetail } from "@/features/admin/rooms/queries";
+import type { getRoomDetail } from "@/features/admin/rooms/queries.server";
 import { formatDateTime, formatSpan } from "@/lib/format";
 
 type RoomDetail = NonNullable<Awaited<ReturnType<typeof getRoomDetail>>>;
@@ -32,7 +32,7 @@ export function RoomSummary({
             room.createdById ? (
               <Link
                 key="criador"
-                href={`/admin/usuarios/${room.createdById}`}
+                to={`/admin/usuarios/${room.createdById}`}
                 className="hover:underline"
               >
                 {room.createdByName ?? "Participante"}
@@ -75,7 +75,7 @@ export function RoomParticipants({ participants }: { participants: RoomDetail["p
                   <td className="py-2 pr-4">
                     {participant.userId ? (
                       <Link
-                        href={`/admin/usuarios/${participant.userId}`}
+                        to={`/admin/usuarios/${participant.userId}`}
                         className="hover:underline"
                       >
                         {participant.name}

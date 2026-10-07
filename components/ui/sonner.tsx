@@ -1,5 +1,3 @@
-"use client";
-
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import type { CSSProperties } from "react";
 import { useTheme } from "@/lib/hooks/use-theme";

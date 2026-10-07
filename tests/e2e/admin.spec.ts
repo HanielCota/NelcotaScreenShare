@@ -69,12 +69,18 @@ test("painel: convite, login com 2FA obrigatório, filtro de salas e exportaçã
   await page.getByRole("searchbox").first().fill(roomCode);
   await expect(page).toHaveURL(new RegExp(`q=${roomCode}`));
 
+  // A busca usa um loader GET e descarta respostas antigas durante a digitação.
+  await page.keyboard.press("Control+k");
+  await page.getByPlaceholder("Ir para…, código da sala ou nome de alguém").fill(roomCode);
+  await expect(page.getByRole("option", { name: new RegExp(roomCode) })).toBeVisible();
+  await page.keyboard.press("Escape");
+
   const download = page.waitForEvent("download");
   await page.getByRole("link", { name: /Exportar CSV/ }).click();
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.csv$/);
 
-  // Detalhe da sala (Server Components): resumo, pessoas e compartilhamentos.
+  // Detalhe da sala: resumo, pessoas e compartilhamentos.
   await page.getByRole("link", { name: roomCode }).click();
   await expect(page.getByRole("heading", { name: roomCode })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Resumo" })).toBeVisible();
@@ -93,5 +99,19 @@ test("painel: convite, login com 2FA obrigatório, filtro de salas e exportaçã
   await expect(page.getByRole("heading", { name: "Pessoa Painel" })).toBeVisible();
   await expect(page.getByText("Ainda não entrou em nenhuma sala.")).toBeVisible();
   await expect(page.getByText("Nenhuma ação do painel nesta conta.")).toBeVisible();
+
+  // Uma mutação revalida a página e o root, sem recarregar o documento.
+  await page.goto("/admin/configuracoes");
+  const saturation = page.getByRole("slider", { name: "Tema escuro" });
+  await saturation.focus();
+  await page.keyboard.press("ArrowLeft");
+  await page.getByRole("button", { name: "Salvar", exact: true }).click();
+  await expect(page.getByText("Salvo. Novas páginas já abrem com a saturação nova.")).toBeVisible();
+  await expect(page.locator("html")).toHaveCSS("--mascot-saturation-dark", "0.95");
+  await page.reload();
+  await expect(saturation).toHaveAttribute("aria-valuenow", "0.95");
+  await page.getByRole("button", { name: "Restaurar original" }).click();
+  await page.getByRole("button", { name: "Salvar", exact: true }).click();
+  await expect(page.locator("html")).toHaveCSS("--mascot-saturation-dark", "1");
   await context.close();
 });

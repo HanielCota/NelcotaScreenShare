@@ -1,5 +1,3 @@
-"use client";
-
 import { useDataChannel } from "@livekit/components-react";
 import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { toast } from "sonner";
@@ -131,7 +129,7 @@ export function PointerLayer({
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-75 motion-reduce:animate-none" />
               <span className="relative inline-flex size-5 rounded-full border-2 border-canvas bg-brand" />
             </span>
-            <span className="glass rounded-md px-1.5 py-0.5 text-[0.7rem] font-semibold whitespace-nowrap">
+            <span className="glass rounded-md px-1.5 py-0.5 text-[0.7rem] font-medium whitespace-nowrap">
               {ping.name}
             </span>
           </span>

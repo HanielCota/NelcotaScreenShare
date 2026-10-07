@@ -1,5 +1,5 @@
 /**
- * Dados de desenvolvimento e de carga (docs/PLANO-ADMIN.md §4.6). Idempotente:
+ * Dados de desenvolvimento e de carga (docs/archive/admin-plan.md §4.6). Idempotente:
  * rodar de novo não duplica nada.
  *
  *   pnpm db:seed                      → perfil "dev"
@@ -10,8 +10,8 @@
  */
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
-import { hashPassword } from "@/features/auth/server/password";
-import { getDb } from "@/server/db";
+import { hashPassword } from "@/features/auth/server/password.server";
+import { getDb } from "@/server/db/index.server";
 import { auditLogs, userAccounts, users } from "@/server/db/schema";
 
 const args = new Map(

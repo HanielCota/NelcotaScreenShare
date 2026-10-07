@@ -1,6 +1,4 @@
-"use client";
-
-import { useAction } from "next-safe-action/hooks";
+import { useOperation } from "@/lib/use-operation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,7 +18,7 @@ export function RoomNoteForm({
 }) {
   const [text, setText] = useState(note ?? "");
   const fieldId = useId();
-  const save = useAction(updateRoomNoteAction, {
+  const save = useOperation(updateRoomNoteAction, {
     onSuccess: () => toast.success("Nota salva."),
     onError: ({ error }) =>
       toast.error(error.serverError ?? "Não foi possível salvar (até 500 caracteres)."),

@@ -1,5 +1,3 @@
-"use client";
-
 import type { LucideIcon } from "lucide-react";
 import { useRef, type ReactNode } from "react";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
@@ -52,8 +50,8 @@ export function StatusScreen({
           aria-hidden="true"
         />
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-      {message ? <p className="mt-2 text-ink-muted">{message}</p> : null}
+      <h1 className="text-2xl font-medium tracking-tight">{title}</h1>
+      {message ? <p className="mt-2 font-light text-ink-muted">{message}</p> : null}
       <div className="mt-8 flex flex-col gap-3 sm:flex-row [&>*]:flex-1">{children}</div>
     </div>
   );

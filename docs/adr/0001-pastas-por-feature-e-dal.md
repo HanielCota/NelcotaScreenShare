@@ -1,6 +1,6 @@
 # ADR 0001 — Pastas por feature, DAL do Next e domínio puro só onde há regra
 
-- **Status:** aceita (2026-10-06)
+- **Status:** aceita (2026-10-06); as decisões específicas do Next foram substituídas pelo [ADR 0005](0005-react-router-framework.md).
 - **Contexto:** o código estava organizado por tipo técnico (`components/`, `lib/`, `hooks/`, `server/`), mas `features/` existia só para o painel. `components/` importava actions de `app/`, havia três pastas de auth e `lib/` guardava regras de domínio. Nenhuma regra automática conseguia dizer o que podia depender de quê.
 
 ## Decisão

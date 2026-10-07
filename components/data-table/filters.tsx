@@ -1,15 +1,22 @@
-"use client";
-
-import { ArrowDownWideNarrow, ArrowUpNarrowWide, Download, Search, X } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import {
+  ArrowDownWideNarrow,
+  ArrowUpNarrowWide,
+  CalendarDays,
+  Download,
+  Search,
+  X,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "react-day-picker/locale";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ChoiceSelect } from "@/components/ChoiceSelect";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { formatDateInput, parseDateInput } from "@/lib/date-input";
 import { cn } from "@/lib/utils";
-
-/** Campos de filtro das tabelas do painel (mesmo visual em todas as telas). */
-export const SELECT_CLASS =
-  "h-9 rounded-lg border border-input bg-surface-2 px-2.5 text-sm text-ink";
 
 function Field({
   label,
@@ -49,22 +56,16 @@ export function FilterSelect<T extends string>({
   const id = useId();
   return (
     <Field label={label} htmlFor={id}>
-      <select
+      <ChoiceSelect
         id={id}
-        className={SELECT_CLASS}
+        className="h-9 w-full bg-surface-2"
         value={value ?? ""}
-        onChange={(event) => {
-          const next = options.find((option) => option.value === event.target.value);
+        options={allLabel ? [{ value: "", label: allLabel }, ...options] : options}
+        onValueChange={(nextValue) => {
+          const next = options.find((option) => option.value === nextValue);
           onChange(next ? next.value : null);
         }}
-      >
-        {allLabel ? <option value="">{allLabel}</option> : null}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      />
     </Field>
   );
 }
@@ -79,15 +80,55 @@ export function FilterDate({
   onChange: (value: string | null) => void;
 }) {
   const id = useId();
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const selected = parseDateInput(value);
   return (
     <Field label={label} htmlFor={id}>
-      <Input
-        id={id}
-        type="date"
-        className="h-9"
-        value={value ?? ""}
-        onChange={(event) => onChange(event.target.value || null)}
-      />
+      <div className="flex gap-1">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              id={id}
+              ref={triggerRef}
+              type="button"
+              variant="outline"
+              className="h-9 justify-start bg-surface-2 font-normal"
+              aria-label={`${label}: ${selected ? format(selected, "dd/MM/yyyy") : "selecionar data"}`}
+            >
+              <CalendarDays aria-hidden="true" />
+              {selected ? format(selected, "dd/MM/yyyy") : "Selecionar data"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-auto p-0" aria-label={label}>
+            <Calendar
+              mode="single"
+              locale={ptBR}
+              selected={selected}
+              defaultMonth={selected}
+              onSelect={(date) => {
+                onChange(date ? formatDateInput(date) : null);
+                setOpen(false);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+        {value ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-9"
+            aria-label={`Limpar ${label}`}
+            onClick={() => {
+              onChange(null);
+              triggerRef.current?.focus();
+            }}
+          >
+            <X aria-hidden="true" />
+          </Button>
+        ) : null}
+      </div>
     </Field>
   );
 }
@@ -109,6 +150,7 @@ export function FilterSearch({
 }) {
   const id = useId();
   const [text, setText] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
   // A URL foi limpa por fora (botão "Limpar"): o campo acompanha.
   const [seen, setSeen] = useState(value);
   if (value !== seen) {
@@ -125,17 +167,34 @@ export function FilterSearch({
           />
         ) : null}
         <Input
+          ref={inputRef}
           id={id}
           type={type}
           min={type === "number" ? 0 : undefined}
           value={text}
           placeholder={placeholder}
-          className={cn("h-9", type === "search" && "pl-8")}
+          className={cn("h-9", type === "search" && "pr-9 pl-8")}
           onChange={(event) => {
             setText(event.target.value);
             onChange(event.target.value);
           }}
         />
+        {type === "search" && text ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-1/2 right-1 size-7 -translate-y-1/2"
+            aria-label={`Limpar ${label}`}
+            onClick={() => {
+              setText("");
+              onChange("");
+              inputRef.current?.focus();
+            }}
+          >
+            <X aria-hidden="true" />
+          </Button>
+        ) : null}
       </div>
     </Field>
   );

@@ -1,13 +1,12 @@
-"use client";
-
 import { Loader2, RotateCcw } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
+import { useOperation } from "@/lib/use-operation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { saveMascotSettings } from "@/features/admin/settings/actions";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { Button } from "@/components/ui/button";
-import type { MascotSettings } from "@/server/settings";
+import { Slider } from "@/components/ui/slider";
+import type { MascotSettings } from "@/server/settings.server";
 import { cn } from "@/lib/utils";
 
 interface Limits {
@@ -46,7 +45,7 @@ export function MascotSettingsForm({
 }) {
   const [values, setValues] = useState(initial);
   const baseId = useId();
-  const save = useAction(saveMascotSettings, {
+  const save = useOperation(saveMascotSettings, {
     onSuccess: () => toast.success("Salvo. Novas páginas já abrem com a saturação nova."),
     onError: ({ error }) => toast.error(error.serverError ?? "Confira os valores e tente de novo."),
   });
@@ -64,7 +63,7 @@ export function MascotSettingsForm({
       }}
       className="glass w-full max-w-3xl rounded-2xl p-6 sm:p-8"
     >
-      <h2 className="text-xl font-bold tracking-tight">Saturação do mascote</h2>
+      <h2 className="text-xl font-medium tracking-tight">Saturação do mascote</h2>
       <p className="mt-1 text-sm text-ink-muted">
         0% deixa o mascote cinza, 100% é a arte original e 200% deixa as cores mais vivas. A prévia
         muda na hora; o site só muda depois de salvar.
@@ -87,26 +86,28 @@ export function MascotSettingsForm({
                 <Mascot className="size-32" sizes="256px" canSleep={false} />
               </div>
               <div className="flex items-center justify-between gap-3">
-                <label htmlFor={id} className="text-sm font-semibold">
+                <span id={`${id}-label`} className="text-sm font-medium">
                   {title}
-                </label>
-                <output htmlFor={id} className="text-sm font-semibold text-ink-muted tabular-nums">
+                </span>
+                <output htmlFor={id} className="text-sm font-medium text-ink-muted tabular-nums">
                   {percent(value)}
                 </output>
               </div>
-              <input
-                id={id}
+              <Slider
                 name={field}
-                type="range"
                 min={limits.min}
                 max={limits.max}
                 step={limits.step}
-                value={value}
-                onChange={(event) =>
-                  setValues((current) => ({ ...current, [field]: Number(event.target.value) }))
+                value={[value]}
+                onValueChange={([next]) =>
+                  setValues((current) => ({ ...current, [field]: next ?? current[field] }))
                 }
-                aria-valuetext={percent(value)}
-                className="w-full accent-brand"
+                thumbProps={{
+                  id,
+                  "aria-labelledby": `${id}-label`,
+                  "aria-valuetext": percent(value),
+                }}
+                className="min-h-8"
               />
             </fieldset>
           );

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   useDataChannel,
   useLocalParticipant,
@@ -29,6 +27,7 @@ import {
   type Reaction,
 } from "@/features/room/domain/data-channel";
 import { DockButton } from "./DockButton";
+import { DockPopoverContent } from "./DockPopover";
 
 interface FloatingReaction {
   id: number;
@@ -144,7 +143,7 @@ function ReactionBubble({ item }: { item: FloatingReaction }) {
       style={{ left: `${item.left}%` }}
     >
       <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
-      <span className="glass rounded-lg px-2 py-0.5 text-xs font-semibold whitespace-nowrap">
+      <span className="glass rounded-lg px-2 py-0.5 text-xs font-medium whitespace-nowrap">
         {item.name}
       </span>
     </div>
@@ -188,41 +187,32 @@ export function ReactionsMenu() {
           )}
         </DockButton>
       </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          side="top"
-          align="center"
-          sideOffset={14}
-          collisionPadding={16}
-          aria-label="Reações"
-          className="glass z-50 rounded-2xl p-2 outline-none"
-        >
-          <div className="flex gap-1">
-            {REACTIONS.map((emoji, index) => (
-              <button
-                key={emoji}
-                type="button"
-                autoFocus={index === 0}
-                onClick={() => react(emoji)}
-                aria-label={`Reagir com ${emoji}`}
-                className="grid size-11 place-items-center rounded-xl text-2xl transition-transform hover:scale-115 hover:bg-surface-3 focus-visible:bg-surface-3 motion-reduce:hover:scale-100"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-3 py-2.5">
-            <Label htmlFor={handId} className="gap-2.5 text-sm font-semibold">
-              <Hand className="size-4 text-ink-subtle" aria-hidden="true" />
-              Levantar a mão
-              <kbd className="rounded-md border border-line px-1.5 text-[0.7rem] text-ink-subtle">
-                H
-              </kbd>
-            </Label>
-            <Switch id={handId} checked={handRaised} onCheckedChange={toggleHand} />
-          </div>
-        </Popover.Content>
-      </Popover.Portal>
+      <DockPopoverContent aria-label="Reações">
+        <div className="flex gap-1">
+          {REACTIONS.map((emoji, index) => (
+            <button
+              key={emoji}
+              type="button"
+              autoFocus={index === 0}
+              onClick={() => react(emoji)}
+              aria-label={`Reagir com ${emoji}`}
+              className="grid size-11 place-items-center rounded-xl text-2xl transition-[transform,background-color] duration-150 hover:scale-115 hover:bg-surface-3 focus-visible:bg-surface-3 focus-visible:outline-none active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-3 py-2.5">
+          <Label htmlFor={handId} className="gap-2.5 text-sm font-medium">
+            <Hand className="size-4 text-ink-subtle" aria-hidden="true" />
+            Levantar a mão
+            <kbd className="rounded-md border border-line px-1.5 text-[0.7rem] text-ink-subtle">
+              H
+            </kbd>
+          </Label>
+          <Switch id={handId} checked={handRaised} onCheckedChange={toggleHand} />
+        </div>
+      </DockPopoverContent>
     </Popover.Root>
   );
 }

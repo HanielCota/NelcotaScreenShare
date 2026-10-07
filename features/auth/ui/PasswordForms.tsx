@@ -1,8 +1,6 @@
-"use client";
-
 import { KeyRound, Loader2, MailCheck } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "react-router";
+
 import { useId, useState, type FormEvent } from "react";
 import { AuthCard } from "./AuthCard";
 import { FormError } from "@/components/FormError";
@@ -35,8 +33,8 @@ const PATHS: Record<Scope, { login: string; forgot: string; reset: string; minLe
 
 function BackToLogin({ scope }: { scope: Scope }) {
   return (
-    <Link href={PATHS[scope].login} className="font-semibold text-brand-soft hover:underline">
-      Voltar ao login
+    <Link to={PATHS[scope].login} className="font-medium text-brand-soft hover:underline">
+      Voltar para entrar
     </Link>
   );
 }
@@ -59,8 +57,8 @@ export function ForgotPasswordForm({ scope }: { scope: Scope }) {
       redirectTo: PATHS[scope].reset,
     });
     setPending(false);
-    if (failure?.status === 429) {
-      setError(authErrorMessage(failure));
+    if (failure) {
+      setError(authErrorMessage(failure, "Não foi possível enviar o link. Tente de novo."));
       return;
     }
     setSent(true);
@@ -93,6 +91,7 @@ export function ForgotPasswordForm({ scope }: { scope: Scope }) {
       footer={<BackToLogin scope={scope} />}
     >
       <form
+        method="post"
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
         className="flex flex-col gap-4"
@@ -122,7 +121,7 @@ export function ForgotPasswordForm({ scope }: { scope: Scope }) {
 export function ResetPasswordForm({ scope, token }: { scope: Scope; token: string | undefined }) {
   const client = scope === "admin" ? adminAuthClient : authClient;
   const { minLength } = PATHS[scope];
-  const router = useRouter();
+  const navigate = useNavigate();
   const passwordId = useId();
   const confirmId = useId();
   const [error, setError] = useState<string>();
@@ -137,7 +136,7 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
         footer={<BackToLogin scope={scope} />}
       >
         <Button asChild size="lg" className="w-full">
-          <Link href={PATHS[scope].forgot}>Pedir um novo link</Link>
+          <Link to={PATHS[scope].forgot}>Pedir um novo link</Link>
         </Button>
       </AuthCard>
     );
@@ -164,7 +163,7 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
       setError(authErrorMessage(failure));
       return;
     }
-    router.replace(`${PATHS[scope].login}?aviso=senha`);
+    void navigate(`${PATHS[scope].login}?aviso=senha`, { replace: true });
   }
 
   return (
@@ -175,6 +174,7 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
       footer={<BackToLogin scope={scope} />}
     >
       <form
+        method="post"
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
         className="flex flex-col gap-4"

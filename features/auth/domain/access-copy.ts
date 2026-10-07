@@ -1,9 +1,6 @@
 import { accessContext } from "./access-context";
 
-/**
- * O que o mascote diz no balão das telas de acesso. Muda com a tela e com a
- * sala de onde a pessoa veio (no lugar de slogan e lista de vantagens).
- */
+/** Falas do mascote conforme a tela e a sala de destino. */
 export function mascotLine(pathname: string, returnTo: string | null): string {
   const context = accessContext(returnTo ?? "/");
   const room = context.kind === "room" ? context.code : undefined;
@@ -12,7 +9,7 @@ export function mascotLine(pathname: string, returnTo: string | null): string {
   switch (pathname) {
     case "/entrar":
       if (invited) return `Você tem convite para a sala ${room}. Entra que eu te levo até lá.`;
-      if (room) return `A sala ${room} já está te esperando.`;
+      if (room) return `Entre para acessar a sala ${room}.`;
       return "Que bom te ver de novo.";
     case "/cadastro":
       if (room) return `Cria a conta e a gente já vai para a sala ${room}.`;
@@ -20,7 +17,7 @@ export function mascotLine(pathname: string, returnTo: string | null): string {
     case "/entrar/2fa":
       return "Só falta o código do seu app autenticador.";
     case "/verificar-email":
-      return "Mandei um link para o seu e-mail. Fico de olho daqui.";
+      return "Confirma seu e-mail e a gente já pode entrar.";
     case "/recuperar-senha":
       return "Acontece. Te mando um link para criar outra senha.";
     case "/redefinir-senha":

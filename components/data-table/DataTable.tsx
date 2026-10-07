@@ -1,5 +1,3 @@
-"use client";
-
 import {
   rowSelectionFeature,
   tableFeatures,
@@ -31,7 +29,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber } from "@/lib/format";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams } from "react-router";
+
 import { filterQuery, pageParsers, type BulkSelection } from "@/lib/table-params";
 import { cn } from "@/lib/utils";
 
@@ -130,7 +129,7 @@ function SelectionBar({
 }) {
   return (
     <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
-      <span className="font-semibold">{label}</span>
+      <span className="font-medium">{label}</span>
       {offerAll ? (
         // Acima do limite o servidor sempre recusa a ação em massa (server/table/selection.ts).
         page.capped ? (
@@ -219,7 +218,7 @@ export function DataTable<TData extends RowData & { id: string }>({
   const pageIds = new Set(data.map((row) => row.id));
   const selected = Object.keys(rowSelection).filter((id) => rowSelection[id] && pageIds.has(id));
   // "Todos os resultados" vale só para o filtro em que foi escolhido.
-  const filterKey = filterQuery(useSearchParams().toString());
+  const filterKey = filterQuery(useSearchParams()[0].toString());
   const [allFor, setAllFor] = useState<string | null>(null);
   const allMatching = allFor === filterKey && selected.length === data.length;
   const selection: BulkSelection = allMatching

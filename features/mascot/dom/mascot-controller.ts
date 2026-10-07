@@ -70,6 +70,7 @@ export function createMascotController(
     beforeFrame(time) {
       const waiting = current === "waiting";
       const listening = current === "listening";
+      const trackingPartner = gazeFocus(current) === "partner";
       let nextFace;
       if (listening) {
         const voice = voiceAmount(inputs.voice());
@@ -77,9 +78,9 @@ export function createMascotController(
         root.style.setProperty("--voice", voice.toFixed(3));
       } else root.style.setProperty("--voice", "0");
       return {
-        ...(waiting ? { gaze: waitingGaze(time) } : {}),
+        ...(waiting ? { gaze: waitingGaze(time) } : trackingPartner ? { gaze: gazeTarget() } : {}),
         ...(nextFace ? { face: nextFace } : {}),
-        keepAlive: waiting || listening,
+        keepAlive: waiting || listening || trackingPartner,
       };
     },
     responseFor: (key) => faceResponse(current, key),
