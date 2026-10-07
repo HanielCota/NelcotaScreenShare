@@ -50,6 +50,13 @@
       "when": 1791297135807,
       "tag": "0006_room_invite_uses",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791383951511,
+      "tag": "0007_audit_trigger_messages",
+      "breakpoints": true
     }
   ]
 }

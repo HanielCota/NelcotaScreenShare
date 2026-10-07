@@ -332,8 +332,8 @@ describe("auditing of sign-in events", () => {
   });
 
   test("audit log rejects UPDATE and recent DELETE (even for the superuser)", async () => {
-    await assert.rejects(pool.query("update audit_logs set action = 'x.y'"), /imutável/);
-    await assert.rejects(pool.query("delete from audit_logs"), /5 anos/);
+    await assert.rejects(pool.query("update audit_logs set action = 'x.y'"), /immutable/);
+    await assert.rejects(pool.query("delete from audit_logs"), /older than 5 years/);
   });
 });
 
