@@ -266,6 +266,7 @@ function RoomLayout({
         {reconnecting || connecting ? (
           <output aria-live="polite">
             <span className="glass flex items-center gap-2.5 rounded-full px-5 py-3 text-base font-semibold">
+              <Mascot className="size-14" sizes="168px" canSleep={false} activity="waiting" />
               {reconnecting ? <WifiOff className="size-5 text-warning" aria-hidden="true" /> : null}
               <Loader2 className="size-5 animate-spin text-ink-muted" aria-hidden="true" />
               {reconnecting ? "Conexão instável. Reconectando…" : "Conectando…"}
@@ -304,6 +305,16 @@ function RoomLayout({
               !hasStage && participants.length >= 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
             )}
           >
+            {hasStage ? (
+              <div className="flex shrink-0 items-center justify-center self-center">
+                <Mascot
+                  className="size-20"
+                  sizes="240px"
+                  canSleep={false}
+                  activity={connecting || reconnecting ? "waiting" : "presenting"}
+                />
+              </div>
+            ) : null}
             {participants.map((participant) => (
               <ParticipantTile
                 key={participant.identity}

@@ -1,5 +1,35 @@
 /** Movimentos do corpo inteiro (Web Animations). Desligados com movimento reduzido. */
-type Motion = { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
+export type Motion = { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
+
+export const PET: Motion = {
+  keyframes: [
+    { scale: "1", rotate: "0deg" },
+    { scale: "1.04 0.94", rotate: "-3deg", offset: 0.3 },
+    { scale: "1.02 0.97", rotate: "2deg", offset: 0.65 },
+    { scale: "1", rotate: "0deg" },
+  ],
+  options: { duration: 1100, easing: "ease-in-out" },
+};
+
+export const STRETCH: Motion = {
+  keyframes: [
+    { scale: "1", translate: "0 0" },
+    { scale: "0.96 1.08", translate: "0 -3%", offset: 0.45 },
+    { scale: "1.02 0.98", translate: "0 0", offset: 0.8 },
+    { scale: "1", translate: "0 0" },
+  ],
+  options: { duration: 1100, easing: "ease-in-out" },
+};
+
+export const SNEEZE: Motion = {
+  keyframes: [
+    { rotate: "-3deg", scale: "1" },
+    { rotate: "7deg", scale: "1.06 0.9", offset: 0.25 },
+    { rotate: "-2deg", scale: "0.98 1.03", offset: 0.55 },
+    { rotate: "0deg", scale: "1" },
+  ],
+  options: { duration: 420, easing: "ease-out" },
+};
 
 /** Balança a cabeça como quem diz "não" (senha errada). */
 export const SHAKE: Motion = {

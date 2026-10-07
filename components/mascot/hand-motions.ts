@@ -9,6 +9,15 @@ export function createHandMotions(root: HTMLElement) {
     animation = undefined;
   };
   return {
+    hold() {
+      cancelSprite();
+      if (!sprite || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      // Com movimento reduzido, a expressão já usa a pose estática de mão levantada.
+      animation = sprite.animate([{ transform: "translate(-66.666667%, 0)" }], {
+        duration: 1,
+        fill: "forwards",
+      });
+    },
     wave(celebrating = false) {
       cancelSprite();
       if (!sprite || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;

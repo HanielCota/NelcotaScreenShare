@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useTransition } from "react";
 import { HowItWorks } from "@/components/HowItWorks";
-import { Mascot } from "@/components/Mascot";
+import { MascotPair } from "@/components/home/MascotPair";
 import {
   NavBar,
   NavBrand,
@@ -129,9 +129,7 @@ export function HomeScene({
             invalidCode={invalidCode}
             pending={pending}
             onNavigate={navigate}
-            mascot={
-              <Mascot className="size-28 sm:size-32" />
-            }
+            mascot={<MascotPair pending={pending} />}
           />
         </div>
 

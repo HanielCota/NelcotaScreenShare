@@ -199,6 +199,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
     <section
       ref={stageRef}
       data-flip-id="stage"
+      data-mascot-stage=""
       aria-label={`Tela compartilhada por ${sharerName(focused)}`}
       className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-black shadow-soft"
     >
