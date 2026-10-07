@@ -6,9 +6,11 @@ import type { RoomPresence } from "@/features/room/domain/presence";
 import { callDuration, type LeaveNotice, type LeaveReason } from "@/features/room/domain/leave";
 import { roomLink } from "@/features/room/domain/room-code";
 import { PreJoin } from "@/features/room/ui/prejoin/PreJoin";
-const RoomView = lazy(() =>
-  import("./call/RoomView").then((module) => ({ default: module.RoomView })),
-);
+const loadRoomView = () => import("./call/RoomView");
+const RoomView = lazy(() => loadRoomView().then((module) => ({ default: module.RoomView })));
+const prepareRoomView = () => {
+  void loadRoomView().catch(() => {});
+};
 import { LeftScreen } from "./LeftScreen";
 
 interface RoomSessionProps {
@@ -93,6 +95,7 @@ export function RoomSession({
       <main className="flex flex-1 items-center justify-center px-4 py-6 sm:px-8 sm:py-10">
         {phase.kind === "prejoin" ? (
           <PreJoin
+            onPrepareJoin={prepareRoomView}
             code={code}
             userName={userName}
             passwordRequired={passwordRequired && !invite}
