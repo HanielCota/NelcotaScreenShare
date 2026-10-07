@@ -6,20 +6,40 @@ function postStream(body: ReadableStream<Uint8Array>) {
   return new Request("http://localhost/", init);
 }
 
-test("stops reading past the limit without closing the socket before the response", async () => {
+test("rejects promptly and drains the rest without cancelling the upload", async () => {
   const cancel = vi.fn();
-  const pull = vi.fn((controller: ReadableStreamDefaultController<Uint8Array>) => {
-    controller.enqueue(new TextEncoder().encode("é"));
-  });
+  let source: ReadableStreamDefaultController<Uint8Array> | undefined;
   const stream = new ReadableStream<Uint8Array>({
-    pull,
+    start(controller) {
+      source = controller;
+      controller.enqueue(new TextEncoder().encode("éé"));
+    },
     cancel,
   });
   const request = postStream(stream);
   await expect(readBodyText(request, 3)).rejects.toBeInstanceOf(BodyTooLargeError);
   expect(cancel).not.toHaveBeenCalled();
-  expect(pull.mock.calls.length).toBeLessThanOrEqual(3);
-  await stream.cancel();
+  expect(stream.locked).toBe(true);
+  source?.enqueue(new Uint8Array(100));
+  source?.close();
+  await vi.waitFor(() => expect(stream.locked).toBe(false));
+  expect(cancel).not.toHaveBeenCalled();
+});
+
+test("a declared oversized upload is drained even before any bytes arrive", async () => {
+  let source: ReadableStreamDefaultController<Uint8Array> | undefined;
+  const request = postStream(
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        source = controller;
+      },
+    }),
+  );
+  request.headers.set("content-length", "100");
+  await expect(readBodyText(request, 3)).rejects.toBeInstanceOf(BodyTooLargeError);
+  source?.enqueue(new Uint8Array(100));
+  source?.close();
+  await vi.waitFor(() => expect(request.body?.locked).toBe(false));
 });
 
 test("preserves the signed body when a character is split across chunks", async () => {
