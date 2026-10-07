@@ -1,9 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { newParticipant, newRoomCode, newVisitor, joinRoom } from "./support/session";
 
-test("páginas gerais e de acesso têm uma única navbar, inclusive no celular", async ({
-  browser,
-}) => {
+test("general and auth pages have a single navbar, including on mobile", async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
   for (const path of ["/", "/entrar", "/cadastro", "/privacidade", "/pagina-inexistente"]) {
     await page.goto(path);
@@ -26,7 +24,7 @@ test("páginas gerais e de acesso têm uma única navbar, inclusive no celular",
   await context.close();
 });
 
-test("pré-entrada preserva a volta da conta e a chamada usa só a barra da sala", async ({
+test("pre-join keeps the return from the account page and the call uses only the room bar", async ({
   browser,
 }) => {
   const { page, context } = await newParticipant(browser, "Navegacao Teste");

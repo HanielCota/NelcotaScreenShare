@@ -9,9 +9,9 @@ import * as schema from "@/server/db/schema";
 import { CookieJar, makeCaller } from "./support/http-auth";
 
 /**
- * Confirmação de e-mail desligada (REQUIRE_EMAIL_VERIFICATION=false, o padrão
- * por enquanto): o cadastro já entra na conta, sem link, e a conta não
- * confirmada pode pegar token de sala.
+ * Email verification off (REQUIRE_EMAIL_VERIFICATION=false, the default
+ * for now): sign-up logs straight into the account, with no link, and the
+ * unverified account can get a room token.
  */
 const fakeLiveKit = createServer((_request, response) => {
   response.setHeader("Content-Type", "application/json");
@@ -40,8 +40,8 @@ afterAll(async () => {
 const call = makeCaller((request) => getUserAuth().handler(request), "/api/auth", "198.51.100.40");
 const PASSWORD = "senha-sem-confirmar-1";
 
-describe("confirmação de e-mail desligada", () => {
-  test("cadastro já abre a sessão e a conta entra em sala sem confirmar", async () => {
+describe("email verification off", () => {
+  test("sign-up opens the session and the account joins a room without verifying", async () => {
     const email = `sem-confirmar-${Date.now()}@exemplo.com`;
     const jar = new CookieJar();
     const signUp = await call("/sign-up/email", {
@@ -49,7 +49,7 @@ describe("confirmação de e-mail desligada", () => {
       jar,
     });
     assert.equal(signUp.status, 200);
-    assert.ok(jar.has("session_token"), "sessão criada no cadastro");
+    assert.ok(jar.has("session_token"), "session created on sign-up");
     const [user] = await db.select().from(schema.users).where(eq(schema.users.email, email));
     assert.equal(user?.emailVerified, false);
 
@@ -69,7 +69,7 @@ describe("confirmação de e-mail desligada", () => {
     assert.ok(z.object({ token: z.string() }).parse(await response.json()).token);
   });
 
-  test("login de conta não confirmada funciona; e-mail repetido avisa", async () => {
+  test("unverified account can sign in; duplicate email is reported", async () => {
     const email = `sem-confirmar-2-${Date.now()}@exemplo.com`;
     await call("/sign-up/email", { body: { name: "Uli", email, password: PASSWORD } });
     const jar = new CookieJar();

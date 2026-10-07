@@ -29,8 +29,8 @@ const body = (value: unknown) => ({ readable: true as const, value });
 const messageOf = (decision: Awaited<ReturnType<typeof decideTokenRequest>>) =>
   decision.ok ? "" : decision.message;
 
-describe("quem entra na sala", () => {
-  it("conta logada e sala com vaga: entra com a identidade e o nome da conta", async () => {
+describe("who joins the room", () => {
+  it("signed-in account and room with space: joins with the account's identity and name", async () => {
     const decision = await decideTokenRequest(ANA, body({ room: "Sala-Teste" }), OPEN, deps());
     expect(decision).toEqual({
       ok: true,
@@ -39,7 +39,7 @@ describe("quem entra na sala", () => {
     });
   });
 
-  it("sem conta, bloqueada ou com e-mail não confirmado (quando exigido)", async () => {
+  it("no account, blocked, or unverified e-mail (when required)", async () => {
     expect(await decideTokenRequest(null, body({ room: "sala" }), OPEN, deps())).toMatchObject({
       error: "unauthenticated",
       log: "unauthenticated",
@@ -62,7 +62,7 @@ describe("quem entra na sala", () => {
     ).toMatchObject({ error: "email_unverified", log: "unverified" });
   });
 
-  it("limite por conta vem antes de olhar o pedido", async () => {
+  it("the per-account limit applies before looking at the request", async () => {
     const decision = await decideTokenRequest(
       ANA,
       { readable: false },
@@ -72,7 +72,7 @@ describe("quem entra na sala", () => {
     expect(decision).toMatchObject({ error: "rate_limited", retryAfterSeconds: 42 });
   });
 
-  it("pedido ilegível ou inválido diz qual campo conferir", async () => {
+  it("an unreadable or invalid request says which field to check", async () => {
     const unreadable = await decideTokenRequest(ANA, { readable: false }, OPEN, deps());
     expect(unreadable).toMatchObject({ error: "invalid_request", log: "invalid" });
     expect(messageOf(unreadable)).toContain("ler os dados");
@@ -85,7 +85,7 @@ describe("quem entra na sala", () => {
     );
   });
 
-  it("senha de acesso: errada conta falha, certa zera, convite dispensa", async () => {
+  it("access password: wrong counts a failure, right resets, an invite skips it", async () => {
     const policy = { ...OPEN, accessPassword: "certa" };
     const failures = { peek: () => ok, fail: vi.fn(), reset: vi.fn() };
     const wrong = await decideTokenRequest(
@@ -115,7 +115,7 @@ describe("quem entra na sala", () => {
     expect(withInvite.ok).toBe(true);
   });
 
-  it("senha errada demais: espera, mesmo acertando", async () => {
+  it("too many wrong passwords: must wait, even when getting it right", async () => {
     const decision = await decideTokenRequest(
       ANA,
       body({ room: "sala", password: "certa" }),
@@ -131,7 +131,7 @@ describe("quem entra na sala", () => {
     expect(decision).toMatchObject({ error: "rate_limited", retryAfterSeconds: 900 });
   });
 
-  it("sala cheia não gasta o convite; convite inválido é recusado", async () => {
+  it("a full room does not use up the invite; an invalid invite is rejected", async () => {
     const redeemInvite = vi.fn(() => Promise.resolve(true));
     const full = await decideTokenRequest(
       ANA,
@@ -152,7 +152,7 @@ describe("quem entra na sala", () => {
     expect(invalid).toMatchObject({ error: "invite_invalid", log: "invite_invalid" });
   });
 
-  it('falha do LiveKit sobe para quem chamou (vira "sala indisponível")', async () => {
+  it('a LiveKit failure propagates to the caller (it becomes "room unavailable")', async () => {
     await expect(
       decideTokenRequest(
         ANA,

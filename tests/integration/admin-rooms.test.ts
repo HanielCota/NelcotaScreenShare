@@ -5,7 +5,7 @@ import { Pool } from "pg";
 import { afterAll, beforeAll, describe, test, vi } from "vitest";
 import * as schema from "@/server/db/schema";
 
-/** Tela de salas: excluir/restaurar, nota interna e convites. */
+/** Rooms page: delete/restore, internal note and invites. */
 const requestHeaders = { current: new Headers() };
 vi.mock("@/server/request-context.server", () => ({
   requestMemo: (load: () => unknown) => load,
@@ -45,8 +45,8 @@ async function room(status: "active" | "finished" = "finished") {
   return row;
 }
 
-describe("excluir e restaurar", () => {
-  test("sala ao vivo não pode ser excluída", async () => {
+describe("delete and restore", () => {
+  test("a live room cannot be deleted", async () => {
     const live = await room("active");
     requestHeaders.current = admin.headers;
     const result = await actions.deleteRoomsAction({ selection: { tipo: "ids", ids: [live.id] } });
@@ -56,7 +56,7 @@ describe("excluir e restaurar", () => {
     );
   });
 
-  test("exclui, desfaz e audita", async () => {
+  test("deletes, undoes and audits", async () => {
     const done = await room();
     requestHeaders.current = admin.headers;
     const removed = await actions.deleteRoomsAction({ selection: { tipo: "ids", ids: [done.id] } });
@@ -70,11 +70,11 @@ describe("excluir e restaurar", () => {
     assert.deepEqual(audits.map((row) => row.action).toSorted(), ["room.delete", "room.restore"]);
   });
 
-  test("restaurar não cria duas salas vivas com o mesmo código", async () => {
+  test("restoring does not create two live rooms with the same code", async () => {
     const old = await room();
     requestHeaders.current = admin.headers;
     await actions.deleteRoomsAction({ selection: { tipo: "ids", ids: [old.id] } });
-    // O código voltou a ser usado por uma sala nova.
+    // The code is used again by a new room.
     await db.insert(schema.rooms).values({ code: old.code });
     const result = await actions.restoreRoomsAction({ ids: [old.id] });
     assert.equal(
@@ -83,7 +83,7 @@ describe("excluir e restaurar", () => {
     );
   });
 
-  test("leitor não exclui", async () => {
+  test("viewer cannot delete", async () => {
     const done = await room();
     requestHeaders.current = viewer.headers;
     const result = await actions.deleteRoomsAction({ selection: { tipo: "ids", ids: [done.id] } });
@@ -91,8 +91,8 @@ describe("excluir e restaurar", () => {
   });
 });
 
-describe("nota interna", () => {
-  test("salva com diff na auditoria; sem mudança é recusado", async () => {
+describe("internal note", () => {
+  test("saves with a diff in the audit; no change is rejected", async () => {
     const target = await room();
     requestHeaders.current = admin.headers;
     const saved = await actions.updateRoomNoteAction({ id: target.id, note: "  Treinamento  " });
@@ -109,8 +109,8 @@ describe("nota interna", () => {
   });
 });
 
-describe("convites", () => {
-  test("cria (link com token, só o hash no banco) e revoga", async () => {
+describe("invites", () => {
+  test("creates (link with token, only the hash in the database) and revokes", async () => {
     const target = await room();
     requestHeaders.current = admin.headers;
     const created = await actions.createInviteAction({
@@ -137,7 +137,7 @@ describe("convites", () => {
     assert.equal(again.serverError, "Esse convite já foi revogado.");
   });
 
-  test("validade fora das opções é recusada; leitor não cria", async () => {
+  test("a validity outside the options is rejected; viewer cannot create", async () => {
     const target = await room();
     requestHeaders.current = admin.headers;
     const odd = await actions.createInviteAction({
@@ -158,8 +158,8 @@ describe("convites", () => {
   });
 });
 
-describe("busca do command palette", () => {
-  test("acha sala por parte do código e pessoa sem acento; ignora excluídas", async () => {
+describe("command palette search", () => {
+  test("finds a room by part of its code and a person without accents; ignores deleted ones", async () => {
     const target = await room();
     const gone = await room();
     await db
@@ -185,6 +185,6 @@ describe("busca do command palette", () => {
       [person?.id],
     );
     const short = await searchPanelAction({ q: "a" });
-    assert.ok(short.validationErrors, "menos de 2 letras não busca");
+    assert.ok(short.validationErrors, "fewer than 2 letters does not search");
   });
 });

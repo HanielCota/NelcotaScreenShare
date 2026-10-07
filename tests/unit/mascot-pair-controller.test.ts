@@ -68,7 +68,7 @@ function fixture() {
   };
 }
 
-test("pending congela a posição e o controlador retoma sem reiniciar o encontro", () => {
+test("pending freezes the position and the controller resumes without restarting the encounter", () => {
   const f = fixture();
   vi.advanceTimersByTime(7000);
   expect(f.phase).toBe("approach");
@@ -85,7 +85,7 @@ test("pending congela a posição e o controlador retoma sem reiniciar o encontr
   expect(vi.getTimerCount()).toBe(0);
 });
 
-test("redimensionamento retargeteia o movimento sem cumprir o prazo antigo", () => {
+test("resizing retargets the movement without honoring the old deadline", () => {
   const f = fixture();
   vi.advanceTimersByTime(8800);
   f.scene.clientWidth = 1000;
@@ -97,7 +97,7 @@ test("redimensionamento retargeteia o movimento sem cumprir o prazo antigo", () 
   f.controller.dispose();
 });
 
-test("aba escondida e movimento reduzido congelam também o prazo de preparação", () => {
+test("a hidden tab and reduced motion also freeze the ready deadline", () => {
   const f = fixture();
   vi.advanceTimersByTime(9400);
   expect(f.phase).toBe("ready");

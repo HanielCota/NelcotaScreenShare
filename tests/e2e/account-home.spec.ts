@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { E2E_URL } from "./support/env";
 import { newVisitor, PASSWORD } from "./support/session";
 
-test("cadastro pela tela, conta e encerrar a outra sessão", async ({ browser }) => {
+test("sign-up through the UI, account page and ending the other session", async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
   const email = `gil.${Date.now()}@exemplo.dev`;
 
@@ -13,7 +13,7 @@ test("cadastro pela tela, conta e encerrar a outra sessão", async ({ browser })
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(`${E2E_URL}/`);
 
-  // Uma segunda sessão (outro "dispositivo") para encerrar pela conta.
+  // A second session (another "device") to end from the account page.
   const other = await newVisitor(browser);
   const signIn = await other.context.request.post("/api/auth/sign-in/email", {
     data: { email, password: PASSWORD },
@@ -23,11 +23,11 @@ test("cadastro pela tela, conta e encerrar a outra sessão", async ({ browser })
 
   await page.goto("/conta");
   await expect(page.getByRole("heading", { name: "Gil Teste", level: 1 })).toBeVisible();
-  // O "Ativar" do checklist abre a linha da verificação em duas etapas.
+  // The checklist's "Ativar" opens the two-step verification row.
   await page.getByRole("link", { name: "Ativar", exact: true }).click();
   await expect(page).toHaveURL(/\/conta#duas-etapas$/);
   await expect(page.getByLabel("Confirme sua senha", { exact: true })).toBeFocused();
-  // Uma edição em andamento continua intacta ao abrir outro ajuste.
+  // An edit in progress stays intact when another setting is opened.
   await page.getByLabel("Nome na sala").fill("Gil Novo");
   await page.getByRole("button", { name: "Trocar senha", exact: true }).click();
   await expect(page.getByLabel("Senha atual", { exact: true })).toBeFocused();
@@ -42,7 +42,9 @@ test("cadastro pela tela, conta e encerrar a outra sessão", async ({ browser })
   await context.close();
 });
 
-test("foto de perfil: prévia, persistência na conta e avatar na home", async ({ browser }) => {
+test("profile photo: preview, persistence on the account and avatar on the home page", async ({
+  browser,
+}) => {
   const { page, context } = await newVisitor(browser);
   const response = await context.request.post("/api/auth/sign-up/email", {
     data: { name: "Foto Teste", email: `foto.${Date.now()}@exemplo.dev`, password: PASSWORD },
@@ -100,7 +102,7 @@ test("foto de perfil: prévia, persistência na conta e avatar na home", async (
   await context.close();
 });
 
-test("falha no envio de links não aparece como sucesso", async ({ browser }) => {
+test("a failure sending links does not show as success", async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
   for (const endpoint of ["request-password-reset", "send-verification-email"]) {
     await page.route(`**/api/auth/${endpoint}`, (route) =>
@@ -129,7 +131,7 @@ test("falha no envio de links não aparece como sucesso", async ({ browser }) =>
   await context.close();
 });
 
-test("home: código inválido deixa o mascote bravo; código válido abre a sala", async ({
+test("home: an invalid code makes the mascot grumpy; a valid code opens the room", async ({
   browser,
 }) => {
   const { page, context } = await newVisitor(browser);
@@ -144,7 +146,7 @@ test("home: código inválido deixa o mascote bravo; código válido abre a sala
 
   await input.fill("abc-defg-hij");
   await input.press("Enter");
-  // Sem conta: a sala pede login e volta para ela depois.
+  // No account: the room asks for sign-in and returns to it afterwards.
   await expect(page).toHaveURL(/\/entrar\?voltar=%2Fsala%2Fabc-defg-hij/);
   await context.close();
 });

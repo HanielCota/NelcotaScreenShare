@@ -8,9 +8,9 @@ import * as schema from "@/server/db/schema";
 import { roomPresence } from "@/features/room/server/presence.server";
 
 /**
- * Contagens por sala feitas com subconsulta: a coluna da sala de fora precisa
- * sair qualificada ("rooms"."id"), senão a subconsulta compara a própria
- * tabela e a contagem dá sempre zero.
+ * Per-room counts done with a subquery: the outer room column must come out
+ * qualified ("rooms"."id"), otherwise the subquery compares against its own
+ * table and the count is always zero.
  */
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -44,14 +44,14 @@ async function roomWith(code: string, online: number, left: number, shares: numb
   return room;
 }
 
-test("presença conta só quem ainda está na sala", async () => {
+test("presence counts only those still in the room", async () => {
   const code = `presenca-${Date.now().toString(36)}`;
   await roomWith(code, 3, 2, 0);
   assert.deepEqual(await roomPresence(db, code), { online: 3 });
   assert.deepEqual(await roomPresence(db, "sala-que-nao-existe"), { online: 0 });
 });
 
-test("lista de salas do painel conta os compartilhamentos de cada sala", async () => {
+test("admin room list counts each room's screen shares", async () => {
   const code = `contagem-${Date.now().toString(36)}`;
   await roomWith(code, 1, 0, 2);
   const page = await listRooms(db, loadRoomParams(new URLSearchParams(`q=${code}`)), 10);

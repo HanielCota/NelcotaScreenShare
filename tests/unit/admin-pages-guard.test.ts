@@ -4,30 +4,30 @@ import { fileURLToPath } from "node:url";
 import { test } from "vitest";
 
 /**
- * Toda página do painel aplica a autorização por conta própria (`requireAdmin`):
- * o layout só exige sessão (docs/archive/admin-plan.md §5.3). Páginas sem dado nenhum
- * (só um aviso) ficam na lista abaixo.
+ * Every panel page enforces authorization on its own (`requireAdmin`):
+ * the layout only requires a session (docs/archive/admin-plan.md §5.3). Pages with no data
+ * at all (just a notice) go in the list below.
  */
 const ALLOWED_WITHOUT_GUARD = new Set(["app/routes/admin/panel/no-permission.tsx"]);
 
-test("toda página do painel chama requireAdmin", () => {
+test("every panel page calls requireAdmin", () => {
   const root = fileURLToPath(new URL("../../", import.meta.url));
   const pages = globSync("app/routes/admin/panel/*.tsx", { cwd: root }).map((file) =>
     file.replaceAll("\\", "/"),
   );
-  assert.ok(pages.length >= 4, `encontrou ${pages.length} páginas`);
+  assert.ok(pages.length >= 4, `found ${pages.length} pages`);
   for (const page of pages) {
     if (ALLOWED_WITHOUT_GUARD.has(page) || page.endsWith("/layout.tsx")) continue;
     const source = readFileSync(`${root}${page}`, "utf8");
-    assert.match(source, /await requireAdmin\(/, `${page} precisa chamar requireAdmin`);
+    assert.match(source, /await requireAdmin\(/, `${page} must call requireAdmin`);
   }
 });
 
-test("toda exportação do painel confere sessão e permissão", () => {
+test("every panel export checks session and permission", () => {
   const root = fileURLToPath(new URL("../../", import.meta.url));
   const routes = globSync("features/admin/*/server/csv-export.server.ts", { cwd: root });
-  assert.ok(routes.length >= 4, `encontrou ${routes.length} exportações`);
-  // A fábrica comum autoriza e registra a exportação antes de transmitir.
+  assert.ok(routes.length >= 4, `found ${routes.length} exports`);
+  // The shared factory authorizes and records the export before streaming.
   const factory = readFileSync(
     `${root}features/admin/shell/server/csv-export-route.server.ts`,
     "utf8",
@@ -38,6 +38,6 @@ test("toda exportação do painel confere sessão e permissão", () => {
     const source = readFileSync(`${root}${route}`, "utf8");
     const viaFactory = /csvExportRoute\(\{\s*permission: \{/.test(source);
     const direct = /await requireAdminApi\(\{/.test(source) && /recordAudit\(/.test(source);
-    assert.ok(viaFactory || direct, `${route} precisa conferir permissão e registrar a exportação`);
+    assert.ok(viaFactory || direct, `${route} must check permission and record the export`);
   }
 });

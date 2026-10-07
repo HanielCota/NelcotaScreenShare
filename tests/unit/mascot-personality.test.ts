@@ -79,8 +79,8 @@ function fixture() {
   };
 }
 
-describe("personalidade do Nelcota", () => {
-  test("toca aqui espera a mão e comemora uma única vez antes de voltar ao repouso", () => {
+describe("Nelcota's personality", () => {
+  test("high five waits for the hand and cheers only once before going back to rest", () => {
     const f = fixture();
     f.controller.highFive();
     expect(f.controller.active).toBe("highFive");
@@ -95,7 +95,7 @@ describe("personalidade do Nelcota", () => {
     expect(f.pending.size).toBe(0);
   });
 
-  test("convite expira sem comemorar e respeita o intervalo entre ofertas automáticas", () => {
+  test("the offer expires without cheering and respects the gap between automatic offers", () => {
     const f = fixture();
     expect(f.controller.offerHighFive()).toBe(true);
     f.advance(7000);
@@ -106,7 +106,7 @@ describe("personalidade do Nelcota", () => {
     expect(f.controller.offerHighFive()).toBe(true);
   });
 
-  test("carinho interrompe o espirro e suas etapas atrasadas não reaparecem", () => {
+  test("petting interrupts the sneeze and its delayed steps do not reappear", () => {
     const f = fixture();
     f.controller.sneeze();
     f.advance(650);
@@ -119,7 +119,7 @@ describe("personalidade do Nelcota", () => {
     expect(f.pending.size).toBe(0);
   });
 
-  test("limpeza cancela timers, pose sustentada e movimento do corpo", () => {
+  test("cleanup cancels timers, the held pose and body movement", () => {
     const f = fixture();
     f.controller.yawn();
     f.controller.cancel();
@@ -131,7 +131,7 @@ describe("personalidade do Nelcota", () => {
     expect(f.stops).toBe(stopped);
   });
 
-  test("senha, erro, aba escondida ou contexto ocupado podem impedir brincadeiras", () => {
+  test("password, error, hidden tab or busy context can prevent play", () => {
     const f = fixture();
     f.block();
     f.controller.pet();
@@ -143,7 +143,7 @@ describe("personalidade do Nelcota", () => {
     expect(f.pending.size).toBe(0);
   });
 
-  test("bocejo passa pela espreguiçada e devolve a expressão de sono", () => {
+  test("a yawn goes through the stretch and restores the sleepy expression", () => {
     const f = fixture();
     f.controller.yawn();
     expect(f.expression).toBe("yawning");
@@ -159,7 +159,7 @@ describe("personalidade do Nelcota", () => {
     expect(reasons.current("neutral")).toBe("sleepy");
   });
 
-  test("erros e sono profundo mantêm prioridade sobre carinho e curiosidade", () => {
+  test("errors and deep sleep keep priority over petting and curiosity", () => {
     const reasons = createReasons(() => 0);
     reasons.set("interaction", "pet");
     reasons.set("curiosity", "curious");
@@ -169,13 +169,13 @@ describe("personalidade do Nelcota", () => {
     expect(reasons.current("neutral")).toBe("asleep");
   });
 
-  test("voz ignora ruído e valores inválidos e mantém o movimento limitado", () => {
+  test("voice ignores noise and invalid values and keeps the movement bounded", () => {
     for (const input of [NaN, Infinity, -1, 0, 0.06]) expect(voiceAmount(input)).toBe(0);
     expect(voiceAmount(0.41)).toBeCloseTo(0.5);
     expect(voiceAmount(100)).toBe(1);
   });
 
-  test("movimento reduzido não inicia animação de mão sustentada", () => {
+  test("reduced motion does not start the held-hand animation", () => {
     const animate = vi.fn();
     vi.stubGlobal("window", { matchMedia: () => ({ matches: true }) });
     try {
@@ -189,7 +189,7 @@ describe("personalidade do Nelcota", () => {
     }
   });
 
-  test("novas inclinações mantêm as bordas das pupilas dentro dos olhos", () => {
+  test("new tilts keep the pupil edges inside the eyes", () => {
     for (const eye of EYE_SHAPES) {
       for (const tilt of [-15, -9, 9, 15]) {
         for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 12) {

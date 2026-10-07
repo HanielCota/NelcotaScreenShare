@@ -9,8 +9,8 @@ function approaching() {
   return motion;
 }
 
-describe("movimento sincronizado do par", () => {
-  test("o descanso varia entre seis e dez segundos e respeita campos ocupados", () => {
+describe("synchronized pair movement", () => {
+  test("rest varies between six and ten seconds and respects busy fields", () => {
     expect(nextPairRest(0)).toBe(6000);
     expect(nextPairRest(1)).toBe(10000);
     const motion = createPairMotion(() => 0.5);
@@ -23,7 +23,7 @@ describe("movimento sincronizado do par", () => {
     expect(motion.state.phase).toBe("approach");
   });
 
-  test("só prepara o cumprimento quando ambos chegam", () => {
+  test("only gets ready for the greeting when both arrive", () => {
     const motion = approaching();
     motion.advance(1000, true);
     expect(motion.state.phase).toBe("approach");
@@ -33,7 +33,7 @@ describe("movimento sincronizado do par", () => {
     expect(motion.state.resident).toBeCloseTo(672 / 2 + 128 * 0.43);
   });
 
-  test("redimensionar perto da chegada preserva posição e aguarda o novo destino", () => {
+  test("resizing near arrival keeps the position and waits for the new target", () => {
     const motion = approaching();
     motion.advance(2900, true);
     const before = motion.state;
@@ -48,7 +48,7 @@ describe("movimento sincronizado do par", () => {
     expect(motion.state.resident).toBeCloseTo(1000 / 2 + 128 * 0.43);
   });
 
-  test("novo tamanho durante a preparação exige chegar de novo antes do toque", () => {
+  test("a new size during the ready phase requires arriving again before the high five", () => {
     const motion = approaching();
     motion.advance(4000, true);
     motion.advance(400, true);
@@ -58,7 +58,7 @@ describe("movimento sincronizado do par", () => {
     expect(motion.state.phase).toBe("approach");
   });
 
-  test("pausar a caminhada mantém posição e não consome o movimento restante", () => {
+  test("pausing the walk keeps the position and does not consume the remaining movement", () => {
     const motion = approaching();
     motion.advance(1000, true);
     motion.suspend(true);
@@ -72,7 +72,7 @@ describe("movimento sincronizado do par", () => {
     expect(motion.state.visitor - frozen.visitor).toBeLessThan(10);
   });
 
-  test("pausar a preparação também preserva o prazo do cumprimento", () => {
+  test("pausing the ready phase also preserves the greeting deadline", () => {
     const motion = approaching();
     motion.advance(4000, true);
     motion.advance(200, true);
@@ -85,7 +85,7 @@ describe("movimento sincronizado do par", () => {
     expect(motion.state.phase).toBe("hit");
   });
 
-  test("interromper parte da posição atual e não ultrapassa o repouso", () => {
+  test("interrupting starts from the current position and does not overshoot the rest spot", () => {
     const motion = approaching();
     motion.advance(800, true);
     const before = motion.state;
@@ -101,7 +101,7 @@ describe("movimento sincronizado do par", () => {
     expect(motion.state.phase).toBe("rest");
   });
 
-  test("toque, comemoração e retorno completam um encontro sem saltos ou ciclos extras", () => {
+  test("high five, cheer and return complete an encounter without jumps or extra cycles", () => {
     const motion = approaching();
     motion.advance(4000, true);
     motion.advance(PAIR_STEP_MS.ready, true);

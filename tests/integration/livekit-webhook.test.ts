@@ -11,15 +11,15 @@ import { reprocessPendingEvents } from "@/features/room/server/webhook/projector
 import { anonymizeParticipant } from "@/features/account/server/participant-accounts.server";
 
 /**
- * Webhook do LiveKit de ponta a ponta: eventos assinados como o LiveKit envia
- * (JSON do protobuf), gravados e projetados no Postgres.
+ * LiveKit webhook end to end: events signed the way LiveKit sends them
+ * (protobuf JSON), stored and projected into Postgres.
  */
 const { LIVEKIT_API_KEY: KEY = "", LIVEKIT_API_SECRET: SECRET = "" } = process.env;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
 afterAll(() => pool.end());
 
-/** 06/10/2026 por volta das 12h UTC, em segundos. */
+/** 2026-10-06 around 12:00 UTC, in seconds. */
 const T = 1_791_300_000;
 let eventCounter = 0;
 let roomCounter = 0;
@@ -62,7 +62,7 @@ function payload({ event, room, at, participant, track, id }: EventInput) {
     room: { name: room, sid: `RM_${room}`, creationTime: String(at) },
     ...(participant
       ? {
-          // Como o LiveKit manda: eventos de faixa trazem só sid e identidade.
+          // As LiveKit sends it: track events carry only sid and identity.
           participant: {
             sid: participant.sid ?? `PA_${participant.identity}`,
             identity: participant.identity,
@@ -100,7 +100,7 @@ async function send(input: EventInput | string) {
 
 async function roomByCode(code: string) {
   const room = await db.query.rooms.findFirst({ where: eq(schema.rooms.code, code) });
-  assert.ok(room, `sala ${code}`);
+  assert.ok(room, `room ${code}`);
   return room;
 }
 
@@ -112,8 +112,8 @@ function participationsOf(roomId: string) {
     .orderBy(schema.roomParticipations.joinedAt);
 }
 
-describe("projeção dos eventos", () => {
-  test("entradas simultâneas da mesma conta em salas distintas são projetadas", async () => {
+describe("event projection", () => {
+  test("simultaneous joins of the same account in different rooms are projected", async () => {
     const id = await newUser("Simultanea");
     const codes = [newRoom(), newRoom()];
     await Promise.all(
@@ -141,7 +141,7 @@ describe("projeção dos eventos", () => {
     assert.equal(user?.participationsCount, 2);
   });
 
-  test("webhooks posteriores à anonimização não restauram nomes, nem em novas conexões", async () => {
+  test("webhooks after anonymization do not restore names, not even on new connections", async () => {
     const code = newRoom();
     const id = await newUser("Pessoa");
     const participant = { identity: id, name: "Nome Original", joinedAt: T };
@@ -161,7 +161,7 @@ describe("projeção dos eventos", () => {
     assert.ok(all.every((row) => row.userId === id));
   });
 
-  test("encerramento recebido antes da entrada e da tela fecha registros atrasados", async () => {
+  test("room finish received before the join and the screen closes late records", async () => {
     const code = newRoom();
     const participant = { identity: "atrasado", joinedAt: T + 1 };
     await send({ event: "room_started", room: code, at: T });
@@ -185,7 +185,7 @@ describe("projeção dos eventos", () => {
       .where(eq(schema.shareSessions.roomId, room.id));
     assert.equal(share?.endedAt?.getTime(), (T + 60) * 1000);
     assert.equal(share?.durationSeconds, 50);
-    // Uma saída ainda anterior ao encerramento corrige a estimativa da sala.
+    // A leave that happened even earlier than the finish corrects the room's estimate.
     await send({
       event: "participant_left",
       room: code,
@@ -202,7 +202,7 @@ describe("projeção dos eventos", () => {
     assert.equal(ended?.durationSeconds, 40);
   });
 
-  test("entrada antiga continua encerrada quando chega depois da reabertura", async () => {
+  test("old join stays closed when it arrives after the reopening", async () => {
     const code = newRoom();
     await send({ event: "room_started", room: code, at: T });
     await send({ event: "room_finished", room: code, at: T + 60 });
@@ -228,7 +228,7 @@ describe("projeção dos eventos", () => {
     assert.equal(all.find((row) => row.livekitIdentity === "nova-abertura")?.leftAt, null);
   });
 
-  test("tela recebida depois da saída herda o encerramento da participação", async () => {
+  test("screen received after the leave inherits the participation's end", async () => {
     const code = newRoom();
     const participant = { identity: `saida-${code}`, joinedAt: T };
     await send({ event: "participant_left", room: code, at: T + 50, participant });
@@ -246,11 +246,11 @@ describe("projeção dos eventos", () => {
     assert.equal(share?.durationSeconds, 40);
   });
 
-  test("sala completa: entrada, compartilhamento com áudio, saída e encerramento", async () => {
+  test("full room: join, screen share with audio, leave and finish", async () => {
     const code = newRoom();
     const ana = await newUser("Ana");
     const bia = await newUser("Bia");
-    // Pedido de token que deu a entrada da Ana (IP e "quem criou").
+    // Token request that let Ana in (IP and "who created it").
     await db.insert(schema.tokenRequests).values({
       roomCode: code,
       userId: ana,
@@ -272,7 +272,7 @@ describe("projeção dos eventos", () => {
       at: T + 5,
       participant: { identity: bia, name: "Bia", joinedAt: T + 5 },
     });
-    // Eventos de faixa: sem joined_at nem nome. O áudio da tela vem antes do vídeo.
+    // Track events: no joined_at or name. The screen audio comes before the video.
     const anaP = { identity: ana };
     await send({
       event: "track_published",
@@ -317,7 +317,7 @@ describe("projeção dos eventos", () => {
     assert.equal(room.finishedAt?.getTime(), (T + 100) * 1000);
 
     const all = await participationsOf(room.id);
-    assert.equal(all.length, 2, "faixas não criam participações a mais");
+    assert.equal(all.length, 2, "tracks do not create extra participations");
     const [first, second] = all;
     assert.equal(first?.userId, ana);
     assert.equal(first?.displayName, "Ana");
@@ -332,12 +332,12 @@ describe("projeção dos eventos", () => {
       .select()
       .from(schema.shareSessions)
       .where(eq(schema.shareSessions.roomId, room.id));
-    assert.equal(shares.length, 1, "microfone não é compartilhamento");
+    assert.equal(shares.length, 1, "microphone is not a screen share");
     assert.equal(shares[0]?.withAudio, true);
     assert.equal(shares[0]?.durationSeconds, 60);
   });
 
-  test("reenvio do mesmo evento não duplica nada", async () => {
+  test("resending the same event duplicates nothing", async () => {
     const code = newRoom();
     const body = payload({
       event: "participant_joined",
@@ -359,7 +359,7 @@ describe("projeção dos eventos", () => {
     assert.equal(room.peakParticipants, 1);
   });
 
-  test("fora de ordem: saída antes da entrada e fim do compartilhamento antes do início", async () => {
+  test("out of order: leave before join and share end before share start", async () => {
     const code = newRoom();
     const caio = await newUser("Caio");
     const p = { identity: caio, name: "Caio", joinedAt: T };
@@ -389,12 +389,12 @@ describe("projeção dos eventos", () => {
     const room = await roomByCode(code);
     const participations = await participationsOf(room.id);
     assert.equal(participations.length, 1);
-    assert.equal(participations[0]?.joinedAt.getTime(), T * 1000, "a entrada corrige o início");
+    assert.equal(participations[0]?.joinedAt.getTime(), T * 1000, "the join corrects the start");
     assert.equal(participations[0]?.displayName, "Caio");
     assert.equal(
       participations[0]?.leftAt?.getTime(),
       (T + 50) * 1000,
-      "a entrada atrasada não reabre",
+      "the late join does not reopen",
     );
     assert.equal(participations[0]?.leaveReason, "disconnected");
     const [share] = await db
@@ -405,13 +405,13 @@ describe("projeção dos eventos", () => {
     assert.equal(share?.durationSeconds, 30);
   });
 
-  test("fim atrasado não encerra uma sala que já foi reaberta", async () => {
+  test("late finish does not close a room that was already reopened", async () => {
     const code = newRoom();
     await send({ event: "room_started", room: code, at: T });
     await send({ event: "room_finished", room: code, at: T + 60 });
     assert.equal((await roomByCode(code)).status, "finished");
 
-    // Reabriu: alguém entrou depois do fim.
+    // Reopened: someone joined after the finish.
     await send({
       event: "participant_joined",
       room: code,
@@ -422,7 +422,7 @@ describe("projeção dos eventos", () => {
     assert.equal(room.status, "active");
     assert.equal(room.finishedAt, null);
 
-    // O fim da 1ª abertura chega de novo (outro id): continua ativa.
+    // The finish of the 1st opening arrives again (another id): it stays active.
     await send({ event: "room_finished", room: code, at: T + 60 });
     room = await roomByCode(code);
     assert.equal(room.status, "active");
@@ -430,7 +430,7 @@ describe("projeção dos eventos", () => {
     assert.equal(online?.leftAt, null);
   });
 
-  test("sala com nome fora do padrão é ignorada, mas o evento fica registrado", async () => {
+  test("room with a non-conforming name is ignored, but the event is recorded", async () => {
     const name = `Sala Estranha ${Date.now()}`;
     await send({ event: "room_started", room: name, at: T });
     const [event] = await db
@@ -442,7 +442,7 @@ describe("projeção dos eventos", () => {
     assert.equal(await db.query.rooms.findFirst({ where: eq(schema.rooms.code, name) }), undefined);
   });
 
-  test("evento gravado e não projetado (queda no meio) é reprocessado", async () => {
+  test("event stored but not projected (crash midway) is reprocessed", async () => {
     const code = newRoom();
     await db.insert(schema.livekitEvents).values({
       id: `EV_pendente_${code}`,

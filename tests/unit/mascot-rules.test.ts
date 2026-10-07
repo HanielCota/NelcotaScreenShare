@@ -15,8 +15,8 @@ import {
   waitingGaze,
 } from "@/features/mascot/domain/rules";
 
-describe("regras por expressão", () => {
-  it("sono: olhar parado e pálpebras lentas, mas a pupila segue normal", () => {
+describe("rules per expression", () => {
+  it("sleep: still gaze and slow eyelids, but the pupil behaves normally", () => {
     expect(isSleeping("sleepy")).toBe(true);
     expect(isSleeping("asleep")).toBe(true);
     expect(isSleeping("happy")).toBe(false);
@@ -26,7 +26,7 @@ describe("regras por expressão", () => {
     expect(faceResponse("happy", "lid0")).toBe(0.32);
   });
 
-  it("o que bloqueia brincadeira, piscada, aceno e espirro", () => {
+  it("what blocks play, blinking, waving and sneezing", () => {
     for (const expression of ["grumpy", "worried", "skeptical", "asleep"] as const) {
       expect(blocksPlay(expression)).toBe(true);
     }
@@ -39,20 +39,20 @@ describe("regras por expressão", () => {
     expect(canSneeze("waiting")).toBe(false);
   });
 
-  it("para onde olhar além do ponteiro", () => {
+  it("where to look besides the pointer", () => {
     expect(gazeFocus("walking")).toBe("partner");
     expect(gazeFocus("greeting")).toBe("partner");
     expect(gazeFocus("presenting")).toBe("stage");
     expect(gazeFocus("neutral")).toBe("free");
   });
 
-  it('o par não anda com alguém ocupado (exceto o próprio "toca aqui")', () => {
+  it("the pair does not walk while one is busy (except for the high five itself)", () => {
     expect(PAIR_BUSY_SELECTOR).toContain('[data-gesture]:not([data-gesture="highFive"])');
     expect(PAIR_BUSY_SELECTOR).toContain('[data-expression="yawning"]');
     expect(PAIR_BUSY_SELECTOR).not.toContain('"happy"');
   });
 
-  it("esperando, ouvindo e piscando", () => {
+  it("waiting, listening and blinking", () => {
     expect(waitingGaze(0).x).toBe(0);
     expect(Math.abs(waitingGaze(1100 * (Math.PI / 2)).x - 0.55)).toBeLessThan(1e-9);
     const face = { tilt: 0, pupil: 1, lid0: 0, lid1: 0, rest: 0 };
@@ -62,8 +62,8 @@ describe("regras por expressão", () => {
   });
 });
 
-describe("reação aos avisos das telas", () => {
-  it("comemora: esquece o erro, pula e acena forte", () => {
+describe("reaction to screen notices", () => {
+  it("celebrate: forgets the error, jumps and waves hard", () => {
     expect(reactionTo({ type: "celebrate" })).toMatchObject({
       clear: ["error"],
       set: { reason: "celebrate", expression: "celebrate" },
@@ -72,7 +72,7 @@ describe("reação aos avisos das telas", () => {
     });
   });
 
-  it("bravo balança a cabeça; preocupado não", () => {
+  it("grumpy shakes the head; worried does not", () => {
     expect(reactionTo({ type: "upset", mood: "grumpy" })).toMatchObject({
       clear: ["celebrate", "typing"],
       stopGestures: true,
@@ -82,15 +82,15 @@ describe("reação aos avisos das telas", () => {
     expect(reactionTo({ type: "upset", mood: "worried" }).motion).toBeUndefined();
   });
 
-  it("dúvida liga e desliga; aceno só mexe a cabeça e a mão", () => {
+  it("doubt toggles on and off; a nod only moves the head and the hand", () => {
     expect(reactionTo({ type: "doubt", active: true }).set?.expression).toBe("skeptical");
     expect(reactionTo({ type: "doubt", active: false }).unset).toBe("doubt");
     expect(reactionTo({ type: "nod" })).toEqual({ clear: [], motion: "nod", wave: "simple" });
   });
 });
 
-describe("par da home", () => {
-  it("atividade de cada fase; abrindo a sala, os dois esperam", () => {
+describe("home page pair", () => {
+  it("activity for each phase; while the room opens, both wait", () => {
     expect(pairActivity("approach", false)).toBe("walking");
     expect(pairActivity("hit", false)).toBe("greeting");
     expect(pairActivity("rest", false)).toBe("idle");

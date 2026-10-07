@@ -22,11 +22,11 @@ afterAll(() => pool.end());
 
 const SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const auth = createAdminAuthForTests(db, SECRET);
-// Como o route handler do app: checagem de origem antes do Better Auth.
+// Like the app's route handler: origin check before Better Auth.
 const handler = (request: Request) =>
   isCrossSiteMutation(request) ? Promise.resolve(forbiddenCrossSite()) : auth.handler(request);
 
-// Cada teste usa um IP próprio: o rate limit (5 logins/min por IP) é real.
+// Each test uses its own IP: the rate limit (5 sign-ins/min per IP) is real.
 let nextIp = 1;
 function newCaller() {
   return makeCaller(handler, ADMIN_AUTH_BASE_PATH, `203.0.113.${nextIp++}`);
@@ -48,8 +48,8 @@ function errorMessage(body: unknown): string {
   return typeof body === "object" && body && "message" in body ? String(body.message) : "";
 }
 
-describe("convite", () => {
-  test("cria a conta com e-mail verificado e o link não funciona duas vezes", async () => {
+describe("invitation", () => {
+  test("creates the account with a verified e-mail and the link does not work twice", async () => {
     const { token } = await inviteAndAccept("convite@exemplo.com", "viewer");
     const [user] = await db
       .select()
@@ -62,13 +62,13 @@ describe("convite", () => {
     assert.deepEqual(again, { ok: false, reason: "invalid" });
   });
 
-  test("convite expirado e senha curta são recusados", async () => {
+  test("an expired invitation and a short password are rejected", async () => {
     const { token, invitation } = await createAdminInvitation(db, {
       email: "expirado@exemplo.com",
       role: "admin",
       invitedBy: null,
     });
-    // Envelhece o convite no banco (o relógio do Node e o do Postgres podem diferir).
+    // Ages the invitation in the database (the Node and Postgres clocks may differ).
     await pool.query(
       "update admin_invitations set created_at = now() - interval '3 days', expires_at = now() - interval '1 day' where id = $1",
       [invitation.id],
@@ -89,7 +89,7 @@ describe("convite", () => {
     );
   });
 
-  test("novo convite para o mesmo e-mail revoga o anterior", async () => {
+  test("a new invitation for the same e-mail revokes the previous one", async () => {
     const first = await createAdminInvitation(db, {
       email: "duplo@exemplo.com",
       role: "admin",
@@ -113,8 +113,8 @@ function crossSiteAttempt(headers: Record<string, string>) {
   );
 }
 
-describe("login", () => {
-  test("certo cria sessão com cookie próprio do admin", async () => {
+describe("sign-in", () => {
+  test("correct credentials create a session with the admin's own cookie", async () => {
     const call = newCaller();
     await inviteAndAccept("login@exemplo.com");
     const jar = new CookieJar();
@@ -123,14 +123,14 @@ describe("login", () => {
       jar,
     });
     assert.equal(res.status, 200);
-    assert.ok(jar.has("nelcota-admin"), "cookie com prefixo nelcota-admin");
+    assert.ok(jar.has("nelcota-admin"), "cookie with the nelcota-admin prefix");
 
     const session = await call("/get-session", { method: "GET", jar });
     assert.equal(session.status, 200);
     assert.ok(session.body && typeof session.body === "object" && "user" in session.body);
   });
 
-  test("e-mail inexistente e senha errada dão a mesma resposta", async () => {
+  test("an unknown e-mail and a wrong password give the same response", async () => {
     const call = newCaller();
     await inviteAndAccept("igual@exemplo.com");
     const wrong = await call("/sign-in/email", {
@@ -144,7 +144,7 @@ describe("login", () => {
     assert.equal(errorMessage(wrong.body), errorMessage(missing.body));
   });
 
-  test("cadastro público está desligado", async () => {
+  test("public sign-up is disabled", async () => {
     const call = newCaller();
     const res = await call("/sign-up/email", {
       body: { email: "intruso@exemplo.com", password: PASSWORD, name: "Intruso" },
@@ -157,9 +157,9 @@ describe("login", () => {
     assert.equal(rows.length, 0);
   });
 
-  test("5 senhas erradas bloqueiam a conta, mesmo com a senha certa depois", async () => {
+  test("5 wrong passwords lock the account, even with the right password afterwards", async () => {
     await inviteAndAccept("bloqueio@exemplo.com");
-    // IP diferente a cada tentativa: o bloqueio é por conta, não pelo rate limit de IP.
+    // A different IP on each attempt: the lock is per account, not the per-IP rate limit.
     for (let i = 0; i < 5; i++) {
       const res = await makeCaller(
         handler,
@@ -179,14 +179,14 @@ describe("login", () => {
     assert.match(errorMessage(locked.body), /Muitas tentativas/);
   });
 
-  test("requisição de outra origem é recusada (CSRF)", async () => {
+  test("a request from another origin is rejected (CSRF)", async () => {
     assert.equal((await crossSiteAttempt({ origin: "https://malicioso.exemplo" })).status, 403);
     assert.equal((await crossSiteAttempt({ "sec-fetch-site": "cross-site" })).status, 403);
   });
 });
 
 describe("2FA TOTP", () => {
-  test("ativar, entrar com código e com backup code de uso único", async () => {
+  test("enable, sign in with a code and with a single-use backup code", async () => {
     const call = newCaller();
     await inviteAndAccept("2fa@exemplo.com");
     const jar = new CookieJar();
@@ -202,7 +202,7 @@ describe("2FA TOTP", () => {
     });
     assert.equal(verified.status, 200);
 
-    // Novo login: senha certa não basta, pede o segundo fator.
+    // New sign-in: the right password is not enough, it asks for the second factor.
     const second = new CookieJar();
     const signIn = await call("/sign-in/email", {
       body: { email: "2fa@exemplo.com", password: PASSWORD },
@@ -225,7 +225,7 @@ describe("2FA TOTP", () => {
     const session = await call("/get-session", { method: "GET", jar: second });
     assert.ok(session.body && typeof session.body === "object" && "user" in session.body);
 
-    // Backup code funciona uma única vez.
+    // A backup code works only once.
     const code = backupCodes[0] ?? "";
     for (const expected of [200, 401]) {
       const third = new CookieJar();
@@ -239,8 +239,8 @@ describe("2FA TOTP", () => {
   });
 });
 
-describe("redefinição de senha", () => {
-  test("token de uso único e encerra todas as sessões", async () => {
+describe("password reset", () => {
+  test("single-use token that ends all sessions", async () => {
     const call = newCaller();
     await inviteAndAccept("reset@exemplo.com");
     const jar = new CookieJar();
@@ -253,7 +253,7 @@ describe("redefinição de senha", () => {
     const missing = await call("/request-password-reset", {
       body: { email: "ninguem@exemplo.com", redirectTo: "/admin/redefinir-senha" },
     });
-    assert.deepEqual(missing.body, requested.body, "mesma resposta para e-mail inexistente");
+    assert.deepEqual(missing.body, requested.body, "same response for an unknown e-mail");
 
     const [row] = await db
       .select()
@@ -271,7 +271,7 @@ describe("redefinição de senha", () => {
     assert.notEqual(reused.status, 200);
 
     const oldSession = await call("/get-session", { method: "GET", jar });
-    assert.equal(oldSession.body, null, "sessão antiga encerrada");
+    assert.equal(oldSession.body, null, "old session ended");
     const relogin = await call("/sign-in/email", {
       body: { email: "reset@exemplo.com", password: newPassword },
     });
@@ -283,8 +283,8 @@ async function auditFor(action: string) {
   return db.select().from(schema.auditLogs).where(eq(schema.auditLogs.action, action));
 }
 
-describe("auditoria dos eventos de login", () => {
-  test("login certo registra o autor; login errado não guarda o e-mail", async () => {
+describe("auditing of sign-in events", () => {
+  test("a successful sign-in records the author; a failed one does not store the e-mail", async () => {
     const call = newCaller();
     await inviteAndAccept("auditoria@exemplo.com");
     const [user] = await db
@@ -306,7 +306,7 @@ describe("auditoria dos eventos de login", () => {
     }
   });
 
-  test("2FA ativado e senha redefinida ficam registrados", async () => {
+  test("2FA enabled and password reset are recorded", async () => {
     const call = newCaller();
     await inviteAndAccept("audit2@exemplo.com");
     const jar = new CookieJar();
@@ -331,14 +331,14 @@ describe("auditoria dos eventos de login", () => {
     assert.ok((await auditFor("auth.password_reset")).length > 0);
   });
 
-  test("audit log não aceita UPDATE nem DELETE recente (nem para o superusuário)", async () => {
+  test("audit log rejects UPDATE and recent DELETE (even for the superuser)", async () => {
     await assert.rejects(pool.query("update audit_logs set action = 'x.y'"), /imutável/);
     await assert.rejects(pool.query("delete from audit_logs"), /5 anos/);
   });
 });
 
-describe("rotas do plugin admin", () => {
-  test("ficam fechadas por HTTP, mesmo para o owner logado", async () => {
+describe("admin plugin routes", () => {
+  test("are closed over HTTP, even for a signed-in owner", async () => {
     const call = newCaller();
     await inviteAndAccept("owner-plugin@exemplo.com", "owner");
     const jar = new CookieJar();
@@ -358,8 +358,8 @@ describe("rotas do plugin admin", () => {
   });
 });
 
-describe("convite com falha no meio", () => {
-  test("falha ao gravar a senha desfaz a conta e devolve o convite", async () => {
+describe("invitation failing midway", () => {
+  test("a failure writing the password rolls back the account and restores the invitation", async () => {
     const email = "falha-meio@exemplo.com";
     const { token, invitation } = await createAdminInvitation(db, {
       email,
@@ -373,25 +373,25 @@ describe("convite com falha no meio", () => {
         ...realContext,
         internalAdapter: {
           ...realContext.internalAdapter,
-          linkAccount: () => Promise.reject(new Error("queda no meio")),
+          linkAccount: () => Promise.reject(new Error("failure midway")),
         },
       }),
     } as unknown as typeof auth;
 
     await assert.rejects(
       acceptAdminInvitation(db, broken, { token, name: "X", password: PASSWORD }),
-      /queda no meio/,
+      /failure midway/,
     );
     const users = await db
       .select()
       .from(schema.adminUsers)
       .where(eq(schema.adminUsers.email, email));
-    assert.equal(users.length, 0, "conta desfeita");
+    assert.equal(users.length, 0, "account rolled back");
     const [row] = await db
       .select()
       .from(schema.adminInvitations)
       .where(eq(schema.adminInvitations.id, invitation.id));
-    assert.equal(row?.status, "pending", "convite pode ser usado de novo");
+    assert.equal(row?.status, "pending", "invitation can be used again");
 
     const retry = await acceptAdminInvitation(db, auth, { token, name: "X", password: PASSWORD });
     assert.equal(retry.ok, true);

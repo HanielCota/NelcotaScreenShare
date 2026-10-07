@@ -9,12 +9,12 @@ import {
   reactionSchema,
 } from "@/features/room/domain/data-channel";
 
-describe("mensagens do canal de dados", () => {
-  it("ida e volta de uma reação válida", () => {
+describe("data channel messages", () => {
+  it("round-trips a valid reaction", () => {
     expect(decodeMessage(encodeMessage({ emoji: "🎉" }), reactionSchema)).toEqual({ emoji: "🎉" });
   });
 
-  it("descarta JSON inválido, emoji fora da lista e ponto fora da imagem", () => {
+  it("drops invalid JSON, emoji outside the list and point outside the image", () => {
     expect(decodeMessage(new TextEncoder().encode("{oops"), reactionSchema)).toBeUndefined();
     expect(decodeMessage(encodeMessage({ emoji: "💣" }), reactionSchema)).toBeUndefined();
     expect(
@@ -26,8 +26,8 @@ describe("mensagens do canal de dados", () => {
   });
 });
 
-describe("limite no receptor", () => {
-  it("aceita uma mensagem por remetente a cada intervalo", () => {
+describe("receiver-side rate limit", () => {
+  it("accepts one message per sender per interval", () => {
     let now = 0;
     const accept = createReceiveThrottle(100, () => now);
     expect(accept("ana")).toBe(true);
@@ -39,8 +39,8 @@ describe("limite no receptor", () => {
   });
 });
 
-describe("área da imagem no vídeo", () => {
-  it("tarjas laterais quando o vídeo é mais estreito", () => {
+describe("image area within the video", () => {
+  it("side bars when the video is narrower", () => {
     expect(contentBox({ width: 200, height: 100 }, { width: 100, height: 100 })).toEqual({
       left: 50,
       top: 0,
@@ -49,7 +49,7 @@ describe("área da imagem no vídeo", () => {
     });
   });
 
-  it("tarjas em cima e embaixo quando o vídeo é mais largo", () => {
+  it("top and bottom bars when the video is wider", () => {
     expect(contentBox({ width: 100, height: 100 }, { width: 200, height: 100 })).toEqual({
       left: 0,
       top: 25,
@@ -58,7 +58,7 @@ describe("área da imagem no vídeo", () => {
     });
   });
 
-  it("vídeo ainda sem tamanho ocupa a caixa toda", () => {
+  it("video without a size yet fills the whole box", () => {
     expect(contentBox({ width: 80, height: 60 }, { width: 0, height: 0 })).toEqual({
       left: 0,
       top: 0,
@@ -68,10 +68,10 @@ describe("área da imagem no vídeo", () => {
   });
 });
 
-describe("microfone salvo", () => {
+describe("saved microphone", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("lembra e esquece a escolha", () => {
+  it("remembers and forgets the choice", () => {
     const store = new Map<string, string>();
     vi.stubGlobal("localStorage", {
       getItem: (key: string) => store.get(key) ?? null,
@@ -84,16 +84,16 @@ describe("microfone salvo", () => {
     expect(savedMicrophone()).toBeUndefined();
   });
 
-  it("armazenamento bloqueado não quebra", () => {
+  it("blocked storage does not break", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => {
-        throw new Error("bloqueado");
+        throw new Error("blocked");
       },
       setItem: () => {
-        throw new Error("bloqueado");
+        throw new Error("blocked");
       },
       removeItem: () => {
-        throw new Error("bloqueado");
+        throw new Error("blocked");
       },
     });
     expect(() => saveMicrophone("mic-1")).not.toThrow();

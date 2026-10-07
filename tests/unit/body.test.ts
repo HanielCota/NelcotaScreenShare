@@ -6,7 +6,7 @@ function postStream(body: ReadableStream<Uint8Array>) {
   return new Request("http://localhost/", init);
 }
 
-test("para de ler ao exceder o limite, sem fechar o socket antes da resposta", async () => {
+test("stops reading past the limit without closing the socket before the response", async () => {
   const cancel = vi.fn();
   const pull = vi.fn((controller: ReadableStreamDefaultController<Uint8Array>) => {
     controller.enqueue(new TextEncoder().encode("é"));
@@ -22,7 +22,7 @@ test("para de ler ao exceder o limite, sem fechar o socket antes da resposta", a
   await stream.cancel();
 });
 
-test("preserva o corpo assinado quando um caractere é dividido entre chunks", async () => {
+test("preserves the signed body when a character is split across chunks", async () => {
   const bytes = new TextEncoder().encode('{"nome":"João"}');
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {

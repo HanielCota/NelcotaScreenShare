@@ -9,9 +9,9 @@ type Handler = (request: Request) => Promise<Response>;
 let counter = 0;
 
 /**
- * Cria um participante com e-mail já confirmado e devolve a sessão (cookies).
- * O cadastro passa pelo handler real; a confirmação do e-mail é feita direto
- * no banco (o fluxo do link é testado à parte).
+ * Creates a participant with an already verified email and returns the session (cookies).
+ * Sign-up goes through the real handler; email verification is done directly
+ * in the database (the link flow is tested separately).
  */
 export async function verifiedParticipant(
   db: NodePgDatabase<typeof schema>,
@@ -22,15 +22,15 @@ export async function verifiedParticipant(
   const email = `participante${counter}-${Date.now()}@exemplo.com`;
   const call = makeCaller(handler, "/api/auth", `192.0.2.${(counter % 200) + 1}`);
   const signUp = await call("/sign-up/email", { body: { name, email, password } });
-  if (signUp.status !== 200) throw new Error(`cadastro falhou: ${signUp.status}`);
+  if (signUp.status !== 200) throw new Error(`sign-up failed: ${signUp.status}`);
   const [user] = await db
     .update(users)
     .set({ emailVerified: true })
     .where(eq(users.email, email))
     .returning({ id: users.id });
-  if (!user) throw new Error("participante não criado");
+  if (!user) throw new Error("participant not created");
   const jar = new CookieJar();
   const signIn = await call("/sign-in/email", { body: { email, password }, jar });
-  if (signIn.status !== 200) throw new Error(`login falhou: ${signIn.status}`);
+  if (signIn.status !== 200) throw new Error(`sign-in failed: ${signIn.status}`);
   return { id: user.id, email, name, password, jar };
 }

@@ -15,7 +15,7 @@ const UA = {
     "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
 };
 
-test("computador: Chromium compartilha tudo; Firefox sem áudio; Safari avisa", () => {
+test("desktop: Chromium shares everything; Firefox without audio; Safari warns", () => {
   assert.equal(classifyShareSupport({ userAgent: UA.chrome, hasDisplayMedia: true }), "full");
   assert.equal(classifyShareSupport({ userAgent: UA.edge, hasDisplayMedia: true }), "full");
   assert.equal(
@@ -25,7 +25,7 @@ test("computador: Chromium compartilha tudo; Firefox sem áudio; Safari avisa", 
   assert.equal(classifyShareSupport({ userAgent: UA.safari, hasDisplayMedia: true }), "safari");
 });
 
-test("celular e tablet não compartilham, mesmo o iPad que se diz Mac", () => {
+test("phones and tablets do not share, even the iPad that claims to be a Mac", () => {
   assert.equal(classifyShareSupport({ userAgent: UA.android, hasDisplayMedia: false }), "mobile");
   assert.equal(classifyShareSupport({ userAgent: UA.iphone, hasDisplayMedia: false }), "mobile");
   assert.equal(
@@ -38,7 +38,7 @@ test("celular e tablet não compartilham, mesmo o iPad que se diz Mac", () => {
   );
 });
 
-test("computador sem o recurso", () => {
+test("desktop without the feature", () => {
   assert.equal(
     classifyShareSupport({ userAgent: UA.chrome, hasDisplayMedia: false }),
     "unsupported",

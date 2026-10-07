@@ -7,7 +7,7 @@ vi.mock("@/features/mascot/client/ambient", () => ({ startAmbient: () => () => {
 
 afterEach(() => vi.unstubAllGlobals());
 
-test("olhar segue o parceiro em movimento sem depender de eventos do mouse", () => {
+test("gaze follows the moving partner without relying on mouse events", () => {
   let time = 0;
   let nextFrame = 0;
   let partnerX = 500;

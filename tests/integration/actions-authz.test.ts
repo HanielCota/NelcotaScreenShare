@@ -6,11 +6,11 @@ import { describe, test, vi } from "vitest";
 import { z } from "zod";
 
 /**
- * Toda operação protegida do app precisa recusar quem não está logado (docs/archive/admin-plan.md §5.3).
- * Este teste importa TODOS os `actions.server.ts` e chama cada operação sem sessão: ela tem de
- * recusar antes de validar ou executar qualquer coisa. Actions públicas de propósito
- * ficam na lista abaixo. Uma operação nova criada fora do `defineAdminOperation`/`defineUserOperation`
- * quebra este teste.
+ * Every protected operation in the app must reject anyone who is not signed in (docs/archive/admin-plan.md §5.3).
+ * This test imports ALL `actions.server.ts` files and calls each operation without a session: it must
+ * reject before validating or running anything. Intentionally public actions
+ * go in the list below. A new operation created outside `defineAdminOperation`/`defineUserOperation`
+ * breaks this test.
  */
 const PUBLIC_ACTIONS = new Set(["features/auth/actions.server.ts#acceptInvitation"]);
 
@@ -20,15 +20,15 @@ vi.mock("@/server/request-context.server", () => ({
   requestHeaders: () => anonymous,
 }));
 const root = fileURLToPath(new URL("../../", import.meta.url));
-// Actions ficam nas features (e, se um dia houver, em app/); as duas pastas entram.
+// Actions live in features (and, if there ever are any, in app/); both folders are included.
 const files = globSync(["app/**/actions.server.ts", "features/**/actions.server.ts"], {
   cwd: root,
 }).map((file) => file.replaceAll("\\", "/"));
 const actionResult = z.object({ serverError: z.string().optional() }).loose();
 
-describe("todas as operações recusam quem não está logado", () => {
-  test("há actions para conferir", () => {
-    assert.ok(files.length >= 4, `encontrou ${files.length} arquivos de actions`);
+describe("all operations reject anyone who is not signed in", () => {
+  test("there are actions to check", () => {
+    assert.ok(files.length >= 4, `found ${files.length} actions files`);
   });
 
   for (const file of files) {
@@ -38,7 +38,7 @@ describe("todas as operações recusam quem não está logado", () => {
         (entry): entry is [string, (input: unknown) => Promise<unknown>] =>
           typeof entry[1] === "function",
       );
-      assert.ok(actions.length > 0, `${file} não exporta actions`);
+      assert.ok(actions.length > 0, `${file} exports no actions`);
       for (const [name, action] of actions) {
         const id = `${relative(root, `${root}${file}`).replaceAll("\\", "/")}#${name}`;
         if (PUBLIC_ACTIONS.has(id)) continue;
@@ -46,7 +46,7 @@ describe("todas as operações recusam quem não está logado", () => {
         assert.equal(
           result.serverError,
           "Sua sessão expirou. Entre de novo.",
-          `${id} deveria recusar sem sessão (veio ${JSON.stringify(result).slice(0, 200)})`,
+          `${id} should reject without a session (got ${JSON.stringify(result).slice(0, 200)})`,
         );
       }
     });

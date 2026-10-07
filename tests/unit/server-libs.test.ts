@@ -7,7 +7,7 @@ const { buildCsp } = await import("../../server/csp.server");
 const { generateRoomCode, roomCodeSchema, roomPath } =
   await import("../../features/room/domain/room-code");
 
-test("rate limit: conta, bloqueia e libera quando a janela vira", () => {
+test("rate limit: counts, blocks and releases when the window rolls over", () => {
   let now = 1_000;
   const limiter = createRateLimiter({ limit: 2, windowMs: 10_000, now: () => now });
 
@@ -18,30 +18,30 @@ test("rate limit: conta, bloqueia e libera quando a janela vira", () => {
   const blocked = limiter.hit("a");
   assert.equal(blocked.ok, false);
   assert.equal(blocked.retryAfterSeconds, 10);
-  assert.equal(limiter.hit("b").ok, true, "chaves são independentes");
+  assert.equal(limiter.hit("b").ok, true, "keys are independent");
 
   now += 10_000;
-  assert.equal(limiter.hit("a").ok, true, "janela nova");
+  assert.equal(limiter.hit("a").ok, true, "new window");
 
   limiter.hit("a");
   limiter.reset("a");
   assert.equal(limiter.peek("a").ok, true);
 });
 
-test("IP do cliente respeita o número de proxies confiáveis", () => {
+test("client IP honors the number of trusted proxies", () => {
   const headers = new Headers({ "x-forwarded-for": "6.6.6.6, 203.0.113.9, 172.70.1.1" });
   assert.equal(getClientIp(headers), "172.70.1.1");
   assert.equal(getClientIp(headers, 2), "203.0.113.9");
-  assert.equal(getClientIp(headers, 5), "6.6.6.6", "nunca passa do começo da lista");
+  assert.equal(getClientIp(headers, 5), "6.6.6.6", "never goes past the start of the list");
   assert.equal(getClientIp(new Headers({ "x-real-ip": " 198.51.100.7 " })), "198.51.100.7");
   assert.equal(getClientIp(new Headers()), "unknown");
   assert.equal(getClientIp(new Headers({ "x-nelcota-peer-ip": "127.0.0.1" })), "127.0.0.1");
 });
 
-test("CSP libera só o próprio app e o LiveKit", () => {
+test("CSP allows only the app itself and LiveKit", () => {
   const prod = buildCsp({ livekitUrl: "wss://lk.exemplo.com", dev: false, nonce: "bm9uY2U=" });
   assert.match(prod, /script-src 'self' 'nonce-bm9uY2U=' 'strict-dynamic';/);
-  assert.doesNotMatch(prod, /script-src[^;]*'unsafe-inline'/, "nonce substitui unsafe-inline");
+  assert.doesNotMatch(prod, /script-src[^;]*'unsafe-inline'/, "nonce replaces unsafe-inline");
   assert.match(prod, /connect-src 'self' wss:\/\/lk\.exemplo\.com https:\/\/lk\.exemplo\.com;/);
   assert.match(prod, /frame-ancestors 'none'/);
   assert.match(prod, /object-src 'none'/);
@@ -51,7 +51,7 @@ test("CSP libera só o próprio app e o LiveKit", () => {
   const dev = buildCsp({ livekitUrl: "ws://localhost:7880", dev: true, nonce: "bm9uY2U=" });
   assert.match(dev, /connect-src 'self' ws:\/\/localhost:7880 http:\/\/localhost:7880;/);
   assert.match(dev, /'unsafe-eval'/);
-  assert.doesNotMatch(dev, /upgrade-insecure-requests/, "quebraria o ws:// local");
+  assert.doesNotMatch(dev, /upgrade-insecure-requests/, "would break local ws://");
 
   const withSentry = buildCsp({
     livekitUrl: "wss://lk.exemplo.com",
@@ -62,7 +62,7 @@ test("CSP libera só o próprio app e o LiveKit", () => {
   assert.match(withSentry, /connect-src [^;]*https:\/\/o123\.ingest\.sentry\.io/);
 });
 
-test("código de sala: normaliza e recusa formatos inválidos", () => {
+test("room code: normalizes and rejects invalid formats", () => {
   assert.equal(roomCodeSchema.parse("  ABC-Defg-H1J "), "abc-defg-h1j");
   for (const bad of ["a", "-abc", "abc-", "ab c", "sala_1", "á-bc", "a".repeat(33)]) {
     assert.equal(roomCodeSchema.safeParse(bad).success, false, bad);
@@ -70,7 +70,7 @@ test("código de sala: normaliza e recusa formatos inválidos", () => {
   assert.equal(roomPath("abc-defg-hij"), "/sala/abc-defg-hij");
 });
 
-test("códigos gerados são válidos e evitam caracteres ambíguos", () => {
+test("generated codes are valid and avoid ambiguous characters", () => {
   for (let i = 0; i < 500; i++) {
     const code = generateRoomCode();
     assert.match(code, /^[a-z2-9]{3}-[a-z2-9]{4}-[a-z2-9]{3}$/);

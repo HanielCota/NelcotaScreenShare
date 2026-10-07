@@ -8,8 +8,8 @@ import { hashPassword, verifyPassword } from "@/features/auth/server/password.se
 import { can, statements, type PermissionRequest } from "@/features/auth/server/permissions.server";
 import { ADMIN_ROLES, type AdminRole } from "@/features/auth/domain/roles";
 
-describe("senha", () => {
-  test("argon2id com os parâmetros da OWASP e verificação", async () => {
+describe("password", () => {
+  test("argon2id with OWASP parameters, and verification", async () => {
     const hash = await hashPassword("uma-senha-bem-longa");
     assert.match(hash, /^\$argon2id\$v=19\$m=19456,t=2,p=1\$/);
     assert.equal(await verifyPassword({ hash, password: "uma-senha-bem-longa" }), true);
@@ -17,13 +17,13 @@ describe("senha", () => {
     assert.equal(
       await verifyPassword({ hash: "lixo", password: "x" }),
       false,
-      "hash inválido não lança",
+      "invalid hash does not throw",
     );
   });
 });
 
-describe("bloqueio por tentativas", () => {
-  test("começa em 15 min na 5ª falha, dobra a cada 5 e para em 24 h", () => {
+describe("lockout after failed attempts", () => {
+  test("starts at 15 min on the 5th failure, doubles every 5 and caps at 24 h", () => {
     assert.equal(lockDurationMs(4), 0);
     assert.equal(lockDurationMs(5), LOCKOUT.baseLockMs);
     assert.equal(lockDurationMs(10), LOCKOUT.baseLockMs * 2);
@@ -31,7 +31,7 @@ describe("bloqueio por tentativas", () => {
     assert.equal(lockDurationMs(500), LOCKOUT.maxLockMs);
   });
 
-  test("hash do e-mail ignora maiúsculas/espaços e separa admin de participante", () => {
+  test("e-mail hash ignores case/whitespace and separates admin from participant", () => {
     const secret = "segredo-0123456789abcdef0123456789";
     assert.equal(
       emailHash(secret, "admin", " Ana@Exemplo.com "),
@@ -45,8 +45,8 @@ describe("bloqueio por tentativas", () => {
   });
 });
 
-describe("matriz de permissões (docs/archive/admin-plan.md §5.2)", () => {
-  // Esperado por papel: [recurso, ação] permitidos. Todo o resto é negado.
+describe("permission matrix (docs/archive/admin-plan.md §5.2)", () => {
+  // Expected per role: allowed [resource, action] pairs. Everything else is denied.
   const expected: Record<AdminRole, string[]> = {
     owner: Object.entries(statements).flatMap(([resource, actions]) =>
       actions.map((action) => `${resource}.${action}`),
@@ -78,7 +78,7 @@ describe("matriz de permissões (docs/archive/admin-plan.md §5.2)", () => {
   };
 
   for (const role of ADMIN_ROLES) {
-    test(`${role}: cada ação do catálogo bate com a matriz`, () => {
+    test(`${role}: every catalog action matches the matrix`, () => {
       for (const [resource, actions] of Object.entries(statements)) {
         for (const action of actions) {
           const request = { [resource]: [action] } as PermissionRequest;
@@ -92,10 +92,10 @@ describe("matriz de permissões (docs/archive/admin-plan.md §5.2)", () => {
     });
   }
 
-  test("ninguém impersona, apaga admin nem define senha de outro", () => {
+  test("nobody impersonates, deletes admins or sets someone else's password", () => {
     for (const role of ADMIN_ROLES) {
       for (const action of ["impersonate", "delete", "set-password", "set-email"]) {
-        // Ações fora do catálogo: o controle de acesso nega.
+        // Actions outside the catalog: access control denies them.
         assert.equal(
           can(role, { user: [action] } as unknown as PermissionRequest),
           false,
@@ -106,8 +106,8 @@ describe("matriz de permissões (docs/archive/admin-plan.md §5.2)", () => {
   });
 });
 
-describe("mensagens e formatação", () => {
-  test("erros do login não revelam se o e-mail existe", () => {
+describe("messages and formatting", () => {
+  test("login errors do not reveal whether the e-mail exists", () => {
     assert.equal(
       authErrorMessage({ code: "INVALID_EMAIL_OR_PASSWORD", status: 401 }),
       "E-mail ou senha incorretos.",
@@ -126,7 +126,7 @@ describe("mensagens e formatação", () => {
     );
   });
 
-  test("user agent legível", () => {
+  test("readable user agent", () => {
     assert.equal(
       describeUserAgent(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36",
@@ -142,8 +142,8 @@ describe("mensagens e formatação", () => {
     assert.equal(describeUserAgent(null), "Dispositivo desconhecido");
   });
 
-  test("datas no fuso de São Paulo, inclusive na virada do dia", () => {
-    // 02:30 UTC de 07/10 ainda é 06/10 em São Paulo (UTC−3).
+  test("dates in the São Paulo time zone, including across midnight", () => {
+    // 02:30 UTC on 10/07 is still 10/06 in São Paulo (UTC−3).
     assert.equal(formatDateTime("2026-10-07T02:30:00Z"), "06/10/2026, 23:30");
     const now = Date.parse("2026-10-06T12:00:00Z");
     assert.equal(formatRelative(now - 5 * 60_000, now), "há 5 minutos");

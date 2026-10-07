@@ -10,16 +10,16 @@ const { idleSleep } = await import("../../features/mascot/domain/sleep");
 const { gazeAt, pupilOffset, eyelidOffset, EYE_SHAPES, POSE_EYES, IDLE } =
   await import("../../features/mascot/domain/eye-tracking");
 
-test("a curva e o traço da pálpebra ficam completamente fora do olho aberto", () => {
+test("the eyelid curve and stroke stay completely outside the open eye", () => {
   for (const { ry } of EYE_SHAPES) {
     const lowestStrokeEdge = eyelidOffset(ry, 0) + ry + 5 + 2.5 / 2;
-    assert.ok(lowestStrokeEdge < -ry, "nenhum pedaço do traço pode entrar no recorte");
+    assert.ok(lowestStrokeEdge < -ry, "no part of the stroke may enter the clip");
     assert.equal(eyelidOffset(ry, 1), 0);
     assert.ok(eyelidOffset(ry, 0.6) > eyelidOffset(ry, 0));
   }
 });
 
-test("os dois olhos convergem para o cursor perto do rosto e continuam respondendo à distância", () => {
+test("both eyes converge on the cursor near the face and keep responding at a distance", () => {
   const bounds = { left: 100, top: 50, width: 512, height: 512 };
   const left = POSE_EYES[0][0];
   const right = POSE_EYES[0][1];
@@ -30,18 +30,18 @@ test("os dois olhos convergem para o cursor perto do rosto e continuam responden
   const near = gazeAt(bounds, midpoint);
   assert.ok(
     near.leftX > 0 && near.rightX < 0,
-    "cada olho mira o mesmo cursor, em vez de copiar o outro",
+    "each eye aims at the same cursor instead of copying the other",
   );
   const overLeftEye = gazeAt(bounds, { x: bounds.left + left.x, y: bounds.top + left.y });
   assert.equal(overLeftEye.leftX, 0);
   assert.equal(overLeftEye.leftY, 0);
   const far = gazeAt(bounds, { x: midpoint.x + 400, y: midpoint.y });
   const farther = gazeAt(bounds, { x: midpoint.x + 800, y: midpoint.y });
-  assert.ok(farther.leftX > far.leftX, "o olhar não congela depois de 140 pixels");
+  assert.ok(farther.leftX > far.leftX, "the gaze does not freeze after 140 pixels");
   assert.ok(Math.hypot(farther.leftX, farther.leftY) < 1);
 });
 
-test("as pupilas ficam dentro dos olhos em qualquer direção, inclinação e expressão", () => {
+test("the pupils stay inside the eyes in any direction, tilt and expression", () => {
   for (const eye of EYE_SHAPES) {
     for (const scale of [0.68, 1, 1.05]) {
       for (const tilt of [-7, 0, 5]) {
@@ -52,7 +52,7 @@ test("as pupilas ficam dentro dos olhos em qualquer direção, inclinação e ex
             const y = offset.y + Math.sin(edge) * eye.pupilRy * scale;
             assert.ok(
               (x / eye.rx) ** 2 + (y / eye.ry) ** 2 < 1,
-              "a borda da pupila não deve ser cortada",
+              "the pupil edge must not be clipped",
             );
           }
         }
@@ -61,7 +61,7 @@ test("as pupilas ficam dentro dos olhos em qualquer direção, inclinação e ex
   }
 });
 
-test("o olhar rápido mantém continuidade nas inversões mesmo a 30 quadros por segundo", () => {
+test("a fast gaze stays continuous through reversals even at 30 frames per second", () => {
   const gaze = { ...IDLE };
   const velocity = { ...IDLE };
   const bounds = { left: 0, top: 0, width: 208, height: 208 };
@@ -73,14 +73,14 @@ test("o olhar rápido mantém continuidade nas inversões mesmo a 30 quadros por
   }
 });
 
-test("o avatar fecha os olhos durante a senha, mesmo se estava comemorando", () => {
+test("the avatar closes its eyes during password entry, even while celebrating", () => {
   assert.deepEqual(avatarFrame("celebrate", 1, 1), { column: 0, row: 1 });
   assert.deepEqual(avatarFrame("celebrate", 0, 0), { column: 1, row: 0 });
   assert.deepEqual(avatarFrame("worried", 0, 0), { column: 1, row: 1 });
   assert.deepEqual(avatarFrame(undefined), { column: 0, row: 0 });
 });
 
-test("um erro pode substituir a comemoração, e digitar limpa a reação anterior", () => {
+test("an error can replace the celebration, and typing clears the previous reaction", () => {
   let time = 0;
   const reasons = createReasons(() => time);
   reasons.set("celebrate", "celebrate", 1600);
@@ -95,7 +95,7 @@ test("um erro pode substituir a comemoração, e digitar limpa a reação anteri
   assert.equal(reasons.nextExpiry(), Infinity);
 });
 
-test("acordar remove o sono mesmo antes de terminar sua expressão", () => {
+test("waking up removes sleep even before its expression finishes", () => {
   const reasons = createReasons(() => 0);
   reasons.set("sleep", "asleep");
   assert.equal(reasons.current("neutral"), "asleep");
@@ -111,12 +111,12 @@ test("acordar remove o sono mesmo antes de terminar sua expressão", () => {
     rest: 0,
   };
   for (let frame = 0; frame < 12; frame++) springStep(value, velocity, target, 0.32, 1 / 30);
-  assert.ok(value.lid0 < 0.02, "os olhos reabrem em menos de meio segundo");
+  assert.ok(value.lid0 < 0.02, "the eyes reopen in under half a second");
   assert.ok(value.lid1 < 0.02);
-  assert.ok(value.rest < 0.02, "o corpo também se levanta ao acordar");
+  assert.ok(value.rest < 0.02, "the body also gets up when waking");
 });
 
-test("o sono considera a atividade mais recente, mesmo com timers atrasados", () => {
+test("sleep considers the most recent activity, even with late timers", () => {
   assert.deepEqual(idleSleep(0, 29_999), { expression: null, nextIn: 1 });
   assert.deepEqual(idleSleep(0, 30_000), { expression: "sleepy", nextIn: 15_000 });
   assert.deepEqual(idleSleep(0, 45_000), { expression: "asleep", nextIn: Infinity });
@@ -125,7 +125,7 @@ test("o sono considera a atividade mais recente, mesmo com timers atrasados", ()
   assert.deepEqual(idleSleep(44_900, 45_000), { expression: null, nextIn: 29_900 });
 });
 
-test("o cochilo substitui um aviso persistente e acordar restaura esse aviso", () => {
+test("a nap replaces a persistent notice and waking up restores that notice", () => {
   const reasons = createReasons(() => 0);
   reasons.set("capsLock", "surprised");
   reasons.set("sleep", "sleepy");
@@ -136,7 +136,7 @@ test("o cochilo substitui um aviso persistente e acordar restaura esse aviso", (
   assert.equal(reasons.current("neutral"), "surprised");
 });
 
-test("sonolência mantém os olhos parcialmente abertos e antecede a postura de sono", () => {
+test("drowsiness keeps the eyes partly open and comes before the sleeping posture", () => {
   assert.deepEqual(avatarFrame("sleepy", 0.6, 0.6), avatarFrame("neutral"));
   assert.notDeepEqual(avatarFrame("asleep", 1, 1), avatarFrame("sleepy", 0.6, 0.6));
   const value = toFaceState(EXPRESSIONS.neutral);
@@ -149,7 +149,7 @@ test("sonolência mantém os olhos parcialmente abertos e antecede a postura de 
   }
 });
 
-test("molas ficam limitadas a 30fps e não explodem quando o alvo muda rapidamente", () => {
+test("springs are capped at 30fps and do not blow up when the target changes quickly", () => {
   const value = { x: 0, y: 0 };
   const velocity = { x: 0, y: 0 };
   for (let frame = 0; frame < 120; frame++) {
@@ -160,7 +160,7 @@ test("molas ficam limitadas a 30fps e não explodem quando o alvo muda rapidamen
   }
 });
 
-test("senha fecha ambos os olhos e mostrar a senha permite espiar", () => {
+test("a password closes both eyes and showing the password allows peeking", () => {
   assert.deepEqual(toFaceState(EXPRESSIONS.happy, [1, 1]), {
     ...toFaceState(EXPRESSIONS.happy),
     lid0: 1,
@@ -171,7 +171,7 @@ test("senha fecha ambos os olhos e mostrar a senha permite espiar", () => {
   assert.equal(peeking.lid1, 0);
 });
 
-test("acenos repetidos substituem os anteriores e a limpeza interrompe a animação", () => {
+test("repeated waves replace the previous ones and cleanup stops the animation", () => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   let reduced = false;
   Object.defineProperty(globalThis, "window", {

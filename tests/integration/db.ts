@@ -1,6 +1,6 @@
 import { Client } from "pg";
 
-/** Bancos derivados de TEST_DATABASE_URL: o modelo migrado e a cópia de cada worker. */
+/** Databases derived from TEST_DATABASE_URL: the migrated template and each worker's copy. */
 export function testDatabases(baseUrl: string, workerId = "0") {
   const base = new URL(baseUrl);
   const name = base.pathname.slice(1);
@@ -22,7 +22,7 @@ export function testDatabases(baseUrl: string, workerId = "0") {
 
 const IDENTIFIER = /^[a-z0-9_]+$/;
 
-/** Executa comandos de banco (CREATE/DROP DATABASE) pela conexão administrativa. */
+/** Runs database commands (CREATE/DROP DATABASE) over the admin connection. */
 export async function adminQuery(adminUrl: string, statements: string[]) {
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
@@ -33,8 +33,8 @@ export async function adminQuery(adminUrl: string, statements: string[]) {
   }
 }
 
-/** Nome de banco vindo da configuração de teste: só letras, números e "_". */
+/** Database name from the test config: only letters, digits and "_". */
 export function ident(name: string): string {
-  if (!IDENTIFIER.test(name)) throw new Error(`Nome de banco inválido: ${name}`);
+  if (!IDENTIFIER.test(name)) throw new Error(`Invalid database name: ${name}`);
   return `"${name}"`;
 }

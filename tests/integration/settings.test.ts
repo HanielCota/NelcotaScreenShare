@@ -16,16 +16,16 @@ const db = drizzle(pool, { schema });
 afterAll(() => pool.end());
 beforeEach(() => clearSettingsCache());
 
-test("migrações já aplicadas: rodar de novo não faz nada", async () => {
+test("migrations already applied: running again does nothing", async () => {
   await runMigrations(process.env.DATABASE_URL ?? "");
 });
 
-describe("mascote no Postgres", () => {
-  test("sem linha: padrões", async () => {
+describe("mascot in Postgres", () => {
+  test("no row: defaults", async () => {
     assert.deepEqual(await getSetting(mascotSettings, db), mascotSettings.defaults);
   });
 
-  test("salva, arredonda, lê de volta e atualiza a mesma linha", async () => {
+  test("saves, rounds, reads back and updates the same row", async () => {
     const saved = await saveSetting(
       mascotSettings,
       { saturationDark: 1.234, saturationLight: 0.5 },
@@ -42,7 +42,7 @@ describe("mascote no Postgres", () => {
     assert.equal((await db.select().from(schema.appSettings)).length, 1);
   });
 
-  test("fora da faixa é recusado e nada muda", async () => {
+  test("out of range is rejected and nothing changes", async () => {
     await assert.rejects(
       saveSetting(mascotSettings, { saturationDark: 2.5, saturationLight: 1 }, db),
     );
@@ -53,7 +53,7 @@ describe("mascote no Postgres", () => {
     });
   });
 
-  test("JSON inválido gravado por fora: padrões", async () => {
+  test("invalid JSON written from outside: defaults", async () => {
     await pool.query(
       `update app_settings set value = '{"saturationDark":"muito"}' where key = 'mascot'`,
     );

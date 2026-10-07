@@ -13,8 +13,8 @@ const base: ParticipantState = {
   can: ALL,
 };
 
-describe("ações do detalhe do participante", () => {
-  it("ativo: bloquear, excluir e anonimizar", () => {
+describe("participant detail actions", () => {
+  it("active: block, delete and anonymize", () => {
     expect(availableActions(base)).toEqual({
       unblock: false,
       block: true,
@@ -26,7 +26,7 @@ describe("ações do detalhe do participante", () => {
     });
   });
 
-  it("bloqueado com sessões e sem e-mail confirmado", () => {
+  it("blocked with sessions and unverified e-mail", () => {
     const actions = availableActions({
       ...base,
       status: "bloqueado",
@@ -41,7 +41,7 @@ describe("ações do detalhe do participante", () => {
     });
   });
 
-  it("excluído: só restaurar (se não anonimizado) e anonimizar", () => {
+  it("deleted: only restore (if not anonymized) and anonymize", () => {
     expect(availableActions({ ...base, status: "excluido" })).toMatchObject({
       block: false,
       delete: false,
@@ -54,7 +54,7 @@ describe("ações do detalhe do participante", () => {
     });
   });
 
-  it("leitor (sem permissão) não vê nenhuma ação", () => {
+  it("reader (no permission) sees no action", () => {
     const none = availableActions({
       ...base,
       can: { update: false, delete: false, anonymize: false },

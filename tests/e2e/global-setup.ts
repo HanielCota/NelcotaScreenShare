@@ -1,10 +1,10 @@
 import { runMigrations } from "../../scripts/migrate";
 import { adminQuery, ident } from "../integration/db";
 
-/** Banco do E2E recriado do zero a cada execução (as migrações também são testadas). */
+/** E2E database recreated from scratch on every run (so migrations are tested too). */
 export default async function setup() {
   const base = process.env.TEST_DATABASE_URL;
-  if (!base) throw new Error("Defina TEST_DATABASE_URL para rodar o E2E.");
+  if (!base) throw new Error("Set TEST_DATABASE_URL to run the E2E tests.");
   const admin = new URL(base);
   const e2e = new URL(base);
   e2e.pathname = "/nelcota_e2e";

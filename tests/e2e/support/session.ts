@@ -6,8 +6,8 @@ export const PASSWORD = "senha-do-participante-e2e";
 let sequence = 0;
 
 /**
- * Cada pessoa do teste vem de um "IP" próprio (X-Forwarded-For, lido pelo
- * middleware do servidor como em produção atrás do Traefik): o cadastro tem limite por IP.
+ * Each test person comes from their own "IP" (X-Forwarded-For, read by the
+ * server middleware as in production behind Traefik): sign-up is rate-limited per IP.
  */
 export async function newVisitor(
   browser: Browser,
@@ -30,7 +30,7 @@ export interface Participant {
   email: string;
 }
 
-/** Conta nova já logada (cadastro pela API; a confirmação de e-mail está desligada no E2E). */
+/** New account, already signed in (sign-up via the API; e-mail confirmation is off in E2E). */
 export async function newParticipant(browser: Browser, name: string): Promise<Participant> {
   const { context, page } = await newVisitor(browser);
   const email = `${name.toLowerCase().replaceAll(/\s+/g, ".")}.${Date.now()}.${sequence}@exemplo.dev`;
@@ -44,14 +44,14 @@ export async function newParticipant(browser: Browser, name: string): Promise<Pa
 
 let roomSequence = 0;
 
-/** Código de sala novo e válido para cada teste. */
+/** A new, valid room code for each test. */
 export function newRoomCode(): string {
   roomSequence += 1;
   const tail = `${Date.now().toString(36).slice(-4)}${roomSequence}`.padEnd(4, "x").slice(0, 4);
   return `e2e-${tail}-sala`;
 }
 
-/** Abre a sala, passa pela pré-entrada (senha da sala) e espera a sala carregar. */
+/** Opens the room, goes through pre-join (room password) and waits for the room to load. */
 export async function joinRoom(page: Page, code: string, { micOn = true } = {}) {
   await page.goto(`/sala/${code}`);
   await expect(page.getByLabel("Senha da sala (quem te convidou sabe)")).toBeVisible();

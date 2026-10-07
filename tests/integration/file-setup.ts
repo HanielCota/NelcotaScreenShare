@@ -1,11 +1,11 @@
 import { adminQuery, ident, testDatabases } from "./db";
 
 /**
- * Antes de cada arquivo de teste: cópia limpa do banco-modelo para este worker
- * (CREATE DATABASE … TEMPLATE é rápido e isola os arquivos entre si).
+ * Before each test file: a clean copy of the template database for this worker
+ * (CREATE DATABASE … TEMPLATE is fast and isolates files from each other).
  */
 const url = process.env.TEST_DATABASE_URL;
-if (!url) throw new Error("Testes de integração precisam de TEST_DATABASE_URL");
+if (!url) throw new Error("Integration tests require TEST_DATABASE_URL");
 
 const { adminUrl, template, worker, workerUrl } = testDatabases(
   url,
@@ -16,14 +16,14 @@ await adminQuery(adminUrl, [
   `CREATE DATABASE ${ident(worker)} TEMPLATE ${ident(template)}`,
 ]);
 
-// O código do app lê o banco e as chaves daqui.
+// The app code reads the database and keys from here.
 Object.assign(process.env, {
   DATABASE_URL: workerUrl,
   LIVEKIT_API_KEY: "chave-teste",
   LIVEKIT_API_SECRET: "segredo-de-teste-0123456789abcdef0123456789",
   LIVEKIT_URL: "ws://127.0.0.1:7880",
   AUTH_SECRET: "segredo-participantes-de-teste-0123456789abcdef",
-  // Os testes de conta cobrem o fluxo completo (com o link); o modo sem
-  // confirmação tem arquivo próprio (email-verification-off.test.ts).
+  // The account tests cover the full flow (with the link); the no-verification
+  // mode has its own file (email-verification-off.test.ts).
   REQUIRE_EMAIL_VERIFICATION: "true",
 });

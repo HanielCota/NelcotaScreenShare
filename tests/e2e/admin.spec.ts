@@ -22,7 +22,7 @@ async function sql(text: string, values: unknown[] = []) {
   }
 }
 
-/** Convite de dono gravado direto no banco (como o create-owner faz). */
+/** Owner invitation written straight to the database (as create-owner does). */
 async function ownerInvitation(email: string): Promise<string> {
   const token = randomBytes(32).toString("base64url");
   await sql(
@@ -33,7 +33,7 @@ async function ownerInvitation(email: string): Promise<string> {
   return token;
 }
 
-test("painel: convite, login com 2FA obrigatório, filtro de salas e exportação CSV", async ({
+test("admin panel: invitation, sign-in with required 2FA, room filter and CSV export", async ({
   browser,
 }) => {
   const email = `dono.${Date.now()}@exemplo.dev`;
@@ -53,7 +53,7 @@ test("painel: convite, login com 2FA obrigatório, filtro de salas e exportaçã
   await page.getByLabel("Senha", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
 
-  // Dono sem 2FA: o painel leva direto para ativar.
+  // Owner without 2FA: the panel goes straight to enabling it.
   await expect(page).toHaveURL(/\/admin\/conta\/seguranca/);
   await page.getByLabel("Confirme sua senha").fill(PASSWORD);
   await page.getByRole("button", { name: "Ativar verificação" }).click();
@@ -69,7 +69,7 @@ test("painel: convite, login com 2FA obrigatório, filtro de salas e exportaçã
   await page.getByRole("searchbox").first().fill(roomCode);
   await expect(page).toHaveURL(new RegExp(`q=${roomCode}`));
 
-  // A busca usa um loader GET e descarta respostas antigas durante a digitação.
+  // Search uses a GET loader and discards stale responses while typing.
   await page.keyboard.press("Control+k");
   await page.getByPlaceholder("Ir para…, código da sala ou nome de alguém").fill(roomCode);
   await expect(page.getByRole("option", { name: new RegExp(roomCode) })).toBeVisible();
@@ -80,7 +80,7 @@ test("painel: convite, login com 2FA obrigatório, filtro de salas e exportaçã
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.csv$/);
 
-  // Detalhe da sala: resumo, pessoas e compartilhamentos.
+  // Room detail: summary, people and screen shares.
   await page.getByRole("link", { name: roomCode }).click();
   await expect(page.getByRole("heading", { name: roomCode })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Resumo" })).toBeVisible();
@@ -90,7 +90,7 @@ test("painel: convite, login com 2FA obrigatório, filtro de salas e exportaçã
   const audit = await sql("select count(*)::int as n from audit_logs where action = 'room.export'");
   expect(audit.rows[0]).toEqual({ n: 1 });
 
-  // Detalhe de participante: conta, sessões, participações e histórico.
+  // Participant detail: account, sessions, participations and history.
   await sql(`insert into users (name, email, email_verified) values ('Pessoa Painel', $1, true)`, [
     `pessoa.${Date.now()}@exemplo.dev`,
   ]);
@@ -100,7 +100,7 @@ test("painel: convite, login com 2FA obrigatório, filtro de salas e exportaçã
   await expect(page.getByText("Ainda não entrou em nenhuma sala.")).toBeVisible();
   await expect(page.getByText("Nenhuma ação do painel nesta conta.")).toBeVisible();
 
-  // Uma mutação revalida a página e o root, sem recarregar o documento.
+  // A mutation revalidates the page and the root without reloading the document.
   await page.goto("/admin/configuracoes");
   const saturation = page.getByRole("slider", { name: "Tema escuro" });
   await saturation.focus();
