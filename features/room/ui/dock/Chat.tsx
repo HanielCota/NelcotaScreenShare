@@ -41,6 +41,12 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
 
   useEffect(() => {
     inputRef.current?.focus();
+    // Focus and the panel's first layout can change its scrollable height.
+    const frame = requestAnimationFrame(() => {
+      const list = listRef.current;
+      list?.scrollTo({ top: list.scrollHeight });
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   function scrollToEnd(behavior: ScrollBehavior = "auto") {
