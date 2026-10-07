@@ -341,6 +341,31 @@
   font-family: var(--font-sans);
 }
 
+/* Admin navigation shares the app's floating surfaces. Outside @layer so the
+ * contextual design takes precedence over the sidebar's utility classes.
+ * The mobile sheet is portaled to body, outside the shell itself. */
+.admin-shell [data-slot="sidebar-inner"] {
+  @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl;
+  border-radius: var(--radius-2xl);
+}
+
+.admin-shell [data-slot="sidebar-menu-button"],
+body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"] {
+  border-radius: var(--radius-lg);
+}
+
+.admin-shell [data-state="expanded"] [data-slot="sidebar-menu-button"],
+body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"] {
+  min-height: 2.5rem;
+  padding-inline: 0.75rem;
+}
+
+.admin-shell [data-slot="sidebar-menu-button"][data-active="true"],
+body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"][data-active="true"] {
+  background-color: color-mix(in oklch, var(--color-brand) 14%, transparent);
+  color: var(--color-brand-soft);
+}
+
 /*
  * "Apple-style" buttons (access screens): pill shape, borderless fill,
  * medium weight and a slight "press" on click. Outside @layer on purpose:
