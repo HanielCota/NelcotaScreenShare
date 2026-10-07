@@ -60,9 +60,9 @@ export function SignInForm({
       if (failure.code && OWN_FAULT.has(failure.code)) {
         upsetMascot("grumpy", passwordRef.current ?? undefined);
         passwordRef.current?.select();
-      } else {
-        upsetMascot("worried");
+        return;
       }
+      upsetMascot("worried");
       return;
     }
     forgetTypedEmail();

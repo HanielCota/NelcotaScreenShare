@@ -34,14 +34,16 @@ export interface RoomRow {
   shares: number;
 }
 
+function statusFilters(status: RoomParams["status"]): SQL[] {
+  if (status === "excluida") return [isNotNull(rooms.deletedAt)];
+  const filters: SQL[] = [isNull(rooms.deletedAt)];
+  if (status === "ativa") filters.push(eq(rooms.status, "active"));
+  if (status === "encerrada") filters.push(eq(rooms.status, "finished"));
+  return filters;
+}
+
 function filtersFrom(params: RoomParams): SQL[] {
-  const filters: SQL[] = [];
-  if (params.status === "excluida") filters.push(isNotNull(rooms.deletedAt));
-  else {
-    filters.push(isNull(rooms.deletedAt));
-    if (params.status === "ativa") filters.push(eq(rooms.status, "active"));
-    if (params.status === "encerrada") filters.push(eq(rooms.status, "finished"));
-  }
+  const filters: SQL[] = statusFilters(params.status);
   filters.push(...periodFilters(rooms.startedAt, params));
   const q = params.q.trim().toLowerCase().slice(0, 40);
   if (q) filters.push(sql`${rooms.code} like ${`%${likeEscape(q)}%`}`);

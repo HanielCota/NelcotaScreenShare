@@ -22,8 +22,11 @@ export function PrivacyToc({ items }: { items: PrivacyTocItem[] }) {
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) visible.add(entry.target.id);
-          else visible.delete(entry.target.id);
+          if (entry.isIntersecting) {
+            visible.add(entry.target.id);
+            continue;
+          }
+          visible.delete(entry.target.id);
         }
         const first = items.find((item) => visible.has(item.id));
         if (!first) return;

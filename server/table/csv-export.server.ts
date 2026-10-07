@@ -19,8 +19,11 @@ export function csvResponse(
     async pull(controller) {
       try {
         const next = await iterator.next();
-        if (next.done) controller.close();
-        else controller.enqueue(encoder.encode(csvRow(next.value)));
+        if (next.done) {
+          controller.close();
+          return;
+        }
+        controller.enqueue(encoder.encode(csvRow(next.value)));
       } catch (error) {
         logger.error({ err: error, filename }, "CSV export failed");
         controller.error(error);

@@ -77,21 +77,25 @@ export function ExpandableRow({
   }, [id]);
 
   useEffect(() => {
-    if (open) {
+    function moveFocus() {
+      if (!open) {
+        if (wasOpen.current) trigger.current?.focus();
+        return;
+      }
       const field = content.current?.querySelector<HTMLElement>(
         "input:not([type=hidden]), textarea, select, button",
       );
-      if (revealOnOpen.current) {
-        revealOnOpen.current = false;
-        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        row.current?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
-        field?.focus({ preventScroll: true });
-      } else {
+      if (!revealOnOpen.current) {
         field?.focus();
+        return;
       }
-    } else if (wasOpen.current) {
-      trigger.current?.focus();
+      revealOnOpen.current = false;
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      row.current?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      field?.focus({ preventScroll: true });
     }
+
+    moveFocus();
     wasOpen.current = open;
   }, [open]);
 

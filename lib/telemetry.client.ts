@@ -45,9 +45,11 @@ export function configureBrowserTelemetry(config?: { dsn?: string; release?: str
 export function reportBrowserError(error: unknown) {
   if (isRouteErrorResponse(error)) return;
   console.error(error);
-  if (sdk)
+  if (sdk) {
     void sdk.then((sentry) => {
       sentry?.captureException(error);
     });
-  else if (pending.length < 10) pending.push(error);
+    return;
+  }
+  if (pending.length < 10) pending.push(error);
 }
