@@ -7,6 +7,7 @@ import {
 } from "@/features/room/client/connection-errors";
 import { pickFocusedShare } from "@/features/room/domain/focus";
 import { joinFailure, presenceText } from "@/features/room/domain/join";
+import { presenceForGuests } from "@/features/room/domain/presence";
 
 const share = (sid: string, isLocal = false) => ({
   publication: { trackSid: sid },
@@ -74,5 +75,23 @@ describe("LiveKit error messages", () => {
     expect(micErrorMessage(new DOMException("", "NotAllowedError"))).toContain("bloqueou");
     expect(micErrorMessage(new DOMException("", "NotFoundError"))).toContain("Nenhum microfone");
     expect(micErrorMessage(new DOMException("", "NotReadableError"))).toContain("em uso");
+  });
+});
+
+describe("presence for guests", () => {
+  const presence = {
+    online: 2,
+    participants: [
+      { id: "1", name: "Ana Souza", image: "data:image/webp;base64,UklGR" },
+      { id: "2", name: "Bia Lima", image: null },
+    ],
+  };
+
+  it("without the access password, shows who is inside", () => {
+    expect(presenceForGuests(presence, false)).toBe(presence);
+  });
+
+  it("with the access password, keeps only the count", () => {
+    expect(presenceForGuests(presence, true)).toEqual({ online: 2, participants: [] });
   });
 });

@@ -1,6 +1,6 @@
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { eq } from "drizzle-orm";
-import { profilePhotoSchema } from "@/features/account/domain/profile-photo";
+import { isPlainWebp, profilePhotoSchema } from "@/features/account/domain/profile-photo";
 import { recordAudit } from "@/server/audit.server";
 import { clientIpFrom } from "@/server/client-ip.server";
 import type { Database } from "@/server/db/index.server";
@@ -47,7 +47,7 @@ function validateProfilePhoto(body: unknown) {
   if (!parsed.success) throw new APIError("BAD_REQUEST", { message: "Foto de perfil inválida." });
   if (parsed.data === null) return;
   const bytes = Buffer.from(parsed.data.split(",")[1] ?? "", "base64");
-  if (bytes.toString("ascii", 0, 4) !== "RIFF" || bytes.toString("ascii", 8, 12) !== "WEBP") {
+  if (!isPlainWebp(bytes)) {
     throw new APIError("BAD_REQUEST", { message: "Foto de perfil inválida." });
   }
 }

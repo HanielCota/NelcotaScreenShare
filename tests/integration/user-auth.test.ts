@@ -146,6 +146,10 @@ describe("login", () => {
   });
 });
 
+/** The 1 px WebP below with an EXIF chunk (metadata such as location). */
+const WEBP_WITH_EXIF =
+  "data:image/webp;base64,UklGRkAAAABXRUJQVlA4WAoAAAAIAAAAAAAAAAAARVhJRgQAAABHUFMhVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
+
 describe("profile photo", () => {
   test("sign-up validates the photo with the same rules as the update", async () => {
     const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
@@ -154,6 +158,7 @@ describe("profile photo", () => {
       "data:image/svg+xml;base64,PHN2Zz4=",
       "data:image/webp;base64," + "A".repeat(180_001),
       "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
+      WEBP_WITH_EXIF,
     ];
     for (const invalid of invalidImages) {
       const email = `foto-invalida-${crypto.randomUUID()}@exemplo.com`;
@@ -194,6 +199,7 @@ describe("profile photo", () => {
       "data:image/svg+xml;base64,PHN2Zz4=",
       "data:image/webp;base64," + "A".repeat(180_001),
       "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
+      WEBP_WITH_EXIF,
     ]) {
       const rejected = await call("/update-user", {
         body: { image: invalid },
