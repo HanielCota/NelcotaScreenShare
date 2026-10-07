@@ -13,3 +13,50 @@ export const profilePhotoSchema = z
   .max(PROFILE_PHOTO.maxDataLength)
   .regex(/^data:image\/webp;base64,UklGR[A-Za-z0-9+/]+={0,2}$/)
   .nullable();
+
+/**
+ * Image data only. Browsers embed the color profile (ICCP) in what the canvas exports;
+ * personal metadata (EXIF, XMP), animation and unknown chunks are refused.
+ */
+const IMAGE_CHUNKS = new Set(["VP8 ", "VP8L", "VP8X", "ALPH", "ICCP"]);
+const BITSTREAM_CHUNKS = new Set(["VP8 ", "VP8L"]);
+
+function fourCC(bytes: Uint8Array, offset: number): string {
+  return String.fromCharCode(...bytes.subarray(offset, offset + 4));
+}
+
+function uint32(bytes: Uint8Array, offset: number): number {
+  return new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0, true);
+}
+
+/** An ICC profile declares its own size (big-endian) and carries the `acsp` signature. */
+function isIccProfile(bytes: Uint8Array, offset: number, size: number): boolean {
+  if (size < 128) return false;
+  const declared = new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0, false);
+  return declared === size && fourCC(bytes, offset + 36) === "acsp";
+}
+
+/**
+ * A still WebP made only of image chunks, with a RIFF size that matches and no
+ * trailing bytes: what the photo editor produces. Anything else may smuggle data.
+ */
+export function isPlainWebp(bytes: Uint8Array): boolean {
+  if (bytes.length < 20) return false;
+  if (fourCC(bytes, 0) !== "RIFF" || fourCC(bytes, 8) !== "WEBP") return false;
+  if (uint32(bytes, 4) !== bytes.length - 8) return false;
+  let offset = 12;
+  let bitstream = false;
+  while (offset < bytes.length) {
+    if (offset + 8 > bytes.length) return false;
+    const chunk = fourCC(bytes, offset);
+    if (!IMAGE_CHUNKS.has(chunk)) return false;
+    const size = uint32(bytes, offset + 4);
+    // Chunks are padded to an even length.
+    const end = offset + 8 + size + (size % 2);
+    if (end > bytes.length) return false;
+    if (chunk === "ICCP" && !isIccProfile(bytes, offset + 8, size)) return false;
+    bitstream ||= BITSTREAM_CHUNKS.has(chunk);
+    offset = end;
+  }
+  return bitstream;
+}
