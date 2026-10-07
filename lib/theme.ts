@@ -1,3 +1,5 @@
+import { prefersReducedMotion } from "@/lib/animation/motion";
+
 export type Theme = "dark" | "light";
 
 const STORAGE_KEY = "nelcota:tema";
@@ -23,6 +25,15 @@ export function applyTheme(theme: Theme) {
   } catch {
     // Storage blocked: the theme only lasts until reload.
   }
+}
+
+/** Applies the theme with a smooth transition of every color at once, where the browser supports it. */
+export function switchTheme(theme: Theme) {
+  if (document.startViewTransition && !prefersReducedMotion()) {
+    document.startViewTransition(() => applyTheme(theme));
+    return;
+  }
+  applyTheme(theme);
 }
 
 /** Notifies whoever depends on the theme (button, toasts) when the attribute changes. */
