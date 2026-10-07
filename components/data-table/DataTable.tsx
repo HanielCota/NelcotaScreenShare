@@ -96,7 +96,7 @@ const TableTransitionContext = createContext<TransitionStartFunction | null>(nul
 
 export function useTableTransition(): TransitionStartFunction {
   const startTransition = use(TableTransitionContext);
-  if (!startTransition) throw new Error("useTableTransition fora de um DataTable");
+  if (!startTransition) throw new Error("useTableTransition outside a DataTable");
   return startTransition;
 }
 

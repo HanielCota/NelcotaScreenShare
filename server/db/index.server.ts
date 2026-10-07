@@ -26,7 +26,7 @@ export function getDb(): Database {
     connectionTimeoutMillis: 5_000,
   });
   // An idle connection that drops (Postgres restart) must not bring the process down.
-  pool.on("error", (error) => logger.error({ err: error }, "conexão ociosa do Postgres falhou"));
+  pool.on("error", (error) => logger.error({ err: error }, "idle Postgres connection failed"));
 
   globalForDb.nelcotaDb = drizzle(pool, { schema });
   globalForDb.nelcotaPool = pool;

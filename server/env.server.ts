@@ -6,7 +6,7 @@ const emptyToUndefined = (value: unknown) =>
 // Postgres: accounts, rooms and settings. Use the role without DDL (nelcota_app).
 const databaseUrlSchema = z.url({
   protocol: /^postgres(ql)?$/,
-  error: "DATABASE_URL é obrigatória (postgres:// ou postgresql://)",
+  error: "DATABASE_URL is required (postgres:// or postgresql://)",
 });
 
 // Public origin of the app (e-mail links, Better Auth CSRF). In dev: localhost.
@@ -19,17 +19,17 @@ export const logLevelSchema = z.preprocess(
 
 const envSchema = z
   .object({
-    LIVEKIT_API_KEY: z.string({ error: "LIVEKIT_API_KEY é obrigatória" }).min(1),
+    LIVEKIT_API_KEY: z.string({ error: "LIVEKIT_API_KEY is required" }).min(1),
     LIVEKIT_API_SECRET: z
-      .string({ error: "LIVEKIT_API_SECRET é obrigatória" })
-      .min(32, "LIVEKIT_API_SECRET precisa ter ao menos 32 caracteres"),
+      .string({ error: "LIVEKIT_API_SECRET is required" })
+      .min(32, "LIVEKIT_API_SECRET must be at least 32 characters"),
     LIVEKIT_URL: z.url({
       protocol: /^wss?$/,
-      error: "LIVEKIT_URL precisa ser uma URL ws:// ou wss://",
+      error: "LIVEKIT_URL must be a ws:// or wss:// URL",
     }),
     ACCESS_PASSWORD: z.preprocess(
       emptyToUndefined,
-      z.string().min(8, "ACCESS_PASSWORD precisa ter ao menos 8 caracteres").optional(),
+      z.string().min(8, "ACCESS_PASSWORD must be at least 8 characters").optional(),
     ),
     MAX_PARTICIPANTS: z.preprocess(
       emptyToUndefined,
@@ -54,21 +54,21 @@ const envSchema = z
     // Secret of the Better Auth participant instance (cookies, encrypted 2FA).
     // Generate with: openssl rand -base64 48
     AUTH_SECRET: z
-      .string({ error: "AUTH_SECRET é obrigatória (openssl rand -base64 48)" })
-      .min(32, "AUTH_SECRET precisa ter ao menos 32 caracteres"),
+      .string({ error: "AUTH_SECRET is required (openssl rand -base64 48)" })
+      .min(32, "AUTH_SECRET must be at least 32 characters"),
     // Public origin of the app (e-mail links, Better Auth CSRF). In dev: localhost.
     APP_URL: appUrlSchema,
     // Secret of the Better Auth admin instance (cookies, encrypted 2FA). Without it,
     // /admin is disabled. Generate with: openssl rand -base64 48
     ADMIN_AUTH_SECRET: z.preprocess(
       emptyToUndefined,
-      z.string().min(32, "ADMIN_AUTH_SECRET precisa ter ao menos 32 caracteres").optional(),
+      z.string().min(32, "ADMIN_AUTH_SECRET must be at least 32 characters").optional(),
     ),
     // Transactional e-mail (invitations, password recovery, verification).
     // Without SMTP_URL in development, e-mails go to the log.
     SMTP_URL: z.preprocess(
       emptyToUndefined,
-      z.url({ protocol: /^smtps?$/, error: "SMTP_URL precisa ser smtp:// ou smtps://" }).optional(),
+      z.url({ protocol: /^smtps?$/, error: "SMTP_URL must be smtp:// or smtps://" }).optional(),
     ),
     MAIL_FROM: z.preprocess(emptyToUndefined, z.string().min(3).optional()),
     // Optional observability. Only the public DSN is sent to the browser.
@@ -84,7 +84,7 @@ const envSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["APP_URL"],
-        message: "Defina APP_URL (ex.: https://app.seudominio.com) para os links de e-mail",
+        message: "Set APP_URL (e.g. https://app.yourdomain.com) for the e-mail links",
       });
     }
     if (!env.SMTP_URL || !env.MAIL_FROM) {
@@ -92,14 +92,14 @@ const envSchema = z
         code: "custom",
         path: ["SMTP_URL"],
         message:
-          "Em produção, verificação de e-mail e recuperação de senha exigem SMTP_URL e MAIL_FROM",
+          "In production, e-mail verification and password recovery require SMTP_URL and MAIL_FROM",
       });
     }
     if (env.ADMIN_AUTH_SECRET && env.ADMIN_AUTH_SECRET === env.AUTH_SECRET) {
       ctx.addIssue({
         code: "custom",
         path: ["ADMIN_AUTH_SECRET"],
-        message: "Use segredos diferentes para o painel admin e para as contas de participantes",
+        message: "Use different secrets for the admin panel and for participant accounts",
       });
     }
   });
@@ -127,7 +127,7 @@ export function getEnv(): Env {
     const details = parsed.error.issues
       .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
       .join("\n");
-    throw new Error(`Variáveis de ambiente inválidas:\n${details}`);
+    throw new Error(`Invalid environment variables:\n${details}`);
   }
   cached = parsed.data;
   return cached;
@@ -139,7 +139,7 @@ export function getEnv(): Env {
  */
 export function databaseUrl(): string {
   const parsed = databaseUrlSchema.safeParse(process.env.DATABASE_URL);
-  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "DATABASE_URL inválida");
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid DATABASE_URL");
   return parsed.data;
 }
 

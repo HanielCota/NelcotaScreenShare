@@ -26,6 +26,6 @@ export async function recordTokenRequest(entry: {
       ip: entry.ip,
     });
   } catch (error) {
-    logger.error({ err: error, result: entry.result }, "falha ao registrar pedido de token");
+    logger.error({ err: error, result: entry.result }, "failed to record token request");
   }
 }

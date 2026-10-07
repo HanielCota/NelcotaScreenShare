@@ -86,7 +86,7 @@ export const deleteMyAccount = defineUserOperation(
         resourceId: userId,
       });
     });
-    logger.info({ event: "user.account_deleted", userId }, "conta excluída pelo titular");
+    logger.info({ event: "user.account_deleted", userId }, "account deleted by its owner");
     return { deleted: true };
   },
 );

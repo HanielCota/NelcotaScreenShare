@@ -104,7 +104,7 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
 
 function useReact(): (emoji: Reaction) => void {
   const react = use(ReactionsContext);
-  if (!react) throw new Error("useReact precisa de um <ReactionsProvider>");
+  if (!react) throw new Error("useReact requires a <ReactionsProvider>");
   return react;
 }
 

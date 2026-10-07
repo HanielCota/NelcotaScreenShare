@@ -87,12 +87,12 @@ export default defineConfig({
               {
                 group: ["@/features/*", "@/features/**", "@/app/*", "@/app/**"],
                 allowTypeImports: true,
-                message: "Código genérico não depende de features nem de rotas.",
+                message: "Generic code does not depend on features or routes.",
               },
               {
                 group: ["@/server", "@/server/**", "pg", "drizzle-orm", "drizzle-orm/*"],
                 allowTypeImports: true,
-                message: "Código genérico não acessa o servidor nem o banco.",
+                message: "Generic code does not access the server or the database.",
               },
             ],
           },
@@ -126,7 +126,7 @@ export default defineConfig({
                   "livekit-server-sdk",
                 ],
                 allowTypeImports: true,
-                message: "UI não acessa o servidor: use props, loaders ou actions de rota.",
+                message: "UI does not access the server: use props, loaders or route actions.",
               },
               {
                 group: [
@@ -139,7 +139,7 @@ export default defineConfig({
                 ],
                 allowTypeImports: true,
                 message:
-                  "UI de outra feature não é pública (só o mascote e o aviso de compartilhamento).",
+                  "Another feature's UI is not public (only the mascot and the screen share notice).",
               },
             ],
           },
@@ -173,7 +173,7 @@ export default defineConfig({
                   "@/features/**/ui/**",
                 ],
                 allowTypeImports: true,
-                message: "domain/ é TypeScript puro: dependências entram por parâmetro.",
+                message: "domain/ is plain TypeScript: dependencies come in as parameters.",
               },
             ],
           },
@@ -199,7 +199,7 @@ export default defineConfig({
                   "@/features/**/client/**",
                   "@/features/**/actions",
                 ],
-                message: "Infra não conhece features (exceto o domain/, que é puro).",
+                message: "Infra does not know about features (except domain/, which is pure).",
               },
             ],
           },

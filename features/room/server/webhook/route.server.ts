@@ -67,7 +67,7 @@ export async function receiveLivekitWebhook(request: Request) {
           : undefined,
         at: new Date(Number(event.createdAt) * 1000).toISOString(),
       },
-      "evento do LiveKit",
+      "LiveKit event",
     );
   }
 
@@ -77,10 +77,10 @@ export async function receiveLivekitWebhook(request: Request) {
   try {
     const result = await ingestEvent(db, id, eventObject.parse(event.toJson()));
     if (result === "failed") {
-      logger.warn({ source: "livekit-webhook", id, event: event.event }, "evento não projetado");
+      logger.warn({ source: "livekit-webhook", id, event: event.event }, "event not projected");
     }
   } catch (error) {
-    logger.error({ err: error, source: "livekit-webhook", id }, "falha ao gravar evento");
+    logger.error({ err: error, source: "livekit-webhook", id }, "failed to store event");
     return Response.json({ error: "unavailable" }, { status: 503 });
   }
   return new Response(null, { status: 204 });

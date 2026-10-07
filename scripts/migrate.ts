@@ -45,14 +45,14 @@ const isEntryPoint = process.argv[1] && import.meta.url === pathToFileURL(proces
 if (isEntryPoint) {
   const url = process.env.MIGRATOR_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!url) {
-    console.error("[migrate] defina MIGRATOR_DATABASE_URL (usuário de migração, não o do app)");
+    console.error("[migrate] set MIGRATOR_DATABASE_URL (the migration user, not the app's)");
     process.exit(1);
   }
   const started = Date.now();
   runMigrations(url, process.env.MIGRATIONS_DIR ?? join(process.cwd(), "drizzle")).then(
-    () => console.info(`[migrate] migrações em dia (${Date.now() - started} ms)`),
+    () => console.info(`[migrate] migrations up to date (${Date.now() - started} ms)`),
     (error: unknown) => {
-      console.error("[migrate] falhou", error);
+      console.error("[migrate] failed", error);
       process.exit(1);
     },
   );

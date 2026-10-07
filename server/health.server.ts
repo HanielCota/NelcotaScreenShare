@@ -26,7 +26,7 @@ export async function readiness() {
       new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 2_000)),
     ]);
   } catch (error) {
-    logger.warn({ err: error }, "readiness: banco indisponível");
+    logger.warn({ err: error }, "readiness: database unavailable");
     return Response.json(
       { status: "unavailable", version, database: "down" },
       { status: 503, headers },

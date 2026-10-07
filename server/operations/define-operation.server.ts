@@ -31,15 +31,12 @@ export function defineOperation<P extends BasePolicy, C extends { audit: AuditRe
         if (!parsed.success) return { validationErrors: z.flattenError(parsed.error) };
         const data = await run({ parsedInput: parsed.data, ctx });
         if (policy.audit === "required" && ctx.audit.count === 0) {
-          throw new Error(`A operação ${policy.name} não registrou sua auditoria.`);
+          throw new Error(`Operation ${policy.name} did not record its audit entry.`);
         }
         return { data };
       } catch (error) {
         if (error instanceof ActionError) return { serverError: error.message };
-        (await requestLogger({ operation: policy.name })).error(
-          { err: error },
-          "falha numa operação",
-        );
+        (await requestLogger({ operation: policy.name })).error({ err: error }, "operation failed");
         return { serverError: "Algo deu errado do nosso lado. Tente de novo em instantes." };
       }
     };

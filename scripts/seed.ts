@@ -23,19 +23,21 @@ const args = new Map(
 const profile = args.get("perfil") ?? "dev";
 const rows = Number(args.get("linhas") ?? 300_000);
 /** Password of every seeded participant (dev only). */
-const SEED_PASSWORD = "senha-dev-1234";
+const SEED_PASSWORD = "dev-password-1234";
 
 const url = process.env.DATABASE_URL ?? "";
 const local = /@(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//.test(url);
 if (process.env.NODE_ENV === "production" || (!local && !args.has("forcar"))) {
-  console.error("Seed recusado: só roda em banco local (ou com --forcar num banco descartável).");
+  console.error(
+    "Seed refused: it only runs on a local database (or with --forcar on a disposable one).",
+  );
   process.exit(1);
 }
 function openDb() {
   try {
     return getDb();
   } catch {
-    console.error("Defina DATABASE_URL.");
+    console.error("Set DATABASE_URL.");
     process.exit(1);
   }
 }
@@ -238,17 +240,17 @@ if (profile === "carga") {
   const result = await seedLoad(rows);
   const loadRooms = await seedRooms(Math.ceil(rows / 15), "carga-", "carga%@exemplo.dev");
   await db.execute(sql`analyze rooms; analyze room_participations; analyze share_sessions;`);
-  console.info(`[seed] carga: +${loadRooms} salas com participações e compartilhamentos`);
+  console.info(`[seed] load: +${loadRooms} rooms with participations and shares`);
   console.info(
-    `[seed] carga: +${result.audit} auditoria, até ${result.participants} participantes (${Date.now() - started} ms)`,
+    `[seed] load: +${result.audit} audit, up to ${result.participants} participants (${Date.now() - started} ms)`,
   );
 } else {
   const participants = await seedParticipants(300);
   const audit = await seedAudit(2_000);
   const devRooms = await seedRooms(60, "seed-", "participante%@exemplo.dev");
-  console.info(`[seed] dev: +${devRooms} salas com participações e compartilhamentos`);
+  console.info(`[seed] dev: +${devRooms} rooms with participations and shares`);
   console.info(
-    `[seed] dev: +${participants} participantes (senha "${SEED_PASSWORD}"), +${audit} registros de auditoria (${Date.now() - started} ms)`,
+    `[seed] dev: +${participants} participants (password "${SEED_PASSWORD}"), +${audit} audit records (${Date.now() - started} ms)`,
   );
 }
 process.exit(0);

@@ -14,7 +14,7 @@ if (!process.env.TEST_DATABASE_URL && existsSync(`${root}.env.local`)) {
 
 if (!process.env.TEST_DATABASE_URL) {
   // Without the test database, integration tests do not run: warn instead of silently skipping.
-  console.warn("[vitest] TEST_DATABASE_URL ausente: só os testes unitários vão rodar.");
+  console.warn("[vitest] TEST_DATABASE_URL missing: only unit tests will run.");
 }
 
 /**

@@ -21,7 +21,7 @@ export async function sendMail(message: MailMessage): Promise<void> {
   if (!SMTP_URL) {
     logger.warn(
       { mail: { to: message.to, subject: message.subject }, body: message.text },
-      "e-mail não enviado (sem SMTP_URL): conteúdo no log",
+      "e-mail not sent (no SMTP_URL): content in the log",
     );
     return;
   }

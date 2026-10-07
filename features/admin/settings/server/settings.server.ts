@@ -70,7 +70,7 @@ export async function getSetting<T>(group: SettingGroup<T>, db: Database = getDb
     // A database outage must not break the page: fall back to the default, without caching.
     if (Date.now() - lastReadErrorAt > 60_000) {
       lastReadErrorAt = Date.now();
-      logger.error({ err: error, setting: group.key }, "falha ao ler configuração");
+      logger.error({ err: error, setting: group.key }, "failed to read setting");
     }
     return group.defaults;
   }

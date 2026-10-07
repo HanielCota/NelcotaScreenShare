@@ -22,7 +22,7 @@ export function csvResponse(
         if (next.done) controller.close();
         else controller.enqueue(encoder.encode(csvRow(next.value)));
       } catch (error) {
-        logger.error({ err: error, filename }, "falha ao exportar CSV");
+        logger.error({ err: error, filename }, "CSV export failed");
         controller.error(error);
       }
     },

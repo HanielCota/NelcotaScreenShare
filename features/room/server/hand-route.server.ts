@@ -40,10 +40,7 @@ export async function setRaisedHand(request: Request) {
     if (error instanceof ServerError && error.status === 404) {
       return fail("Você não está nesta sala.", 409);
     }
-    (await requestLogger({ route: "api/sala/mao" })).error(
-      { err: error },
-      "falha ao levantar a mão",
-    );
+    (await requestLogger({ route: "api/sala/mao" })).error({ err: error }, "failed to raise hand");
     return fail("Não foi possível agora. Tente de novo.", 502);
   }
   return new Response(null, { status: 204 });

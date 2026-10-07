@@ -29,7 +29,7 @@ export async function createRoomInvite(
     .insert(roomInvites)
     .values({ ...input, tokenHash: hashInviteToken(token) })
     .returning({ id: roomInvites.id });
-  if (!invite) throw new Error("convite não foi gravado");
+  if (!invite) throw new Error("invite was not saved");
   return { id: invite.id, token };
 }
 

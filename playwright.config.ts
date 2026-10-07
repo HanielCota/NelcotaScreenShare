@@ -15,7 +15,7 @@ process.env.TEST_DATABASE_URL ??= local.TEST_DATABASE_URL;
 
 function e2eDatabaseUrl(): string {
   const base = env.TEST_DATABASE_URL;
-  if (!base) throw new Error("Defina TEST_DATABASE_URL (Postgres de testes) para rodar o E2E.");
+  if (!base) throw new Error("Set TEST_DATABASE_URL (test Postgres) to run the E2E.");
   const url = new URL(base);
   url.pathname = "/nelcota_e2e";
   return url.toString();

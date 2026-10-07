@@ -22,7 +22,7 @@ const force = args.includes("--force");
 const email = z.email().safeParse(args.find((arg) => !arg.startsWith("--")));
 
 if (!email.success) {
-  console.error("Uso: create-owner <email> [--force]");
+  console.error("Usage: create-owner <email> [--force]");
   process.exit(1);
 }
 
@@ -30,7 +30,7 @@ function openDb() {
   try {
     return getDb();
   } catch {
-    console.error("Defina DATABASE_URL (o painel admin precisa do banco).");
+    console.error("Set DATABASE_URL (the admin panel needs the database).");
     process.exit(1);
   }
 }
@@ -43,7 +43,7 @@ const owners = await db
 
 if (owners.length > 0 && !force) {
   console.error(
-    "Já existe um dono ativo. Convide novos admins pelo painel. Para recuperar acesso, rode de novo com --force.",
+    "An active owner already exists. Invite new admins from the panel. To recover access, run again with --force.",
   );
   process.exit(1);
 }
@@ -56,7 +56,7 @@ const { url, invitation } = await createAdminInvitation(db, {
 });
 
 console.info(
-  `\nConvite de dono para ${invitation.email} (válido por 30 minutos, uso único):\n\n  ${url}\n`,
+  `\nOwner invitation for ${invitation.email} (valid for 30 minutes, single use):\n\n  ${url}\n`,
 );
-console.info("Abra o link, defina nome e senha e configure a verificação em duas etapas.\n");
+console.info("Open the link, set a name and password, and set up two-factor verification.\n");
 process.exit(0);

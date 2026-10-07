@@ -113,9 +113,9 @@ export function scheduleMaintenance(getDatabase: () => Database, log: Maintenanc
   let pending: Promise<void> | undefined;
   const maintain = async () => {
     try {
-      log.info({ maintenance: await runMaintenance(getDatabase()) }, "manutenção concluída");
+      log.info({ maintenance: await runMaintenance(getDatabase()) }, "maintenance completed");
     } catch (error) {
-      log.error({ err: error }, "falha na manutenção");
+      log.error({ err: error }, "maintenance failed");
     }
   };
   const run = () => {

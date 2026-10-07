@@ -56,7 +56,7 @@ export async function createAdminInvitation(
       .returning();
     return row;
   });
-  if (!invitation) throw new Error("Convite não criado");
+  if (!invitation) throw new Error("Invitation not created");
   return { token, url: invitationUrl(token), invitation };
 }
 

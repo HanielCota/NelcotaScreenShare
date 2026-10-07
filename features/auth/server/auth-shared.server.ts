@@ -83,7 +83,7 @@ async function safeAudit(fn: () => Promise<void>) {
   try {
     await fn();
   } catch (error) {
-    logger.error({ err: error }, "falha ao gravar auditoria de autenticação");
+    logger.error({ err: error }, "failed to write authentication audit");
   }
 }
 
@@ -164,7 +164,7 @@ export function authHooks(
             hash,
             ip: ctx.headers ? clientIpFrom(ctx.headers) : undefined,
           });
-          logger.warn({ event: `${scope}.sign_in_failed` }, "login recusado");
+          logger.warn({ event: `${scope}.sign_in_failed` }, "sign-in refused");
           if (audit) {
             await safeAudit(() =>
               recordAudit(db, "system", {

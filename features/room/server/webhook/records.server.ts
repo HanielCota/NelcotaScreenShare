@@ -50,7 +50,7 @@ export async function ensureRoom(
       },
     })
     .returning({ id: rooms.id });
-  if (!room) throw new Error(`sala ${code} não foi gravada`);
+  if (!room) throw new Error(`room ${code} was not saved`);
   return room.id;
 }
 
@@ -145,7 +145,7 @@ export async function ensureParticipation(
       joinedAt: roomParticipations.joinedAt,
       leftAt: roomParticipations.leftAt,
     });
-  if (!row) throw new Error("participação não foi gravada");
+  if (!row) throw new Error("participation was not saved");
   return row;
 }
 

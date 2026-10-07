@@ -23,7 +23,7 @@ export const USER_AUTH_BASE_PATH = "/api/auth";
 /** Account e-mails are sent in the background: the response time reveals nothing. */
 function deliver(to: string, subject: string, content: ReturnType<typeof mailLayout>) {
   void sendMail({ to, subject, ...content }).catch((error: unknown) =>
-    logger.error({ err: error, subject }, "falha ao enviar e-mail de conta"),
+    logger.error({ err: error, subject }, "failed to send account e-mail"),
   );
 }
 

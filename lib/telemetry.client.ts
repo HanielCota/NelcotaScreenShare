@@ -37,7 +37,7 @@ export function configureBrowserTelemetry(config?: { dsn?: string; release?: str
       return sentry;
     })
     .catch((error: unknown) => {
-      console.error("Não foi possível iniciar a observabilidade:", error);
+      console.error("Could not start observability:", error);
       return undefined;
     });
 }

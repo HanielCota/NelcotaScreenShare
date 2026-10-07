@@ -94,7 +94,7 @@ function createAdminAuth(db: Database, secret: string) {
           outro: "Se não foi você, ignore este e-mail: sua senha continua a mesma.",
         });
         void sendMail({ to: user.email, subject: "Redefinir senha do painel", ...mail }).catch(
-          (error: unknown) => logger.error({ err: error }, "falha ao enviar e-mail de redefinição"),
+          (error: unknown) => logger.error({ err: error }, "failed to send reset e-mail"),
         );
       },
     },
@@ -132,7 +132,7 @@ function createAdminAuth(db: Database, secret: string) {
                 resourceType: "admin_user",
                 resourceId: user.id,
               },
-            ).catch((error: unknown) => logger.error({ err: error }, "falha ao auditar 2FA"));
+            ).catch((error: unknown) => logger.error({ err: error }, "failed to audit 2FA"));
           },
         },
       },
@@ -151,7 +151,7 @@ function createAdminAuth(db: Database, secret: string) {
                 resourceType: "admin_user",
                 resourceId: account.userId,
               },
-            ).catch((error: unknown) => logger.error({ err: error }, "falha ao auditar senha"));
+            ).catch((error: unknown) => logger.error({ err: error }, "failed to audit password"));
           },
         },
       },

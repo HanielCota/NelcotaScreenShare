@@ -27,7 +27,7 @@ export function withRequest<T>(
 
 export function requestHeaders(): Headers {
   const current = scope.getStore();
-  if (!current) throw new Error("Esta operação exige uma requisição HTTP.");
+  if (!current) throw new Error("This operation requires an HTTP request.");
   return current.request.headers;
 }
 

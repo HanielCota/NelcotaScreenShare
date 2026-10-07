@@ -37,7 +37,7 @@ export const getUserSession = cache(async (): Promise<UserSession | null> => {
       sql`${users.id} = ${user.id} and (${users.lastSeenAt} is null or ${users.lastSeenAt} < now() - interval '1 hour')`,
     )
     // Just a statistic: failing here must not prevent the page from opening.
-    .catch((error: unknown) => logger.warn({ err: error }, "falha ao gravar último acesso"));
+    .catch((error: unknown) => logger.warn({ err: error }, "failed to record last access"));
   return {
     user: {
       id: user.id,

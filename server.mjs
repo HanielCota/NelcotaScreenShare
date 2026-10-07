@@ -64,7 +64,7 @@ const shutdown = () => {
       await vite?.close();
       process.exit(0);
     })().catch((error) => {
-      console.error("Falha ao encerrar o servidor:", error);
+      console.error("Failed to shut down the server:", error);
       process.exit(1);
     });
   });

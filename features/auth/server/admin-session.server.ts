@@ -35,7 +35,7 @@ export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
     await auth.api
       .revokeSession({ body: { token: session.token }, headers: requestHeaders() })
       // The session is already refused here; revoking only cleans the database sooner.
-      .catch((error: unknown) => logger.warn({ err: error }, "falha ao revogar sessão vencida"));
+      .catch((error: unknown) => logger.warn({ err: error }, "failed to revoke expired session"));
     return null;
   }
   return {

@@ -40,7 +40,10 @@ export const acceptInvitation = definePublicOperation(
       },
       { adminId: result.userId },
     );
-    logger.info({ event: "admin.invitation_accepted", adminId: result.userId }, "convite aceito");
+    logger.info(
+      { event: "admin.invitation_accepted", adminId: result.userId },
+      "invitation accepted",
+    );
     return { email: result.email };
   },
 );

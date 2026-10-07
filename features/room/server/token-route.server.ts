@@ -66,7 +66,7 @@ export async function requestRoomToken(request: Request) {
   }
   if ("failure" in result) {
     const log = await requestLogger({ route: "api/token" });
-    log.error({ err: result.failure }, "falha ao gerar token");
+    log.error({ err: result.failure }, "failed to generate token");
   }
   return rejection(
     result.error,
