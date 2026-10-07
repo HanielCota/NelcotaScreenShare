@@ -30,14 +30,17 @@ export const getUserSession = cache(async (): Promise<UserSession | null> => {
   const { user, session } = result;
   if (user.blockedAt || user.deletedAt) return null;
   // Last access (at most one write per hour per person).
-  await getDb()
-    .update(users)
-    .set({ lastSeenAt: sql`now()` })
-    .where(
-      sql`${users.id} = ${user.id} and (${users.lastSeenAt} is null or ${users.lastSeenAt} < now() - interval '1 hour')`,
-    )
-    // Just a statistic: failing here must not prevent the page from opening.
-    .catch((error: unknown) => logger.warn({ err: error }, "failed to record last access"));
+  const lastSeenAt = user.lastSeenAt ? new Date(user.lastSeenAt).getTime() : 0;
+  if (lastSeenAt < Date.now() - 60 * 60 * 1000) {
+    await getDb()
+      .update(users)
+      .set({ lastSeenAt: sql`now()` })
+      .where(
+        sql`${users.id} = ${user.id} and (${users.lastSeenAt} is null or ${users.lastSeenAt} < now() - interval '1 hour')`,
+      )
+      // Just a statistic: failing here must not prevent the page from opening.
+      .catch((error: unknown) => logger.warn({ err: error }, "failed to record last access"));
+  }
   return {
     user: {
       id: user.id,
