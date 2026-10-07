@@ -133,7 +133,7 @@ export function FilterDate({
   );
 }
 
-/** Text field with local state (the caller updates the URL with a debounce). */
+/** Controlled field: nuqs updates the value immediately while debouncing the URL. */
 export function FilterSearch({
   label,
   placeholder,
@@ -149,14 +149,7 @@ export function FilterSearch({
   type?: "search" | "number" | "text";
 }) {
   const id = useId();
-  const [text, setText] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  // The URL was cleared from outside ("Limpar" button): the field follows.
-  const [seen, setSeen] = useState(value);
-  if (value !== seen) {
-    setSeen(value);
-    if (value === "") setText("");
-  }
   return (
     <Field label={label} htmlFor={id} className={type === "number" ? "w-32" : "min-w-48 flex-1"}>
       <div className="relative">
@@ -171,15 +164,14 @@ export function FilterSearch({
           id={id}
           type={type}
           min={type === "number" ? 0 : undefined}
-          value={text}
+          value={value}
           placeholder={placeholder}
           className={cn("h-9", type === "search" && "pr-9 pl-8")}
           onChange={(event) => {
-            setText(event.target.value);
             onChange(event.target.value);
           }}
         />
-        {type === "search" && text ? (
+        {type === "search" && value ? (
           <Button
             type="button"
             variant="ghost"
@@ -187,7 +179,6 @@ export function FilterSearch({
             className="absolute top-1/2 right-1 size-7 -translate-y-1/2"
             aria-label={`Limpar ${label}`}
             onClick={() => {
-              setText("");
               onChange("");
               inputRef.current?.focus();
             }}

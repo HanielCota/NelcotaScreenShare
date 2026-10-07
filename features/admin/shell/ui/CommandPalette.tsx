@@ -38,7 +38,10 @@ export function CommandPalette({
   const search = useOperation(searchPanelAction);
   const { execute } = search;
   const term = query.trim();
-  const results = term.length >= 2 && search.input?.q === term ? search.result.data : undefined;
+  const results =
+    term.length >= 2 && !search.isPending && search.input?.q === term
+      ? search.result.data
+      : undefined;
 
   // Searches on the server after a pause in typing.
   useEffect(() => {
