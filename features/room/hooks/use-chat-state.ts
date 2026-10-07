@@ -17,11 +17,7 @@ import {
   type ChatEditOp,
   type ChatEdits,
 } from "@/features/room/domain/chat-edits";
-import {
-  createReceiveThrottle,
-  decodeMessage,
-  encodeMessage,
-} from "@/features/room/domain/data-channel";
+import { decodeMessage, encodeMessage } from "@/features/room/domain/data-channel";
 
 /** Message as it appears on screen: with edits and deletions already applied. */
 export interface ChatEntry {
@@ -68,11 +64,10 @@ export function useChatState(): ChatState {
   const [seen, setSeen] = useState(0);
   const announced = useRef(0);
   const [edits, setEdits] = useState<ChatEdits>(() => new Map());
-  const [acceptEdit] = useState(() => createReceiveThrottle(50));
 
   const { send: publishEdit } = useDataChannel(CHAT_EDIT_TOPIC, (message) => {
     const sender = message.from?.identity;
-    if (!sender || !acceptEdit(sender)) return;
+    if (!sender) return;
     const op = decodeMessage(message.payload, chatEditSchema);
     if (!op) return;
     setEdits((current) => recordChatEdit(current, op, sender));
