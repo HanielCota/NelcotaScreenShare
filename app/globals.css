@@ -128,7 +128,8 @@
  * A light theme that does not glare: no pure white. Warm gray background #E6E4DF, the
  * lightest surface stops at #EFEDE9 and text is graphite, not black.
  * `brand-soft` becomes dark green (in light mode it is used for text and icons).
- * Text contrast ≥ 4.5:1 on every surface.
+ * Text contrast ≥ 4.5:1 on every surface, status colors included (also over
+ * their own 15% tint, as in StatusBadge).
  */
 :root[data-theme="light"] {
   color-scheme: light;
@@ -149,11 +150,11 @@
   --color-brand-soft: #236339;
   --color-brand-ink: #14281c;
 
-  --color-danger: #b02e2e;
-  --color-success: #1f8a48;
-  --color-warning: #a8701a;
-  --color-info: #2058c9;
-  --color-violet: #6b3fc4;
+  --color-danger: #a32626;
+  --color-success: #146432;
+  --color-warning: #7a4f08;
+  --color-info: #1c4fb5;
+  --color-violet: #6236b8;
 
   --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.45) inset, 0 10px 28px -18px rgb(40 34 20 / 0.28);
 
@@ -169,7 +170,7 @@
   --muted-foreground: #4f5157;
   --accent: #d8d5ce;
   --accent-foreground: #1f2023;
-  --destructive: #b02e2e;
+  --destructive: #a32626;
   --border: rgb(40 36 28 / 0.1);
   --input: rgb(40 36 28 / 0.14);
 }
