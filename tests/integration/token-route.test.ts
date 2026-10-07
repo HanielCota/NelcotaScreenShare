@@ -26,17 +26,19 @@ const fakeLiveKit = createServer((request, response) => {
     if (room === "sala-nova") {
       response.statusCode = 404;
       response.end(JSON.stringify({ code: "not_found", msg: "room not found" }));
-    } else if (room === "sala-quebrada") {
+      return;
+    }
+    if (room === "sala-quebrada") {
       response.statusCode = 500;
       response.end(JSON.stringify({ code: "internal", msg: "boom" }));
-    } else {
-      const count = room === "sala-cheia" ? 3 : 1;
-      response.end(
-        JSON.stringify({
-          participants: Array.from({ length: count }, (_, i) => ({ identity: `p${i}` })),
-        }),
-      );
+      return;
     }
+    const count = room === "sala-cheia" ? 3 : 1;
+    response.end(
+      JSON.stringify({
+        participants: Array.from({ length: count }, (_, i) => ({ identity: `p${i}` })),
+      }),
+    );
   });
 });
 await new Promise<void>((resolve) => fakeLiveKit.listen(0, "127.0.0.1", resolve));

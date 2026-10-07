@@ -16,9 +16,9 @@ export function ThemeToggle({ className }: { className?: string }) {
     // Smooth transition of every color at once, where the browser supports it.
     if (document.startViewTransition && !prefersReducedMotion()) {
       document.startViewTransition(() => applyTheme(next));
-    } else {
-      applyTheme(next);
+      return;
     }
+    applyTheme(next);
   }
 
   return (

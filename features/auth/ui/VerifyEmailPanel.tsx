@@ -43,15 +43,17 @@ export function VerifyEmailPanel({
       setCooldown(RESEND_COOLDOWN);
       setStatus("wait");
       upsetMascot("worried");
-    } else if (failure) {
+      return;
+    }
+    if (failure) {
       setStatus("idle");
       setError(authErrorMessage(failure, "Não foi possível enviar o link. Tente de novo."));
       upsetMascot("worried");
-    } else {
-      setCooldown(RESEND_COOLDOWN);
-      setStatus("sent");
-      celebrateMascot();
+      return;
     }
+    setCooldown(RESEND_COOLDOWN);
+    setStatus("sent");
+    celebrateMascot();
   }
 
   return (

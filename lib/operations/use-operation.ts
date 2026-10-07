@@ -24,9 +24,11 @@ export function useOperation<I, O>(command: Operation<I, O>, callbacks: Callback
     previous.current = fetcher.data;
     pending.current?.(fetcher.data);
     pending.current = undefined;
-    if (fetcher.data.data !== undefined)
+    if (fetcher.data.data !== undefined) {
       callbacksRef.current.onSuccess?.({ data: fetcher.data.data });
-    else callbacksRef.current.onError?.({ error: fetcher.data });
+      return;
+    }
+    callbacksRef.current.onError?.({ error: fetcher.data });
   }, [fetcher.state, fetcher.data]);
   const executeAsync = useCallback(
     (...args: undefined extends I ? [input?: I] : [input: I]) => {
@@ -38,13 +40,13 @@ export function useOperation<I, O>(command: Operation<I, O>, callbacks: Callback
       const payload = JSON.stringify({ input: args[0] });
       if (command.method === "get") {
         void submit({ payload }, { action: command.url, method: "get" });
-      } else {
-        void submit(payload, {
-          action: command.url,
-          method: "post",
-          encType: "application/json",
-        });
+        return promise;
       }
+      void submit(payload, {
+        action: command.url,
+        method: "post",
+        encType: "application/json",
+      });
       return promise;
     },
     [command.url, command.method, submit],

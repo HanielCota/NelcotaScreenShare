@@ -22,15 +22,20 @@ app.use((request, _response, next) => {
   request.headers["x-nelcota-peer-ip"] = request.socket.remoteAddress;
   next();
 });
-let build;
 /** @type {import("react-router").ServerBuild | undefined} */
 let activeBuild;
-if (production) {
-  build = buildSchema.parse(await import("./build/server/index.js"));
-  activeBuild = build;
+
+/** Serves the compiled build and its static assets. */
+async function productionBuild() {
+  const serverBuild = buildSchema.parse(await import("./build/server/index.js"));
+  activeBuild = serverBuild;
   app.use("/assets", express.static("build/client/assets", { immutable: true, maxAge: "1y" }));
   app.use(express.static("build/client", { maxAge: "1h" }));
-} else {
+  return serverBuild;
+}
+
+/** Runs Vite in middleware mode and reloads the server build on every request. */
+async function developmentBuild() {
   const { createServer } = await import("vite");
   vite = await createServer({
     server: { middlewareMode: true, ws: { server, clientPort: port } },
@@ -41,13 +46,20 @@ if (production) {
   activeBuild = buildSchema.parse(await vite.ssrLoadModule("virtual:react-router/server-build"));
   await vite.environments.client.warmupRequest("/app/entry.client.tsx");
   const devServer = vite;
-  build = async () => {
+  return async () => {
     activeBuild = buildSchema.parse(
       await devServer.ssrLoadModule("virtual:react-router/server-build"),
     );
     return activeBuild;
   };
 }
+
+async function loadBuild() {
+  if (production) return productionBuild();
+  return developmentBuild();
+}
+
+const build = await loadBuild();
 app.use(createRequestHandler({ build, mode: process.env.NODE_ENV }));
 server.listen(port, process.env.HOST ?? "0.0.0.0", () =>
   console.info(`Nelcota: http://localhost:${port}`),

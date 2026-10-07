@@ -21,8 +21,11 @@ export function toastWithUndo(
       onClick: () => {
         undo()
           .then((result) => {
-            if (result?.serverError) toast.error(result.serverError);
-            else toast.success(undoneMessage);
+            if (result?.serverError) {
+              toast.error(result.serverError);
+              return;
+            }
+            toast.success(undoneMessage);
           })
           .catch(() => toast.error("Não foi possível desfazer. Tente de novo."));
       },

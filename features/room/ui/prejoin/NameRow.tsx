@@ -66,7 +66,9 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
               if (event.key === "Enter") {
                 event.preventDefault();
                 void save();
-              } else if (event.key === "Escape") {
+                return;
+              }
+              if (event.key === "Escape") {
                 setDraft(name);
                 setEditing(false);
               }

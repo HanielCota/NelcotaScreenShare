@@ -235,8 +235,7 @@ async function seedRooms(count: number, prefix: string, userPattern: string) {
   return (after.rows[0]?.total ?? 0) - (before.rows[0]?.total ?? 0);
 }
 
-const started = Date.now();
-if (profile === "carga") {
+async function seedLoadProfile(started: number) {
   const result = await seedLoad(rows);
   const loadRooms = await seedRooms(Math.ceil(rows / 15), "carga-", "carga%@exemplo.dev");
   await db.execute(sql`analyze rooms; analyze room_participations; analyze share_sessions;`);
@@ -244,7 +243,9 @@ if (profile === "carga") {
   console.info(
     `[seed] load: +${result.audit} audit, up to ${result.participants} participants (${Date.now() - started} ms)`,
   );
-} else {
+}
+
+async function seedDevProfile(started: number) {
   const participants = await seedParticipants(300);
   const audit = await seedAudit(2_000);
   const devRooms = await seedRooms(60, "seed-", "participante%@exemplo.dev");
@@ -253,4 +254,15 @@ if (profile === "carga") {
     `[seed] dev: +${participants} participants (password "${SEED_PASSWORD}"), +${audit} audit records (${Date.now() - started} ms)`,
   );
 }
+
+async function seedProfile(started: number) {
+  if (profile === "carga") {
+    await seedLoadProfile(started);
+    return;
+  }
+  await seedDevProfile(started);
+}
+
+const started = Date.now();
+await seedProfile(started);
 process.exit(0);

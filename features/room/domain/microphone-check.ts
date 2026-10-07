@@ -15,10 +15,10 @@ export function createMicrophoneCheck() {
       audibleSince ??= now;
       lastAudible = now;
       if (now - audibleSince >= 200) state = "detected";
-    } else {
-      audibleSince = undefined;
-      if (state === "detected" && now - lastAudible >= 1500) state = "confirmed";
+      return state;
     }
+    audibleSince = undefined;
+    if (state === "detected" && now - lastAudible >= 1500) state = "confirmed";
     return state;
   };
 }

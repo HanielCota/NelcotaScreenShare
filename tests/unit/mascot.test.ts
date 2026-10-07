@@ -171,6 +171,15 @@ test("a password closes both eyes and showing the password allows peeking", () =
   assert.equal(peeking.lid1, 0);
 });
 
+/** Puts the original `window` back, or removes the fake one when there was none. */
+function restoreWindow(previous: PropertyDescriptor | undefined) {
+  if (previous) {
+    Object.defineProperty(globalThis, "window", previous);
+    return;
+  }
+  Reflect.deleteProperty(globalThis, "window");
+}
+
 test("repeated waves replace the previous ones and cleanup stops the animation", () => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   let reduced = false;
@@ -218,7 +227,6 @@ test("repeated waves replace the previous ones and cleanup stops the animation",
     avatarHands.wave();
     assert.equal(elements[0]?.active.size, 0);
   } finally {
-    if (previousWindow) Object.defineProperty(globalThis, "window", previousWindow);
-    else Reflect.deleteProperty(globalThis, "window");
+    restoreWindow(previousWindow);
   }
 });

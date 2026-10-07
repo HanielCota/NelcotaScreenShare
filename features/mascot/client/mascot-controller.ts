@@ -19,7 +19,7 @@ import {
 import { prefersReducedMotion } from "@/lib/animation/motion";
 import { createFaceAnimator } from "./face-animator";
 import type { FaceRenderer } from "./face-renderer";
-import { focusedPasswordField, gazeFor, IDLE } from "./gaze";
+import { gazeFor, IDLE, pairPartner, passwordEyes } from "./gaze";
 import { createHandMotions } from "./hand-motions";
 import { startAmbient } from "./ambient";
 import { listenToSignals } from "./signals";
@@ -71,12 +71,9 @@ export function createMascotController(
       const waiting = current === "waiting";
       const listening = current === "listening";
       const trackingPartner = gazeFocus(current) === "partner";
-      let nextFace;
-      if (listening) {
-        const voice = voiceAmount(inputs.voice());
-        nextFace = listeningFace(faceTarget(), voice);
-        root.style.setProperty("--voice", voice.toFixed(3));
-      } else root.style.setProperty("--voice", "0");
+      const voice = listening ? voiceAmount(inputs.voice()) : 0;
+      const nextFace = listening ? listeningFace(faceTarget(), voice) : undefined;
+      root.style.setProperty("--voice", listening ? voice.toFixed(3) : "0");
       return {
         ...(waiting ? { gaze: waitingGaze(time) } : trackingPartner ? { gaze: gazeTarget() } : {}),
         ...(nextFace ? { face: nextFace } : {}),
@@ -89,10 +86,7 @@ export function createMascotController(
   const personality = createPersonality({
     root,
     hands,
-    react: (expression) => {
-      if (expression) setReason("interaction", expression);
-      else clearReason("interaction");
-    },
+    react: (expression) => toggleReason("interaction", expression),
     move,
     stopMotion: () => {
       bodyAnimation?.cancel();
@@ -130,22 +124,19 @@ export function createMascotController(
     if (reasons.delete(reason)) update();
   }
 
-  /** Hidden password: eyes closed. Shown: peeks with one eye only (but not while asleep). */
-  function eyeOverride(): readonly [number, number] | undefined {
-    const field = focusedPasswordField();
-    if (!field || current === "asleep") return undefined;
-    return field.type === "password" ? [1, 1] : [1, 0];
+  /** Sets the reason, or clears it when there is no expression. */
+  function toggleReason(reason: Reason, expression: Expression | undefined) {
+    if (!expression) {
+      clearReason(reason);
+      return;
+    }
+    setReason(reason, expression);
   }
+
+  const eyeOverride = () => passwordEyes(current);
 
   function faceTarget() {
     return toFaceState(EXPRESSIONS[current], eyeOverride());
-  }
-
-  /** The other mascot of the pair (walking or greeting, they look at each other). */
-  function partner(): Element | undefined {
-    return [
-      ...(root.closest("[data-mascot-pair]")?.querySelectorAll("[data-slot=mascot]") ?? []),
-    ].find((other) => other !== root);
   }
 
   function gazeTarget() {
@@ -154,7 +145,7 @@ export function createMascotController(
     const target =
       signals.attentionTarget() ??
       (focus === "partner"
-        ? partner()
+        ? pairPartner(root)
         : focus === "stage"
           ? (document.querySelector("[data-mascot-stage]") ?? undefined)
           : undefined);
@@ -199,8 +190,11 @@ export function createMascotController(
     scheduleReasonExpiry();
     animator.setTargets(gazeTarget(), faceTarget());
     settleGestures(previous, eyeOverride());
-    if (reducedMotion()) snapToTargets();
-    else if (!document.hidden && onScreen) animator.start();
+    if (reducedMotion()) {
+      snapToTargets();
+      return;
+    }
+    if (!document.hidden && onScreen) animator.start();
   }
 
   /** For frequent events (mouse, selection, scroll): recomputes once per frame. */
@@ -292,12 +286,11 @@ export function createMascotController(
     // Walking and standing still alternate in the home page pair every few seconds:
     // a pat or "high five" in progress continues; anything else is interrupted.
     if (nextActivity !== "idle" && nextActivity !== "walking") personality.cancel();
-    if (nextActivity === "idle") clearReason("context");
-    else {
+    if (nextActivity !== "idle") {
       sleep.forget();
       reasons.delete("curiosity");
-      setReason("context", nextActivity);
     }
+    toggleReason("context", nextActivity === "idle" ? undefined : nextActivity);
     update();
     sleep.check();
   }
@@ -323,10 +316,12 @@ export function createMascotController(
 
   const visibility = new IntersectionObserver(([entry]) => {
     onScreen = entry?.isIntersecting ?? true;
-    if (onScreen) {
-      onActivity();
-      update();
-    } else pauseMotion();
+    if (!onScreen) {
+      pauseMotion();
+      return;
+    }
+    onActivity();
+    update();
   });
   visibility.observe(root);
 

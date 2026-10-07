@@ -11,8 +11,11 @@ export function savedMicrophone(): string | undefined {
 
 export function saveMicrophone(deviceId: string | undefined) {
   try {
-    if (deviceId) localStorage.setItem(MIC_KEY, deviceId);
-    else localStorage.removeItem(MIC_KEY);
+    if (deviceId) {
+      localStorage.setItem(MIC_KEY, deviceId);
+      return;
+    }
+    localStorage.removeItem(MIC_KEY);
   } catch {
     // Storage blocked: it just does not remember the choice.
   }

@@ -53,8 +53,11 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
   const count = chat.messages.length;
   const seenCount = useRef(count);
   const onArrival = useEffectEvent((added: number) => {
-    if (atBottom || chat.messages.at(-1)?.mine) scrollToEnd();
-    else setMissed((value) => value + added);
+    if (atBottom || chat.messages.at(-1)?.mine) {
+      scrollToEnd();
+      return;
+    }
+    setMissed((value) => value + added);
   });
   useEffect(() => {
     const added = count - seenCount.current;
@@ -104,11 +107,11 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
       if (editing) {
         await chat.edit(editing.id, text);
         cancelEditing();
-      } else {
-        await chat.send(text);
-        setDraft("");
-        inputRef.current?.focus();
+        return;
       }
+      await chat.send(text);
+      setDraft("");
+      inputRef.current?.focus();
     } catch {
       toast.error(
         editing

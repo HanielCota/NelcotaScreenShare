@@ -44,8 +44,11 @@ export function attachTouch(ctx: TouchContext) {
         : undefined;
     cancelPress();
     ctx.onActivity();
-    if (action === "pet") personality.pet();
-    else if (action === "high-five") personality.highFive();
+    if (action === "pet") {
+      personality.pet();
+      return;
+    }
+    if (action === "high-five") personality.highFive();
   };
   /** The mouse arrived: offers a "high five" or just waves (not too often). */
   const greet = () => {

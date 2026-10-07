@@ -16,8 +16,11 @@ export class CookieJar {
       const index = pair.indexOf("=");
       const name = pair.slice(0, index);
       const value = pair.slice(index + 1);
-      if (!value || /max-age=0/i.test(line)) this.jar.delete(name);
-      else this.jar.set(name, value);
+      if (!value || /max-age=0/i.test(line)) {
+        this.jar.delete(name);
+        continue;
+      }
+      this.jar.set(name, value);
     }
   }
 
