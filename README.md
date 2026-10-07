@@ -97,7 +97,7 @@ Além da qualidade do código, o lint **impõe a arquitetura** (ver
 - `components/` e `lib/` (genéricos) não importam features, rotas nem o servidor;
 - a UI de cada feature não importa servidor, banco nem a UI de outra feature (só o mascote e o
   aviso de compartilhamento são públicos); a regra é gerada por feature a partir de `features/`;
-- `features/*/domain` e `features/mascot/engine` são TypeScript puro (sem React, roteador, banco ou SDK);
+- `features/*/domain` (e `features/admin/*/domain`) são TypeScript puro (sem React, roteador, banco ou SDK);
 - `server/` (infra) só conhece o `domain/` das features;
 - nenhum arquivo acima de 300 linhas úteis, nenhuma função com complexidade acima de 15.
 
@@ -178,9 +178,9 @@ O app usa **PostgreSQL 18** com **[Drizzle ORM](https://orm.drizzle.team)** (`dr
 
 - O schema fica em `server/db/schema/` (um arquivo por área). Depois de mudar o schema, rode `pnpm db:generate`, revise o SQL e faça commit dele em `drizzle/`. O CI falha se o schema e as migrações não baterem.
 - **Migrações nunca rodam no boot do app.** São um job separado (`scripts/migrate.ts`), com um usuário próprio do Postgres, advisory lock e `lock_timeout` de 5 s. Mudanças seguem _expand/contract_ (o código antigo continua funcionando com o schema novo).
-- Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `server/settings.server.ts`). Um grupo novo de configuração não precisa de migração.
+- Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `features/admin/settings/server/settings.server.ts`). Um grupo novo de configuração não precisa de migração.
 - `DATABASE_URL` é obrigatória: entrar numa sala exige conta.
-- **Retenção (LGPD) e reprocessamento:** a cada 6 h o próprio processo do app (`features/maintenance`) apaga pedidos de token com mais de 6 meses, tira o IP das participações com mais de 6 meses e o nome com mais de 12, apaga eventos do LiveKit e falhas de login com mais de 30 dias e sessões vencidas há 7 dias, e reprojeta eventos do webhook que falharam.
+- **Retenção (LGPD) e reprocessamento:** a cada 6 h o próprio processo do app (`features/runtime/server/maintenance.server.ts`) apaga pedidos de token com mais de 6 meses, tira o IP das participações com mais de 6 meses e o nome com mais de 12, apaga eventos do LiveKit e falhas de login com mais de 30 dias e sessões vencidas há 7 dias, e reprojeta eventos do webhook que falharam.
 
 ### Papéis do Postgres (privilégio mínimo)
 
@@ -415,31 +415,33 @@ Organização por feature (guia em [docs/README.md](docs/README.md), decisões e
 ```
 app/
   routes.ts               # URLs e hierarquia explícitas
-  routes/                 # módulos de páginas e endpoints, com loaders/actions
+  routes/                 # páginas e endpoints: loaders/actions finos que chamam as features
     access/               # acesso do participante
-    admin/{access,panel}/  # acesso e painel administrativo
-    api/                  # endpoints e suas implementações privadas .server.ts
+    admin/{access,panel}/ # acesso e painel administrativo
+    api/                  # endpoints, espelhando a URL (account/, admin/, room/)
+  operations.server.ts    # registro das operações chamadas pelo navegador (/api/operations/:id)
   root.tsx                # documento HTML, providers e dados globais
   entry.{client,server}.tsx
   globals.css fonts.css
+features/<nome>/          # mesmo padrão em todas (só as subpastas necessárias):
+  domain/                 #   TypeScript puro, testado em tests/unit
+  server/                 #   consultas, mutações e handlers das rotas de API (.server.ts)
+  client/                 #   código do navegador fora do React
+  hooks/ ui/              #   React
+  actions.ts              #   descritores públicos das operações (actions.server.ts no servidor)
 features/
-  room/                   # sala ao vivo
-    domain/               #   puro: código da sala, contrato do /api/token, decisão de entrada,
-                          #   canal de dados, foco, presença (testes em tests/unit)
-    server/               #   token (orquestração + gateway do LiveKit), webhook, convites, presença
-    client/               #   chamadas do navegador, erros do SDK, microfone salvo
-    hooks/ ui/            #   conexão, microfone, compartilhamento; pré-entrada, chamada, palco, dock
-  mascot/                 # o Nelcota: engine/ (regras puras), dom/ (controlador, molas, eventos), ui/
+  room/                   # sala ao vivo (token, webhook, presença, pré-entrada, chamada, dock)
+  mascot/                 # o Nelcota: domain/ (regras), client/ (controladores e eventos), ui/
   auth/                   # as duas instâncias do Better Auth, sessões, permissões e telas de acesso
-  account/                # "Minha conta" do participante (actions, dados LGPD, formulários)
+  security/               # sessões e 2FA, usados pela conta e pelo painel
+  account/                # "Minha conta" do participante e operações sobre contas
   admin/                  # painel: rooms, participants, shares, audit, search, settings, shell
-  participants/           # operações sobre a conta (bloquear, excluir, anonimizar)
-  home/                   # página inicial com a barra de entrada
-  maintenance/            # retenção LGPD e reprocessamento do webhook (a cada 6 h)
-components/               # UI genérica (shadcn em ui/, tabela de dados, formulários, navbar)
-lib/                      # utilitários isomórficos genéricos (+ lib/hooks)
-server/                   # infra do servidor: env, db (schema), logger, mail, rate limit, CSP,
-                          # contexto por requisição, auditoria, tabelas (keyset, CSV, filtros)
+  home/ privacy/          # página inicial e página de privacidade
+  runtime/                # inicialização do servidor e manutenção a cada 6 h (retenção LGPD)
+components/               # UI genérica: ui/ (shadcn), shell/ (cabeçalho, navbar, tema), data-table/
+lib/                      # utilitários isomórficos: operations/, animation/, hooks/
+server/                   # só infra: env, db (schema), logger, mail, rate limit, CSP, origem,
+                          # contexto por requisição, rotas de API, operações, auditoria, tabelas
 scripts/                  # migrate, create-owner, seed
 drizzle/                  # migrações SQL geradas (commitadas)
 deploy/                   # Postgres (conf, papéis) e LiveKit
