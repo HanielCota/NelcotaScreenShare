@@ -7,11 +7,15 @@ test("sign-up through the UI, account page and ending the other session", async 
   const email = `gil.${Date.now()}@exemplo.dev`;
 
   await page.goto("/cadastro");
+  // The theme is chosen right on the access screen.
+  await page.getByRole("radio", { name: "Claro", exact: true }).check();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.getByLabel("Seu nome").fill("Gil Teste");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(`${E2E_URL}/`);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
   // A second session (another "device") to end from the account page.
   const other = await newVisitor(browser);
