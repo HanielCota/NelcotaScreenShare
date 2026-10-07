@@ -1,8 +1,6 @@
-"use client";
-
 import { Trash2 } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
+import { useOperation } from "@/lib/use-operation";
+import { Link } from "react-router";
 import { debounce, useQueryStates } from "nuqs";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -25,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime, formatNumber, formatSpan } from "@/lib/format";
 import { resetPage, type BulkSelection } from "@/lib/table-params";
 import { deleteRoomsAction, restoreRoomsAction } from "@/features/admin/rooms/actions";
-import type { RoomRow } from "@/features/admin/rooms/queries";
+import type { RoomRow } from "@/features/admin/rooms/queries.server";
 import { roomParsers } from "@/features/admin/rooms/search-params";
 import { RoomStatus } from "./RoomStatus";
 
@@ -94,8 +92,8 @@ function Filters({ exportHref }: { exportHref: string | null }) {
 function CodeCell({ row }: { row: RoomRow }) {
   return (
     <Link
-      href={`/admin/salas/${row.id}`}
-      className="font-mono text-sm font-semibold hover:underline"
+      to={`/admin/salas/${row.id}`}
+      className="font-sans text-sm font-medium tabular-nums hover:underline"
     >
       {row.code}
     </Link>
@@ -173,7 +171,7 @@ function BulkActions({
   count: number;
 }) {
   const [open, setOpen] = useState(false);
-  const remove = useAction(deleteRoomsAction, {
+  const remove = useOperation(deleteRoomsAction, {
     onSuccess: ({ data }) => {
       setOpen(false);
       clear();

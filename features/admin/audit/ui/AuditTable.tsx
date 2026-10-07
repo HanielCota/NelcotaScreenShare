@@ -1,12 +1,11 @@
-"use client";
-
 import { Eye } from "lucide-react";
+import { Hint } from "@/components/Hint";
 import { createContext, use, useState } from "react";
 import type { PageInfo } from "@/components/data-table/page-info";
 import { DataTable, type DataTableColumn } from "@/components/data-table/DataTable";
 import { Button } from "@/components/ui/button";
 import { actionLabel, actorText, resourceLabel } from "@/features/admin/audit/labels";
-import type { AuditRow } from "@/features/admin/audit/queries";
+import type { AuditRow } from "@/features/admin/audit/queries.server";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { AuditDetail } from "./AuditDetail";
 import { AuditFilters, type AuditFilterOptions } from "./AuditFilters";
@@ -30,14 +29,17 @@ function DetailButton({ row }: { row: AuditRow }) {
 
 function WhenCell({ row }: { row: AuditRow }) {
   return (
-    <time
-      dateTime={row.createdAt}
-      title={formatDateTime(row.createdAt)}
-      className="whitespace-nowrap"
-      suppressHydrationWarning
-    >
-      {formatRelative(row.createdAt)}
-    </time>
+    <Hint text={formatDateTime(row.createdAt)}>
+      <button
+        type="button"
+        className="rounded-sm text-left"
+        aria-label={formatDateTime(row.createdAt)}
+      >
+        <time dateTime={row.createdAt} className="whitespace-nowrap" suppressHydrationWarning>
+          {formatRelative(row.createdAt)}
+        </time>
+      </button>
+    </Hint>
   );
 }
 
@@ -58,7 +60,9 @@ const COLUMNS: DataTableColumn<AuditRow>[] = [
   {
     id: "ip",
     header: "IP",
-    cell: ({ row }) => <span className="font-mono text-xs">{row.original.ip ?? "—"}</span>,
+    cell: ({ row }) => (
+      <span className="font-sans text-xs tabular-nums">{row.original.ip ?? "—"}</span>
+    ),
   },
   { id: "detalhes", header: "Detalhes", cell: ({ row }) => <DetailButton row={row.original} /> },
 ];
@@ -70,7 +74,7 @@ function AuditCard({ row, onOpen }: { row: AuditRow; onOpen: (row: AuditRow) => 
       onClick={() => onOpen(row)}
       className="flex w-full flex-col items-start gap-1 text-left"
     >
-      <span className="font-semibold">{actionLabel(row.action)}</span>
+      <span className="font-medium">{actionLabel(row.action)}</span>
       <span className="text-sm text-ink-muted">
         {actorText(row.actor)} ·{" "}
         <time dateTime={row.createdAt} suppressHydrationWarning>

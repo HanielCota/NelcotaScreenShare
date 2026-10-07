@@ -7,7 +7,7 @@ let sequence = 0;
 
 /**
  * Cada pessoa do teste vem de um "IP" próprio (X-Forwarded-For, lido pelo
- * proxy.ts como em produção atrás do Traefik): o cadastro tem limite por IP.
+ * middleware do servidor como em produção atrás do Traefik): o cadastro tem limite por IP.
  */
 export async function newVisitor(
   browser: Browser,

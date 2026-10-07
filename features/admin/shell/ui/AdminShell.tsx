@@ -1,9 +1,6 @@
-"use client";
-
 import { ChevronsUpDown, LogOut, Search, UserRound } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Link, useLocation, useNavigate, useRevalidator } from "react-router";
+
 import { Fragment, useState, type ReactNode } from "react";
 import { NavBrand } from "@/components/NavBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -41,7 +38,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
-import type { NavGroup } from "@/features/admin/shell/nav";
+import type { NavGroup } from "@/features/admin/shell/nav.server";
 import { CommandPalette } from "./CommandPalette";
 import { NAV_ICONS } from "./nav-icons";
 
@@ -61,7 +58,7 @@ const SEGMENT_LABELS: Record<string, string> = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function useBreadcrumbs(groups: NavGroup[]) {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
   const labels = new Map(
     groups.flatMap((group) => group.items.map((item) => [item.href, item.label])),
   );
@@ -94,15 +91,16 @@ export function AdminShell({
   defaultOpen: boolean;
   children: ReactNode;
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
+  const pathname = useLocation().pathname;
+  const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const crumbs = useBreadcrumbs(groups);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   function signOut() {
     void adminAuthClient.signOut().finally(() => {
-      router.replace("/admin/entrar?aviso=saiu");
-      router.refresh();
+      void navigate("/admin/entrar?aviso=saiu", { replace: true });
+      void revalidator.revalidate();
     });
   }
 
@@ -112,7 +110,7 @@ export function AdminShell({
         <SidebarHeader>
           <div className="flex h-10 items-center px-1 group-data-[collapsible=icon]:justify-center">
             <NavBrand href="/admin" showName={false} />
-            <span className="truncate text-sm font-semibold group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-sm font-medium group-data-[collapsible=icon]:hidden">
               Painel Nelcota
             </span>
           </div>
@@ -132,7 +130,7 @@ export function AdminShell({
                           isActive={isActive(pathname, item.href)}
                           tooltip={item.label}
                         >
-                          <Link href={item.href}>
+                          <Link to={item.href}>
                             <Icon aria-hidden="true" />
                             <span>{item.label}</span>
                           </Link>
@@ -151,11 +149,11 @@ export function AdminShell({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton size="lg" tooltip={user.name}>
-                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-3 text-sm font-bold">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-3 text-sm font-medium">
                       {user.name.slice(0, 1).toUpperCase()}
                     </span>
                     <span className="flex min-w-0 flex-col text-left leading-tight">
-                      <span className="truncate text-sm font-semibold">{user.name}</span>
+                      <span className="truncate text-sm font-medium">{user.name}</span>
                       <span className="truncate text-xs text-ink-subtle">{user.roleLabel}</span>
                     </span>
                     <ChevronsUpDown className="ml-auto size-4" aria-hidden="true" />
@@ -170,7 +168,7 @@ export function AdminShell({
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/admin/conta/seguranca">
+                    <Link to="/admin/conta/seguranca">
                       <UserRound aria-hidden="true" />
                       Minha conta
                     </Link>
@@ -200,7 +198,7 @@ export function AdminShell({
                       <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
-                        <Link href={crumb.href}>{crumb.label}</Link>
+                        <Link to={crumb.href}>{crumb.label}</Link>
                       </BreadcrumbLink>
                     )}
                   </BreadcrumbItem>
@@ -216,7 +214,7 @@ export function AdminShell({
             >
               <Search aria-hidden="true" />
               <span className="max-sm:sr-only">Buscar</span>
-              <kbd className="rounded-md border border-line px-1.5 text-[0.7rem] font-semibold max-sm:hidden">
+              <kbd className="rounded-md border border-line px-1.5 text-[0.7rem] font-medium max-sm:hidden">
                 Ctrl K
               </kbd>
             </Button>
@@ -224,7 +222,7 @@ export function AdminShell({
           </span>
         </header>
         <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
-          <NuqsAdapter>{children}</NuqsAdapter>
+          {children}
         </main>
       </SidebarInset>
       <CommandPalette

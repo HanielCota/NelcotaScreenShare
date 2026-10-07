@@ -1,0 +1,124 @@
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useLoaderData,
+  useRevalidator,
+  isRouteErrorResponse,
+  useRouteError,
+  type LoaderFunctionArgs,
+  type LinksFunction,
+} from "react-router";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
+import { InlineScript } from "@/components/InlineScript";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { getSetting, mascotSettings } from "@/server/settings.server";
+import { withRequest } from "@/server/request-context.server";
+import { THEME_COLOR, THEME_INIT_SCRIPT } from "@/lib/theme";
+import { requestMiddleware } from "@/server/middleware.server";
+import { getUserSession } from "@/features/auth/server/participant-session.server";
+import { getEnv } from "@/server/env.server";
+import { configureBrowserTelemetry } from "@/lib/telemetry.client";
+import { NavigationProgress } from "@/components/NavigationProgress";
+import "./fonts.css";
+import manrope from "@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url";
+import "./globals.css";
+
+export const middleware = [requestMiddleware];
+export const links: LinksFunction = () => [
+  { rel: "preload", href: manrope, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+];
+export const meta = () => [
+  { title: "Nelcota · Compartilhamento de tela" },
+  {
+    name: "description",
+    content: "Compartilhamento de tela para times pequenos, direto do navegador.",
+  },
+];
+
+export const loader = ({ request, context }: LoaderFunctionArgs) =>
+  withRequest(request, context, async () => {
+    const [mascot, current] = await Promise.all([getSetting(mascotSettings), getUserSession()]);
+    return {
+      nonce: request.headers.get("x-nonce") ?? undefined,
+      mascot,
+      account: current ? { name: current.user.name, image: current.user.image } : null,
+      telemetry: { dsn: getEnv().PUBLIC_SENTRY_DSN, release: getEnv().APP_VERSION },
+    };
+  });
+
+// O nonce acompanha o documento durante as navegações; só uma nova página recebe outro.
+// A configuração e o cabeçalho também acompanham alterações de conta e do painel.
+
+export function Layout({ children }: { children: ReactNode }) {
+  const data = useLoaderData<typeof loader>();
+  const [nonce] = useState(data?.nonce);
+  useEffect(() => {
+    configureBrowserTelemetry(data?.telemetry);
+  }, [data?.telemetry]);
+  const style: CSSProperties & Record<`--${string}`, number | string> = {
+    "--font-manrope": "'Manrope Variable', sans-serif",
+    "--mascot-saturation-dark": data?.mascot.saturationDark ?? 1,
+    "--mascot-saturation-light": data?.mascot.saturationLight ?? 1,
+  };
+  return (
+    <html lang="pt-BR" style={style} suppressHydrationWarning>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="theme-color" content={THEME_COLOR.dark} />
+        <meta name="color-scheme" content="dark light" />
+        <link rel="icon" href="/favicon.ico" />
+        <Meta />
+        <Links nonce={nonce} />
+        <InlineScript nonce={nonce} html={THEME_INIT_SCRIPT} />
+      </head>
+      <body className="min-h-dvh bg-canvas font-sans text-ink">
+        <NuqsAdapter>
+          <TooltipProvider delayDuration={300}>
+            <NavigationProgress />
+            {children}
+          </TooltipProvider>
+        </NuqsAdapter>
+        <Toaster position="top-center" />
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
+      </body>
+    </html>
+  );
+}
+
+export default function App() {
+  const revalidator = useRevalidator();
+  useEffect(() => {
+    const revalidate = () => {
+      void revalidator.revalidate();
+    };
+    window.addEventListener("nelcota:mutation", revalidate);
+    return () => window.removeEventListener("nelcota:mutation", revalidate);
+  }, [revalidator]);
+  return <Outlet />;
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const missing = isRouteErrorResponse(error) && error.status === 404;
+  return (
+    <main className="mx-auto max-w-xl px-6 py-24 text-center" role="alert">
+      <h1 className="text-2xl font-medium">
+        {missing ? "Página não encontrada" : "Não foi possível abrir esta página"}
+      </h1>
+      <p className="mt-3 text-ink-muted">
+        {missing ? "Confira o endereço e tente novamente." : "Tente novamente em instantes."}
+      </p>
+      <a href="/" className="mt-6 inline-block text-brand-soft underline">
+        Voltar ao início
+      </a>
+    </main>
+  );
+}

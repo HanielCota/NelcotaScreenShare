@@ -1,8 +1,6 @@
-"use client";
-
 import { Loader2, LogIn } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate, useRevalidator } from "react-router";
+
 import { useId, useRef, useState, type FormEvent } from "react";
 import { AccessTabs } from "./AccessTabs";
 import { EmailField, forgetTypedEmail } from "./EmailField";
@@ -29,7 +27,8 @@ export function SignInForm({
   context: AccessContext;
   notice?: string | undefined;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const emailId = useId();
   const passwordId = useId();
   const errorId = useId();
@@ -73,8 +72,8 @@ export function SignInForm({
       return;
     }
     celebrateMascot();
-    router.replace(returnTo);
-    router.refresh();
+    void navigate(returnTo, { replace: true });
+    void revalidator.revalidate();
   }
 
   return (
@@ -89,6 +88,7 @@ export function SignInForm({
       top={<AccessTabs current="entrar" returnTo={returnTo} />}
     >
       <form
+        method="post"
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
         className="flex flex-col gap-4"
@@ -108,8 +108,8 @@ export function SignInForm({
           <div className="flex items-baseline justify-between gap-2">
             <Label htmlFor={passwordId}>Senha</Label>
             <Link
-              href="/recuperar-senha"
-              className="text-sm font-semibold text-brand-soft hover:underline"
+              to="/recuperar-senha"
+              className="text-sm font-medium text-brand-soft hover:underline"
             >
               Esqueci a senha
             </Link>

@@ -1,0 +1,111 @@
+import { eq, sql } from "drizzle-orm";
+import { z } from "zod";
+import { getDb, type Database, type DbExecutor } from "@/server/db/index.server";
+import { appSettings } from "@/server/db/schema";
+import { logger } from "@/server/logger.server";
+
+/**
+ * Configurações do app editadas no /admin. Cada grupo é uma linha em
+ * `app_settings` (chave + JSON) com um schema Zod próprio e valores padrão:
+ * banco fora do ar, sem linha ou com JSON inválido, valem os padrões.
+ */
+interface SettingGroup<T> {
+  key: string;
+  schema: z.ZodType<T>;
+  defaults: T;
+}
+
+/** Saturação do mascote por tema (filtro CSS `saturate`): 0 = cinza, 1 = original, 2 = vivo. */
+export const MASCOT_SATURATION = { min: 0, max: 2, step: 0.05 } as const;
+
+const saturation = z
+  .number()
+  .min(MASCOT_SATURATION.min)
+  .max(MASCOT_SATURATION.max)
+  .transform((value) => Math.round(value * 100) / 100);
+
+export const mascotSettings: SettingGroup<{
+  saturationDark: number;
+  saturationLight: number;
+}> = {
+  key: "mascot",
+  schema: z.object({ saturationDark: saturation, saturationLight: saturation }),
+  defaults: { saturationDark: 1, saturationLight: 1 },
+};
+
+export type MascotSettings = z.infer<typeof mascotSettings.schema>;
+
+/**
+ * Cache em memória, por processo: o layout lê o mascote em toda página e o
+ * valor quase nunca muda. Salvar limpa o cache; o TTL só limita o atraso se um
+ * dia houver mais de uma instância.
+ */
+const CACHE_TTL_MS = 60_000;
+const cache = new Map<string, { value: unknown; expiresAt: number }>();
+
+/** Avisa a falha de leitura uma vez por minuto, não a cada página. */
+let lastReadErrorAt = 0;
+
+async function readRaw(db: Database, key: string): Promise<unknown> {
+  const [row] = await db
+    .select({ value: appSettings.value })
+    .from(appSettings)
+    .where(eq(appSettings.key, key));
+  return row?.value;
+}
+
+/** `db`: conexão a usar (testes); omitido usa a do app. */
+export async function getSetting<T>(group: SettingGroup<T>, db: Database = getDb()): Promise<T> {
+  const hit = cache.get(group.key);
+  if (hit && hit.expiresAt > Date.now()) {
+    // O cache precisa da mesma validação dos valores lidos do banco.
+    const cached = group.schema.safeParse(hit.value);
+    if (cached.success) return cached.data;
+  }
+  let value = group.defaults;
+  try {
+    const parsed = group.schema.safeParse(await readRaw(db, group.key));
+    if (parsed.success) value = parsed.data;
+  } catch (error) {
+    // Banco fora do ar não pode derrubar a página: segue com o padrão, sem cachear.
+    if (Date.now() - lastReadErrorAt > 60_000) {
+      lastReadErrorAt = Date.now();
+      logger.error({ err: error, setting: group.key }, "falha ao ler configuração");
+    }
+    return group.defaults;
+  }
+  cache.set(group.key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+  return value;
+}
+
+/**
+ * Valida e grava (upsert). Lança `ZodError` para valor inválido. Aceita uma
+ * transação para gravar junto com o audit log; `updatedBy` = admin que mudou.
+ */
+export async function saveSetting<T>(
+  group: SettingGroup<T>,
+  input: unknown,
+  db: DbExecutor = getDb(),
+  updatedBy?: string,
+): Promise<T> {
+  const value = group.schema.parse(input);
+  await db
+    .insert(appSettings)
+    .values({ key: group.key, value, updatedBy: updatedBy ?? null })
+    .onConflictDoUpdate({
+      target: appSettings.key,
+      set: { value, updatedBy: updatedBy ?? null, updatedAt: sql`now()` },
+    });
+  cache.delete(group.key);
+  return value;
+}
+
+/** Limpa o cache depois do commit (a transação pode ter gravado por último). */
+export function invalidateSetting(key: string) {
+  cache.delete(key);
+}
+
+/** Só para testes: esquece o cache entre casos. */
+export function clearSettingsCache() {
+  cache.clear();
+}

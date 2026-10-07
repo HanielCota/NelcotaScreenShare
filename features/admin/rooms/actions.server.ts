@@ -1,0 +1,199 @@
+import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import { z } from "zod";
+import { BULK_FILTER_LIMIT } from "@/lib/table-params";
+import { roomLink } from "@/features/room/domain/room-code";
+import { defineAdminOperation } from "@/features/auth/server/operations.server";
+import { ActionError } from "@/server/actions/errors";
+import { diffChanges } from "@/server/audit/record.server";
+import { getDb } from "@/server/db/index.server";
+import { rooms } from "@/server/db/schema";
+import { appUrl } from "@/server/env.server";
+import { createRoomInvite, revokeRoomInvite } from "@/features/room/server/invites.server";
+import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection.server";
+import { roomIdsForFilter } from "./queries.server";
+
+/** Exclusão reversível. Sala ao vivo não pode: encerre antes. */
+export const deleteRoomsAction = defineAdminOperation(
+  { name: "room.delete", permission: { room: ["delete"] }, audit: "required" },
+  z.object({ selection: bulkSelectionSchema }),
+  async ({ parsedInput, ctx }) => {
+    const db = getDb();
+    const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
+      roomIdsForFilter(db, search, limit),
+    );
+    const changed = await db.transaction(async (tx) => {
+      const live = await tx
+        .select({ code: rooms.code })
+        .from(rooms)
+        .where(and(inArray(rooms.id, ids), eq(rooms.status, "active"), isNull(rooms.deletedAt)));
+      if (live.length > 0) {
+        throw new ActionError(
+          live.length === 1
+            ? `A sala ${live[0]?.code} está ao vivo. Encerre a sala antes de excluir.`
+            : `${live.length} salas estão ao vivo. Encerre as salas antes de excluir.`,
+        );
+      }
+      const done = await tx
+        .update(rooms)
+        .set({ deletedAt: sql`now()` })
+        .where(and(inArray(rooms.id, ids), isNull(rooms.deletedAt)))
+        .returning({ id: rooms.id, code: rooms.code });
+      if (done.length === 0) throw new ActionError("Nenhuma sala para excluir na seleção.");
+      await ctx.audit.recordMany(
+        tx,
+        done.map((room) => ({
+          action: "room.delete",
+          resourceType: "room",
+          resourceId: room.id,
+          metadata: { codigo: room.code },
+        })),
+      );
+      return done;
+    });
+    return { ids: changed.map((room) => room.id) };
+  },
+);
+
+/**
+ * Desfaz a exclusão. Se o mesmo código já voltou a ser usado (sala nova
+ * criada depois), aquela sala fica excluída: só uma sala viva por código.
+ */
+export const restoreRoomsAction = defineAdminOperation(
+  { name: "room.restore", permission: { room: ["delete"] }, audit: "required" },
+  z.object({ ids: z.array(z.uuid()).min(1).max(BULK_FILTER_LIMIT) }),
+  async ({ parsedInput, ctx }) => {
+    const db = getDb();
+    const changed = await db.transaction(async (tx) => {
+      const done = await tx
+        .update(rooms)
+        .set({ deletedAt: null })
+        .where(
+          and(
+            inArray(rooms.id, parsedInput.ids),
+            isNotNull(rooms.deletedAt),
+            sql`not exists (select 1 from rooms as live
+              where live.code = ${rooms.code} and live.deleted_at is null)`,
+          ),
+        )
+        .returning({ id: rooms.id });
+      if (done.length === 0) {
+        throw new ActionError(
+          "Nada para restaurar (o código pode já estar em uso por outra sala).",
+        );
+      }
+      await ctx.audit.recordMany(
+        tx,
+        done.map((room) => ({ action: "room.restore", resourceType: "room", resourceId: room.id })),
+      );
+      return done;
+    });
+    return { count: changed.length };
+  },
+);
+
+/** Nota interna da sala (só o painel vê). */
+export const updateRoomNoteAction = defineAdminOperation(
+  { name: "room.updateNote", permission: { room: ["update"] }, audit: "required" },
+  z.object({
+    id: z.uuid(),
+    note: z.string().trim().max(500, "A nota pode ter até 500 caracteres."),
+  }),
+  async ({ parsedInput, ctx }) => {
+    const db = getDb();
+    const note = parsedInput.note || null;
+    await db.transaction(async (tx) => {
+      const [before] = await tx
+        .select({ note: rooms.note })
+        .from(rooms)
+        .where(eq(rooms.id, parsedInput.id))
+        .for("update");
+      if (!before) throw new ActionError("Sala não encontrada.");
+      const changes = diffChanges(before, { note });
+      if (!changes) throw new ActionError("A nota não mudou.");
+      await tx.update(rooms).set({ note }).where(eq(rooms.id, parsedInput.id));
+      await ctx.audit.record(tx, {
+        action: "room.update",
+        resourceType: "room",
+        resourceId: parsedInput.id,
+        changes,
+      });
+    });
+    return { saved: true };
+  },
+);
+
+const VALIDITY_HOURS = [1, 24, 24 * 7, 24 * 30] as const;
+
+/** Convite com validade e/ou limite de pessoas. O link só aparece agora. */
+export const createInviteAction = defineAdminOperation(
+  {
+    name: "roomInvite.create",
+    permission: { roomInvite: ["create"] },
+    audit: "required",
+  },
+  z.object({
+    roomId: z.uuid(),
+    label: z.string().trim().max(80, "O nome pode ter até 80 caracteres."),
+    maxUses: z.number().int().min(1).max(1000).nullable(),
+    validityHours: z
+      .number()
+      .refine((hours) => VALIDITY_HOURS.some((option) => option === hours))
+      .nullable(),
+  }),
+  async ({ parsedInput, ctx }) => {
+    const db = getDb();
+    const result = await db.transaction(async (tx) => {
+      const [room] = await tx
+        .select({ code: rooms.code })
+        .from(rooms)
+        .where(and(eq(rooms.id, parsedInput.roomId), isNull(rooms.deletedAt)));
+      if (!room) throw new ActionError("Sala não encontrada.");
+      const expiresAt = parsedInput.validityHours
+        ? new Date(Date.now() + parsedInput.validityHours * 3_600_000)
+        : null;
+      const invite = await createRoomInvite(tx, {
+        roomId: parsedInput.roomId,
+        label: parsedInput.label || null,
+        maxUses: parsedInput.maxUses,
+        expiresAt,
+        createdBy: ctx.admin.user.id,
+      });
+      await ctx.audit.record(tx, {
+        action: "room_invite.create",
+        resourceType: "room_invite",
+        resourceId: invite.id,
+        metadata: {
+          sala: parsedInput.roomId,
+          limite: parsedInput.maxUses,
+          expira: expiresAt?.toISOString() ?? null,
+        },
+      });
+      return { code: room.code, token: invite.token };
+    });
+    return { link: `${appUrl()}${roomLink(result.code, result.token)}` };
+  },
+);
+
+export const revokeInviteAction = defineAdminOperation(
+  {
+    name: "roomInvite.revoke",
+    permission: { roomInvite: ["revoke"] },
+    audit: "required",
+  },
+  z.object({ id: z.uuid() }),
+  async ({ parsedInput, ctx }) => {
+    const db = getDb();
+    await db.transaction(async (tx) => {
+      const revoked = await revokeRoomInvite(tx, parsedInput.id);
+      if (!revoked) throw new ActionError("Esse convite já foi revogado.");
+      await ctx.audit.record(tx, {
+        action: "room_invite.revoke",
+        resourceType: "room_invite",
+        resourceId: revoked.id,
+        metadata: { sala: revoked.roomId },
+      });
+      return revoked;
+    });
+    return { revoked: true };
+  },
+);

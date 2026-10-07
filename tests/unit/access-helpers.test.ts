@@ -59,7 +59,7 @@ test("fala do mascote acompanha a tela e a sala", () => {
   assert.equal(mascotLine("/entrar", null), "Que bom te ver de novo.");
   assert.equal(
     mascotLine("/entrar", "/sala/kfa-mtrx-q2p"),
-    "A sala kfa-mtrx-q2p já está te esperando.",
+    "Entre para acessar a sala kfa-mtrx-q2p.",
   );
   assert.match(
     mascotLine("/entrar", "/sala/kfa-mtrx-q2p?convite=x"),

@@ -1,8 +1,8 @@
-"use client";
+import { Hint } from "@/components/Hint";
 
 import { Ban, LockOpen, Trash2 } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
+import { useOperation } from "@/lib/use-operation";
+import { Link } from "react-router";
 import { debounce, useQueryStates } from "nuqs";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -32,7 +32,7 @@ import {
   unblockParticipantsAction,
 } from "@/features/admin/participants/actions";
 import { SORT_OPTIONS, STATUS_LABELS, STATUS_OPTIONS } from "@/features/admin/participants/labels";
-import type { ParticipantRow } from "@/features/admin/participants/queries";
+import type { ParticipantRow } from "@/features/admin/participants/queries.server";
 import { participantParsers } from "@/features/admin/participants/search-params";
 
 export interface ParticipantPermissions {
@@ -95,8 +95,8 @@ function Filters({ exportHref }: { exportHref: string | null }) {
 
 function NameCell({ row }: { row: ParticipantRow }) {
   return (
-    <Link href={`/admin/usuarios/${row.id}`} className="group flex flex-col">
-      <span className="font-semibold group-hover:underline">{row.name}</span>
+    <Link to={`/admin/usuarios/${row.id}`} className="group flex flex-col">
+      <span className="font-medium group-hover:underline">{row.name}</span>
       <span className="text-xs text-ink-muted">{row.email}</span>
     </Link>
   );
@@ -110,9 +110,17 @@ function StatusCell({ row }: { row: ParticipantRow }) {
 function LastSeenCell({ row }: { row: ParticipantRow }) {
   if (!row.lastSeenAt) return <span className="text-ink-subtle">Nunca</span>;
   return (
-    <time dateTime={row.lastSeenAt} title={formatDateTime(row.lastSeenAt)} suppressHydrationWarning>
-      {formatRelative(row.lastSeenAt)}
-    </time>
+    <Hint text={formatDateTime(row.lastSeenAt)}>
+      <button
+        type="button"
+        className="rounded-sm text-left"
+        aria-label={formatDateTime(row.lastSeenAt)}
+      >
+        <time dateTime={row.lastSeenAt} suppressHydrationWarning>
+          {formatRelative(row.lastSeenAt)}
+        </time>
+      </button>
+    </Hint>
   );
 }
 
@@ -170,7 +178,7 @@ function BulkActions({
   can: ParticipantPermissions;
 }) {
   const [dialog, setDialog] = useState<"block" | "delete" | null>(null);
-  const block = useAction(blockParticipantsAction, {
+  const block = useOperation(blockParticipantsAction, {
     onSuccess: ({ data }) => {
       toast.success(
         `${plural(data.count, "conta bloqueada", "contas bloqueadas")}. Sessões encerradas.`,
@@ -180,21 +188,21 @@ function BulkActions({
     },
     onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível bloquear."),
   });
-  const unblock = useAction(unblockParticipantsAction, {
+  const unblock = useOperation(unblockParticipantsAction, {
     onSuccess: ({ data }) => {
       toast.success(`${plural(data.count, "conta desbloqueada", "contas desbloqueadas")}.`);
       clear();
     },
     onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível desbloquear."),
   });
-  const remove = useAction(deleteParticipantsAction, {
+  const remove = useOperation(deleteParticipantsAction, {
     onSuccess: ({ data }) => {
       setDialog(null);
       clear();
       toastWithUndo(
         data.ids.length === 1
-          ? "Usuário excluído"
-          : `${formatNumber(data.ids.length)} usuários excluídos`,
+          ? "Conta excluída"
+          : `${formatNumber(data.ids.length)} contas excluídas`,
         () => restoreParticipantsAction({ ids: data.ids }),
         `${plural(data.ids.length, "conta restaurada", "contas restauradas")}.`,
       );

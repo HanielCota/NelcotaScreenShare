@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router";
 import { debounce, useQueryStates } from "nuqs";
 import type { PageInfo } from "@/components/data-table/page-info";
 import {
@@ -18,7 +16,7 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime, formatDuration } from "@/lib/format";
 import { resetPage } from "@/lib/table-params";
-import type { ShareRow } from "@/features/admin/shares/queries";
+import type { ShareRow } from "@/features/admin/shares/queries.server";
 import { shareParsers } from "@/features/admin/shares/search-params";
 
 const AUDIO_OPTIONS = [
@@ -113,7 +111,7 @@ function Duration({ row }: { row: ShareRow }) {
 
 function Person({ row }: { row: ShareRow }) {
   return row.userId ? (
-    <Link href={`/admin/usuarios/${row.userId}`} className="hover:underline">
+    <Link to={`/admin/usuarios/${row.userId}`} className="hover:underline">
       {row.person}
     </Link>
   ) : (
@@ -123,7 +121,10 @@ function Person({ row }: { row: ShareRow }) {
 
 function Room({ row }: { row: ShareRow }) {
   return (
-    <Link href={`/admin/salas/${row.roomId}`} className="font-mono text-sm hover:underline">
+    <Link
+      to={`/admin/salas/${row.roomId}`}
+      className="font-sans text-sm tabular-nums hover:underline"
+    >
       {row.roomCode}
     </Link>
   );

@@ -1,6 +1,6 @@
 # Nelcota — compartilhamento de tela
 
-App web de compartilhamento de tela para times pequenos (~5 pessoas), com Next.js 16 e LiveKit self-hosted. Dark mode, animações em GSAP e deploy via Coolify em uma VPS.
+App web de compartilhamento de tela para times pequenos (~5 pessoas), com React Router 8 (Framework Mode, evolução do Remix para React) e LiveKit self-hosted. Dark mode, animações em GSAP e deploy via Coolify em uma VPS.
 
 - Home → criar sala ou entrar com código → pré-entrada (nome, senha opcional, teste de microfone) → sala
 - Compartilhar a tela com áudio da aba/sistema (quando o navegador permite), microfone, indicador de quem fala, copiar link
@@ -10,10 +10,10 @@ App web de compartilhamento de tela para times pequenos (~5 pessoas), com Next.j
 
 | Área              | Versão                                                                                                |
 | ----------------- | ----------------------------------------------------------------------------------------------------- |
-| Node.js           | 24 LTS (`node:24-alpine`)                                                                             |
-| Next.js           | 16.3 (App Router, Turbopack, React Compiler, `output: "standalone"`)                                  |
+| Node.js           | 26.9 (`node:26.9.0-alpine`)                                                                           |
+| Framework         | React Router 8.4, Vite 8.3, SSR e React Compiler                                                      |
 | React             | 19.3                                                                                                  |
-| TypeScript        | 7.0 (compilador nativo; o `next build` usa o `tsc` do projeto)                                        |
+| TypeScript        | 7.0 (compilador nativo; `pnpm typecheck` gera os tipos de rota e roda o compilador)                   |
 | Lint / formatação | Oxlint + `oxlint-tsgolint` (type-aware) / Oxfmt (com ordenação de classes Tailwind)                   |
 | UI                | Tailwind CSS 4.3 (CSS-first, tokens em `app/globals.css`), shadcn/ui, lucide-react, Manrope           |
 | Tempo real        | `livekit-client`, `@livekit/components-react`, `livekit-server-sdk`, `livekit/livekit-server:v1.13.7` |
@@ -22,7 +22,7 @@ App web de compartilhamento de tela para times pequenos (~5 pessoas), com Next.j
 
 ## Rodando localmente
 
-Pré-requisitos: Node 24+, pnpm (via `corepack enable`) e Docker.
+Pré-requisitos: Node 26.9+, pnpm 12.9.1 (`npm install -g pnpm@12.9.1`) e Docker.
 
 ```bash
 # 1. LiveKit em modo dev (a chave precisa ter 32+ caracteres; o app valida isso)
@@ -39,7 +39,7 @@ pnpm db:bootstrap:dev        # docker compose -f docker-compose.dev.yml up -d --
 cp .env.example .env.local
 #   LIVEKIT_API_KEY=devkey
 #   LIVEKIT_API_SECRET=devsecret-0123456789abcdef0123456789abcdef
-#   NEXT_PUBLIC_LIVEKIT_URL=ws://localhost:7880
+#   LIVEKIT_URL=ws://localhost:7880
 #   DATABASE_URL=postgres://nelcota_app:app-dev@127.0.0.1:54329/nelcota
 #   MIGRATOR_DATABASE_URL=postgres://nelcota_migrator:migrator-dev@127.0.0.1:54329/nelcota
 #   TEST_DATABASE_URL=postgres://nelcota:nelcota-dev@127.0.0.1:54329/nelcota_test
@@ -87,22 +87,22 @@ dependências, builds e metadados gerados. O CI também verifica a formatação.
 
 ### Oxlint
 
-`oxlint.config.ts` é a configuração principal, compatível com o Oxlint 1.86 instalado.
+`oxlint.config.ts` é a configuração principal, compatível com o Oxlint 1.87 instalado.
 Ela inclui `app`, `components` (também `components/ui`), `features`, `lib`, `server`, testes
 e arquivos de configuração. Build, dependências, cobertura e capturas temporárias ficam de fora.
 
 Além da qualidade do código, o lint **impõe a arquitetura** (ver
-[`docs/refactor/03-arquitetura-alvo.md`](docs/refactor/03-arquitetura-alvo.md) e `docs/adr/`):
+[`docs/README.md`](docs/README.md) e `docs/adr/`):
 
 - `components/` e `lib/` (genéricos) não importam features, rotas nem o servidor;
 - a UI de cada feature não importa servidor, banco nem a UI de outra feature (só o mascote e o
   aviso de compartilhamento são públicos); a regra é gerada por feature a partir de `features/`;
-- `features/*/domain` e `features/mascot/engine` são TypeScript puro (sem React, Next, banco ou SDK);
+- `features/*/domain` e `features/mascot/engine` são TypeScript puro (sem React, roteador, banco ou SDK);
 - `server/` (infra) só conhece o `domain/` das features;
 - nenhum arquivo acima de 300 linhas úteis, nenhuma função com complexidade acima de 15.
 
 As regras verificam Hooks e dependências de efeitos, imports circulares e duplicados,
-acessibilidade (incluindo `Link`, `Image`, `Input` e `Label`), práticas do Next.js,
+acessibilidade (incluindo `Link`, `Input` e `Label`),
 `any` explícito e variáveis sem uso. No modo completo, também verificam Promises sem
 tratamento, operações inseguras com tipos e comentários de supressão sem necessidade.
 Avisos fazem o comando falhar, inclusive no modo rápido. Parâmetros e variáveis
@@ -132,7 +132,7 @@ não oferece exceções individuais; em máquinas gerenciadas, consulte o admini
 responsável pela política de aplicativos. Para validação completa em CI, execute `pnpm lint`,
 `pnpm typecheck`, `pnpm test` e `pnpm build`.
 
-> Em produção o container roda `node server.js`: é o servidor mínimo gerado pelo próprio Next no modo `standalone` (não é um servidor customizado). Localmente, `pnpm start` usa `next start`.
+> Em produção e localmente, `pnpm start` executa o adaptador Express do React Router (`server.mjs --production`). O Docker inclui somente dependências de produção, o build SSR, assets e os scripts de migração.
 
 ## Atalhos na sala
 
@@ -144,6 +144,7 @@ responsável pela política de aplicativos. Para validação completa em CI, exe
 | `P`   | Apontar na tela de outra pessoa (todos veem o ponto)  |
 | `H`   | Levantar ou baixar a mão                              |
 | `C`   | Abre e fecha o chat                                   |
+| `E`   | Sair da sala (pede confirmação)                       |
 
 Os atalhos não disparam enquanto você digita no chat ou em outro campo.
 
@@ -153,7 +154,7 @@ Os atalhos não disparam enquanto você digita no chat ou em outro campo.
 | ---------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
 | `LIVEKIT_API_KEY`            | sim         | Chave da API do LiveKit (mesma do servidor LiveKit)                                               |
 | `LIVEKIT_API_SECRET`         | sim         | Segredo (32+ caracteres). **Nunca** vai para o navegador                                          |
-| `NEXT_PUBLIC_LIVEKIT_URL`    | sim         | `wss://lk.seudominio.com`                                                                         |
+| `LIVEKIT_URL`                | sim         | `wss://lk.seudominio.com`                                                                         |
 | `ACCESS_PASSWORD`            | não         | Se definida, todos precisam dela para entrar (comparação em tempo constante)                      |
 | `MAX_PARTICIPANTS`           | não         | Limite por sala, de 2 a 8 (padrão 6)                                                              |
 | `REQUIRE_EMAIL_VERIFICATION` | não         | `true` exige confirmar o e-mail antes de entrar em salas (padrão `false`, desligado por enquanto) |
@@ -163,20 +164,21 @@ Os atalhos não disparam enquanto você digita no chat ou em outro campo.
 | `APP_URL`                    | produção    | Origem pública do app (links de e-mail; obrigatória com o painel ligado)                          |
 | `SMTP_URL` / `MAIL_FROM`     | produção    | E-mail transacional (convites, senha). Em dev, sem SMTP, o e-mail vai ao log                      |
 | `SENTRY_DSN`                 | não         | Liga o Sentry no servidor (sem dados pessoais)                                                    |
+| `PUBLIC_SENTRY_DSN`          | não         | Liga a captura de erros do navegador; carregado em runtime, sem exigir rebuild                    |
 | `LOG_LEVEL`                  | não         | Nível do log (padrão `info` em produção, `debug` em dev)                                          |
 | `APP_VERSION`                | não         | Definida pela imagem (SHA do commit); aparece no `/api/ready` e no Sentry                         |
 
-Tudo é validado com Zod em `server/env.ts`. Se faltar algo, o container sai com código 1 no boot e lista o problema nos logs.
+Tudo é validado com Zod em `server/env.server.ts`. Se faltar algo, o container sai com código 1 no boot e lista o problema nos logs.
 
-`NEXT_PUBLIC_LIVEKIT_URL` é lida em runtime pelo servidor e devolvida ao navegador junto com o token. Por isso mudar a URL não exige rebuild, e nenhuma variável precisa existir no build.
+`LIVEKIT_URL` é lida em runtime pelo servidor e devolvida ao navegador junto com o token. Por isso mudar a URL não exige rebuild, e nenhuma variável precisa existir no build.
 
 ## Banco de dados e painel admin
 
-O app usa **PostgreSQL 18** com **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + driver `pg`). O plano completo do painel está em [`docs/PLANO-ADMIN.md`](docs/PLANO-ADMIN.md).
+O app usa **PostgreSQL 18** com **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + driver `pg`). O plano original do painel está preservado no [arquivo histórico](docs/archive/admin-plan.md); a arquitetura atual está em [docs/README.md](docs/README.md).
 
 - O schema fica em `server/db/schema/` (um arquivo por área). Depois de mudar o schema, rode `pnpm db:generate`, revise o SQL e faça commit dele em `drizzle/`. O CI falha se o schema e as migrações não baterem.
 - **Migrações nunca rodam no boot do app.** São um job separado (`scripts/migrate.ts`), com um usuário próprio do Postgres, advisory lock e `lock_timeout` de 5 s. Mudanças seguem _expand/contract_ (o código antigo continua funcionando com o schema novo).
-- Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `server/settings.ts`). Um grupo novo de configuração não precisa de migração.
+- Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `server/settings.server.ts`). Um grupo novo de configuração não precisa de migração.
 - `DATABASE_URL` é obrigatória: entrar numa sala exige conta.
 - **Retenção (LGPD) e reprocessamento:** a cada 6 h o próprio processo do app (`features/maintenance`) apaga pedidos de token com mais de 6 meses, tira o IP das participações com mais de 6 meses e o nome com mais de 12, apaga eventos do LiveKit e falhas de login com mais de 30 dias e sessões vencidas há 7 dias, e reprojeta eventos do webhook que falharam.
 
@@ -194,7 +196,7 @@ Os papéis são criados uma vez com `deploy/postgres/bootstrap.sql` (idempotente
 
 - `tests/unit`: sem banco (domínio puro: decisão do token, regras do mascote, protocolo da sala…).
 - `tests/integration`: Postgres real. Com `TEST_DATABASE_URL` (banco **descartável**; em dev ele é lido do `.env.local`), o Vitest recria um banco-modelo já migrado e cada arquivo de teste recebe uma cópia limpa (`CREATE DATABASE … TEMPLATE`). Sem a variável, avisa que só os unitários vão rodar. Um dos testes roda como `nelcota_app` para conferir os grants.
-- `tests/e2e`: Playwright com Postgres e LiveKit de dev ligados. Sobe o app na porta 3100 com um banco próprio (`nelcota_e2e`, recriado a cada execução) e Chromium com microfone e tela falsos. Instale o navegador uma vez com `pnpm exec playwright install chromium`.
+- `tests/e2e`: Playwright com Postgres e LiveKit de dev ligados. Sobe o app em `127.0.0.1:3100` com um banco próprio (`nelcota_e2e`, recriado a cada execução) e Chromium com microfone e tela falsos. Se a porta estiver ocupada, defina `E2E_PORT` no ambiente antes de executar os testes. Instale o navegador uma vez com `pnpm exec playwright install chromium`.
 
 ### Contas de participantes
 
@@ -203,7 +205,7 @@ Entrar numa sala (e criar uma) exige **conta** (e e-mail confirmado, se `REQUIRE
 - **Cadastro:** nome de exibição, e-mail e senha (10 a 128 caracteres, argon2id) e aceite do [aviso de privacidade](/privacidade). Cadastrar um e-mail que já existe responde igual a um cadastro novo, e o dono do e-mail recebe um aviso.
 - **Confirmação de e-mail** opcional (`REQUIRE_EMAIL_VERIFICATION`, desligada por padrão; link de 24 h; em dev o link aparece no log do servidor). Depois de confirmar, a pessoa já entra e volta para onde estava (ex.: a sala).
 - **Na sala:** a identidade no LiveKit é o ID da conta e o nome vem da conta (o token não deixa trocar o nome lá dentro; "levantar a mão" passa pelo servidor em `POST /api/sala/mao`). A mesma conta numa segunda aba desconecta a primeira, com aviso.
-- **Minha conta (`/conta`):** nome, troca de e-mail (com confirmação no novo), senha, 2FA opcional, sessões ativas, **baixar meus dados** (JSON) e **excluir a conta** (anonimização imediata).
+- **Minha conta (`/conta`):** perfil (foto, nome e e-mail), segurança (senha e 2FA), dispositivos conectados e privacidade (exportação dos dados e exclusão da conta). A foto aceita JPG, PNG e WebP de até 5 MB, com prévia antes de salvar; é recortada ao centro e reduzida para um avatar de 256 × 256 px. A troca de e-mail precisa de confirmação no novo endereço. A exclusão anonimiza a conta imediatamente.
 - Mesmas proteções do admin: bloqueio por tentativas, rate limit no banco, checagem de origem e mensagens que não revelam se o e-mail existe. Conta bloqueada pelo painel não entra nem abre sessão.
 
 ### Painel `/admin`
@@ -217,11 +219,11 @@ O painel usa uma **instância própria do [Better Auth](https://www.better-auth.
 - **Bloqueio por tentativas:** 5 senhas erradas na mesma conta bloqueiam por 15 min (dobra a cada 5, até 24 h); 20 erros do mesmo IP em 15 min bloqueiam o IP. Mais o rate limit do Better Auth (5 logins/min por IP), guardado no banco.
 - **Sem enumeração:** login, recuperação de senha e convite respondem igual exista o e-mail ou não.
 - **CSRF:** o Better Auth confere a origem; além disso, a rota recusa qualquer requisição de outra origem (inclusive o primeiro login, sem cookie).
-- **Permissões:** papéis `owner`, `admin` e `viewer` em `features/auth/server/permissions.ts` (matriz em `docs/PLANO-ADMIN.md` §5.2). Toda página chama `requireAdmin(...)` e toda Server Action passa por `adminAction` (sessão, 2FA, permissão e sessão fresca conferidas **dentro** da action).
+- **Permissões:** papéis `owner`, `admin` e `viewer` em `features/auth/server/permissions.server.ts` (matriz em `docs/archive/admin-plan.md` §5.2). Cada loader protegido chama `requireAdmin(...)`. As operações do painel passam por `defineAdminOperation` (sessão, 2FA, permissão e sessão fresca conferidas no servidor).
 
-- **Auditoria:** `audit_logs` guarda quem fez o quê, quando, de onde (IP, navegador, `request_id`) e o "antes → depois" campo a campo, com segredos mascarados. É gravado na **mesma transação** da mudança. A tabela é imutável (trigger + papel do app sem UPDATE/DELETE; apagar só depois de 5 anos). Toda Server Action declara `audit: "required" | "none"`; uma action auditada que termina sem registrar falha. Logins, bloqueios, 2FA e trocas de senha do painel também são registrados.
+- **Auditoria:** `audit_logs` guarda quem fez o quê, quando, de onde (IP, navegador, `request_id`) e o "antes → depois" campo a campo, com segredos mascarados. É gravado na **mesma transação** da mudança. A tabela é imutável (trigger + papel do app sem UPDATE/DELETE; apagar só depois de 5 anos). Toda operação declara `audit: "required" | "none"`; uma operação auditada que termina sem registrar falha. Logins, bloqueios, 2FA e trocas de senha do painel também são registrados.
 - **Shell:** sidebar recolhível (lembrada em cookie), breadcrumbs, busca/command palette (`Ctrl/⌘ K`), estados de carregamento, erro e 404 em pt-BR. O menu mostra só o que o papel pode abrir.
-- **Testes de segurança:** um teste importa **todas** as Server Actions e confere que nenhuma roda sem sessão; outro confere que toda página do painel chama `requireAdmin`.
+- **Testes de segurança:** um teste importa todas as operações do painel e confere que nenhuma roda sem sessão; outro confere que todo loader de página protegida chama `requireAdmin`.
 
 **Criar o primeiro dono:**
 
@@ -241,7 +243,7 @@ Você vai criar dois recursos no mesmo servidor: o LiveKit e o app.
 ### 0. DNS e chaves
 
 1. Crie dois registros A apontando para o IP da VPS:
-   - `app.seudominio.com` → app Next.js
+   - `app.seudominio.com` → app React Router
    - `lk.seudominio.com` → LiveKit (sinalização + TURN)
 
    Se usar Cloudflare, deixe o `lk.` como DNS only (nuvem cinza). TURN e WebRTC precisam do IP real.
@@ -323,7 +325,7 @@ A imagem é construída no **GitHub Actions** (não na VPS, para não disputar C
    DATABASE_URL=postgres://nelcota_app:<senha>@<host-interno-do-postgres>:5432/nelcota
    LIVEKIT_API_KEY=<mesma do LiveKit>
    LIVEKIT_API_SECRET=<mesmo do LiveKit>
-   NEXT_PUBLIC_LIVEKIT_URL=wss://lk.seudominio.com
+   LIVEKIT_URL=wss://lk.seudominio.com
    ACCESS_PASSWORD=<opcional>
    MAX_PARTICIPANTS=6
    SENTRY_DSN=<opcional>
@@ -334,13 +336,13 @@ A imagem é construída no **GitHub Actions** (não na VPS, para não disputar C
    MAIL_FROM=Nelcota <no-reply@seudominio.com>
    ```
 
-   Sem `APP_URL`, `SMTP_URL` e `MAIL_FROM`, o app recusa subir em produção (`server/env.ts`).
+   Sem `APP_URL`, `SMTP_URL` e `MAIL_FROM`, o app recusa subir em produção (`server/env.server.ts`).
 
-3. Mantenha o rolling update ligado (sem mapear porta do host nem nome fixo de container). O `HEALTHCHECK` do Dockerfile consulta `/api/health`; o container roda como usuário não-root (`nextjs`).
+3. Mantenha o rolling update ligado (sem mapear porta do host nem nome fixo de container). O `HEALTHCHECK` do Dockerfile consulta `/api/health`; o container roda como usuário não-root (`nelcota`).
 
 **Pipeline** (`.github/workflows`): `ci.yml` roda formatação, lint, tipos, `pnpm audit`, testes (com Postgres 18.6) e build em todo PR. Na `main`, `deploy.yml` faz: imagem no GHCR → **migração** (SSH na VPS, `docker run` da imagem nova com o usuário de migração) → webhook do Coolify → espera o `/api/ready` responder com o SHA novo. Se a migração falhar, nada é deployado.
 
-Segredos do GitHub (environment `production`): `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`, `DEPLOY_USER`, `MIGRATOR_DATABASE_URL`, `COOLIFY_DEPLOY_WEBHOOK`, `COOLIFY_TOKEN`. Variáveis: `APP_URL`, `DEPLOY_DOCKER_NETWORK` (padrão `coolify`), `NEXT_PUBLIC_SENTRY_DSN` (opcional). No servidor, o usuário de deploy precisa de `docker login ghcr.io` uma vez.
+Segredos do GitHub (environment `production`): `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`, `DEPLOY_USER`, `MIGRATOR_DATABASE_URL`, `COOLIFY_DEPLOY_WEBHOOK`, `COOLIFY_TOKEN`. Variáveis: `APP_URL`, `DEPLOY_DOCKER_NETWORK` (padrão `coolify`), `PUBLIC_SENTRY_DSN` (opcional). No servidor, o usuário de deploy precisa de `docker login ghcr.io` uma vez.
 
 > O rate limit fica em memória: vale para uma réplica (o padrão no Coolify). Para escalar horizontalmente, troque por Redis.
 >
@@ -408,10 +410,18 @@ Cada pedido ao `/api/token` também fica em `token_requests` (resultado, conta e
 
 ## Estrutura
 
-Organização por feature (decisões em `docs/adr/`, detalhes em `docs/refactor/03-arquitetura-alvo.md`):
+Organização por feature (guia em [docs/README.md](docs/README.md), decisões em `docs/adr/`):
 
 ```
-app/                      # rotas finas (páginas, layouts, route handlers); URLs em português
+app/
+  routes.ts               # URLs e hierarquia explícitas
+  routes/                 # módulos de páginas e endpoints, com loaders/actions
+    access/               # acesso do participante
+    admin/{access,panel}/  # acesso e painel administrativo
+    api/                  # endpoints e suas implementações privadas .server.ts
+  root.tsx                # documento HTML, providers e dados globais
+  entry.{client,server}.tsx
+  globals.css fonts.css
 features/
   room/                   # sala ao vivo
     domain/               #   puro: código da sala, contrato do /api/token, decisão de entrada,
@@ -424,15 +434,18 @@ features/
   account/                # "Minha conta" do participante (actions, dados LGPD, formulários)
   admin/                  # painel: rooms, participants, shares, audit, search, settings, shell
   participants/           # operações sobre a conta (bloquear, excluir, anonimizar)
-  home/                   # página inicial (RSC) com a barra de entrada
+  home/                   # página inicial com a barra de entrada
   maintenance/            # retenção LGPD e reprocessamento do webhook (a cada 6 h)
 components/               # UI genérica (shadcn em ui/, tabela de dados, formulários, navbar)
 lib/                      # utilitários isomórficos genéricos (+ lib/hooks)
 server/                   # infra do servidor: env, db (schema), logger, mail, rate limit, CSP,
-                          # clientes das actions, auditoria, tabelas (keyset, CSV, filtros)
+                          # contexto por requisição, auditoria, tabelas (keyset, CSV, filtros)
 scripts/                  # migrate, create-owner, seed
 drizzle/                  # migrações SQL geradas (commitadas)
 deploy/                   # Postgres (conf, papéis) e LiveKit
 tests/{unit,integration,e2e}/
 .github/workflows/        # CI (qualidade, testes, E2E, build e imagem) e deploy
+docs/                     # guia atual, ADRs e planos históricos em archive/
+public/                   # favicon, ícone, robots e atlas do mascote
+design/                   # proveniência do atlas aprovado
 ```

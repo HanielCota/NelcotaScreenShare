@@ -1,8 +1,6 @@
-"use client";
-
 import { Loader2, LockKeyhole } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate, useRevalidator } from "react-router";
+
 import { useId, useState, type FormEvent } from "react";
 import { AuthCard } from "./AuthCard";
 import { FormError } from "@/components/FormError";
@@ -15,7 +13,8 @@ import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { formText } from "@/lib/utils";
 
 export function AdminSignInForm({ notice }: { notice?: string | undefined }) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const emailId = useId();
   const passwordId = useId();
   const errorId = useId();
@@ -39,8 +38,8 @@ export function AdminSignInForm({ notice }: { notice?: string | undefined }) {
     }
     // Com 2FA ativo, o plugin redireciona para /admin/verificar-2fa.
     if (result && "twoFactorRedirect" in result && result.twoFactorRedirect) return;
-    router.replace("/admin");
-    router.refresh();
+    void navigate("/admin", { replace: true });
+    void revalidator.revalidate();
   }
 
   return (
@@ -49,15 +48,13 @@ export function AdminSignInForm({ notice }: { notice?: string | undefined }) {
       title="Entrar no painel"
       description="Acesso restrito à equipe do Nelcota."
       footer={
-        <Link
-          href="/admin/recuperar-senha"
-          className="font-semibold text-brand-soft hover:underline"
-        >
+        <Link to="/admin/recuperar-senha" className="font-medium text-brand-soft hover:underline">
           Esqueci minha senha
         </Link>
       }
     >
       <form
+        method="post"
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
         className="flex flex-col gap-4"

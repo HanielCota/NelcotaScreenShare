@@ -1,0 +1,164 @@
+import { Ban, Copy, EllipsisVertical, Pencil, Trash2 } from "lucide-react";
+import { Fragment } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { chatParts } from "@/features/room/domain/chat-format";
+import { chatAuthor, type ChatEntry } from "@/features/room/hooks/use-chat-state";
+import { initials } from "@/lib/initials";
+import { cn } from "@/lib/utils";
+
+const timeFormat = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+/** Uma mensagem: as suas à direita em verde; as dos outros à esquerda, com avatar. */
+export function ChatMessage({
+  message,
+  groupStart,
+  editing,
+  onEdit,
+  onDelete,
+  onCopy,
+}: {
+  message: ChatEntry;
+  groupStart: boolean;
+  editing: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onCopy: () => void;
+}) {
+  const { mine } = message;
+  const name = chatAuthor(message.from);
+  return (
+    <li
+      className={cn(
+        "group/message flex gap-2",
+        mine && "flex-row-reverse",
+        // A primeira empurra o resto para baixo: poucas mensagens ficam junto do campo.
+        groupStart ? "mt-3 first:mt-auto" : "mt-1",
+      )}
+    >
+      {mine ? null : (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "grid size-7 shrink-0 place-items-center self-end rounded-full bg-brand/20 text-xs font-medium text-brand-soft",
+            !groupStart && "invisible",
+          )}
+        >
+          {initials(name)}
+        </span>
+      )}
+      <div className={cn("flex max-w-[80%] min-w-0 flex-col gap-1", mine && "items-end")}>
+        {groupStart ? (
+          <p className={cn("flex items-baseline gap-2 px-1 text-xs", mine && "flex-row-reverse")}>
+            <span className="font-medium text-ink">{name}</span>
+            <time dateTime={new Date(message.timestamp).toISOString()} className="text-ink-subtle">
+              {timeFormat.format(message.timestamp)}
+            </time>
+          </p>
+        ) : (
+          <span className="sr-only">{name}:</span>
+        )}
+        <div className={cn("flex max-w-full items-center gap-1", mine && "flex-row-reverse")}>
+          {message.deleted ? (
+            <p className="flex items-center gap-1.5 rounded-2xl border border-dashed border-line-strong px-3.5 py-2 text-sm text-ink-subtle italic">
+              <Ban className="size-3.5 shrink-0" aria-hidden="true" />
+              {mine ? "Você apagou esta mensagem" : "Mensagem apagada"}
+            </p>
+          ) : (
+            <>
+              <p
+                className={cn(
+                  "min-w-0 rounded-2xl px-3.5 py-2 text-[0.9375rem] leading-snug break-words whitespace-pre-wrap transition-shadow",
+                  mine
+                    ? "rounded-br-md bg-brand text-brand-ink"
+                    : "rounded-bl-md bg-surface-3 text-ink",
+                  editing && "ring-2 ring-brand-soft ring-offset-2 ring-offset-surface",
+                )}
+              >
+                {chatParts(message.text).map((part, index) =>
+                  part.type === "link" ? (
+                    <a
+                      key={index}
+                      href={part.value}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium break-all underline underline-offset-2"
+                    >
+                      {part.value}
+                    </a>
+                  ) : (
+                    <Fragment key={index}>{part.value}</Fragment>
+                  ),
+                )}
+              </p>
+              <MessageMenu mine={mine} onEdit={onEdit} onDelete={onDelete} onCopy={onCopy} />
+            </>
+          )}
+        </div>
+        {message.edited && !message.deleted ? (
+          <span className="px-1 text-[0.6875rem] text-ink-subtle">editada</span>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+/** "⋮" ao lado da mensagem: aparece no hover/foco; em tela de toque, sempre. */
+function MessageMenu({
+  mine,
+  onEdit,
+  onDelete,
+  onCopy,
+}: {
+  mine: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onCopy: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="Ações da mensagem"
+          className="grid size-7 shrink-0 place-items-center rounded-full text-ink-subtle opacity-0 transition-[opacity,background-color] group-hover/message:opacity-100 hover:bg-surface-3 hover:text-ink focus-visible:opacity-100 focus-visible:outline-none data-[state=open]:bg-surface-3 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
+        >
+          <EllipsisVertical className="size-4" aria-hidden="true" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align={mine ? "end" : "start"}
+        className="w-auto min-w-40 rounded-xl border border-line-strong bg-surface p-1 shadow-soft"
+      >
+        {mine ? (
+          <DropdownMenuItem onSelect={onEdit} className="gap-2.5 rounded-lg px-2.5 py-2">
+            <Pencil aria-hidden="true" />
+            Editar
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem onSelect={onCopy} className="gap-2.5 rounded-lg px-2.5 py-2">
+          <Copy aria-hidden="true" />
+          Copiar
+        </DropdownMenuItem>
+        {mine ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={onDelete}
+              className="gap-2.5 rounded-lg px-2.5 py-2"
+            >
+              <Trash2 aria-hidden="true" />
+              Apagar
+            </DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

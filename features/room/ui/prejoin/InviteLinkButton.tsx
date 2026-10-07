@@ -1,15 +1,9 @@
-"use client";
-
 import { Check, Link2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { roomPath } from "@/features/room/domain/room-code";
 import { cn } from "@/lib/utils";
 
-/**
- * "Copiar link para convidar": a confirmação aparece no próprio botão (o
- * aviso no topo da tela passava despercebido). Sem área de transferência,
- * o link aparece para copiar à mão.
- */
+/** Copia o convite; sem acesso à área de transferência, mostra o link para copiar à mão. */
 export function InviteLinkButton({ code }: { code: string }) {
   const [state, setState] = useState<"idle" | "copied" | "manual">("idle");
 
@@ -31,9 +25,9 @@ export function InviteLinkButton({ code }: { code: string }) {
 
   if (state === "manual") {
     return (
-      <p className="max-w-full text-center text-base text-ink-muted">
+      <p className="w-full text-center text-sm text-ink-muted">
         Copie e mande para o time:{" "}
-        <span className="font-mono font-semibold break-all text-ink select-all">
+        <span className="font-sans font-medium break-all text-ink tabular-nums select-all">
           {`${window.location.origin}${roomPath(code)}`}
         </span>
       </p>
@@ -47,10 +41,8 @@ export function InviteLinkButton({ code }: { code: string }) {
       onClick={() => void copy()}
       aria-live="polite"
       className={cn(
-        "inline-flex h-11 items-center gap-2 rounded-full border px-5 text-base font-semibold transition-[transform,background-color,color,border-color] active:scale-95",
-        copied
-          ? "border-success/40 bg-success/10 text-success"
-          : "border-line bg-surface-2 text-ink hover:bg-surface-3",
+        "inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium transition-colors",
+        copied ? "bg-success/10 text-success" : "text-brand-soft hover:bg-surface-2",
       )}
     >
       {copied ? (
@@ -58,7 +50,7 @@ export function InviteLinkButton({ code }: { code: string }) {
       ) : (
         <Link2 className="size-4" aria-hidden="true" />
       )}
-      {copied ? "Link copiado! Agora é só colar na conversa" : "Copiar link para convidar"}
+      {copied ? "Link copiado" : "Copiar convite"}
     </button>
   );
 }

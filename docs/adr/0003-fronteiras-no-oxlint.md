@@ -11,7 +11,7 @@ As fronteiras ficam no `oxlint.config.ts`, com `no-restricted-imports` por pasta
 | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `components/**`, `lib/**`                                                                   | features, rotas, servidor                                                                                         |
 | UI, hooks e client de cada feature (um override gerado por feature a partir de `features/`) | servidor, banco, SDK de servidor, UI de outra feature (exceto `features/mascot/ui` e o aviso de compartilhamento) |
-| `features/*/domain/**`, `features/mascot/engine/**`                                         | React, Next, banco, SDKs, `@/server`                                                                              |
+| `features/*/domain/**`, `features/mascot/engine/**`                                         | React, React Router, banco, SDKs, `@/server`                                                                      |
 | `server/**`                                                                                 | features (exceto `domain/`), rotas, componentes                                                                   |
 
 Completam a proteção:

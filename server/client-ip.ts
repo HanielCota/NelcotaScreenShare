@@ -1,6 +1,6 @@
 /**
- * Header com o IP real do cliente, calculado no proxy.ts a partir do
- * X-Forwarded-For e de TRUSTED_PROXY_HOPS. É sempre sobrescrito no proxy, então
+ * Header com o IP real do cliente, calculado no middleware a partir do
+ * X-Forwarded-For e de TRUSTED_PROXY_HOPS. É sempre sobrescrito no middleware, então
  * o que o cliente mandar nesse header nunca chega ao app.
  */
 export const CLIENT_IP_HEADER = "x-client-ip";
@@ -26,5 +26,5 @@ export function getClientIp(headers: Headers, trustedHops = 1): string {
       .filter(Boolean) ?? [];
   const ip = hops.at(Math.max(0, hops.length - trustedHops));
   if (ip) return ip;
-  return headers.get("x-real-ip")?.trim() || "unknown";
+  return headers.get("x-real-ip")?.trim() || headers.get("x-nelcota-peer-ip") || "unknown";
 }

@@ -107,24 +107,25 @@
   cursor: default;
 }
 
+/* Fora do corpo, ao lado da mão levantada: não cobre o rosto. */
 .invitation {
   position: absolute;
-  top: 28%;
-  left: -12%;
+  top: 18%;
+  right: 96%;
   padding: 0.25rem 0.5rem;
   border-radius: 0.65rem;
   background: var(--color-surface-2);
   color: var(--color-brand-soft);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
 }
 
 .root[data-facing="right"] .invitation {
-  left: auto;
-  right: -12%;
+  right: auto;
+  left: 96%;
 }
 
 .root[data-high-five="true"] .invitation {
@@ -147,7 +148,8 @@
 }
 
 .heart {
-  fill: var(--color-brand-soft);
+  fill: var(--color-danger);
+  fill-opacity: 0.75;
   transform-origin: 50px 26px;
 }
 
@@ -224,7 +226,7 @@
   gap: 0.12em;
   color: var(--color-brand-soft);
   font-size: clamp(12px, 1.4vw, 20px);
-  font-weight: 600;
+  font-weight: 500;
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease-out;

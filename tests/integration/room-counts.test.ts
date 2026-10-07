@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, test } from "vitest";
-import { listRooms } from "@/features/admin/rooms/queries";
+import { listRooms } from "@/features/admin/rooms/queries.server";
 import { loadRoomParams } from "@/features/admin/rooms/search-params";
 import * as schema from "@/server/db/schema";
-import { roomPresence } from "@/features/room/server/presence";
+import { roomPresence } from "@/features/room/server/presence.server";
 
 /**
  * Contagens por sala feitas com subconsulta: a coluna da sala de fora precisa

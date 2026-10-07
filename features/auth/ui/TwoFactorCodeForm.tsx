@@ -1,8 +1,6 @@
-"use client";
-
 import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate, useRevalidator } from "react-router";
+
 import { useId, useState, type FormEvent } from "react";
 import { AuthCard } from "./AuthCard";
 import { FormError } from "@/components/FormError";
@@ -25,7 +23,8 @@ export function TwoFactorCodeForm({
   backHref: string;
 }) {
   const client = scope === "admin" ? adminAuthClient : authClient;
-  const router = useRouter();
+  const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const codeId = useId();
   const errorId = useId();
   const [backup, setBackup] = useState(false);
@@ -46,8 +45,8 @@ export function TwoFactorCodeForm({
       setError(authErrorMessage(failure, "Código inválido. Confira e tente de novo."));
       return;
     }
-    router.replace(doneHref);
-    router.refresh();
+    void navigate(doneHref, { replace: true });
+    void revalidator.revalidate();
   }
 
   return (
@@ -60,12 +59,13 @@ export function TwoFactorCodeForm({
           : "Digite o código de 6 dígitos do seu app autenticador."
       }
       footer={
-        <Link href={backHref} className="font-semibold text-brand-soft hover:underline">
+        <Link to={backHref} className="font-medium text-brand-soft hover:underline">
           Voltar ao login
         </Link>
       }
     >
       <form
+        method="post"
         key={backup ? "backup" : "totp"}
         onSubmit={(event) => void handleSubmit(event)}
         noValidate

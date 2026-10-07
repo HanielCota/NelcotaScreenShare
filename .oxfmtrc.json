@@ -10,10 +10,11 @@
   },
   "ignorePatterns": [
     "pnpm-lock.yaml",
-    ".next/**",
     "drizzle/meta/**",
     "design/**/*.provenance.json",
     "coverage/**",
-    "dist/**"
+    "dist/**",
+    "build/**",
+    ".react-router/**"
   ]
 }

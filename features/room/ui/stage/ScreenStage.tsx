@@ -1,9 +1,8 @@
-"use client";
-
 import { VideoTrack, type TrackReference } from "@livekit/components-react";
 import { Maximize2, Minimize2, MonitorUp, MousePointerClick } from "lucide-react";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { Hint } from "@/components/Hint";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { participantName } from "@/features/room/domain/participant-label";
 import { cn } from "@/lib/utils";
@@ -39,6 +38,8 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
 
   // O Safari do iPhone não tem tela cheia para elementos comuns: sem a API, sem o botão.
   const canFullscreen = document.fullscreenEnabled;
+  const tooltipContainer = isFullscreen ? document.fullscreenElement : undefined;
+  const fullscreenLabel = isFullscreen ? "Sair da tela cheia" : "Tela cheia";
   const isOwnScreen = focused.participant.isLocal;
   const trackSid = focused.publication.trackSid;
   const pointing = !isOwnScreen && pointingAt === trackSid;
@@ -88,7 +89,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
             />
           </div>
           <div className="flex max-w-sm flex-col gap-1.5">
-            <p className="font-semibold tracking-tight">Todos na sala estão vendo sua tela</p>
+            <p className="font-medium tracking-tight">Todos na sala estão vendo sua tela</p>
             <p className="text-sm text-ink-subtle">
               A prévia fica pequena para evitar o efeito espelho. Quando alguém apontar algo, o
               ponto aparece aqui.
@@ -116,7 +117,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
       )}
 
       <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-3">
-        <span className="glass pointer-events-auto inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-semibold">
+        <span className="glass pointer-events-auto inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium">
           <span className="relative flex size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-soft opacity-60 motion-reduce:animate-none" />
             <span className="relative inline-flex size-2 rounded-full bg-brand-soft" />
@@ -126,42 +127,47 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
 
         <span className="flex gap-2">
           {isOwnScreen ? null : (
-            <button
-              type="button"
-              onClick={togglePointing}
-              aria-pressed={pointing}
-              aria-keyshortcuts="P"
-              title="Apontar na tela (P)"
-              aria-label={pointing ? "Parar de apontar" : "Apontar na tela"}
-              className={cn(
-                "glass pointer-events-auto grid size-9 place-items-center rounded-xl transition-colors",
-                pointing ? "bg-brand! text-brand-ink" : "text-ink-muted hover:text-ink",
-              )}
+            <Hint
+              container={tooltipContainer}
+              text={pointing ? "Parar de apontar (P)" : "Apontar na tela (P)"}
             >
-              <MousePointerClick className="size-4" aria-hidden="true" />
-            </button>
+              <button
+                type="button"
+                onClick={togglePointing}
+                aria-pressed={pointing}
+                aria-keyshortcuts="P"
+                aria-label={pointing ? "Parar de apontar" : "Apontar na tela"}
+                className={cn(
+                  "glass pointer-events-auto grid size-9 place-items-center rounded-xl transition-colors",
+                  pointing ? "bg-brand! text-brand-ink" : "text-ink-muted hover:text-ink",
+                )}
+              >
+                <MousePointerClick className="size-4" aria-hidden="true" />
+              </button>
+            </Hint>
           )}
           {canFullscreen ? (
-            <button
-              type="button"
-              onClick={() => void toggleFullscreen()}
-              aria-keyshortcuts="F"
-              title={isFullscreen ? "Sair da tela cheia (F)" : "Tela cheia (F)"}
-              aria-label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
-              className="glass pointer-events-auto grid size-9 place-items-center rounded-xl text-ink-muted transition-colors hover:text-ink"
-            >
-              {isFullscreen ? (
-                <Minimize2 className="size-4" aria-hidden="true" />
-              ) : (
-                <Maximize2 className="size-4" aria-hidden="true" />
-              )}
-            </button>
+            <Hint container={tooltipContainer} text={`${fullscreenLabel} (F)`}>
+              <button
+                type="button"
+                onClick={() => void toggleFullscreen()}
+                aria-keyshortcuts="F"
+                aria-label={fullscreenLabel}
+                className="glass pointer-events-auto grid size-9 place-items-center rounded-xl text-ink-muted transition-colors hover:text-ink"
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="size-4" aria-hidden="true" />
+                ) : (
+                  <Maximize2 className="size-4" aria-hidden="true" />
+                )}
+              </button>
+            </Hint>
           ) : null}
         </span>
       </div>
 
       {pointing && !isOwnScreen ? (
-        <p className="glass pointer-events-none absolute top-14 right-3 rounded-xl px-3 py-1.5 text-xs font-semibold">
+        <p className="glass pointer-events-none absolute top-14 right-3 rounded-xl px-3 py-1.5 text-xs font-medium">
           Clique na tela para apontar. Todos veem o ponto.
         </p>
       ) : null}
@@ -183,7 +189,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
                 aria-selected={active}
                 onClick={() => onFocus(sid)}
                 className={cn(
-                  "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors",
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
                   active
                     ? "bg-brand text-brand-ink"
                     : "text-ink-muted hover:bg-surface-3 hover:text-ink",

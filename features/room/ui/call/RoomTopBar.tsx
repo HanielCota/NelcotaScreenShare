@@ -1,12 +1,12 @@
-"use client";
-
 import type { Participant } from "livekit-client";
 import { Check, Copy, MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { roomPath } from "@/features/room/domain/room-code";
-import { initials, participantName } from "@/features/room/domain/participant-label";
+import { participantName } from "@/features/room/domain/participant-label";
+import { initials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
 
 /** "Sala abc-defg-hij" que copia o link; a confirmação aparece no próprio botão. */
@@ -26,17 +26,17 @@ function RoomCodeButton({ code }: { code: string }) {
         void navigator.clipboard
           .writeText(`${window.location.origin}${roomPath(code)}`)
           .then(() => setCopied(true))
-          .catch(() => setCopied(false));
+          .catch(() => toast.error("Não foi possível copiar o link. Tente de novo."));
       }}
       aria-label={`Sala ${code}. Copiar link para convidar`}
       className="group flex h-10 min-w-0 items-center gap-2 rounded-xl px-3 transition-colors hover:bg-surface-3"
     >
-      <span className="truncate text-base font-semibold tracking-tight">
+      <span className="truncate text-base font-medium tracking-tight">
         <span className="font-normal text-ink-muted max-sm:hidden">Sala </span>
-        <span className="font-mono">{code}</span>
+        <span className="font-sans tabular-nums">{code}</span>
       </span>
       {copied ? (
-        <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-success">
+        <span className="text-success flex shrink-0 items-center gap-1 text-sm font-medium">
           <Check className="size-4" aria-hidden="true" />
           <span className="max-sm:sr-only">Copiado</span>
         </span>
@@ -64,25 +64,25 @@ function PeopleButton({ participants, max }: { participants: Participant[]; max:
             {shown.map((participant) => (
               <span
                 key={participant.identity}
-                className="grid size-8 place-items-center rounded-full bg-brand/20 text-sm font-bold text-brand-soft ring-2 ring-surface"
+                className="grid size-8 place-items-center rounded-full bg-brand/20 text-sm font-medium text-brand-soft ring-2 ring-surface"
               >
                 {initials(participantName(participant))}
               </span>
             ))}
           </span>
-          <span className="text-sm font-semibold text-ink">
+          <span className="text-sm font-medium text-ink">
             {count === 1 ? "1 pessoa" : `${count} pessoas`}
           </span>
         </>
       }
     >
-      <p className="text-base font-semibold tracking-tight">Na sala agora</p>
+      <p className="text-base font-medium tracking-tight">Na sala agora</p>
       <ul className="mt-3 flex flex-col gap-2.5">
         {participants.map((participant) => (
           <li key={participant.identity} className="flex items-center gap-3 text-base">
             <span
               aria-hidden="true"
-              className="grid size-9 shrink-0 place-items-center rounded-full bg-brand/20 text-sm font-bold text-brand-soft"
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-brand/20 text-sm font-medium text-brand-soft"
             >
               {initials(participantName(participant))}
             </span>
@@ -100,10 +100,7 @@ function PeopleButton({ participants, max }: { participants: Participant[]; max:
   );
 }
 
-/**
- * Barra do topo da sala, enxuta: a sala (copia o link), um ponto de conexão,
- * quem está dentro e um "⋯" com atalhos e tema.
- */
+/** Link da sala, estado da conexão, participantes, atalhos e tema. */
 export function RoomTopBar({
   code,
   participants,
@@ -142,7 +139,7 @@ export function RoomTopBar({
         trigger={<MoreHorizontal className="size-5" aria-hidden="true" />}
       >
         <div className="flex items-center justify-between gap-3">
-          <span className="text-base font-semibold">Tema claro ou escuro</span>
+          <span className="text-base font-medium">Tema claro ou escuro</span>
           <ThemeToggle />
         </div>
         <div className="mt-4 border-t border-line pt-4 max-sm:hidden">

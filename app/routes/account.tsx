@@ -1,0 +1,240 @@
+import { routeLoader } from "@/server/route-loader.server";
+import { useLoaderData, Link } from "react-router";
+
+import { ArrowLeft, Check, CircleCheck, Download, ShieldAlert } from "lucide-react";
+import type { ReactNode } from "react";
+import { revokeMyOtherSessions, revokeMySession } from "@/features/account/actions";
+import { AccountHealth } from "@/features/account/ui/AccountHealth";
+import { ChangeEmailForm } from "@/features/account/ui/ChangeEmailForm";
+import { ChangePasswordForm } from "@/features/account/ui/ChangePasswordForm";
+import { DeleteAccountForm } from "@/features/account/ui/DeleteAccountForm";
+import { ProfileForm } from "@/features/account/ui/ProfileForm";
+import { ProfilePhotoForm } from "@/features/account/ui/ProfilePhotoForm";
+import { ExpandableRow } from "@/features/account/ui/settings/ExpandableRow";
+import {
+  SettingsBlock,
+  SettingsRow,
+  SettingsSection,
+} from "@/features/account/ui/settings/Settings";
+import { UserSignOutButton } from "@/features/account/ui/UserSignOutButton";
+import { AppHeader } from "@/components/AppHeader";
+import { Button } from "@/components/ui/button";
+import { SessionList } from "@/features/auth/ui/SessionList";
+import { TwoFactorSettings } from "@/features/auth/ui/TwoFactorSettings";
+import { safeReturnPath } from "@/features/auth/domain/return-path";
+import { listActiveSessions } from "@/features/auth/server/sessions.server";
+import { requireUser } from "@/features/auth/server/participant-session.server";
+import { getDb } from "@/server/db/index.server";
+import { userSessions } from "@/server/db/schema";
+import { getEnv } from "@/server/env.server";
+import { cn } from "@/lib/utils";
+
+export const meta = () => [{ title: "Minha conta · Nelcota" }];
+
+const NOTICES: Record<string, string> = {
+  email: "E-mail confirmado e atualizado.",
+};
+
+function StatusChip({ ok, children }: { ok: boolean; children: ReactNode }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+        ok ? "bg-brand/12 text-brand-soft" : "bg-warning/12 text-warning",
+      )}
+    >
+      {ok ? (
+        <Check className="size-3.5" aria-hidden="true" />
+      ) : (
+        <ShieldAlert className="size-3.5" aria-hidden="true" />
+      )}
+      {children}
+    </span>
+  );
+}
+
+/**
+ * Home da conta, numa coluna só: quem você é (cartão com a foto), o que falta
+ * para proteger a conta (checklist com a ação ao lado) e os ajustes em seções
+ * com âncora (/conta#seguranca). Formulários longos abrem na própria linha.
+ */
+export const loader = routeLoader(async ({ searchParams }) => {
+  const current = await requireUser("/conta", { requireVerified: false });
+  const { voltar, aviso } = searchParams;
+  const back = typeof voltar === "string" ? safeReturnPath(voltar, "") : "";
+  const sessions = await listActiveSessions(getDb(), userSessions, current.user.id);
+  const notice = typeof aviso === "string" ? NOTICES[aviso] : undefined;
+  const { name, email, image, emailVerified, twoFactorEnabled } = current.user;
+  return {
+    currentId: current.session.id,
+    back,
+    sessions,
+    notice,
+    user: { name, email, image, emailVerified, twoFactorEnabled },
+    requireEmailVerification: getEnv().REQUIRE_EMAIL_VERIFICATION,
+  };
+});
+
+export default function AccountPage() {
+  const { currentId, back, sessions, notice, user, requireEmailVerification } =
+    useLoaderData<typeof loader>();
+  return (
+    <div className="apple-buttons flex min-h-dvh flex-col bg-canvas">
+      <AppHeader
+        account={{ name: user.name, image: user.image }}
+        accountCurrent
+        actions={<UserSignOutButton />}
+      />
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 sm:py-12">
+        {back ? (
+          <Link
+            to={back}
+            className="inline-flex items-center gap-2 self-start text-sm font-medium text-brand-soft hover:underline"
+          >
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Voltar para a sala
+          </Link>
+        ) : null}
+        {notice ? (
+          <output className="flex items-center gap-2.5 rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm">
+            <CircleCheck className="size-4 shrink-0 text-brand-soft" aria-hidden="true" />
+            {notice}
+          </output>
+        ) : null}
+
+        <header className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
+          <ProfilePhotoForm name={user.name} image={user.image}>
+            <h1 className="truncate text-2xl font-medium tracking-tight sm:text-3xl">
+              {user.name}
+            </h1>
+            <p className="mt-1 text-sm [overflow-wrap:anywhere] text-ink-muted">{user.email}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <StatusChip ok={user.emailVerified}>
+                {user.emailVerified ? "E-mail confirmado" : "E-mail pendente"}
+              </StatusChip>
+              <StatusChip ok={user.twoFactorEnabled}>
+                {user.twoFactorEnabled ? "Duas etapas ativa" : "Duas etapas desativada"}
+              </StatusChip>
+            </div>
+          </ProfilePhotoForm>
+        </header>
+
+        <AccountHealth
+          emailVerified={user.emailVerified}
+          emailRequired={requireEmailVerification}
+          twoFactorEnabled={user.twoFactorEnabled}
+        />
+
+        <div className="mt-4 flex flex-col gap-12">
+          <SettingsSection id="perfil" title="Perfil">
+            <SettingsRow
+              title="Nome na sala"
+              description="Como você aparece para as outras pessoas. Vale a partir da próxima sala."
+            >
+              <ProfileForm name={user.name} />
+            </SettingsRow>
+            <ExpandableRow
+              id="email"
+              title="E-mail"
+              description="A troca só vale depois de confirmada no novo endereço."
+              summary={<span className="[overflow-wrap:anywhere] text-ink">{user.email}</span>}
+              actionLabel="Trocar"
+            >
+              <ChangeEmailForm email={user.email} />
+            </ExpandableRow>
+          </SettingsSection>
+
+          <SettingsSection id="seguranca" title="Segurança">
+            <ExpandableRow
+              id="senha"
+              title="Senha"
+              description="Ao trocar, as outras sessões são encerradas."
+              summary="••••••••"
+              actionLabel="Trocar senha"
+            >
+              <ChangePasswordForm />
+            </ExpandableRow>
+            <ExpandableRow
+              id="duas-etapas"
+              title="Verificação em duas etapas"
+              description="Pede um código do app autenticador no login."
+              summary={
+                user.twoFactorEnabled ? (
+                  <span className="inline-flex items-center gap-1.5 text-brand-soft">
+                    <Check className="size-4" aria-hidden="true" />
+                    Ativa
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-warning">
+                    <ShieldAlert className="size-4" aria-hidden="true" />
+                    Desativada
+                  </span>
+                )
+              }
+              actionLabel={user.twoFactorEnabled ? "Gerenciar" : "Ativar"}
+            >
+              <TwoFactorSettings
+                scope="user"
+                variant="plain"
+                enabled={user.twoFactorEnabled}
+                required={false}
+                doneHref="/conta#seguranca"
+              />
+            </ExpandableRow>
+          </SettingsSection>
+
+          <SettingsSection
+            id="dispositivos"
+            title="Dispositivos"
+            description="Onde sua conta está conectada. Encerre as sessões que você não reconhece."
+          >
+            <SettingsBlock>
+              <SessionList
+                variant="plain"
+                currentId={currentId}
+                revokeSession={revokeMySession}
+                revokeOtherSessions={revokeMyOtherSessions}
+                sessions={sessions.map((row) => ({
+                  ...row,
+                  createdAt: row.createdAt.toISOString(),
+                  updatedAt: row.updatedAt.toISOString(),
+                }))}
+              />
+            </SettingsBlock>
+          </SettingsSection>
+
+          <SettingsSection id="privacidade" title="Privacidade">
+            <SettingsRow
+              title="Seus dados"
+              description="Um arquivo JSON com tudo o que guardamos ligado à sua conta."
+            >
+              <Button asChild variant="outline">
+                <a href="/api/conta/dados" download>
+                  <Download aria-hidden="true" />
+                  Baixar meus dados
+                </a>
+              </Button>
+            </SettingsRow>
+          </SettingsSection>
+
+          <SettingsSection id="excluir" title="Zona de perigo" danger>
+            <ExpandableRow
+              title="Excluir conta"
+              description="Apaga e-mail, nome, senha e sessões na hora e não pode ser desfeito. Registros de acesso exigidos por lei ficam guardados, sem seus dados de contato, até o fim do prazo legal."
+              actionLabel="Excluir conta"
+              danger
+            >
+              <DeleteAccountForm />
+            </ExpandableRow>
+          </SettingsSection>
+        </div>
+      </main>
+      <footer className="mx-auto w-[min(100%-2rem,42rem)] border-t border-line py-6 text-center text-xs text-ink-subtle">
+        Nelcota
+        <Link to="/privacidade" className="ml-3 underline-offset-4 hover:underline">
+          Privacidade
+        </Link>
+      </footer>
+    </div>
+  );
+}

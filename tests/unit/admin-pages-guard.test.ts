@@ -5,19 +5,19 @@ import { test } from "vitest";
 
 /**
  * Toda página do painel aplica a autorização por conta própria (`requireAdmin`):
- * o layout só exige sessão (docs/PLANO-ADMIN.md §5.3). Páginas sem dado nenhum
+ * o layout só exige sessão (docs/archive/admin-plan.md §5.3). Páginas sem dado nenhum
  * (só um aviso) ficam na lista abaixo.
  */
-const ALLOWED_WITHOUT_GUARD = new Set(["app/admin/(painel)/sem-permissao/page.tsx"]);
+const ALLOWED_WITHOUT_GUARD = new Set(["app/routes/admin/panel/no-permission.tsx"]);
 
 test("toda página do painel chama requireAdmin", () => {
   const root = fileURLToPath(new URL("../../", import.meta.url));
-  const pages = globSync("app/admin/(painel)/**/page.tsx", { cwd: root }).map((file) =>
+  const pages = globSync("app/routes/admin/panel/*.tsx", { cwd: root }).map((file) =>
     file.replaceAll("\\", "/"),
   );
   assert.ok(pages.length >= 4, `encontrou ${pages.length} páginas`);
   for (const page of pages) {
-    if (ALLOWED_WITHOUT_GUARD.has(page)) continue;
+    if (ALLOWED_WITHOUT_GUARD.has(page) || page.endsWith("/layout.tsx")) continue;
     const source = readFileSync(`${root}${page}`, "utf8");
     assert.match(source, /await requireAdmin\(/, `${page} precisa chamar requireAdmin`);
   }
@@ -25,10 +25,10 @@ test("toda página do painel chama requireAdmin", () => {
 
 test("toda exportação do painel confere sessão e permissão", () => {
   const root = fileURLToPath(new URL("../../", import.meta.url));
-  const routes = globSync("app/api/admin/exportar/**/route.ts", { cwd: root });
+  const routes = globSync("app/routes/api/export-*.server.ts", { cwd: root });
   assert.ok(routes.length >= 4, `encontrou ${routes.length} exportações`);
   // A fábrica comum autoriza e registra a exportação antes de transmitir.
-  const factory = readFileSync(`${root}features/admin/csv-export-route.ts`, "utf8");
+  const factory = readFileSync(`${root}features/admin/csv-export-route.server.ts`, "utf8");
   assert.match(factory, /await requireAdminApi\(spec\.permission\)/);
   assert.match(factory, /await recordAudit\(/);
   for (const route of routes) {

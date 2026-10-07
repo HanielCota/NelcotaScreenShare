@@ -5,12 +5,8 @@
 - Use o Oxfmt e a configuração `.oxfmtrc.json`; mantenha as exclusões de dependências, builds e metadados gerados. Não crie exclusões para código mantido no projeto apenas para evitar formatá-lo.
 - Se a formatação falhar ou não puder ser executada, informe o motivo na resposta final. Não declare que passou sem executar a checagem.
 
-<!-- BEGIN:nextjs-agent-rules -->
+## React Router
 
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+- O app usa React Router 8 Framework Mode com Vite e SSR. As rotas são explícitas em `app/routes.ts`.
+- Dados e permissões ficam em loaders; mutações ficam em actions. Use módulos `.server.ts` para código privado e preserve a fronteira validada pelo build.
+- Rode `pnpm typecheck`, `pnpm lint`, testes e build ao alterar a aplicação. O runtime e o container usam Node 26.9.

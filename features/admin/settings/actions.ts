@@ -1,48 +1,6 @@
-"use server";
-
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import { adminAction } from "@/features/auth/server/action-clients";
-import { ActionError } from "@/server/actions/errors";
-import { diffChanges } from "@/server/audit/record";
-import { getDb } from "@/server/db";
-import { getSetting, invalidateSetting, mascotSettings, saveSetting } from "@/server/settings";
-
-const mascotInput = z.object({
-  saturationDark: z.number(),
-  saturationLight: z.number(),
-});
-
-/** Saturação do mascote por tema (só owner: settings.update). */
-export const saveMascotSettings = adminAction
-  .metadata({
-    name: "settings.saveMascot",
-    permission: { settings: ["update"] },
-    audit: "required",
-  })
-  .inputSchema(mascotInput)
-  .action(async ({ parsedInput, ctx }) => {
-    const db = getDb();
-    const before = await getSetting(mascotSettings, db);
-    try {
-      await db.transaction(async (tx) => {
-        const after = await saveSetting(mascotSettings, parsedInput, tx, ctx.admin.user.id);
-        await ctx.audit.record(tx, {
-          action: "settings.update",
-          resourceType: "app_settings",
-          resourceId: mascotSettings.key,
-          changes: diffChanges(before, after),
-        });
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ActionError("A saturação precisa ficar entre 0% e 200%.");
-      }
-      throw error;
-    } finally {
-      invalidateSetting(mascotSettings.key);
-    }
-    // Páginas já abertas no navegador (cache do roteador) pegam o valor novo.
-    revalidatePath("/", "layout");
-    return { saved: true };
-  });
+import { operation } from "@/lib/operation";
+import type * as server from "./actions.server";
+export const saveMascotSettings = operation<
+  Parameters<typeof server.saveMascotSettings>[0],
+  NonNullable<Awaited<ReturnType<typeof server.saveMascotSettings>>["data"]>
+>("admin-settings-saveMascotSettings");

@@ -1,11 +1,6 @@
-"use client";
-
 import { useCallback, useEffect, useState } from "react";
 
 /**
- * Estado da permissão do microfone, à vista na pré-entrada (antes, o
- * navegador só perguntava de surpresa ao entrar, e muita gente bloqueava).
- *
  * "unknown": o navegador não informa (sem Permissions API): tratado como
  * "ainda não pedido".
  */

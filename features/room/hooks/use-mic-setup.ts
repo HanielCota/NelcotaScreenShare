@@ -1,10 +1,9 @@
-"use client";
-
 import { useState, useSyncExternalStore, type RefObject } from "react";
 import { micErrorMessage } from "@/features/room/client/connection-errors";
 import { saveMicrophone, savedMicrophone } from "@/features/room/client/saved-microphone";
 import { useMicLevel } from "./use-mic-level";
 import { useMicPermission } from "./use-mic-permission";
+import type { MicrophoneCheck } from "@/features/room/domain/microphone-check";
 
 /** O microfone salvo só muda por esta tela, que já guarda a escolha no estado. */
 function subscribeNothing(): () => void {
@@ -20,6 +19,7 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
   const [error, setError] = useState<string>();
   const [requesting, setRequesting] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [check, setCheck] = useState<{ deviceId: string | undefined; state: MicrophoneCheck }>();
   const { permission, setPermission, request } = useMicPermission();
   // Escolha feita nesta tela; antes disso vale o microfone da última vez.
   // `null` é "Padrão do sistema" escolhido de propósito.
@@ -36,10 +36,15 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
     onMissingDevice: () => setChosen(null),
     onPermissionDenied: () => setPermission("denied"),
     onError: (failure) => setError(micErrorMessage(failure)),
+    onCheck: (state, source) => setCheck({ deviceId: source, state }),
   });
 
   return {
     levelRef,
+    check:
+      testing && check !== undefined && check.deviceId === deviceId
+        ? check.state
+        : ("starting" as MicrophoneCheck),
     enabled,
     permission,
     error,
@@ -53,10 +58,15 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
     setEnabled(next: boolean) {
       setEnabled(next);
       setError(undefined);
+      setCheck(undefined);
     },
-    clearError: () => setError(undefined),
+    clearError: () => {
+      setError(undefined);
+      setCheck(undefined);
+    },
     choose(id: string | undefined) {
       setChosen(id ?? null);
+      setCheck(undefined);
       saveMicrophone(id);
     },
     async askPermission() {

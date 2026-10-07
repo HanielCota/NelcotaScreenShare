@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
-const { createRateLimiter } = await import("../../server/rate-limit");
+const { createRateLimiter } = await import("../../server/rate-limit.server");
 const { getClientIp } = await import("../../server/client-ip");
-const { buildCsp } = await import("../../server/csp");
+const { buildCsp } = await import("../../server/csp.server");
 const { generateRoomCode, roomCodeSchema, roomPath } =
   await import("../../features/room/domain/room-code");
 
@@ -35,6 +35,7 @@ test("IP do cliente respeita o número de proxies confiáveis", () => {
   assert.equal(getClientIp(headers, 5), "6.6.6.6", "nunca passa do começo da lista");
   assert.equal(getClientIp(new Headers({ "x-real-ip": " 198.51.100.7 " })), "198.51.100.7");
   assert.equal(getClientIp(new Headers()), "unknown");
+  assert.equal(getClientIp(new Headers({ "x-nelcota-peer-ip": "127.0.0.1" })), "127.0.0.1");
 });
 
 test("CSP libera só o próprio app e o LiveKit", () => {

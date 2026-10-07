@@ -6,7 +6,7 @@
  * Uso: MIGRATOR_DATABASE_URL=postgres://… node scripts/migrate.ts
  *      (aceita DATABASE_URL quando é o próprio usuário de migração, como no job de deploy)
  *
- * Arquivo autossuficiente (sem `@/` nem `server-only`) para rodar com o Node
+ * Arquivo autossuficiente (sem aliases nem dependência do framework) para rodar com o Node
  * direto e para ser empacotado num único arquivo na imagem Docker.
  */
 import { join } from "node:path";

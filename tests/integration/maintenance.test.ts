@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, describe, expect, it } from "vitest";
 import * as schema from "@/server/db/schema";
-import { runMaintenance } from "@/features/maintenance/maintenance";
+import { runMaintenance } from "@/features/maintenance/maintenance.server";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

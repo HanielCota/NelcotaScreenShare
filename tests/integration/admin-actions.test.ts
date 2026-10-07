@@ -11,8 +11,9 @@ import { CookieJar, makeCaller } from "./support/http-auth";
  * `headers()` simulado): permissão, 2FA e auditoria na mesma transação.
  */
 const requestHeaders = { current: new Headers() };
-vi.mock("next/headers", () => ({
-  headers: async () => requestHeaders.current,
+vi.mock("@/server/request-context.server", () => ({
+  requestMemo: (load: () => unknown) => load,
+  requestHeaders: () => requestHeaders.current,
   cookies: async () => ({
     get: () => undefined,
     getAll: () => [],
@@ -20,17 +21,12 @@ vi.mock("next/headers", () => ({
     delete: () => {},
   }),
 }));
-vi.mock("next/cache", () => ({
-  revalidatePath: () => {},
-  revalidateTag: () => {},
-  refresh: () => {},
-}));
-
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
-const { getAdminAuth, ADMIN_AUTH_BASE_PATH } = await import("@/features/auth/server/admin-auth");
+const { getAdminAuth, ADMIN_AUTH_BASE_PATH } =
+  await import("@/features/auth/server/admin-auth.server");
 const { acceptAdminInvitation, createAdminInvitation } =
-  await import("@/features/auth/server/admin-invitations");
-const { saveMascotSettings } = await import("@/features/admin/settings/actions");
+  await import("@/features/auth/server/admin-invitations.server");
+const { saveMascotSettings } = await import("@/features/admin/settings/actions.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

@@ -9,8 +9,9 @@ import * as schema from "@/server/db/schema";
  * da exportação e recusa sem sessão ou sem permissão.
  */
 const requestHeaders = { current: new Headers() };
-vi.mock("next/headers", () => ({
-  headers: async () => requestHeaders.current,
+vi.mock("@/server/request-context.server", () => ({
+  requestMemo: (load: () => unknown) => load,
+  requestHeaders: () => requestHeaders.current,
   cookies: async () => ({
     get: () => undefined,
     getAll: () => [],
@@ -22,10 +23,10 @@ vi.mock("next/headers", () => ({
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { adminSession } = await import("./support/admin-session");
 const routes = {
-  salas: await import("@/app/api/admin/exportar/salas/route"),
-  usuarios: await import("@/app/api/admin/exportar/usuarios/route"),
-  compartilhamentos: await import("@/app/api/admin/exportar/compartilhamentos/route"),
-  auditoria: await import("@/app/api/admin/exportar/auditoria/route"),
+  salas: await import("@/app/routes/api/export-rooms.server"),
+  usuarios: await import("@/app/routes/api/export-participants.server"),
+  compartilhamentos: await import("@/app/routes/api/export-shares.server"),
+  auditoria: await import("@/app/routes/api/export-audit.server"),
 };
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

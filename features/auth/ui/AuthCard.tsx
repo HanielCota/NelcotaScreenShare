@@ -29,10 +29,12 @@ export function AuthCard({
       <span className="grid size-11 place-items-center rounded-xl bg-surface-2 group-data-[layout=split]/access:hidden">
         <Icon className="size-5 text-brand-soft" aria-hidden="true" />
       </span>
-      <h1 className="mt-5 text-2xl font-bold tracking-tight group-data-[layout=split]/access:mt-0 group-data-[layout=split]/access:text-2xl">
+      <h1 className="mt-5 text-2xl font-medium tracking-tight group-data-[layout=split]/access:mt-0 group-data-[layout=split]/access:text-2xl">
         {title}
       </h1>
-      {description ? <p className="mt-1.5 text-sm text-ink-muted">{description}</p> : null}
+      {description ? (
+        <p className="mt-1.5 text-sm font-light text-ink-muted">{description}</p>
+      ) : null}
       <div className="mt-6">{children}</div>
       {footer ? <div className="mt-6 text-center text-sm text-ink-muted">{footer}</div> : null}
     </div>

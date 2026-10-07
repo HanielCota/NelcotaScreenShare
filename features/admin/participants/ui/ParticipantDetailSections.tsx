@@ -1,7 +1,7 @@
-import Link from "next/link";
+import { Link } from "react-router";
 import { Facts, Section } from "@/components/Section";
 import { LEAVE_REASON_LABELS } from "@/features/admin/audit/labels";
-import type { getParticipantDetail } from "@/features/admin/participants/queries";
+import type { getParticipantDetail } from "@/features/admin/participants/queries.server";
 import { formatDateTime, formatNumber, formatSpan } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
 
@@ -88,8 +88,8 @@ export function ParticipantTimeline({ timeline }: { timeline: ParticipantDetail[
                 <tr key={item.id} className="border-t border-line">
                   <td className="py-2 pr-4">
                     <Link
-                      href={`/admin/salas/${item.roomId}`}
-                      className="font-mono text-xs hover:underline"
+                      to={`/admin/salas/${item.roomId}`}
+                      className="font-sans text-xs tabular-nums hover:underline"
                     >
                       {item.roomCode}
                     </Link>
@@ -104,7 +104,7 @@ export function ParticipantTimeline({ timeline }: { timeline: ParticipantDetail[
                   <td className="py-2 pr-4 tabular-nums">
                     {item.shares === 0 ? "—" : `${item.shares}×`}
                   </td>
-                  <td className="py-2 font-mono text-xs">{item.ip ?? "—"}</td>
+                  <td className="py-2 font-sans text-xs tabular-nums">{item.ip ?? "—"}</td>
                 </tr>
               ))}
             </tbody>

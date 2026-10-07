@@ -1,9 +1,8 @@
-"use client";
+import { Hint } from "@/components/Hint";
 
-import Image from "next/image";
 import { useId, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { cn } from "@/lib/utils";
-import atlas from "@/public/mascot/nelcota-mint-atlas.png";
+const atlas = "/mascot/nelcota-mint-atlas.png";
 import { avatarFrame } from "@/features/mascot/engine/avatar-frames";
 import type { Expression } from "@/features/mascot/engine/face";
 import { useMascot } from "./use-mascot";
@@ -39,7 +38,7 @@ export function Mascot({
   const faceRef = useRef<HTMLDivElement>(null);
   const footClipId = useId();
   const [initialPose] = useState(() => avatarFrame(expression));
-  useMascot(rootRef, faceRef, expression, canSleep, activity, voiceLevelRef);
+  useMascot(rootRef, faceRef, expression, canSleep, activity, voiceLevelRef, facing);
   const faceStyle: CSSProperties & Record<`--${string}`, string | number> = {
     "--sprite-column": initialPose.column,
     "--sprite-row": initialPose.row,
@@ -81,7 +80,7 @@ export function Mascot({
             </defs>
             <g className={styles.leftFoot} data-mascot-walking-foot="left">
               <image
-                href={atlas.src}
+                href={atlas}
                 width="1536"
                 height="1024"
                 clipPath={`url(#${footClipId}-left)`}
@@ -89,7 +88,7 @@ export function Mascot({
             </g>
             <g className={styles.rightFoot} data-mascot-walking-foot="right">
               <image
-                href={atlas.src}
+                href={atlas}
                 width="1536"
                 height="1024"
                 clipPath={`url(#${footClipId}-right)`}
@@ -110,7 +109,7 @@ export function Mascot({
                   "translate(calc(var(--sprite-column) * -33.333333%), calc(var(--sprite-row) * -50%))",
               }}
             >
-              <Image
+              <img
                 src={atlas}
                 alt=""
                 sizes={sizes}
@@ -126,28 +125,30 @@ export function Mascot({
           </div>
         </div>
       </div>
-      <button
-        type="button"
-        // Brincadeira de mouse e toque: fora da ordem do Tab, para não ficar
-        // entre a pessoa e o campo principal da página.
-        tabIndex={-1}
-        disabled={activity !== "idle" && activity !== "walking"}
-        data-mascot-action="pet"
-        aria-label="Fazer carinho no Nelcota"
-        title="Fazer carinho"
-        className={styles.petTarget}
-      />
-      <button
-        type="button"
-        // Brincadeira de mouse e toque: fora da ordem do Tab, para não ficar
-        // entre a pessoa e o campo principal da página.
-        tabIndex={-1}
-        disabled={activity !== "idle" && activity !== "walking"}
-        data-mascot-action="high-five"
-        aria-label="Toca aqui com o Nelcota"
-        title="Toca aqui!"
-        className={styles.handTarget}
-      />
+      <Hint text="Fazer carinho">
+        <button
+          type="button"
+          // Brincadeira de mouse e toque: fora da ordem do Tab, para não ficar
+          // entre a pessoa e o campo principal da página.
+          tabIndex={-1}
+          disabled={activity !== "idle" && activity !== "walking"}
+          data-mascot-action="pet"
+          aria-label="Fazer carinho no Nelcota"
+          className={styles.petTarget}
+        />
+      </Hint>
+      <Hint text="Toca aqui!">
+        <button
+          type="button"
+          // Brincadeira de mouse e toque: fora da ordem do Tab, para não ficar
+          // entre a pessoa e o campo principal da página.
+          tabIndex={-1}
+          disabled={activity !== "idle" && activity !== "walking"}
+          data-mascot-action="high-five"
+          aria-label="Toca aqui com o Nelcota"
+          className={styles.handTarget}
+        />
+      </Hint>
       <span aria-hidden="true" className={styles.invitation}>
         Toca aqui!
       </span>

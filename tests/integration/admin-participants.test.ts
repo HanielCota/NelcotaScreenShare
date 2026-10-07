@@ -11,8 +11,9 @@ import { verifiedParticipant } from "./support/accounts";
  * anonimização e as consultas da lista, com auditoria de cada item.
  */
 const requestHeaders = { current: new Headers() };
-vi.mock("next/headers", () => ({
-  headers: async () => requestHeaders.current,
+vi.mock("@/server/request-context.server", () => ({
+  requestMemo: (load: () => unknown) => load,
+  requestHeaders: () => requestHeaders.current,
   cookies: async () => ({
     get: () => undefined,
     getAll: () => [],
@@ -20,14 +21,12 @@ vi.mock("next/headers", () => ({
     delete: () => {},
   }),
 }));
-vi.mock("next/cache", () => ({ revalidatePath: () => {}, refresh: () => {} }));
-
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { adminSession } = await import("./support/admin-session");
-const actions = await import("@/features/admin/participants/actions");
-const { listParticipants } = await import("@/features/admin/participants/queries");
+const actions = await import("@/features/admin/participants/actions.server");
+const { listParticipants } = await import("@/features/admin/participants/queries.server");
 const { loadParticipantParams } = await import("@/features/admin/participants/search-params");
-const { getUserAuth } = await import("@/features/auth/server/participant-auth");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

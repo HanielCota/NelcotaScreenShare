@@ -22,6 +22,16 @@ test("cadastro pela tela, conta e encerrar a outra sessão", async ({ browser })
   expect(signIn.ok()).toBe(true);
 
   await page.goto("/conta");
+  await expect(page.getByRole("heading", { name: "Gil Teste", level: 1 })).toBeVisible();
+  // O "Ativar" do checklist abre a linha da verificação em duas etapas.
+  await page.getByRole("link", { name: "Ativar", exact: true }).click();
+  await expect(page).toHaveURL(/\/conta#duas-etapas$/);
+  await expect(page.getByLabel("Confirme sua senha", { exact: true })).toBeFocused();
+  // Uma edição em andamento continua intacta ao abrir outro ajuste.
+  await page.getByLabel("Nome na sala").fill("Gil Novo");
+  await page.getByRole("button", { name: "Trocar senha", exact: true }).click();
+  await expect(page.getByLabel("Senha atual", { exact: true })).toBeFocused();
+  await expect(page.getByLabel("Nome na sala")).toHaveValue("Gil Novo");
   await expect(page.getByRole("button", { name: "Encerrar", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Encerrar todas as outras" }).click();
   await expect(page.getByRole("button", { name: "Encerrar", exact: true })).toHaveCount(0);
@@ -29,6 +39,93 @@ test("cadastro pela tela, conta e encerrar a outra sessão", async ({ browser })
   const session = await other.context.request.get("/api/auth/get-session");
   expect(await session.json()).toBeNull();
   await other.context.close();
+  await context.close();
+});
+
+test("foto de perfil: prévia, persistência na conta e avatar na home", async ({ browser }) => {
+  const { page, context } = await newVisitor(browser);
+  const response = await context.request.post("/api/auth/sign-up/email", {
+    data: { name: "Foto Teste", email: `foto.${Date.now()}@exemplo.dev`, password: PASSWORD },
+    headers: { origin: E2E_URL },
+  });
+  expect(response.ok()).toBe(true);
+  await page.goto("/conta");
+  const fileInput = page.locator("main input[type=file]");
+  await fileInput.setInputFiles({
+    name: "quebrada.png",
+    mimeType: "image/png",
+    buffer: Buffer.from("imagem inválida"),
+  });
+  await expect(
+    page.getByText("Não foi possível abrir a imagem. Escolha outra foto.", { exact: true }),
+  ).toBeVisible();
+  await fileInput.setInputFiles({
+    name: "avatar.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+      "base64",
+    ),
+  });
+  await expect(page.getByRole("button", { name: "Salvar foto", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Salvar foto", exact: true }).click();
+  await expect(page.getByText("Foto de perfil atualizada.", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.locator("main [data-slot=avatar-image]")).toHaveAttribute(
+    "src",
+    /^data:image\/webp;base64,/,
+  );
+  await page.goto("/");
+  await expect(page.locator('a[href="/conta"] [data-slot=avatar-image]')).toHaveAttribute(
+    "src",
+    /^data:image\/webp;base64,/,
+  );
+  await page.goto("/conta");
+  await page.getByRole("button", { name: "Alterar foto de perfil", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Remover foto", exact: true }).click();
+  await page.getByRole("button", { name: "Salvar foto", exact: true }).click();
+  await expect(page.getByText("Foto de perfil removida.", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.locator("main [data-slot=avatar-image]")).toHaveCount(0);
+  await expect(page.locator("main [data-slot=avatar-fallback]")).toHaveText("FT");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Excluir conta", exact: true }).click();
+  await expect(page.getByLabel("Digite sua senha para confirmar")).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "Excluir minha conta para sempre", exact: true }),
+  ).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await context.close();
+});
+
+test("falha no envio de links não aparece como sucesso", async ({ browser }) => {
+  const { page, context } = await newVisitor(browser);
+  for (const endpoint of ["request-password-reset", "send-verification-email"]) {
+    await page.route(`**/api/auth/${endpoint}`, (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ code: "INTERNAL_SERVER_ERROR", message: "Falha no envio" }),
+      }),
+    );
+  }
+  await page.goto("/recuperar-senha");
+  await page.getByLabel("E-mail", { exact: true }).fill("teste@exemplo.dev");
+  await page.getByRole("button", { name: "Enviar link", exact: true }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Não foi possível enviar o link." }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Confira seu e-mail", exact: true })).toHaveCount(
+    0,
+  );
+  await page.goto("/verificar-email?email=teste%40exemplo.dev");
+  await page.getByRole("button", { name: "Reenviar link", exact: true }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Não foi possível enviar o link." }),
+  ).toBeVisible();
+  await expect(page.getByText("Link reenviado. Confira o e-mail.", { exact: true })).toHaveCount(0);
   await context.close();
 });
 

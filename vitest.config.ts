@@ -25,11 +25,7 @@ if (!process.env.TEST_DATABASE_URL) {
  */
 export default defineConfig({
   resolve: {
-    alias: [
-      { find: /^@\//, replacement: root },
-      // Fora do Next, `server-only` lançaria erro: nos testes vira um módulo vazio.
-      { find: /^server-only$/, replacement: `${root}node_modules/server-only/empty.js` },
-    ],
+    alias: [{ find: /^@\//, replacement: root }],
   },
   test: {
     // Logs só atrapalham a saída dos testes (os espiões do logger continuam valendo).
@@ -60,15 +56,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      include: [
-        "server/**",
-        "features/**",
-        "lib/**",
-        "components/**",
-        "hooks/**",
-        "app/**/actions.ts",
-        "app/api/**",
-      ],
+      include: ["server/**", "features/**", "lib/**", "components/**", "app/routes/api/**"],
       exclude: ["components/ui/**"],
       reporter: ["text-summary", "html", "json-summary"],
       // Catraca: o mínimo só sobe. Valores do baseline da refatoração (unit + integração).

@@ -1,7 +1,6 @@
-"use client";
-
 import { useEffect, useRef, type RefObject } from "react";
-import { Flip, gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { Flip } from "@/lib/gsap-flip";
 
 const FLIP_TARGETS = "[data-flip-id]";
 

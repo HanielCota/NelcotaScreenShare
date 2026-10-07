@@ -1,76 +1,33 @@
-"use client";
-
-import { useChat, type ReceivedChatMessage } from "@livekit/components-react";
-import { Send, X } from "lucide-react";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { ArrowDown, EyeOff, MessagesSquare, X } from "lucide-react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useShortcut } from "@/lib/hooks/use-shortcut";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
-import { participantName } from "@/features/room/domain/participant-label";
-import { CHAT_MAX_LENGTH } from "@/features/room/domain/data-channel";
-import { cn } from "@/lib/utils";
+import { chatGroupStarts } from "@/features/room/domain/chat-format";
+import type { ChatEntry, ChatState } from "@/features/room/hooks/use-chat-state";
+import { ChatComposer } from "./ChatComposer";
+import { ChatMessage } from "./ChatMessage";
 
-export interface ChatState {
-  messages: ReceivedChatMessage[];
-  send: (text: string) => Promise<unknown>;
-  isSending: boolean;
-  open: boolean;
-  unread: number;
-  setOpen: (open: boolean) => void;
-}
-
-function author(message: ReceivedChatMessage): string {
-  if (message.from?.isLocal) return "Você";
-  return participantName(message.from);
-}
-
-const timeFormat = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
-
-/**
- * Estado do chat no nível da sala: as mensagens chegam mesmo com o painel
- * fechado (contador de não lidas e aviso). Atalho: C.
- */
-export function useChatState(): ChatState {
-  const { chatMessages, send, isSending } = useChat();
-  const [open, setOpenState] = useState(false);
-  // Mensagens já vistas: ao abrir ou fechar o painel, tudo até ali conta como lido.
-  const [seen, setSeen] = useState(0);
-  const announced = useRef(0);
-
-  function setOpen(next: boolean) {
-    setSeen(chatMessages.length);
-    setOpenState(next);
+async function copyMessage(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success("Mensagem copiada");
+  } catch {
+    toast.error("Não foi possível copiar a mensagem.");
   }
-
-  // Painel fechado: avisa a mensagem nova de outra pessoa.
-  useEffect(() => {
-    const fresh = chatMessages.slice(announced.current);
-    announced.current = chatMessages.length;
-    if (open) return;
-    const last = fresh.findLast((message) => !message.from?.isLocal);
-    if (last) {
-      toast(`${author(last)}: ${last.message}`, {
-        action: { label: "Abrir", onClick: () => setOpenState(true) },
-      });
-    }
-  }, [open, chatMessages]);
-
-  useShortcut("c", () => setOpen(!open));
-
-  const unread = open
-    ? 0
-    : chatMessages.slice(seen).filter((message) => !message.from?.isLocal).length;
-
-  return { messages: chatMessages, send, isSending, open, unread, setOpen };
 }
 
 export function ChatPanel({ chat }: { chat: ChatState }) {
   const scope = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLOListElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const inputId = useId();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [draft, setDraft] = useState("");
+  const [editingId, setEditingId] = useState<string>();
+  const [deletingId, setDeletingId] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  // Rolou para cima para ler: mensagens novas não puxam a lista para baixo.
+  const [atBottom, setAtBottom] = useState(true);
+  const [missed, setMissed] = useState(0);
 
   useGSAP(
     () => {
@@ -86,23 +43,95 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
     inputRef.current?.focus();
   }, []);
 
-  // Mantém a última mensagem à vista.
-  const count = chat.messages.length;
-  useEffect(() => {
+  function scrollToEnd(behavior: ScrollBehavior = "auto") {
     const list = listRef.current;
-    if (count > 0) list?.scrollTo({ top: list.scrollHeight });
+    list?.scrollTo({ top: list.scrollHeight, behavior });
+    setMissed(0);
+  }
+
+  // Mensagem nova: acompanha se a pessoa está no fim (ou se foi ela que enviou).
+  const count = chat.messages.length;
+  const seenCount = useRef(count);
+  const onArrival = useEffectEvent((added: number) => {
+    if (atBottom || chat.messages.at(-1)?.mine) scrollToEnd();
+    else setMissed((value) => value + added);
+  });
+  useEffect(() => {
+    const added = count - seenCount.current;
+    seenCount.current = count;
+    if (added > 0) onArrival(added);
   }, [count]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const input = inputRef.current;
-    const text = input?.value.trim();
-    if (!input || !text || chat.isSending) return;
+  const editing = chat.messages.find((message) => message.id === editingId && !message.deleted);
+  const starts = chatGroupStarts(
+    chat.messages.map((message) => ({
+      author: message.from?.identity,
+      timestamp: message.timestamp,
+    })),
+  );
+
+  function focusInput() {
+    // Depois do React aplicar o texto: cursor no fim, pronto para continuar.
+    requestAnimationFrame(() => {
+      const input = inputRef.current;
+      if (!input) return;
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
+  }
+
+  function startEditing(entry: ChatEntry) {
+    setEditingId(entry.id);
+    setDraft(entry.text);
+    focusInput();
+  }
+
+  function cancelEditing() {
+    setEditingId(undefined);
+    setDraft("");
+    focusInput();
+  }
+
+  async function submit() {
+    const text = draft.trim();
+    if (!text || chat.isSending || busy) return;
+    if (editing && text === editing.text) {
+      cancelEditing();
+      return;
+    }
+    setBusy(true);
     try {
-      await chat.send(text);
-      input.value = "";
+      if (editing) {
+        await chat.edit(editing.id, text);
+        cancelEditing();
+      } else {
+        await chat.send(text);
+        setDraft("");
+        inputRef.current?.focus();
+      }
     } catch {
-      toast.error("Não foi possível enviar a mensagem. Tente de novo.");
+      toast.error(
+        editing
+          ? "Não foi possível editar a mensagem. Tente de novo."
+          : "Não foi possível enviar a mensagem. Tente de novo.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmDelete() {
+    const id = deletingId;
+    if (!id) return;
+    setBusy(true);
+    try {
+      await chat.remove(id);
+      if (id === editingId) cancelEditing();
+      setDeletingId(undefined);
+    } catch {
+      toast.error("Não foi possível apagar a mensagem. Tente de novo.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -110,84 +139,106 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
     <aside
       ref={scope}
       aria-label="Chat da sala"
-      className="glass fixed top-20 right-3 bottom-32 z-40 flex w-[min(24rem,calc(100vw-1.5rem))] flex-col rounded-3xl sm:right-6"
+      // Tela larga: coluna da altura da sala, alinhada com o topo da barra e a base do dock.
+      className="glass fixed top-20 right-3 bottom-32 z-40 flex w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-3xl sm:right-6 lg:top-4 lg:bottom-4"
     >
-      <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
-        <h2 className="text-lg font-semibold tracking-tight">Chat</h2>
+      <header className="flex items-center justify-between gap-3 border-b border-line py-3 pr-2 pl-4">
+        <div className="min-w-0">
+          <h2 className="text-base font-medium tracking-tight">Chat da sala</h2>
+          <p className="flex items-center gap-1.5 text-xs text-ink-subtle">
+            <EyeOff className="size-3.5 shrink-0" aria-hidden="true" />
+            Nada fica salvo: some quando a sala acaba
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => chat.setOpen(false)}
           aria-label="Fechar chat"
-          className="grid size-10 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface-3 hover:text-ink"
+          className="grid size-10 shrink-0 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface-3 hover:text-ink focus-visible:bg-surface-3 focus-visible:outline-none active:scale-95"
         >
           <X className="size-5" aria-hidden="true" />
         </button>
       </header>
 
-      {chat.messages.length === 0 ? (
-        <p className="flex flex-1 items-center px-6 text-center text-base text-ink-muted">
-          Nenhuma mensagem ainda. As mensagens não ficam salvas: somem quando você sai da sala.
-        </p>
+      {count === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
+          <span className="grid size-12 place-items-center rounded-2xl bg-brand/12 text-brand-soft">
+            <MessagesSquare className="size-6" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-base font-medium">Nenhuma mensagem ainda</p>
+            <p className="mt-1 text-sm text-ink-muted">
+              Mande um link, um recado ou um oi para a sala.
+            </p>
+          </div>
+        </div>
       ) : (
-        <ol
-          ref={listRef}
-          aria-live="polite"
-          className="flex flex-1 flex-col gap-3 overflow-y-auto p-4"
-        >
-          {chat.messages.map((message) => (
-            <li key={message.id} className="flex flex-col gap-0.5">
-              <span className="flex items-baseline gap-2 text-sm">
-                <span
-                  className={cn(
-                    "font-semibold",
-                    message.from?.isLocal ? "text-brand-soft" : "text-ink",
-                  )}
-                >
-                  {author(message)}
-                </span>
-                <time
-                  dateTime={new Date(message.timestamp).toISOString()}
-                  className="text-ink-muted"
-                >
-                  {timeFormat.format(message.timestamp)}
-                </time>
-              </span>
-              <p className="text-base break-words whitespace-pre-wrap text-ink">
-                {message.message}
-              </p>
-            </li>
-          ))}
-        </ol>
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <ol
+            ref={listRef}
+            aria-live="polite"
+            onScroll={(event) => {
+              const list = event.currentTarget;
+              const bottom = list.scrollHeight - list.scrollTop - list.clientHeight < 48;
+              setAtBottom(bottom);
+              if (bottom) setMissed(0);
+            }}
+            className="flex flex-1 flex-col overflow-y-auto px-3 py-4"
+          >
+            {chat.messages.map((message, index) => (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                groupStart={starts[index]!}
+                editing={message.id === editingId}
+                onEdit={() => startEditing(message)}
+                onDelete={() => setDeletingId(message.id)}
+                onCopy={() => void copyMessage(message.text)}
+              />
+            ))}
+          </ol>
+          {missed > 0 ? (
+            <button
+              type="button"
+              onClick={() => scrollToEnd("smooth")}
+              className="absolute bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-sm font-medium text-brand-ink shadow-soft transition-colors hover:bg-brand-hover"
+            >
+              <ArrowDown className="size-4" aria-hidden="true" />
+              {missed === 1 ? "1 nova mensagem" : `${missed} novas mensagens`}
+            </button>
+          ) : null}
+        </div>
       )}
 
-      <form
-        onSubmit={(event) => void handleSubmit(event)}
-        className="flex items-center gap-2 border-t border-line p-3"
-      >
-        <label htmlFor={inputId} className="sr-only">
-          Mensagem
-        </label>
-        <Input
-          ref={inputRef}
-          id={inputId}
-          autoComplete="off"
-          maxLength={CHAT_MAX_LENGTH}
-          placeholder="Escreva para a sala"
-          onKeyDown={(event) => {
-            if (event.key === "Escape") chat.setOpen(false);
-          }}
-          className="h-11 rounded-full px-4 text-base"
-        />
-        <Button
-          type="submit"
-          size="icon"
-          disabled={chat.isSending}
-          aria-label="Enviar mensagem"
-          className="size-11 shrink-0 rounded-full"
-        >
-          <Send aria-hidden="true" />
-        </Button>
-      </form>
+      <ChatComposer
+        inputRef={inputRef}
+        draft={draft}
+        onDraftChange={setDraft}
+        editing={editing !== undefined}
+        busy={busy || chat.isSending}
+        onSubmit={() => void submit()}
+        onCancelEdit={cancelEditing}
+        onEditLast={() => {
+          // Seta para cima com o campo vazio: edita a sua última mensagem.
+          const last = chat.messages.findLast((message) => message.mine && !message.deleted);
+          if (last) startEditing(last);
+          return last !== undefined;
+        }}
+        onClose={() => chat.setOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={deletingId !== undefined}
+        onOpenChange={(next) => {
+          if (!next) setDeletingId(undefined);
+        }}
+        title="Apagar mensagem?"
+        description="Ela some para todos na sala. Quem já leu pode ter visto."
+        confirmLabel="Apagar"
+        danger
+        pending={busy}
+        onConfirm={() => void confirmDelete()}
+      />
     </aside>
   );
 }

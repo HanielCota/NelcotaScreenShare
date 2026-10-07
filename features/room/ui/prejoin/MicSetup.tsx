@@ -1,12 +1,19 @@
-"use client";
-
-import { AudioLines, Headphones, Loader2, Mic, MicOff, RotateCcw, ShieldAlert } from "lucide-react";
+import { AudioLines, Check, Loader2, Mic, MicOff, RotateCcw, ShieldAlert } from "lucide-react";
 import { useId, type RefObject } from "react";
 import { Button } from "@/components/ui/button";
+import { MicrophoneSelect } from "./MicrophoneSelect";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import type { MicSetupState } from "@/features/room/hooks/use-mic-setup";
 import { cn } from "@/lib/utils";
+import type { MicrophoneCheck } from "@/features/room/domain/microphone-check";
+
+const CHECK_TEXT: Record<MicrophoneCheck, string> = {
+  starting: "Conectando microfone…",
+  waiting: "Fale para testar",
+  detected: "Captando áudio",
+  confirmed: "Microfone testado",
+};
 
 /** Linha "Microfone" da pré-entrada: liga/desliga e, ligado, o que fazer em cada situação. */
 export function MicSetup({
@@ -19,7 +26,7 @@ export function MicSetup({
 }) {
   const micId = useId();
   return (
-    <fieldset className="flex min-w-0 flex-col gap-3 px-4 py-3">
+    <fieldset className="flex min-w-0 flex-col gap-4 px-4 py-4">
       <legend className="sr-only">Microfone</legend>
       <div className="flex items-center gap-3">
         <span
@@ -31,14 +38,14 @@ export function MicSetup({
         >
           {mic.joinsMuted ? <MicOff className="size-4.5" /> : <Mic className="size-4.5" />}
         </span>
-        <Label htmlFor={micId} className="min-w-0 flex-1 flex-col items-start gap-0">
-          <span className="text-sm font-normal text-ink-muted">Microfone</span>
-          <span className="text-lg font-semibold">
+        <Label htmlFor={micId} className="min-w-0 flex-1 flex-col items-start gap-1">
+          <span className="text-base font-medium text-ink">Microfone</span>
+          <span className="text-sm leading-5 font-normal text-ink-muted">
             {!mic.enabled
               ? "Desligado: você entra só ouvindo"
               : mic.blocked
                 ? "Bloqueado pelo navegador"
-                : "Ligado ao entrar"}
+                : "Entrar com microfone ligado"}
           </span>
         </Label>
         <Switch
@@ -49,7 +56,7 @@ export function MicSetup({
       </div>
 
       {mic.enabled ? (
-        <div className="flex flex-col gap-3 rounded-xl bg-surface-2 p-3">
+        <div className="flex min-w-0 flex-col gap-3">
           <MicStatus mic={mic} meterRef={meterRef} />
         </div>
       ) : null}
@@ -118,15 +125,12 @@ function BlockedSteps() {
         microfone neste site.
       </p>
       <ol className="flex list-decimal flex-col gap-1.5 pl-10 text-ink">
-        <li>
-          Clique no <strong className="text-ink">cadeado 🔒</strong> ao lado do endereço do site, lá
-          em cima.
-        </li>
+        <li>Abra as permissões do site pelo ícone ao lado do endereço.</li>
         <li>
           Em <strong className="text-ink">Microfone</strong>, escolha{" "}
           <strong className="text-ink">Permitir</strong>.
         </li>
-        <li>Volte aqui: a barra de voz aparece sozinha.</li>
+        <li>Volte ao teste de microfone. Se a barra não aparecer, recarregue a página.</li>
       </ol>
       <p className="pl-6 text-sm text-ink-muted">
         Se preferir, entre assim mesmo: você ouve tudo e liga o microfone depois.
@@ -135,7 +139,7 @@ function BlockedSteps() {
   );
 }
 
-/** Liberado: a barra mexe com a voz, sem precisar testar. */
+/** Liberado: o medidor mexe com a voz, sem precisar testar. */
 function LiveMeter({
   mic,
   meterRef,
@@ -143,48 +147,58 @@ function LiveMeter({
   mic: MicSetupState;
   meterRef: RefObject<HTMLDivElement | null>;
 }) {
-  const deviceId = useId();
+  const heard = mic.check === "detected" || mic.check === "confirmed";
   return (
     <>
-      <div className="flex items-center gap-2.5">
-        <AudioLines className="size-4 shrink-0 text-brand-soft" aria-hidden="true" />
+      {mic.devices.length > 1 ? (
+        <MicrophoneSelect
+          devices={mic.devices}
+          value={mic.deviceId}
+          onChange={(value) => mic.choose(value)}
+        />
+      ) : null}
+      <div className="flex min-w-0 items-center gap-3 rounded-xl bg-surface-2 py-2 pr-3 pl-2">
+        <output className="flex shrink-0 items-center gap-2.5" aria-live="polite">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "grid size-7 shrink-0 place-items-center rounded-lg transition-colors",
+              heard ? "bg-brand/15 text-brand-soft" : "bg-surface-3 text-ink-muted",
+            )}
+          >
+            {mic.check === "starting" ? (
+              <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+            ) : mic.check === "waiting" ? (
+              <AudioLines className="size-4" />
+            ) : (
+              <Check className="size-4" />
+            )}
+          </span>
+          <span
+            className={cn(
+              "text-sm font-medium whitespace-nowrap",
+              heard ? "text-brand-soft" : "text-ink-muted",
+            )}
+          >
+            {CHECK_TEXT[mic.check]}
+          </span>
+        </output>
         <div
           aria-hidden="true"
-          className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-3"
+          className="mic-meter relative h-3.5 min-w-16 flex-1 overflow-hidden bg-ink/12"
         >
+          {/*
+           * Começa vazio por `transform` inline, o mesmo que o hook escreve. Não usar
+           * `scale-x-0`: no Tailwind 4 ela vira a propriedade `scale`, que se soma ao
+           * `transform` e prendia o preenchimento em zero.
+           */}
           <div
             ref={meterRef}
-            className="absolute inset-0 origin-left scale-x-0 rounded-full bg-linear-to-r from-brand to-brand-soft"
+            style={{ transform: "scaleX(0)" }}
+            className="absolute inset-0 origin-left bg-linear-to-r from-brand to-brand-soft"
           />
         </div>
       </div>
-      <p className="text-sm text-ink-muted">
-        Fale algo: se a barra se mexer, seu microfone está funcionando.
-      </p>
-      {mic.devices.length > 1 ? (
-        <div className="flex items-center gap-2.5">
-          <Label htmlFor={deviceId} className="shrink-0 text-base font-normal text-ink-muted">
-            Usar
-          </Label>
-          <select
-            id={deviceId}
-            value={mic.deviceId ?? ""}
-            onChange={(event) => mic.choose(event.target.value || undefined)}
-            className="h-11 min-w-0 flex-1 rounded-full border border-line bg-surface px-4 text-base text-ink"
-          >
-            <option value="">Padrão do sistema</option>
-            {mic.devices.map((device, index) => (
-              <option key={device.deviceId} value={device.deviceId}>
-                {device.label || `Microfone ${index + 1}`}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
-      <p className="flex items-start gap-2 text-sm text-ink-muted">
-        <Headphones className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        Dica: com fone de ouvido, ninguém escuta eco.
-      </p>
     </>
   );
 }

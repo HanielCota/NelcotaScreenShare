@@ -1,15 +1,13 @@
-"use client";
-
 import { AppWindow, Globe, Monitor, MonitorOff, MonitorUp, Volume2 } from "lucide-react";
 import { Popover } from "radix-ui";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";
+import { DockPopoverContent, DockPopoverTitle } from "./DockPopover";
 import type { ShareChoice, ShareSurface } from "@/features/room/domain/share-support";
 
 interface ShareMenuProps {
@@ -52,6 +50,28 @@ const AUDIO_HINT: Record<ShareSurface, string> = {
   browser: "Áudio só da aba escolhida.",
 };
 
+/** Segundos desde que `running` virou true; volta a zero ao parar. */
+function useElapsedSeconds(running: boolean): number {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (!running) return;
+    const start = Date.now();
+    const id = window.setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => {
+      window.clearInterval(id);
+      setSeconds(0);
+    };
+  }, [running]);
+  return seconds;
+}
+
+function formatElapsed(total: number): string {
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = String(total % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${String(m).padStart(2, "0")}:${s}`;
+}
+
 /**
  * Menu próprio antes do seletor nativo: a pessoa escolhe o tipo de superfície
  * e o seletor do navegador já abre na aba correspondente (`displaySurface`).
@@ -60,11 +80,13 @@ export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: Share
   const [open, setOpen] = useState(false);
   const [audio, setAudio] = useState(true);
   const [hovered, setHovered] = useState<ShareSurface>("monitor");
+  // Compartilhando, o botão mostra há quanto tempo: deixa claro que a tela está no ar.
+  const elapsed = formatElapsed(useElapsedSeconds(isSharing));
 
   const label = !supported
     ? "Compartilhar tela não é suportado neste navegador"
     : isSharing
-      ? "Parar de compartilhar"
+      ? `Parar de compartilhar (no ar há ${elapsed})`
       : "Compartilhar tela";
 
   function handleOpenChange(next: boolean) {
@@ -87,14 +109,16 @@ export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: Share
       <Popover.Trigger asChild>
         <DockButton
           label={label}
-          // Ação principal da sala: verde para começar, vermelho para parar.
-          tone={isSharing ? "muted" : "primary"}
-          caption={isSharing ? "Parar" : "Compartilhar"}
-          shortCaption={isSharing ? "Parar" : "Tela"}
+          // Neutro até começar (verde no dock parece "ligado"); vermelho para parar.
+          tone={isSharing ? "muted" : "default"}
+          caption={busy ? "Aguarde…" : isSharing ? `Parar · ${elapsed}` : "Compartilhar"}
+          shortCaption={busy ? "…" : isSharing ? elapsed : "Tela"}
           pressed={isSharing}
           shortcut="S"
           aria-disabled={!supported || undefined}
           disabled={busy}
+          busy={busy}
+          className="tabular-nums sm:min-w-24"
         >
           {isSharing ? (
             <MonitorOff className="size-5" aria-hidden="true" />
@@ -104,27 +128,21 @@ export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: Share
         </DockButton>
       </Popover.Trigger>
 
-      <Popover.Portal>
-        <Popover.Content
-          side="top"
-          align="center"
-          sideOffset={14}
-          collisionPadding={16}
-          aria-label="Opções de compartilhamento"
-          className="z-50 w-[min(22rem,calc(100vw-2rem))] outline-none"
-        >
-          <ShareMenuPanel
-            audio={audio}
-            hovered={hovered}
-            onAudioChange={setAudio}
-            onHover={setHovered}
-            onPick={(surface) => {
-              setOpen(false);
-              onShare({ surface, audio: audio && surface !== "window" });
-            }}
-          />
-        </Popover.Content>
-      </Popover.Portal>
+      <DockPopoverContent
+        aria-label="Opções de compartilhamento"
+        className="w-[min(22rem,calc(100vw-2rem))]"
+      >
+        <ShareMenuPanel
+          audio={audio}
+          hovered={hovered}
+          onAudioChange={setAudio}
+          onHover={setHovered}
+          onPick={(surface) => {
+            setOpen(false);
+            onShare({ surface, audio: audio && surface !== "window" });
+          }}
+        />
+      </DockPopoverContent>
     </Popover.Root>
   );
 }
@@ -138,49 +156,22 @@ interface PanelProps {
 }
 
 function ShareMenuPanel({ audio, hovered, onAudioChange, onHover, onPick }: PanelProps) {
-  const scope = useRef<HTMLDivElement>(null);
   const audioId = useId();
 
-  // Entrada: painel sobe do dock e as opções chegam em stagger.
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
-        gsap
-          .timeline()
-          .from(scope.current, {
-            y: 12,
-            scale: 0.96,
-            opacity: 0,
-            duration: 0.3,
-            transformOrigin: "50% 100%",
-          })
-          .from(
-            "[data-anim=share-option]",
-            { y: 8, opacity: 0, duration: 0.3, stagger: 0.05 },
-            "-=0.2",
-          );
-      });
-    },
-    { scope },
-  );
-
   return (
-    <div ref={scope} className="glass rounded-2xl p-2 will-change-transform">
-      <p className="px-3 pt-2 pb-2.5 text-sm font-semibold tracking-tight">
-        O que você quer compartilhar?
-      </p>
+    <>
+      <DockPopoverTitle>O que você quer compartilhar?</DockPopoverTitle>
 
       <ul className="flex flex-col gap-1">
         {OPTIONS.map(({ surface, title, description, icon: Icon }, index) => (
-          <li key={surface} data-anim="share-option">
+          <li key={surface}>
             <button
               type="button"
               autoFocus={index === 0}
               onClick={() => onPick(surface)}
               onPointerEnter={() => onHover(surface)}
               onFocus={() => onHover(surface)}
-              className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-3 focus-visible:bg-surface-3"
+              className="group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-surface-3 focus-visible:bg-surface-3 focus-visible:outline-none active:bg-surface-3/70"
             >
               <span
                 className={cn(
@@ -191,7 +182,7 @@ function ShareMenuPanel({ audio, hovered, onAudioChange, onHover, onPick }: Pane
                 <Icon className="size-5" aria-hidden="true" />
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-semibold">{title}</span>
+                <span className="block text-sm font-medium">{title}</span>
                 <span className="block text-xs text-ink-subtle">{description}</span>
               </span>
             </button>
@@ -199,19 +190,16 @@ function ShareMenuPanel({ audio, hovered, onAudioChange, onHover, onPick }: Pane
         ))}
       </ul>
 
-      <div
-        data-anim="share-option"
-        className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-3 py-2.5"
-      >
+      <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-3 py-2.5">
         <div className="flex min-w-0 items-center gap-2.5">
           <Volume2 className="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />
           <Label htmlFor={audioId} className="min-w-0 flex-col items-start gap-1">
-            <span className="text-sm font-semibold">Incluir áudio</span>
+            <span className="text-sm font-medium">Incluir áudio</span>
             <span className="text-xs font-normal text-ink-subtle">{AUDIO_HINT[hovered]}</span>
           </Label>
         </div>
         <Switch id={audioId} checked={audio} onCheckedChange={onAudioChange} />
       </div>
-    </div>
+    </>
   );
 }

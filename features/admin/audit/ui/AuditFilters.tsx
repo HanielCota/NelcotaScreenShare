@@ -1,5 +1,3 @@
-"use client";
-
 import { debounce, useQueryStates } from "nuqs";
 import { useTableTransition } from "@/components/data-table/DataTable";
 import {

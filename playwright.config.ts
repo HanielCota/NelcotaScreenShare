@@ -4,9 +4,9 @@ import { defineConfig, devices } from "@playwright/test";
 import { E2E_ACCESS_PASSWORD, E2E_PORT, E2E_URL } from "./tests/e2e/support/env";
 
 /**
- * E2E dos fluxos críticos (docs/refactor/04-plano-de-migracao.md §1).
+ * E2E dos fluxos críticos (docs/archive/refactor/04-plano-de-migracao.md §1).
  * Precisa do Postgres e do LiveKit de desenvolvimento (README → "Desenvolvimento").
- * O app sobe na porta 3100 com um banco próprio (nelcota_e2e), recriado a cada execução.
+ * O app usa E2E_PORT (3100 por padrão) e um banco próprio (nelcota_e2e), recriado a cada execução.
  */
 const local = existsSync(".env.local") ? parseEnv(readFileSync(".env.local", "utf8")) : {};
 const env = { ...local, ...process.env };
@@ -56,26 +56,32 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.CI
-      ? `pnpm build && pnpm start --port ${E2E_PORT}`
-      : `pnpm dev --port ${E2E_PORT}`,
+    command:
+      process.env.E2E_DEV !== "true"
+        ? `pnpm build && pnpm start --port ${E2E_PORT}`
+        : `pnpm dev --port ${E2E_PORT}`,
     url: `${E2E_URL}/api/health`,
     timeout: 240_000,
     reuseExistingServer: false,
-    stdout: "ignore",
+    stdout: "pipe",
     stderr: "pipe",
     env: {
+      HOST: "127.0.0.1",
       DATABASE_URL: e2eDatabaseUrl(),
       APP_URL: E2E_URL,
       AUTH_SECRET: "segredo-participantes-e2e-0123456789abcdef0123",
       ADMIN_AUTH_SECRET: "segredo-admin-e2e-0123456789abcdef0123456789",
       LIVEKIT_API_KEY: env.LIVEKIT_API_KEY ?? "devkey",
       LIVEKIT_API_SECRET: env.LIVEKIT_API_SECRET ?? "devsecret-0123456789abcdef0123456789abcdef",
-      NEXT_PUBLIC_LIVEKIT_URL: env.NEXT_PUBLIC_LIVEKIT_URL ?? "ws://127.0.0.1:7880",
+      LIVEKIT_URL: env.LIVEKIT_URL ?? "ws://127.0.0.1:7880",
       ACCESS_PASSWORD: E2E_ACCESS_PASSWORD,
       MAX_PARTICIPANTS: "5",
       REQUIRE_EMAIL_VERIFICATION: "false",
       LOG_LEVEL: "warn",
+      SENTRY_DSN: "",
+      PUBLIC_SENTRY_DSN: "",
+      SMTP_URL: "smtp://127.0.0.1:9",
+      MAIL_FROM: "Nelcota Teste <teste@exemplo.dev>",
     },
   },
 });

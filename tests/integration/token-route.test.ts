@@ -44,16 +44,15 @@ const address = fakeLiveKit.address();
 assert.ok(address && typeof address !== "string");
 
 Object.assign(process.env, {
-  NEXT_PUBLIC_LIVEKIT_URL: `ws://127.0.0.1:${address.port}`,
+  LIVEKIT_URL: `ws://127.0.0.1:${address.port}`,
   ACCESS_PASSWORD: ACCESS,
   MAX_PARTICIPANTS: "3",
   AUTH_SECRET: "segredo-participantes-de-teste-0123456789abcdef",
 });
 
-const { POST } = await import("@/app/api/token/route");
-const { NextRequest } = await import("next/server");
-const { getUserAuth } = await import("@/features/auth/server/participant-auth");
-const { createRoomInvite } = await import("@/features/room/server/invites");
+const { POST } = await import("@/app/routes/api/token.server");
+const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
+const { createRoomInvite } = await import("@/features/room/server/invites.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -80,7 +79,7 @@ function post(
   const headers = new Headers({ "content-type": "application/json", origin, "x-client-ip": ip });
   if (cookie) headers.set("cookie", cookie);
   return POST(
-    new NextRequest("http://localhost:3000/api/token", {
+    new Request("http://localhost:3000/api/token", {
       method: "POST",
       headers,
       body: typeof body === "string" ? body : JSON.stringify(body),

@@ -11,13 +11,12 @@ Object.assign(process.env, {
   AUTH_SECRET: "segredo-de-teste-unitario-0123456789abcdef",
   LIVEKIT_API_KEY: KEY,
   LIVEKIT_API_SECRET: SECRET,
-  NEXT_PUBLIC_LIVEKIT_URL: "ws://127.0.0.1:7880",
+  LIVEKIT_URL: "ws://127.0.0.1:7880",
 });
 
 const { AccessToken } = await import("livekit-server-sdk");
-const { NextRequest } = await import("next/server");
-const { POST } = await import("../../app/api/livekit/webhook/route");
-const { logger } = await import("../../server/logger");
+const { POST } = await import("../../app/routes/api/livekit-webhook.server");
+const { logger } = await import("../../server/logger.server");
 
 const body = JSON.stringify({
   event: "participant_joined",
@@ -35,7 +34,7 @@ async function signature(payload: string, secret = SECRET): Promise<string> {
 
 function post(payload: string, authorization?: string) {
   return POST(
-    new NextRequest("http://localhost/api/livekit/webhook", {
+    new Request("http://localhost/api/livekit/webhook", {
       method: "POST",
       headers: {
         "content-type": "application/webhook+json",
@@ -79,5 +78,11 @@ test("recusa corpo alterado depois de assinado", async () => {
 
 test("recusa corpo grande demais sem ler a assinatura", async () => {
   const huge = JSON.stringify({ event: "room_started", padding: "x".repeat(70 * 1024) });
+  assert.equal((await post(huge, await signature(huge))).status, 413);
+});
+
+test("limite do webhook conta bytes UTF-8, mesmo sem Content-Length", async () => {
+  const huge = JSON.stringify({ event: "room_started", padding: "é".repeat(33 * 1024) });
+  assert.ok(huge.length < 64 * 1024);
   assert.equal((await post(huge, await signature(huge))).status, 413);
 });

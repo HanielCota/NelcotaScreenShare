@@ -1,7 +1,5 @@
-"use client";
-
 import { Ban, LockOpen, LogOut, MailCheck, RotateCcw, ShieldX, Trash2 } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
+import { useOperation } from "@/lib/use-operation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -47,41 +45,42 @@ export function ParticipantActions({
 }) {
   const [dialog, setDialog] = useState<Dialog>(null);
   const selection = { tipo: "ids" as const, ids: [id] };
-  const block = useAction(blockParticipantsAction, {
+  const block = useOperation(blockParticipantsAction, {
     onSuccess: () => {
       setDialog(null);
       toast.success("Conta bloqueada. Sessões encerradas.");
     },
     ...fail("Não foi possível bloquear."),
   });
-  const unblock = useAction(unblockParticipantsAction, {
+  const unblock = useOperation(unblockParticipantsAction, {
     onSuccess: () => toast.success("Conta desbloqueada."),
     ...fail("Não foi possível desbloquear."),
   });
-  const revoke = useAction(revokeParticipantSessionsAction, {
-    onSuccess: ({ data }) => toast.success(`${data.count} sessão(ões) encerrada(s).`),
+  const revoke = useOperation(revokeParticipantSessionsAction, {
+    onSuccess: ({ data }) =>
+      toast.success(data.count === 1 ? "1 sessão encerrada." : `${data.count} sessões encerradas.`),
     ...fail("Não foi possível encerrar as sessões."),
   });
-  const resend = useAction(resendVerificationAction, {
+  const resend = useOperation(resendVerificationAction, {
     onSuccess: () => toast.success("Link de confirmação reenviado."),
     ...fail("Não foi possível reenviar."),
   });
-  const restore = useAction(restoreParticipantsAction, {
+  const restore = useOperation(restoreParticipantsAction, {
     onSuccess: () => toast.success("Conta restaurada."),
     ...fail("Não foi possível restaurar."),
   });
-  const remove = useAction(deleteParticipantsAction, {
+  const remove = useOperation(deleteParticipantsAction, {
     onSuccess: ({ data }) => {
       setDialog(null);
       toastWithUndo(
-        "Usuário excluído",
+        "Conta excluída",
         () => restoreParticipantsAction({ ids: data.ids }),
         "Conta restaurada.",
       );
     },
     ...fail("Não foi possível excluir."),
   });
-  const anonymize = useAction(anonymizeParticipantAction, {
+  const anonymize = useOperation(anonymizeParticipantAction, {
     onSuccess: () => {
       setDialog(null);
       toast.success("Conta anonimizada.");

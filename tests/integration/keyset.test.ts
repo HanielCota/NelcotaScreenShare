@@ -2,11 +2,16 @@ import assert from "node:assert/strict";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, test } from "vitest";
-import { listAuditLogs } from "@/features/admin/audit/queries";
+import { listAuditLogs } from "@/features/admin/audit/queries.server";
 import type { AuditParams } from "@/features/admin/audit/search-params";
 import * as schema from "@/server/db/schema";
-import { approximateCount, COUNT_CAP } from "@/server/table/keyset";
+import { approximateCount, COUNT_CAP } from "@/server/table/keyset.server";
 import { sql } from "drizzle-orm";
+import {
+  listParticipants,
+  iterateParticipants,
+} from "@/features/admin/participants/queries.server";
+import type { ParticipantParams } from "@/features/admin/participants/search-params";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -47,6 +52,57 @@ async function walk(params: AuditParams, limit: number) {
 }
 
 describe("paginação keyset", () => {
+  for (const ordem of ["asc", "desc"] as const) {
+    test(`último acesso ${ordem}: percorre e volta entre valores preenchidos e nulos`, async () => {
+      const q = `nulos-${ordem}`;
+      await db.insert(schema.users).values(
+        Array.from({ length: 7 }, (_, index) => ({
+          name: `Pessoa ${index}`,
+          email: `${q}-${index}@exemplo.com`,
+          lastSeenAt:
+            index < 4 ? new Date(`2026-10-0${Math.floor(index / 2) + 1}T12:00:00Z`) : null,
+        })),
+      );
+      const params: ParticipantParams = {
+        q,
+        ordem,
+        por: "acesso",
+        cursor: null,
+        dir: "next",
+        status: null,
+        de: null,
+        ate: null,
+      };
+      let page = await listParticipants(db, params, 2);
+      const pages = [page];
+      while (page.nextCursor) {
+        page = await listParticipants(db, { ...params, cursor: page.nextCursor }, 2);
+        pages.push(page);
+        assert.ok(pages.length <= 4, "a navegação não repete páginas");
+      }
+      const all = pages.flatMap((entry) => entry.items);
+      assert.equal(all.length, 7);
+      assert.equal(new Set(all.map((row) => row.id)).size, 7);
+      assert.ok(all.slice(0, 4).every((row) => row.lastSeenAt !== null));
+      assert.ok(all.slice(4).every((row) => row.lastSeenAt === null));
+      for (let index = pages.length - 2; index >= 0; index--) {
+        assert.ok(page.prevCursor);
+        page = await listParticipants(db, { ...params, cursor: page.prevCursor, dir: "prev" }, 2);
+        assert.deepEqual(
+          page.items.map((row) => row.id),
+          pages[index]?.items.map((row) => row.id),
+        );
+      }
+      assert.equal(page.prevCursor, null);
+      const exported = [];
+      for await (const row of iterateParticipants(db, params)) exported.push(row.id);
+      assert.deepEqual(
+        exported,
+        all.map((row) => row.id),
+      );
+    });
+  }
+
   test("avança por tudo sem repetir nem pular, na ordem certa", async () => {
     const { seen, pages } = await walk(base, 10);
     assert.equal(seen.length, 125);

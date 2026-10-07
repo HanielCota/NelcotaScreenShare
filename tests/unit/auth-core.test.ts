@@ -3,9 +3,9 @@ import { describe, test } from "vitest";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
-import { emailHash, LOCKOUT, lockDurationMs } from "@/features/auth/server/lockout";
-import { hashPassword, verifyPassword } from "@/features/auth/server/password";
-import { can, statements, type PermissionRequest } from "@/features/auth/server/permissions";
+import { emailHash, LOCKOUT, lockDurationMs } from "@/features/auth/server/lockout.server";
+import { hashPassword, verifyPassword } from "@/features/auth/server/password.server";
+import { can, statements, type PermissionRequest } from "@/features/auth/server/permissions.server";
 import { ADMIN_ROLES, type AdminRole } from "@/features/auth/domain/roles";
 
 describe("senha", () => {
@@ -45,7 +45,7 @@ describe("bloqueio por tentativas", () => {
   });
 });
 
-describe("matriz de permissões (docs/PLANO-ADMIN.md §5.2)", () => {
+describe("matriz de permissões (docs/archive/admin-plan.md §5.2)", () => {
   // Esperado por papel: [recurso, ação] permitidos. Todo o resto é negado.
   const expected: Record<AdminRole, string[]> = {
     owner: Object.entries(statements).flatMap(([resource, actions]) =>

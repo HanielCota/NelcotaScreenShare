@@ -1,49 +1,27 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Dependências
 /node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
-# testing
+# Testes e capturas locais
 /coverage
 /output/
 /.playwright-cli/
+/test-results
+/playwright-report
 
-# next.js
-/.next/
-/out/
-
-# production
+# Build e tipos gerados pelo React Router
 /build
+/.react-router/
+/dist
+*.tsbuildinfo
 
-# misc
+# Arquivos locais
 .DS_Store
 *.pem
 
-# debug
+# Logs
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# Ambiente
 .env*
 !.env.example
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# Artefatos de build fora do Next (ex.: migrador empacotado)
-/dist
-/test-results
-/playwright-report

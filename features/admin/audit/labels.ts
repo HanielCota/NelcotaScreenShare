@@ -1,4 +1,4 @@
-import type { AuditRow } from "./queries";
+import type { AuditRow } from "./queries.server";
 /** Rótulos em pt-BR das ações do audit log (a desconhecida aparece como está). */
 const ACTION_LABELS: Record<string, string> = {
   "auth.sign_in": "Entrou no painel",

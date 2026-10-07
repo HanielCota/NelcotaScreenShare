@@ -3,7 +3,12 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeEach, describe, test } from "vitest";
 import * as schema from "@/server/db/schema";
-import { clearSettingsCache, getSetting, mascotSettings, saveSetting } from "@/server/settings";
+import {
+  clearSettingsCache,
+  getSetting,
+  mascotSettings,
+  saveSetting,
+} from "@/server/settings.server";
 import { runMigrations } from "../../scripts/migrate";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

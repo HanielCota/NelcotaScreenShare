@@ -1,8 +1,7 @@
-"use client";
-
 import { LogOut, SunMoon, User, Video } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { useOperation } from "@/lib/use-operation";
+import { useNavigate } from "react-router";
+
 import { useEffect, useState } from "react";
 import {
   Command,
@@ -16,7 +15,7 @@ import {
 } from "@/components/ui/command";
 import { searchPanelAction } from "@/features/admin/search/actions";
 import { applyTheme, currentTheme } from "@/lib/theme";
-import type { NavGroup } from "@/features/admin/shell/nav";
+import type { NavGroup } from "@/features/admin/shell/nav.server";
 import { NAV_ICONS } from "./nav-icons";
 
 /**
@@ -34,9 +33,9 @@ export function CommandPalette({
   onOpenChange: (open: boolean) => void;
   onSignOut: () => void;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const search = useAction(searchPanelAction);
+  const search = useOperation(searchPanelAction);
   const { execute } = search;
   const term = query.trim();
   const results = term.length >= 2 && search.input?.q === term ? search.result.data : undefined;
@@ -88,10 +87,14 @@ export function CommandPalette({
                   key={room.id}
                   // O texto digitado no valor: o filtro local do cmdk não esconde o resultado.
                   value={`${term} sala ${room.code}`}
-                  onSelect={() => run(() => router.push(`/admin/salas/${room.id}`))}
+                  onSelect={() =>
+                    run(() => {
+                      void navigate(`/admin/salas/${room.id}`);
+                    })
+                  }
                 >
                   <Video aria-hidden="true" />
-                  <span className="font-mono">{room.code}</span>
+                  <span className="font-sans tabular-nums">{room.code}</span>
                   {room.status === "active" ? (
                     <span className="ml-auto text-xs text-danger">ao vivo</span>
                   ) : null}
@@ -105,7 +108,11 @@ export function CommandPalette({
                 <CommandItem
                   key={person.id}
                   value={`${term} pessoa ${person.id}`}
-                  onSelect={() => run(() => router.push(`/admin/usuarios/${person.id}`))}
+                  onSelect={() =>
+                    run(() => {
+                      void navigate(`/admin/usuarios/${person.id}`);
+                    })
+                  }
                 >
                   <User aria-hidden="true" />
                   <span className="truncate">{person.name}</span>
@@ -122,7 +129,11 @@ export function CommandPalette({
                   <CommandItem
                     key={item.href}
                     value={`${item.label} ${item.keywords.join(" ")}`}
-                    onSelect={() => run(() => router.push(item.href))}
+                    onSelect={() =>
+                      run(() => {
+                        void navigate(item.href);
+                      })
+                    }
                   >
                     <Icon aria-hidden="true" />
                     {item.label}

@@ -23,7 +23,7 @@ import { ROOM_CODE_PATTERN } from "@/features/room/domain/room-code";
 const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
 
 /**
- * Dados de negócio (docs/PLANO-ADMIN.md §4.3). Salas, participações e
+ * Dados de negócio (docs/archive/admin-plan.md §4.3). Salas, participações e
  * compartilhamentos são projeções dos webhooks do LiveKit (`livekit_events`);
  * ver `server/livekit/projector.ts`.
  */

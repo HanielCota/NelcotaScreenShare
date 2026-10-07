@@ -1,15 +1,11 @@
-"use client";
-
 import { Loader2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/features/auth/client/participant-auth-client";
-import { displayNameSchema, initials } from "@/features/room/domain/participant-label";
+import { displayNameSchema } from "@/features/room/domain/participant-label";
+import { initials } from "@/lib/initials";
 
-/**
- * "Você vai entrar como": muda o nome aqui mesmo, sem sair da pré-entrada
- * (antes, "Mudar" levava para outra página e a pessoa se perdia).
- */
+/** Edita o nome da conta sem sair da pré-entrada. */
 export function NameRow({ name, onChange }: { name: string; onChange: (name: string) => void }) {
   const inputId = useId();
   const errorId = useId();
@@ -52,7 +48,7 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
         <label htmlFor={inputId} className="text-sm text-ink-muted">
           Seu nome na sala
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:flex-nowrap">
           <input
             ref={inputRef}
             id={inputId}
@@ -75,7 +71,8 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
                 setEditing(false);
               }
             }}
-            className="h-11 min-w-0 flex-1 rounded-full border border-line bg-surface-2 px-4 text-lg text-ink outline-none focus:border-brand/60"
+            data-slot="input"
+            className="h-11 w-full min-w-0 flex-none rounded-full border border-line bg-surface-2 px-4 text-lg text-ink outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:w-auto sm:flex-1"
           />
           <Button type="button" size="default" disabled={saving} onClick={() => void save()}>
             {saving ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
@@ -107,26 +104,25 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
     <div className="flex items-center gap-3 px-4 py-3">
       <span
         aria-hidden="true"
-        className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/15 text-sm font-bold text-brand-soft"
+        className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/15 text-sm font-medium text-brand-soft"
       >
         {initials(name)}
       </span>
       <p className="min-w-0 flex-1">
         <span className="block text-sm text-ink-muted">Você vai entrar como</span>
-        <strong className="block truncate text-lg font-semibold">{name}</strong>
+        <strong className="block truncate text-lg font-medium">{name}</strong>
       </p>
-      <Button
+      <button
         type="button"
-        variant="ghost"
-        size="default"
         onClick={() => {
           setDraft(name);
           setEditing(true);
         }}
+        className="-mr-2 shrink-0 rounded-lg px-2 py-1.5 text-sm font-medium text-brand-soft transition-colors hover:bg-surface-2 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       >
         {/* No celular só "Mudar": com "nome", o texto ao lado quebrava a linha. */}
         Mudar<span className="max-sm:sr-only"> nome</span>
-      </Button>
+      </button>
     </div>
   );
 }

@@ -1,11 +1,10 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router";
 import { Popover } from "radix-ui";
 import type { ComponentProps, ReactNode } from "react";
 import { ROOM_SHORTCUTS } from "@/lib/shortcuts";
 import { cn } from "@/lib/utils";
 import { navItemClass } from "./nav-item-class";
+import { Hint } from "@/components/Hint";
 
 /** Barra de vidro do topo, usada na home e na sala. Seções separadas por `NavDivider`. */
 export function NavBar({ className, ...props }: ComponentProps<"nav">) {
@@ -35,7 +34,6 @@ export function NavBrand({
 }) {
   const content = (
     <>
-      {/* oxlint-disable-next-line nextjs/no-img-element -- SVG estático pequeno, sem ganho com next/image. */}
       <img
         src="/icon.svg"
         alt={href ? "" : "Nelcota"}
@@ -43,13 +41,13 @@ export function NavBrand({
         height={28}
         className="size-7 shrink-0"
       />
-      {showName ? <span className="text-sm font-semibold tracking-tight">Nelcota</span> : null}
+      {showName ? <span className="text-sm font-medium tracking-tight">Nelcota</span> : null}
     </>
   );
   const className = cn("flex shrink-0 items-center gap-2 rounded-xl px-2 py-1.5", extraClass);
   return href ? (
     <Link
-      href={href}
+      to={href}
       aria-label="Nelcota, início"
       className={cn(className, "transition-colors hover:bg-surface-3")}
     >
@@ -80,13 +78,14 @@ export function NavPopover({
 }) {
   return (
     <Popover.Root>
-      <Popover.Trigger
-        aria-label={iconOnly ? label : undefined}
-        title={iconOnly ? label : undefined}
-        className={cn(navItemClass, className)}
-      >
-        {trigger}
-      </Popover.Trigger>
+      <Hint text={iconOnly ? label : undefined}>
+        <Popover.Trigger
+          aria-label={iconOnly ? label : undefined}
+          className={cn(navItemClass, className)}
+        >
+          {trigger}
+        </Popover.Trigger>
+      </Hint>
       <Popover.Portal>
         <Popover.Content
           side="bottom"
@@ -106,12 +105,12 @@ export function NavPopover({
 export function ShortcutsPanel() {
   return (
     <>
-      <p className="text-sm font-semibold tracking-tight">Atalhos na sala</p>
+      <p className="text-sm font-medium tracking-tight">Atalhos na sala</p>
       <dl className="mt-3 flex flex-col gap-2">
         {ROOM_SHORTCUTS.map(({ key, action }) => (
           <div key={key} className="flex items-center gap-3 text-sm">
             <dt>
-              <kbd className="grid size-7 place-items-center rounded-lg border border-line-strong bg-surface-2 text-xs font-semibold">
+              <kbd className="grid size-7 place-items-center rounded-lg border border-line-strong bg-surface-2 text-xs font-medium">
                 {key}
               </kbd>
             </dt>

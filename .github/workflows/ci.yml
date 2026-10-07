@@ -21,7 +21,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26.9.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
@@ -58,7 +58,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26.9.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:coverage
@@ -77,7 +77,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26.9.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
@@ -102,13 +102,13 @@ jobs:
       TEST_DATABASE_URL: postgres://postgres:test@localhost:5432/nelcota_test
       LIVEKIT_API_KEY: devkey
       LIVEKIT_API_SECRET: devsecret-0123456789abcdef0123456789abcdef
-      NEXT_PUBLIC_LIVEKIT_URL: ws://127.0.0.1:7880
+      LIVEKIT_URL: ws://127.0.0.1:7880
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26.9.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: LiveKit de desenvolvimento

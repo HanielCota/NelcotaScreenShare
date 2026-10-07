@@ -24,7 +24,6 @@ export function QrCode({
   });
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${modules} ${modules}" shape-rendering="crispEdges"><rect width="${modules}" height="${modules}" fill="#fff"/><path d="${d}" fill="#111"/></svg>`;
   return (
-    // oxlint-disable-next-line nextjs/no-img-element -- data URI gerado aqui; next/image não otimiza SVG inline.
     <img
       src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
       alt={label}

@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { timestamp, uuid } from "drizzle-orm/pg-core";
 
 /**
- * Colunas padrão (docs/PLANO-ADMIN.md §4.1): UUID v7 gerado pelo Postgres 18,
+ * Colunas padrão (docs/archive/admin-plan.md §4.1): UUID v7 gerado pelo Postgres 18,
  * timestamptz em UTC e `updated_at` mantido por trigger (`set_updated_at`).
  */
 export const id = () =>

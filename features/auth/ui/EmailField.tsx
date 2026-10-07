@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { nodMascot, setMascotDoubt } from "@/features/mascot/events";
 import { Input } from "@/components/ui/input";
@@ -109,7 +107,7 @@ export function EmailField({
           <button
             type="button"
             onClick={accept}
-            className="font-semibold text-brand-soft underline-offset-2 hover:underline"
+            className="font-medium text-brand-soft underline-offset-2 hover:underline"
           >
             {suggestion}
           </button>

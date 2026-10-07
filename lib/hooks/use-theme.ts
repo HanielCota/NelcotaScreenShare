@@ -1,5 +1,3 @@
-"use client";
-
 import { useSyncExternalStore } from "react";
 import { currentTheme, subscribeTheme, type Theme } from "@/lib/theme";
 

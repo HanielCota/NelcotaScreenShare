@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Sheet,
   SheetContent,
@@ -8,7 +6,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { actionLabel, actorText, resourceLabel } from "@/features/admin/audit/labels";
-import type { AuditRow } from "@/features/admin/audit/queries";
+import type { AuditRow } from "@/features/admin/audit/queries.server";
 import { formatDateTime } from "@/lib/format";
 
 function value(v: unknown): string {
@@ -31,12 +29,12 @@ export function AuditDetail({ row, onClose }: { row: AuditRow | null; onClose: (
             </SheetHeader>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 px-4 text-sm">
               <dt className="text-ink-subtle">Ação</dt>
-              <dd className="font-mono text-xs break-all">{row.action}</dd>
+              <dd className="font-sans text-xs break-all tabular-nums">{row.action}</dd>
               <dt className="text-ink-subtle">Recurso</dt>
               <dd className="break-all">
                 {resourceLabel(row.resourceType)}{" "}
                 {row.resourceId ? (
-                  <code className="font-mono text-xs">{row.resourceId}</code>
+                  <code className="font-sans text-xs tabular-nums">{row.resourceId}</code>
                 ) : null}
               </dd>
               {row.actor.kind === "admin" ? (
@@ -50,11 +48,11 @@ export function AuditDetail({ row, onClose }: { row: AuditRow | null; onClose: (
               <dt className="text-ink-subtle">Navegador</dt>
               <dd className="text-xs break-all text-ink-muted">{row.userAgent ?? "—"}</dd>
               <dt className="text-ink-subtle">request_id</dt>
-              <dd className="font-mono text-xs break-all">{row.requestId ?? "—"}</dd>
+              <dd className="font-sans text-xs break-all tabular-nums">{row.requestId ?? "—"}</dd>
             </dl>
             {row.changes ? (
               <div className="px-4">
-                <h3 className="mb-2 text-sm font-semibold">Antes → depois</h3>
+                <h3 className="mb-2 text-sm font-medium">Antes → depois</h3>
                 <table className="w-full text-left text-sm">
                   <thead className="text-xs text-ink-subtle">
                     <tr>
@@ -66,7 +64,7 @@ export function AuditDetail({ row, onClose }: { row: AuditRow | null; onClose: (
                   <tbody>
                     {Object.entries(row.changes).map(([field, change]) => (
                       <tr key={field} className="border-t border-line align-top">
-                        <td className="py-1.5 pr-3 font-mono text-xs">{field}</td>
+                        <td className="py-1.5 pr-3 font-sans text-xs tabular-nums">{field}</td>
                         <td className="py-1.5 pr-3 text-danger">{value(change.antes)}</td>
                         <td className="py-1.5 text-brand-soft">{value(change.depois)}</td>
                       </tr>
@@ -77,7 +75,7 @@ export function AuditDetail({ row, onClose }: { row: AuditRow | null; onClose: (
             ) : null}
             {Object.keys(row.metadata).length > 0 ? (
               <div className="px-4 pb-6">
-                <h3 className="mb-2 text-sm font-semibold">Detalhes</h3>
+                <h3 className="mb-2 text-sm font-medium">Detalhes</h3>
                 <pre className="overflow-x-auto rounded-xl bg-surface-2 p-3 text-xs">
                   {JSON.stringify(row.metadata, null, 2)}
                 </pre>
