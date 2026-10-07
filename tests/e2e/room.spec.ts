@@ -61,6 +61,40 @@ test.describe("pre-join", () => {
 });
 
 test.describe("in the room", () => {
+  test("opening and reopening a long chat positions the latest messages in view", async ({
+    browser,
+  }) => {
+    const sender = await newParticipant(browser, "Historico Remetente");
+    const reader = await newParticipant(browser, "Historico Leitor");
+    const code = newRoomCode();
+    await joinRoom(sender.page, code, { micOn: false });
+    await joinRoom(reader.page, code, { micOn: false });
+    await sender.page.getByRole("button", { name: /^Chat/ }).click();
+    const composer = sender.page.getByPlaceholder("Escreva para a sala");
+    for (let index = 0; index < 3; index += 1) {
+      await composer.fill(`${index}: ${"Linha do histórico\n".repeat(20)}`);
+      await sender.page.getByRole("button", { name: "Enviar mensagem", exact: true }).click();
+      await expect(composer).toHaveValue("");
+    }
+    await composer.fill("Mensagem mais recente");
+    await sender.page.getByRole("button", { name: "Enviar mensagem", exact: true }).click();
+    await expect(reader.page.getByRole("button", { name: "Chat (4 novas)" })).toBeVisible();
+    await reader.page.getByRole("button", { name: /^Chat/ }).click();
+    const list = reader.page.getByRole("complementary", { name: "Chat da sala" }).getByRole("list");
+    await expect
+      .poll(() => list.evaluate((element) => element.scrollHeight > element.clientHeight))
+      .toBe(true);
+    const distanceFromEnd = () =>
+      list.evaluate((element) => element.scrollHeight - element.scrollTop - element.clientHeight);
+    await expect.poll(distanceFromEnd).toBeLessThan(48);
+    await list.evaluate((element) => element.scrollTo({ top: 0 }));
+    await reader.page.getByRole("button", { name: "Fechar chat", exact: true }).click();
+    await reader.page.getByRole("button", { name: "Chat", exact: true }).click();
+    await expect.poll(distanceFromEnd).toBeLessThan(48);
+    await sender.context.close();
+    await reader.context.close();
+  });
+
   test("controls: microphone and picker on mobile, share and stop the screen", async ({
     browser,
   }) => {
