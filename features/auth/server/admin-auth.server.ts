@@ -163,7 +163,6 @@ function createAdminAuth(db: Database, secret: string) {
         backupCodeOptions: { amount: 10, length: 10 },
       }),
       adminPlugin,
-      // Precisa ser o último: grava os cookies quando a chamada vem de uma Server Action.
     ],
   });
 }

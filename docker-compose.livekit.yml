@@ -22,7 +22,7 @@ services:
     command: --config /etc/livekit/livekit.yaml
     environment:
       # Formato "chave: segredo". Defina LIVEKIT_API_KEY e LIVEKIT_API_SECRET
-      # nas variáveis do recurso no Coolify (iguais às do app Next.js).
+      # nas variáveis do recurso no Coolify (iguais às do app).
       LIVEKIT_KEYS: "${LIVEKIT_API_KEY:?defina LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET:?defina LIVEKIT_API_SECRET}"
     volumes:
       - ./deploy/livekit/livekit.yaml:/etc/livekit/livekit.yaml:ro

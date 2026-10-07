@@ -7,9 +7,9 @@ import { z } from "zod";
 
 /**
  * Toda operação protegida do app precisa recusar quem não está logado (docs/archive/admin-plan.md §5.3).
- * Este teste importa TODOS os `actions.ts` e chama cada action sem sessão: ela tem de
+ * Este teste importa TODOS os `actions.server.ts` e chama cada operação sem sessão: ela tem de
  * recusar antes de validar ou executar qualquer coisa. Actions públicas de propósito
- * ficam na lista abaixo. Uma action nova criada fora do `adminAction`/`userAction`
+ * ficam na lista abaixo. Uma operação nova criada fora do `defineAdminOperation`/`defineUserOperation`
  * quebra este teste.
  */
 const PUBLIC_ACTIONS = new Set(["features/auth/actions.server.ts#acceptInvitation"]);
@@ -18,12 +18,6 @@ const anonymous = new Headers({ "x-client-ip": "203.0.113.200", "user-agent": "v
 vi.mock("@/server/request-context.server", () => ({
   requestMemo: (load: () => unknown) => load,
   requestHeaders: () => anonymous,
-  cookies: async () => ({
-    get: () => undefined,
-    getAll: () => [],
-    set: () => {},
-    delete: () => {},
-  }),
 }));
 const root = fileURLToPath(new URL("../../", import.meta.url));
 // Actions ficam nas features (e, se um dia houver, em app/); as duas pastas entram.
@@ -32,7 +26,7 @@ const files = globSync(["app/**/actions.server.ts", "features/**/actions.server.
 }).map((file) => file.replaceAll("\\", "/"));
 const actionResult = z.object({ serverError: z.string().optional() }).loose();
 
-describe("todas as Server Actions recusam quem não está logado", () => {
+describe("todas as operações recusam quem não está logado", () => {
   test("há actions para conferir", () => {
     assert.ok(files.length >= 4, `encontrou ${files.length} arquivos de actions`);
   });

@@ -14,12 +14,6 @@ const requestHeaders = { current: new Headers() };
 vi.mock("@/server/request-context.server", () => ({
   requestMemo: (load: () => unknown) => load,
   requestHeaders: () => requestHeaders.current,
-  cookies: async () => ({
-    get: () => undefined,
-    getAll: () => [],
-    set: () => {},
-    delete: () => {},
-  }),
 }));
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { adminSession } = await import("./support/admin-session");

@@ -61,8 +61,9 @@ export function needsTwoFactorSetup(admin: AdminSession): boolean {
 
 /**
  * Exige admin logado (e, por padrão, com 2FA quando o papel exige) e a
- * permissão pedida. Use no topo de páginas e layouts do painel. Server Actions
- * e Route Handlers usam o mesmo critério pelo `adminAction` (Fase 2).
+ * permissão pedida. Use no topo de páginas e layouts do painel. As operações
+ * usam o mesmo critério pelo `defineAdminOperation`, e as rotas de API pelo
+ * `requireAdminApi`.
  */
 export async function requireAdmin(
   permission?: PermissionRequest,

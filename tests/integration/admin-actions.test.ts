@@ -7,19 +7,13 @@ import * as schema from "@/server/db/schema";
 import { CookieJar, makeCaller } from "./support/http-auth";
 
 /**
- * Server Actions do painel chamadas com uma sessão de admin real (cookie no
- * `headers()` simulado): permissão, 2FA e auditoria na mesma transação.
+ * Operações do painel chamadas com uma sessão de admin real (cookie no
+ * `requestHeaders()` simulado): permissão, 2FA e auditoria na mesma transação.
  */
 const requestHeaders = { current: new Headers() };
 vi.mock("@/server/request-context.server", () => ({
   requestMemo: (load: () => unknown) => load,
   requestHeaders: () => requestHeaders.current,
-  cookies: async () => ({
-    get: () => undefined,
-    getAll: () => [],
-    set: () => {},
-    delete: () => {},
-  }),
 }));
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { getAdminAuth, ADMIN_AUTH_BASE_PATH } =
