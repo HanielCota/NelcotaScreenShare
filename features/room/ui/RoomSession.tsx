@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { requestToken } from "@/features/room/client/api";
 import type { JoinChoices } from "@/features/room/domain/join";
+import type { RoomPresence } from "@/features/room/domain/presence";
 import { callDuration, type LeaveNotice, type LeaveReason } from "@/features/room/domain/leave";
 import { roomLink } from "@/features/room/domain/room-code";
 import { PreJoin } from "@/features/room/ui/prejoin/PreJoin";
@@ -18,7 +19,7 @@ interface RoomSessionProps {
   invite?: string;
   maxParticipants: number;
   /** People in the room now (null: unknown). */
-  presence: { online: number } | null;
+  presence: RoomPresence | null;
 }
 
 type Phase =
