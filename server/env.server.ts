@@ -65,7 +65,9 @@ const envSchema = z
       z.string().min(32, "ADMIN_AUTH_SECRET must be at least 32 characters").optional(),
     ),
     // Transactional e-mail (invitations, password recovery, verification).
-    // Without SMTP_URL, delivery is disabled in production; dev logs the content.
+    // Use the Resend API or SMTP with MAIL_FROM. Without a provider, production
+    // skips delivery and development logs the content.
+    RESEND_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
     SMTP_URL: z.preprocess(
       emptyToUndefined,
       z.url({ protocol: /^smtps?$/, error: "SMTP_URL must be smtp:// or smtps://" }).optional(),
@@ -79,6 +81,13 @@ const envSchema = z
     APP_VERSION: z.preprocess(emptyToUndefined, z.string().max(64).optional()),
   })
   .superRefine((env, ctx) => {
+    if (env.RESEND_API_KEY && env.SMTP_URL) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["RESEND_API_KEY"],
+        message: "Configure only one e-mail provider: RESEND_API_KEY or SMTP_URL",
+      });
+    }
     if (process.env.NODE_ENV !== "production") return;
     if (!env.APP_URL) {
       ctx.addIssue({
@@ -87,13 +96,14 @@ const envSchema = z
         message: "Set APP_URL (e.g. https://app.yourdomain.com) for the e-mail links",
       });
     }
-    const mailRequired = env.REQUIRE_EMAIL_VERIFICATION || env.SMTP_URL || env.MAIL_FROM;
-    if (mailRequired && (!env.SMTP_URL || !env.MAIL_FROM)) {
+    const mailProvider = env.RESEND_API_KEY || env.SMTP_URL;
+    const mailRequired = env.REQUIRE_EMAIL_VERIFICATION || mailProvider || env.MAIL_FROM;
+    if (mailRequired && (!mailProvider || !env.MAIL_FROM)) {
       ctx.addIssue({
         code: "custom",
-        path: ["SMTP_URL"],
+        path: ["MAIL_FROM"],
         message:
-          "SMTP_URL and MAIL_FROM are required when e-mail delivery or verification is enabled",
+          "MAIL_FROM and an e-mail provider (RESEND_API_KEY or SMTP_URL) are required when delivery or verification is enabled",
       });
     }
     if (env.ADMIN_AUTH_SECRET && env.ADMIN_AUTH_SECRET === env.AUTH_SECRET) {
