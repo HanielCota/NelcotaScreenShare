@@ -11,6 +11,15 @@ const buildSchema = z.custom(
 );
 
 const production = process.argv.includes("--production");
+
+/** TRUSTED_PROXY_HOPS as validated in server/env.server.ts (1 to 5, default 1). */
+function trustedProxyHops() {
+  const hops = Number(process.env.TRUSTED_PROXY_HOPS || 1);
+  if (!Number.isInteger(hops) || hops < 1 || hops > 5) {
+    throw new Error("TRUSTED_PROXY_HOPS must be an integer between 1 and 5.");
+  }
+  return hops;
+}
 process.env.NODE_ENV = production ? "production" : "development";
 const { createRequestHandler } = await import("@react-router/express");
 const portIndex = process.argv.indexOf("--port");
@@ -18,6 +27,10 @@ const port = Number(portIndex >= 0 ? process.argv[portIndex + 1] : (process.env.
 const app = express();
 const server = createHttpServer(app);
 app.disable("x-powered-by");
+// Behind the HTTPS proxies (Traefik, Cloudflare), the protocol comes from X-Forwarded-Proto.
+// Without it, request.url is http:// and React Router refuses every action whose Origin
+// is https:// (CSRF check) with a 400. Same hop count as the rate limit IP.
+if (production) app.set("trust proxy", trustedProxyHops());
 if (production) app.use(compression());
 // Overwrites the internal header: the no-proxy fallback comes from the socket, never the client.
 app.use((request, _response, next) => {
