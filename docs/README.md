@@ -1,6 +1,6 @@
 # Guia da arquitetura atual
 
-O app usa React Router 8 Framework Mode, Vite e SSR. O [README principal](../README.md) descreve desenvolvimento, testes, variáveis e deploy. A decisão de framework está no [ADR 0005](adr/0005-react-router-framework.md).
+O app usa React Router 8 Framework Mode, Vite e SSR. Os guias de [desenvolvimento](development.md), [contas e painel](accounts-and-admin.md) e [deploy](deployment.md) cobrem o resto. A decisão de framework está no [ADR 0005](adr/0005-react-router-framework.md).
 
 ## Organização
 

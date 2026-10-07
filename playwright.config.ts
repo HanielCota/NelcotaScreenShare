@@ -5,7 +5,7 @@ import { E2E_ACCESS_PASSWORD, E2E_PORT, E2E_URL } from "./tests/e2e/support/env"
 
 /**
  * E2E dos fluxos críticos (docs/archive/refactor/04-migration-plan.md §1).
- * Precisa do Postgres e do LiveKit de desenvolvimento (README → "Desenvolvimento").
+ * Precisa do Postgres e do LiveKit de desenvolvimento (docs/development.md).
  * O app usa E2E_PORT (3100 por padrão) e um banco próprio (nelcota_e2e), recriado a cada execução.
  */
 const local = existsSync(".env.local") ? parseEnv(readFileSync(".env.local", "utf8")) : {};
