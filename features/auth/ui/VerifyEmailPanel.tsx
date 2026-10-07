@@ -1,4 +1,4 @@
-import { ExternalLink, Loader2, MailCheck } from "lucide-react";
+import { Loader2, MailCheck } from "lucide-react";
 import { Link } from "react-router";
 import { useEffect, useState } from "react";
 import { AuthCard } from "./AuthCard";
@@ -84,8 +84,16 @@ export function VerifyEmailPanel({
         {inbox ? (
           <Button asChild size="lg" className="w-full">
             <a href={inbox.href} target="_blank" rel="noopener noreferrer">
+              <img
+                src={inbox.logo}
+                alt=""
+                aria-hidden="true"
+                data-icon="inline-start"
+                width={20}
+                height={20}
+                className="shrink-0 object-contain"
+              />
               {inbox.label}
-              <ExternalLink aria-hidden="true" />
             </a>
           </Button>
         ) : null}
