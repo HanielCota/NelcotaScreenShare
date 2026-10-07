@@ -50,7 +50,7 @@ Object.assign(process.env, {
   AUTH_SECRET: "segredo-participantes-de-teste-0123456789abcdef",
 });
 
-const { POST } = await import("@/app/routes/api/token.server");
+const { POST } = await import("@/features/room/server/token-route.server");
 const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 const { createRoomInvite } = await import("@/features/room/server/invites.server");
 

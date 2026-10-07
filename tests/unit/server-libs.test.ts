@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "vitest";
 
 const { createRateLimiter } = await import("../../server/rate-limit.server");
-const { getClientIp } = await import("../../server/client-ip");
+const { getClientIp } = await import("../../server/client-ip.server");
 const { buildCsp } = await import("../../server/csp.server");
 const { generateRoomCode, roomCodeSchema, roomPath } =
   await import("../../features/room/domain/room-code");

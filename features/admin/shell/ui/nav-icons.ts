@@ -11,7 +11,7 @@ import {
   Video,
   type LucideIcon,
 } from "lucide-react";
-import type { NavIcon } from "@/features/admin/shell/nav.server";
+import type { NavIcon } from "@/features/admin/shell/server/nav.server";
 
 export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   home: Gauge,

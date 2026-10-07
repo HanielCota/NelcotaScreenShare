@@ -1,9 +1,9 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { createMascotController } from "@/features/mascot/dom/mascot-controller";
-import type { Gaze } from "@/features/mascot/engine/eye-tracking";
+import { createMascotController } from "@/features/mascot/client/mascot-controller";
+import type { Gaze } from "@/features/mascot/domain/eye-tracking";
 
-vi.mock("@/features/mascot/dom/page-input", () => ({ subscribePageInput: () => () => {} }));
-vi.mock("@/features/mascot/dom/ambient", () => ({ startAmbient: () => () => {} }));
+vi.mock("@/features/mascot/client/page-input", () => ({ subscribePageInput: () => () => {} }));
+vi.mock("@/features/mascot/client/ambient", () => ({ startAmbient: () => () => {} }));
 
 afterEach(() => vi.unstubAllGlobals());
 

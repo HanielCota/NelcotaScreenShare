@@ -1,5 +1,5 @@
 import { LogOut, SunMoon, User, Video } from "lucide-react";
-import { useOperation } from "@/lib/use-operation";
+import { useOperation } from "@/lib/operations/use-operation";
 import { useNavigate } from "react-router";
 
 import { useEffect, useState } from "react";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/command";
 import { searchPanelAction } from "@/features/admin/search/actions";
 import { applyTheme, currentTheme } from "@/lib/theme";
-import type { NavGroup } from "@/features/admin/shell/nav.server";
+import type { NavGroup } from "@/features/admin/shell/server/nav.server";
 import { NAV_ICONS } from "./nav-icons";
 
 /**

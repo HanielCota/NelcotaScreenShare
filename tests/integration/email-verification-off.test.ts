@@ -28,7 +28,7 @@ Object.assign(process.env, {
 });
 
 const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
-const { POST } = await import("@/app/routes/api/token.server");
+const { POST } = await import("@/features/room/server/token-route.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

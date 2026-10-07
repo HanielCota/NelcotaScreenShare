@@ -107,6 +107,8 @@ export default defineConfig({
         `features/${feature}/hooks/**`,
         `features/${feature}/client/**`,
         `features/${feature}/*/ui/**`,
+        `features/${feature}/*/hooks/**`,
+        `features/${feature}/*/client/**`,
       ],
       rules: {
         "eslint/no-restricted-imports": [
@@ -118,7 +120,7 @@ export default defineConfig({
                   "@/server",
                   "@/server/*",
                   "@/features/*/server/*",
-                  "@/features/admin/*/queries",
+                  "@/features/*/*/server/*",
                   "pg",
                   "drizzle-orm",
                   "drizzle-orm/*",
@@ -146,7 +148,7 @@ export default defineConfig({
     })),
     {
       // Domínio: TypeScript puro (testável sem React, roteador, banco ou SDK).
-      files: ["features/*/domain/**", "features/mascot/engine/**"],
+      files: ["features/*/domain/**", "features/*/*/domain/**"],
       rules: {
         "eslint/no-restricted-imports": [
           "error",
@@ -226,7 +228,7 @@ export default defineConfig({
         "features/room/ui/dock/MicMenu.tsx",
         "features/room/ui/dock/Reactions.tsx",
         "features/room/ui/dock/ShareMenu.tsx",
-        "features/auth/ui/TwoFactorSettings.tsx",
+        "features/security/ui/TwoFactorSettings.tsx",
         "features/auth/ui/TwoFactorCodeForm.tsx",
       ],
       // Popovers abertos por ação da pessoa e telas de um único campo (código do

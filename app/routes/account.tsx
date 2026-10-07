@@ -17,10 +17,10 @@ import {
   SettingsSection,
 } from "@/features/account/ui/settings/Settings";
 import { UserSignOutButton } from "@/features/account/ui/UserSignOutButton";
-import { AppHeader } from "@/components/AppHeader";
+import { AppHeader } from "@/components/shell/AppHeader";
 import { Button } from "@/components/ui/button";
-import { SessionList } from "@/features/auth/ui/SessionList";
-import { TwoFactorSettings } from "@/features/auth/ui/TwoFactorSettings";
+import { SessionList } from "@/features/security/ui/SessionList";
+import { TwoFactorSettings } from "@/features/security/ui/TwoFactorSettings";
 import { safeReturnPath } from "@/features/auth/domain/return-path";
 import { listActiveSessions } from "@/features/auth/server/sessions.server";
 import { requireUser } from "@/features/auth/server/participant-session.server";

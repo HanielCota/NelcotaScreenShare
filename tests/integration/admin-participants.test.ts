@@ -24,8 +24,9 @@ vi.mock("@/server/request-context.server", () => ({
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { adminSession } = await import("./support/admin-session");
 const actions = await import("@/features/admin/participants/actions.server");
-const { listParticipants } = await import("@/features/admin/participants/queries.server");
-const { loadParticipantParams } = await import("@/features/admin/participants/search-params");
+const { listParticipants } = await import("@/features/admin/participants/server/queries.server");
+const { loadParticipantParams } =
+  await import("@/features/admin/participants/domain/search-params");
 const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

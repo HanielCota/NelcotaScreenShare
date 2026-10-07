@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { Facts, Section } from "@/components/Section";
-import { LEAVE_REASON_LABELS } from "@/features/admin/audit/labels";
-import type { getRoomDetail } from "@/features/admin/rooms/queries.server";
+import { LEAVE_REASON_LABELS } from "@/features/admin/audit/domain/labels";
+import type { getRoomDetail } from "@/features/admin/rooms/server/queries.server";
 import { formatDateTime, formatSpan } from "@/lib/format";
 
 type RoomDetail = NonNullable<Awaited<ReturnType<typeof getRoomDetail>>>;

@@ -1,5 +1,5 @@
 import { Copy, Link2, Plus, XCircle } from "lucide-react";
-import { useOperation } from "@/lib/use-operation";
+import { useOperation } from "@/lib/operations/use-operation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";

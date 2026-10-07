@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from "react";
-import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { Flip } from "@/lib/gsap-flip";
+import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
+import { Flip } from "@/lib/animation/gsap-flip";
 
 const FLIP_TARGETS = "[data-flip-id]";
 

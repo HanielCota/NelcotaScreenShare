@@ -2,7 +2,7 @@ import { routeLoader } from "@/server/route-loader.server";
 import { useLoaderData } from "react-router";
 
 import { revokeOtherOwnSessions, revokeOwnSession } from "@/features/admin/account/actions";
-import { SessionList } from "@/features/auth/ui/SessionList";
+import { SessionList } from "@/features/security/ui/SessionList";
 import { requireAdmin } from "@/features/auth/server/admin-session.server";
 import { listActiveSessions } from "@/features/auth/server/sessions.server";
 import { getDb } from "@/server/db/index.server";

@@ -1,14 +1,14 @@
 import { z } from "zod";
-import { defineAdminOperation } from "@/features/auth/server/operations.server";
-import { ActionError } from "@/server/actions/errors";
-import { diffChanges } from "@/server/audit/record.server";
+import { defineAdminOperation } from "@/features/auth/server/operation-policies.server";
+import { ActionError } from "@/server/operations/action-error";
+import { diffChanges } from "@/server/audit.server";
 import { getDb } from "@/server/db/index.server";
 import {
   getSetting,
   invalidateSetting,
   mascotSettings,
   saveSetting,
-} from "@/server/settings.server";
+} from "@/features/admin/settings/server/settings.server";
 
 const mascotInput = z.object({
   saturationDark: z.number(),

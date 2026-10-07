@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
-import { NavBrand } from "@/components/NavBar";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { NavBrand } from "@/components/shell/NavBar";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 
 export const meta = () => [{ title: "Admin · Nelcota" }];
 

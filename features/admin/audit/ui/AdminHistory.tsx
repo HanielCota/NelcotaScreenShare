@@ -1,5 +1,5 @@
 import { Section } from "@/components/Section";
-import { actionLabel } from "@/features/admin/audit/labels";
+import { actionLabel } from "@/features/admin/audit/domain/labels";
 import { formatDateTime } from "@/lib/format";
 
 interface HistoryEntry {

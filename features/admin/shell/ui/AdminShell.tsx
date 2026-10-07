@@ -2,8 +2,8 @@ import { ChevronsUpDown, LogOut, Search, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate, useRevalidator } from "react-router";
 
 import { Fragment, useState, type ReactNode } from "react";
-import { NavBrand } from "@/components/NavBar";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { NavBrand } from "@/components/shell/NavBar";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -38,7 +38,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
-import type { NavGroup } from "@/features/admin/shell/nav.server";
+import type { NavGroup } from "@/features/admin/shell/server/nav.server";
 import { CommandPalette } from "./CommandPalette";
 import { NAV_ICONS } from "./nav-icons";
 

@@ -6,8 +6,8 @@ import {
   FilterSearch,
   FilterSelect,
 } from "@/components/data-table/filters";
-import { actionLabel, resourceLabel } from "@/features/admin/audit/labels";
-import { auditParsers } from "@/features/admin/audit/search-params";
+import { actionLabel, resourceLabel } from "@/features/admin/audit/domain/labels";
+import { auditParsers } from "@/features/admin/audit/domain/search-params";
 import { resetPage } from "@/lib/table-params";
 
 export interface AuditFilterOptions {

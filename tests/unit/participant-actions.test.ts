@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   availableActions,
   type ParticipantState,
-} from "@/features/admin/participants/available-actions";
+} from "@/features/admin/participants/domain/available-actions";
 
 const ALL = { update: true, delete: true, anonymize: true };
 const base: ParticipantState = {

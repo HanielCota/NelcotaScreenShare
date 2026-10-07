@@ -1,11 +1,8 @@
 import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
 import { withRequest } from "@/server/request-context.server";
 import { BodyTooLargeError, readBodyText } from "@/server/body.server";
-import { operations, readOperations } from "@/features/auth/server/operation-registry.server";
-import {
-  forbiddenCrossSite,
-  isCrossSiteMutation,
-} from "@/features/auth/server/origin-guard.server";
+import { operations, readOperations } from "@/app/operations.server";
+import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/origin-guard.server";
 
 const successRedirects: Record<string, string> = {
   "auth-acceptInvitation": "/admin/entrar?aviso=convite",

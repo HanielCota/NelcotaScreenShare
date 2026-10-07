@@ -4,7 +4,7 @@ import {
   EYE_SHAPES,
   POSE_EYES,
   eyelidOffset,
-} from "@/features/mascot/engine/eye-tracking";
+} from "@/features/mascot/domain/eye-tracking";
 
 /** Camada vetorial sobre os olhos fixos, movida junto com cada quadro do atlas. */
 export function SpriteEyes() {

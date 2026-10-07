@@ -1,7 +1,7 @@
 import { validateEnvOnBoot, getEnv } from "@/server/env.server";
 import { closeDb, getDb } from "@/server/db/index.server";
 import { logger } from "@/server/logger.server";
-import { scheduleMaintenance } from "@/features/maintenance/maintenance.server";
+import { scheduleMaintenance } from "@/features/runtime/server/maintenance.server";
 import type * as Sentry from "@sentry/react-router";
 
 const runtime = globalThis as typeof globalThis & {

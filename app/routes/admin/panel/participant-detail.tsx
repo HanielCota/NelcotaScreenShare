@@ -6,14 +6,14 @@ import { notFound } from "@/server/http.server";
 import { z } from "zod";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ParticipantActions } from "@/features/admin/participants/ui/ParticipantActions";
-import { STATUS_LABELS } from "@/features/admin/participants/labels";
+import { STATUS_LABELS } from "@/features/admin/participants/domain/labels";
 import {
   ParticipantAccount,
   ParticipantSessions,
   ParticipantTimeline,
 } from "@/features/admin/participants/ui/ParticipantDetailSections";
 import { AdminHistory } from "@/features/admin/audit/ui/AdminHistory";
-import { getParticipantDetail } from "@/features/admin/participants/queries.server";
+import { getParticipantDetail } from "@/features/admin/participants/server/queries.server";
 import { requireAdmin } from "@/features/auth/server/admin-session.server";
 import { can } from "@/features/auth/server/permissions.server";
 import { getDb } from "@/server/db/index.server";

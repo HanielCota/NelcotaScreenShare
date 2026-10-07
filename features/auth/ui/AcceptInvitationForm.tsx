@@ -1,6 +1,6 @@
 import { Loader2, UserPlus } from "lucide-react";
 
-import { useOperation } from "@/lib/use-operation";
+import { useOperation } from "@/lib/operations/use-operation";
 import { useId, useState, type FormEvent } from "react";
 import { acceptInvitation } from "@/features/auth/actions";
 import { AuthCard } from "./AuthCard";

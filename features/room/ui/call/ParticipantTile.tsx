@@ -2,7 +2,7 @@ import { useIsMuted, useIsSpeaking } from "@livekit/components-react";
 import { Track, type Participant } from "livekit-client";
 import { MicOff, MonitorUp } from "lucide-react";
 import { useRef } from "react";
-import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
 import { participantName } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";
 

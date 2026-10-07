@@ -2,14 +2,14 @@ import { ArrowLeft, ArrowRight, Headphones, Loader2, Ticket } from "lucide-react
 import { Link } from "react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { upsetMascot } from "@/features/mascot/events";
+import { upsetMascot } from "@/features/mascot/client/events";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { requestToken } from "@/features/room/client/api";
 import { joinFailure, type JoinChoices } from "@/features/room/domain/join";
 import { roomLink } from "@/features/room/domain/room-code";
 import { useMicSetup } from "@/features/room/hooks/use-mic-setup";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
-import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
 import { formText } from "@/lib/utils";
 import { InviteLinkButton } from "./InviteLinkButton";
 import { MicSetup } from "./MicSetup";

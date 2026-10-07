@@ -2,16 +2,16 @@ import assert from "node:assert/strict";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, test } from "vitest";
-import { listAuditLogs } from "@/features/admin/audit/queries.server";
-import type { AuditParams } from "@/features/admin/audit/search-params";
+import { listAuditLogs } from "@/features/admin/audit/server/queries.server";
+import type { AuditParams } from "@/features/admin/audit/domain/search-params";
 import * as schema from "@/server/db/schema";
 import { approximateCount, COUNT_CAP } from "@/server/table/keyset.server";
 import { sql } from "drizzle-orm";
 import {
   listParticipants,
   iterateParticipants,
-} from "@/features/admin/participants/queries.server";
-import type { ParticipantParams } from "@/features/admin/participants/search-params";
+} from "@/features/admin/participants/server/queries.server";
+import type { ParticipantParams } from "@/features/admin/participants/domain/search-params";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });

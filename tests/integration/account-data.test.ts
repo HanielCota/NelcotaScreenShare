@@ -29,7 +29,7 @@ vi.mock("@/server/http.server", () => ({
   },
 }));
 
-const { GET } = await import("@/app/routes/api/account-data.server");
+const { GET } = await import("@/features/account/server/data-export-route.server");
 const { deleteMyAccount } = await import("@/features/account/actions.server");
 const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 

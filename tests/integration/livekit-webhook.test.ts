@@ -5,10 +5,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { AccessToken } from "livekit-server-sdk";
 import { Pool } from "pg";
 import { afterAll, describe, test } from "vitest";
-import { POST } from "@/app/routes/api/livekit-webhook.server";
+import { POST } from "@/features/room/server/webhook/route.server";
 import * as schema from "@/server/db/schema";
 import { reprocessPendingEvents } from "@/features/room/server/webhook/projector.server";
-import { anonymizeParticipant } from "@/features/participants/server/operations.server";
+import { anonymizeParticipant } from "@/features/account/server/participant-accounts.server";
 
 /**
  * Webhook do LiveKit de ponta a ponta: eventos assinados como o LiveKit envia

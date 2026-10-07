@@ -1,4 +1,4 @@
-import { operation } from "@/lib/operation";
+import { operation } from "@/lib/operations/operation";
 import type * as server from "./actions.server";
 export const blockParticipantsAction = operation<
   Parameters<typeof server.blockParticipantsAction>[0],

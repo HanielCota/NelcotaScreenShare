@@ -2,11 +2,11 @@ import { ArrowLeft, Check, Link2, Lock, Plus, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import type { Expression } from "@/features/mascot/engine/face";
+import type { Expression } from "@/features/mascot/domain/face";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { formatCallDuration, type LeaveReason } from "@/features/room/domain/leave";
 import { roomPath } from "@/features/room/domain/room-code";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 
 /** Título, humor do mascote e o que dá para fazer em cada motivo de saída. */
 const COPY: Record<

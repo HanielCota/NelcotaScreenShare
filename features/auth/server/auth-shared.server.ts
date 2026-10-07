@@ -1,8 +1,8 @@
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { eq } from "drizzle-orm";
 import { profilePhotoSchema } from "@/features/account/domain/profile-photo";
-import { recordAudit } from "@/server/audit/record.server";
-import { clientIpFrom } from "@/server/client-ip";
+import { recordAudit } from "@/server/audit.server";
+import { clientIpFrom } from "@/server/client-ip.server";
 import type { Database } from "@/server/db/index.server";
 import { users } from "@/server/db/schema";
 import { logger } from "@/server/logger.server";

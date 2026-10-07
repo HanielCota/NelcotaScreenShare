@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { AppHeader } from "@/components/AppHeader";
+import { AppHeader } from "@/components/shell/AppHeader";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { HomeEntrance } from "./HomeEntrance";
 import { HomeStart } from "./HomeStart";

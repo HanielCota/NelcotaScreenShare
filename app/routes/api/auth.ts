@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs, type ActionFunctionArgs } from "react-router";
 import { withRequest } from "@/server/request-context.server";
-import { GET, POST } from "./auth.server";
+import { GET, POST } from "../../../features/auth/server/participant-auth-route.server";
 export const loader = ({ request, context }: LoaderFunctionArgs) =>
   withRequest(request, context, () => GET(request));
 export const action = ({ request, context }: ActionFunctionArgs) =>

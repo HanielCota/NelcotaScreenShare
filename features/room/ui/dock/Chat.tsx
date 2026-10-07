@@ -2,7 +2,7 @@ import { ArrowDown, EyeOff, MessagesSquare, X } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 import { chatGroupStarts } from "@/features/room/domain/chat-format";
 import type { ChatEntry, ChatState } from "@/features/room/hooks/use-chat-state";
 import { ChatComposer } from "./ChatComposer";

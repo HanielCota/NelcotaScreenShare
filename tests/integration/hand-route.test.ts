@@ -32,7 +32,7 @@ Object.assign(process.env, {
   AUTH_SECRET: "segredo-participantes-de-teste-0123456789abcdef",
 });
 
-const { POST } = await import("@/app/routes/api/hand.server");
+const { POST } = await import("@/features/room/server/hand-route.server");
 const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

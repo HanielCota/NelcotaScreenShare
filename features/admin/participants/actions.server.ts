@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { BULK_FILTER_LIMIT } from "@/lib/table-params";
-import { defineAdminOperation } from "@/features/auth/server/operations.server";
-import { ActionError } from "@/server/actions/errors";
+import { defineAdminOperation } from "@/features/auth/server/operation-policies.server";
+import { ActionError } from "@/server/operations/action-error";
 import { getUserAuth } from "@/features/auth/server/participant-auth.server";
 import { getDb } from "@/server/db/index.server";
 import { users } from "@/server/db/schema";
@@ -13,9 +13,9 @@ import {
   revokeParticipantSessions,
   softDeleteParticipants,
   unblockParticipants,
-} from "@/features/participants/server/operations.server";
+} from "@/features/account/server/participant-accounts.server";
 import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection.server";
-import { participantIdsForFilter } from "./queries.server";
+import { participantIdsForFilter } from "./server/queries.server";
 
 const reasonSchema = z
   .string()

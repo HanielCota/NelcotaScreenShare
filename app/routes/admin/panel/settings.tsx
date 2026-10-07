@@ -4,7 +4,11 @@ import { useLoaderData } from "react-router";
 import { MascotSettingsForm } from "@/features/admin/settings/ui/MascotSettingsForm";
 import { requireAdmin } from "@/features/auth/server/admin-session.server";
 import { can } from "@/features/auth/server/permissions.server";
-import { getSetting, MASCOT_SATURATION, mascotSettings } from "@/server/settings.server";
+import {
+  getSetting,
+  MASCOT_SATURATION,
+  mascotSettings,
+} from "@/features/admin/settings/server/settings.server";
 
 export const meta = () => [{ title: "Configurações · Nelcota" }];
 
