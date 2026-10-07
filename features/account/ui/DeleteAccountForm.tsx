@@ -50,7 +50,12 @@ export function DeleteAccountForm() {
       </div>
       <FormError id={errorId} message={error} />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" variant="destructive" disabled={remove.isPending}>
+        <Button
+          type="submit"
+          variant="destructive"
+          disabled={remove.isPending}
+          className="h-auto! min-h-10 max-w-full py-2 whitespace-normal"
+        >
           {remove.isPending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           Excluir minha conta para sempre
         </Button>
