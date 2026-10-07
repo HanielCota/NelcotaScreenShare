@@ -30,7 +30,7 @@ turn:
   relay_range_start: 30000
   relay_range_end: 30100
   # TURN/TLS (opcional, atravessa firewalls que só liberam TLS). Firewall: 5349/tcp.
-  # Exige certificado válido para o domínio acima; veja "TURN/TLS" no README.
+  # Exige certificado válido para o domínio acima; veja "TURN/TLS" em docs/deployment.md.
   # Para ativar, descomente as 3 linhas abaixo e o volume de certificados no compose.
   # tls_port: 5349
   # cert_file: /etc/livekit/certs/fullchain.pem
@@ -45,7 +45,7 @@ room:
 # Webhook: o LiveKit avisa o app de salas, entradas, saídas e compartilhamentos;
 # o painel admin (salas, participações, métricas) depende dele. `api_key` é o
 # mesmo valor de LIVEKIT_API_KEY (só o nome da chave, não o segredo).
-# Veja "Webhook" no README.
+# Veja "Webhook" em docs/deployment.md.
 webhook:
   api_key: troque-pela-LIVEKIT_API_KEY
   urls:

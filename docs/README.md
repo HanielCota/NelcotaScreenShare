@@ -1,6 +1,6 @@
 # Guia da arquitetura atual
 
-O app usa React Router 8 Framework Mode, Vite e SSR. O [README principal](../README.md) descreve desenvolvimento, testes, variáveis e deploy. A decisão de framework está no [ADR 0005](adr/0005-react-router-framework.md).
+O app usa React Router 8 Framework Mode, Vite e SSR. Os guias de [desenvolvimento](development.md), [contas e painel](accounts-and-admin.md) e [deploy](deployment.md) cobrem o resto. A decisão de framework está no [ADR 0005](adr/0005-react-router-framework.md).
 
 ## Organização
 
@@ -39,10 +39,10 @@ O mecanismo das operações tem um lugar por papel: descritor e hook em `lib/ope
 
 ## Decisões
 
-- [ADR 0001: organização por feature](adr/0001-pastas-por-feature-e-dal.md) — detalhes específicos do framework substituídos pelo ADR 0005.
-- [ADR 0002: gateway do LiveKit](adr/0002-gateway-unico-do-livekit.md).
-- [ADR 0003: fronteiras no Oxlint](adr/0003-fronteiras-no-oxlint.md).
-- [ADR 0004: idioma e nomes](adr/0004-idioma-e-nomes.md).
+- [ADR 0001: organização por feature](adr/0001-feature-folders-and-dal.md) — detalhes específicos do framework substituídos pelo ADR 0005.
+- [ADR 0002: gateway do LiveKit](adr/0002-single-livekit-gateway.md).
+- [ADR 0003: fronteiras no Oxlint](adr/0003-oxlint-boundaries.md).
+- [ADR 0004: idioma e nomes](adr/0004-language-and-naming.md).
 - [ADR 0005: React Router Framework Mode](adr/0005-react-router-framework.md).
 
 Os [planos históricos](archive/README.md) preservam o diagnóstico e as decisões das etapas anteriores. Este guia, o README principal e os ADRs descrevem a estrutura atual.

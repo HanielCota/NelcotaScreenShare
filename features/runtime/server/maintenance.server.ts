@@ -108,7 +108,7 @@ export async function runMaintenance(db: Database, now = new Date()): Promise<Ma
 const FIRST_RUN_DELAY_MS = 60_000;
 const INTERVAL_MS = 6 * 60 * 60 * 1000;
 
-/** Agenda a manutenção no processo do servidor (uma réplica; ver README). */
+/** Agenda a manutenção no processo do servidor (uma réplica; ver docs/deployment.md). */
 export function scheduleMaintenance(getDatabase: () => Database, log: MaintenanceLog) {
   let pending: Promise<void> | undefined;
   const maintain = async () => {

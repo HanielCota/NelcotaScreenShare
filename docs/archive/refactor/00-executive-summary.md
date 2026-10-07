@@ -1,6 +1,6 @@
 # 00 — Resumo executivo
 
-> **Status:** plano executado em 2026-10-06 (branch `refactor/arquitetura`). O resultado, as métricas antes → depois e os desvios do plano estão em [06-execucao.md](06-execucao.md).
+> **Status:** plano executado em 2026-10-06 (branch `refactor/arquitetura`). O resultado, as métricas antes → depois e os desvios do plano estão em [06-execution.md](06-execution.md).
 
 ## O diagnóstico em uma frase
 
@@ -60,12 +60,12 @@ Cada fase é deployável e entrega valor sozinha, então dá para **parar depois
 
 ## Documentos
 
-| Doc                                                  | Conteúdo                                                                                                        |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| [01-inventario.md](01-inventario.md)                 | Árvore anotada, grafo de imports, rotas e actions, fluxos, dependências e métricas                              |
-| [02-diagnostico.md](02-diagnostico.md)               | 55 problemas com evidência, achados fora do escopo (11 de segurança e 14 bugs) e ranking dos 10 que mais custam |
-| [03-arquitetura-alvo.md](03-arquitetura-alvo.md)     | Camadas, regra de dependência, árvore alvo, exemplo ponta a ponta, decisões e onde não aplicar SOLID            |
-| [04-plano-de-migracao.md](04-plano-de-migracao.md)   | Rede de segurança, fases com critérios e rollback, quick wins, métricas e riscos                                |
-| [05-decisoes-em-aberto.md](05-decisoes-em-aberto.md) | 5 perguntas, 9 premissas e as limitações da análise                                                             |
+| Doc                                                    | Conteúdo                                                                                                        |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| [01-inventory.md](01-inventory.md)                     | Árvore anotada, grafo de imports, rotas e actions, fluxos, dependências e métricas                              |
+| [02-diagnosis.md](02-diagnosis.md)                     | 55 problemas com evidência, achados fora do escopo (11 de segurança e 14 bugs) e ranking dos 10 que mais custam |
+| [03-target-architecture.md](03-target-architecture.md) | Camadas, regra de dependência, árvore alvo, exemplo ponta a ponta, decisões e onde não aplicar SOLID            |
+| [04-migration-plan.md](04-migration-plan.md)           | Rede de segurança, fases com critérios e rollback, quick wins, métricas e riscos                                |
+| [05-open-decisions.md](05-open-decisions.md)           | 5 perguntas, 9 premissas e as limitações da análise                                                             |
 
 **Próximo passo:** aprovar a arquitetura-alvo (doc 03) e a ordem das fases (doc 04) e responder Q1–Q5 do doc 05. Nada será implementado antes disso.

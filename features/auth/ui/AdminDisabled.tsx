@@ -15,7 +15,9 @@ export function AdminDisabled() {
         </>
       }
     >
-      <p className="text-sm text-ink-subtle">Veja a seção “Painel admin” do README.</p>
+      <p className="text-sm text-ink-subtle">
+        Veja o guia de contas e painel em docs/accounts-and-admin.md.
+      </p>
     </AuthCard>
   );
 }

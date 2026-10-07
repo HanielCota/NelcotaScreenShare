@@ -9,7 +9,7 @@
 #
 # A porta 7880 (sinalização HTTP/WebSocket) NÃO deve ser aberta no firewall:
 # ela passa pelo proxy HTTPS do Coolify em https://lk.seudominio.com
-# (o app conecta em wss://lk.seudominio.com). Veja o README.
+# (o app conecta em wss://lk.seudominio.com). Veja docs/deployment.md.
 #
 # network_mode: host é obrigatório para WebRTC: evita NAT do Docker na faixa UDP
 # e permite que o LiveKit anuncie o IP público correto nos candidatos ICE.
