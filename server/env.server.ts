@@ -65,7 +65,7 @@ const envSchema = z
       z.string().min(32, "ADMIN_AUTH_SECRET must be at least 32 characters").optional(),
     ),
     // Transactional e-mail (invitations, password recovery, verification).
-    // Without SMTP_URL in development, e-mails go to the log.
+    // Without SMTP_URL, delivery is disabled in production; dev logs the content.
     SMTP_URL: z.preprocess(
       emptyToUndefined,
       z.url({ protocol: /^smtps?$/, error: "SMTP_URL must be smtp:// or smtps://" }).optional(),
@@ -87,12 +87,13 @@ const envSchema = z
         message: "Set APP_URL (e.g. https://app.yourdomain.com) for the e-mail links",
       });
     }
-    if (!env.SMTP_URL || !env.MAIL_FROM) {
+    const mailRequired = env.REQUIRE_EMAIL_VERIFICATION || env.SMTP_URL || env.MAIL_FROM;
+    if (mailRequired && (!env.SMTP_URL || !env.MAIL_FROM)) {
       ctx.addIssue({
         code: "custom",
         path: ["SMTP_URL"],
         message:
-          "In production, e-mail verification and password recovery require SMTP_URL and MAIL_FROM",
+          "SMTP_URL and MAIL_FROM are required when e-mail delivery or verification is enabled",
       });
     }
     if (env.ADMIN_AUTH_SECRET && env.ADMIN_AUTH_SECRET === env.AUTH_SECRET) {

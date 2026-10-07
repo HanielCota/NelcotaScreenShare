@@ -102,7 +102,7 @@ The image is built on **GitHub Actions** (not on the VPS, so it doesn't compete 
    MAIL_FROM=Nelcota <no-reply@yourdomain.com>
    ```
 
-   Without `APP_URL`, `SMTP_URL` and `MAIL_FROM`, the app refuses to start in production (`server/env.server.ts`).
+   `APP_URL` is required in production. E-mail delivery is optional: leave both `SMTP_URL` and `MAIL_FROM` unset to run without SMTP and keep `REQUIRE_EMAIL_VERIFICATION=false`. Password recovery and account e-mails cannot be delivered in this mode; message contents and recovery links are not logged in production. Configure both mail variables before enabling delivery or requiring e-mail verification (`server/env.server.ts`).
 
 3. Keep rolling updates on (no host port mapping and no fixed container name). The Dockerfile's `HEALTHCHECK` queries `/api/health`; the container runs as a non-root user (`nelcota`).
 
