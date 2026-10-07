@@ -106,6 +106,79 @@ function totalLabel({ total, capped }: PageInfo): string {
   return total === 1 ? "1 resultado" : `${formatNumber(total)} resultados`;
 }
 
+function selectionLabel(allMatching: boolean, selected: number, total: number): string {
+  if (allMatching) return `Todos os ${formatNumber(total)} resultados`;
+  return selected === 1 ? "1 selecionado" : `${selected} selecionados`;
+}
+
+/** Barra que aparece com linhas marcadas: quantas, "selecionar todos" e as ações. */
+function SelectionBar({
+  label,
+  offerAll,
+  page,
+  onSelectAll,
+  onClear,
+  children,
+}: {
+  label: string;
+  /** A página inteira está marcada e há mais resultados além dela. */
+  offerAll: boolean;
+  page: PageInfo;
+  onSelectAll: () => void;
+  onClear: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
+      <span className="font-semibold">{label}</span>
+      {offerAll ? (
+        // Acima do limite o servidor sempre recusa a ação em massa (server/table/selection.ts).
+        page.capped ? (
+          <span className="text-ink-muted">
+            Mais de {formatNumber(page.total)} resultados: refine o filtro para agir em todos.
+          </span>
+        ) : (
+          <Button variant="link" size="sm" onClick={onSelectAll}>
+            Selecionar todos os {formatNumber(page.total)} resultados
+          </Button>
+        )
+      ) : null}
+      {children}
+      <Button variant="ghost" size="sm" className="ml-auto" onClick={onClear}>
+        Limpar seleção
+      </Button>
+    </div>
+  );
+}
+
+function Pagination({
+  page,
+  pending,
+  onPrev,
+  onNext,
+}: {
+  page: PageInfo;
+  pending: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <nav aria-label="Paginação" className="flex items-center justify-between gap-3 text-sm">
+      <span className="text-ink-muted">{totalLabel(page)}</span>
+      <span className="flex gap-2">
+        <Button variant="outline" size="sm" disabled={!page.prevCursor || pending} onClick={onPrev}>
+          <ChevronLeft aria-hidden="true" />
+          Anterior
+        </Button>
+        <Button variant="outline" size="sm" disabled={!page.nextCursor || pending} onClick={onNext}>
+          Próxima
+          <ChevronRight aria-hidden="true" />
+        </Button>
+      </span>
+    </nav>
+  );
+}
+
 export function DataTable<TData extends RowData & { id: string }>({
   label,
   columns,
@@ -170,32 +243,16 @@ export function DataTable<TData extends RowData & { id: string }>({
         </TableTransitionContext>
       ) : null}
 
-      {selectable && selected.length > 0 ? (
-        <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
-          <span className="font-semibold">
-            {allMatching
-              ? `Todos os ${formatNumber(page.total)} resultados`
-              : selected.length === 1
-                ? "1 selecionado"
-                : `${selected.length} selecionados`}
-          </span>
-          {!allMatching && selected.length === data.length && page.total > data.length ? (
-            // Acima do limite o servidor sempre recusa a ação em massa (server/table/selection.ts).
-            page.capped ? (
-              <span className="text-ink-muted">
-                Mais de {formatNumber(page.total)} resultados: refine o filtro para agir em todos.
-              </span>
-            ) : (
-              <Button variant="link" size="sm" onClick={() => setAllFor(filterKey)}>
-                Selecionar todos os {formatNumber(page.total)} resultados
-              </Button>
-            )
-          ) : null}
+      {bulkActions && selected.length > 0 ? (
+        <SelectionBar
+          label={selectionLabel(allMatching, selected.length, page.total)}
+          offerAll={!allMatching && selected.length === data.length && page.total > data.length}
+          page={page}
+          onSelectAll={() => setAllFor(filterKey)}
+          onClear={clear}
+        >
           {bulkActions(selection, clear, count)}
-          <Button variant="ghost" size="sm" className="ml-auto" onClick={clear}>
-            Limpar seleção
-          </Button>
-        </div>
+        </SelectionBar>
       ) : null}
 
       <div
@@ -256,29 +313,12 @@ export function DataTable<TData extends RowData & { id: string }>({
         )}
       </div>
 
-      <nav aria-label="Paginação" className="flex items-center justify-between gap-3 text-sm">
-        <span className="text-ink-muted">{totalLabel(page)}</span>
-        <span className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!page.prevCursor || pending}
-            onClick={() => go(page.prevCursor, "prev")}
-          >
-            <ChevronLeft aria-hidden="true" />
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!page.nextCursor || pending}
-            onClick={() => go(page.nextCursor, "next")}
-          >
-            Próxima
-            <ChevronRight aria-hidden="true" />
-          </Button>
-        </span>
-      </nav>
+      <Pagination
+        page={page}
+        pending={pending}
+        onPrev={() => go(page.prevCursor, "prev")}
+        onNext={() => go(page.nextCursor, "next")}
+      />
     </section>
   );
 }

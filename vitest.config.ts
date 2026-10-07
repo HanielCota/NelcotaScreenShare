@@ -72,7 +72,7 @@ export default defineConfig({
       exclude: ["components/ui/**"],
       reporter: ["text-summary", "html", "json-summary"],
       // Catraca: o mínimo só sobe. Valores do baseline da refatoração (unit + integração).
-      thresholds: { statements: 31, branches: 25, functions: 25, lines: 32 },
+      thresholds: { statements: 34, branches: 29, functions: 28, lines: 35 },
     },
   },
 });

@@ -1,30 +1,8 @@
-"use client";
-
-import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { Mascot } from "@/features/mascot/ui/Mascot";
-import { mascotLine } from "@/features/auth/domain/access-copy";
-
-/** Balão do mascote: a fala muda com a tela e com a sala de destino. */
-function SpeechBubble() {
-  const pathname = usePathname();
-  const returnTo = useSearchParams().get("voltar");
-  return <BubbleText text={mascotLine(pathname, returnTo)} />;
-}
-
-function BubbleText({ text }: { text: string }) {
-  return (
-    <p className="relative max-w-64 rounded-2xl border border-line bg-surface px-4 py-3 text-sm leading-snug lg:max-w-72 lg:text-base">
-      {text}
-      {/* Rabinho do balão: aponta para o mascote (à esquerda no celular, embaixo no computador). */}
-      <span
-        aria-hidden="true"
-        className="absolute top-1/2 -left-1.5 size-3 -translate-y-1/2 rotate-45 border-b border-l border-line bg-surface lg:top-auto lg:-bottom-1.5 lg:left-10 lg:translate-y-0 lg:border-t-0 lg:border-r lg:border-b lg:border-l-0"
-      />
-    </p>
-  );
-}
+import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
+import { BubbleText } from "./BubbleText";
+import { SpeechBubble } from "./SpeechBubble";
 
 /**
  * Lado do mascote no painel de acesso. Ele reage ao formulário ao lado e

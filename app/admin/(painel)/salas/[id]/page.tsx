@@ -3,13 +3,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { Facts, Section } from "@/components/Section";
+import { Section } from "@/components/Section";
 import { InvitesPanel } from "@/features/admin/rooms/ui/InvitesPanel";
 import { RoomNoteForm } from "@/features/admin/rooms/ui/RoomNoteForm";
 import { RoomStatus } from "@/features/admin/rooms/ui/RoomStatus";
+import {
+  RoomParticipants,
+  RoomShares,
+  RoomSummary,
+} from "@/features/admin/rooms/ui/RoomDetailSections";
+import { AdminHistory } from "@/features/admin/audit/ui/AdminHistory";
 import { getRoomDetail } from "@/features/admin/rooms/queries";
-import { actionLabel, LEAVE_REASON_LABELS } from "@/features/admin/audit/labels";
-import { formatDateTime, formatSpan } from "@/lib/format";
 import { requireAdmin } from "@/features/auth/server/admin-session";
 import { can } from "@/features/auth/server/permissions";
 import { getDb } from "@/server/db";
@@ -45,35 +49,7 @@ export default async function RoomPage({ params }: PageProps<"/admin/salas/[id]"
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Resumo">
-          <Facts
-            items={[
-              ["Início", formatDateTime(room.startedAt)],
-              ["Fim", room.finishedAt ? formatDateTime(room.finishedAt) : "—"],
-              ["Duração", formatSpan(room.startedAt, room.finishedAt)],
-              ["Pico de pessoas", String(room.peak)],
-              ...(live ? ([["Na sala agora", String(online)]] as [string, string][]) : []),
-              ["Compartilhamentos", String(shares.length)],
-              [
-                "Criada por",
-                room.createdById ? (
-                  <Link
-                    key="criador"
-                    href={`/admin/usuarios/${room.createdById}`}
-                    className="hover:underline"
-                  >
-                    {room.createdByName ?? "Participante"}
-                  </Link>
-                ) : (
-                  "—"
-                ),
-              ],
-              ...(room.deletedAt
-                ? ([["Excluída em", formatDateTime(room.deletedAt)]] as [string, string][])
-                : []),
-            ]}
-          />
-        </Section>
+        <RoomSummary room={room} online={live ? online : null} shareCount={shares.length} />
         <Section title="Nota interna" description="Só o painel vê.">
           <RoomNoteForm id={room.id} note={room.note} canEdit={can(role, { room: ["update"] })} />
         </Section>
@@ -98,94 +74,11 @@ export default async function RoomPage({ params }: PageProps<"/admin/salas/[id]"
         />
       </Section>
 
-      <Section
-        title="Participantes"
-        description={participants.length === 0 ? "Ninguém entrou nesta sala." : undefined}
-      >
-        {participants.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="text-xs text-ink-subtle">
-                <tr>
-                  <th className="py-2 pr-4 font-medium">Pessoa</th>
-                  <th className="py-2 pr-4 font-medium">Entrou</th>
-                  <th className="py-2 pr-4 font-medium">Saiu</th>
-                  <th className="py-2 pr-4 font-medium">Duração</th>
-                  <th className="py-2 font-medium">Saída</th>
-                </tr>
-              </thead>
-              <tbody>
-                {participants.map((participant) => (
-                  <tr key={participant.id} className="border-t border-line">
-                    <td className="py-2 pr-4">
-                      {participant.userId ? (
-                        <Link
-                          href={`/admin/usuarios/${participant.userId}`}
-                          className="hover:underline"
-                        >
-                          {participant.name}
-                        </Link>
-                      ) : (
-                        participant.name
-                      )}
-                    </td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
-                      {formatDateTime(participant.joinedAt)}
-                    </td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
-                      {participant.leftAt ? formatDateTime(participant.leftAt) : "—"}
-                    </td>
-                    <td className="py-2 pr-4 whitespace-nowrap">
-                      {formatSpan(participant.joinedAt, participant.leftAt)}
-                    </td>
-                    <td className="py-2 text-ink-muted">
-                      {participant.leaveReason
-                        ? (LEAVE_REASON_LABELS[participant.leaveReason] ?? "—")
-                        : "Na sala"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
-      </Section>
+      <RoomParticipants participants={participants} />
 
-      <Section
-        title="Compartilhamentos de tela"
-        description={shares.length === 0 ? "Ninguém compartilhou a tela." : undefined}
-      >
-        {shares.length > 0 ? (
-          <ul className="flex flex-col divide-y divide-line text-sm">
-            {shares.map((share) => (
-              <li key={share.id} className="flex flex-wrap justify-between gap-2 py-2">
-                <span className="font-medium">
-                  {share.name}
-                  {share.withAudio ? <span className="text-ink-muted"> · com áudio</span> : null}
-                </span>
-                <span className="text-ink-muted">
-                  {formatDateTime(share.startedAt)} · {formatSpan(share.startedAt, share.endedAt)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </Section>
+      <RoomShares shares={shares} />
 
-      {history.length > 0 ? (
-        <Section title="Histórico no painel">
-          <ul className="flex flex-col divide-y divide-line text-sm">
-            {history.map((entry) => (
-              <li key={entry.id} className="flex flex-wrap justify-between gap-2 py-2">
-                <span className="font-medium">{actionLabel(entry.action)}</span>
-                <span className="text-ink-muted">
-                  {entry.adminName ?? "Sistema"} · {formatDateTime(entry.createdAt)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      ) : null}
+      <AdminHistory entries={history} />
     </>
   );
 }

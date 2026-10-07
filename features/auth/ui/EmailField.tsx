@@ -5,6 +5,7 @@ import { nodMascot, setMascotDoubt } from "@/features/mascot/events";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { suggestEmail } from "@/features/auth/domain/email-suggest";
+import { EMAIL_PATTERN } from "@/features/auth/domain/sign-up";
 
 /** E-mail digitado numa aba vale na outra (só nesta aba do navegador). */
 const REMEMBER_KEY = "nelcota:acesso-email";
@@ -63,7 +64,7 @@ export function EmailField({
     const next = suggestEmail(value);
     setSuggestion(next);
     setMascotDoubt(next !== undefined);
-    if (!next && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) nodMascot();
+    if (!next && EMAIL_PATTERN.test(value)) nodMascot();
   }
 
   function accept() {

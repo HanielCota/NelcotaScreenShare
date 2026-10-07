@@ -16,13 +16,13 @@ import { Label } from "@/components/ui/label";
 import type { AccessContext } from "@/features/auth/domain/access-context";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
-import { displayNameSchema } from "@/features/room/domain/participant-label";
 import {
   PASSWORD_LIMITS,
   passwordStrength,
   STRENGTH_LABELS,
 } from "@/features/auth/domain/password-rules";
 import { cn, formText } from "@/lib/utils";
+import { checkSignUp } from "@/features/auth/domain/sign-up";
 
 const { min: MIN_PASSWORD, max: MAX_PASSWORD } = PASSWORD_LIMITS.user;
 
@@ -104,22 +104,26 @@ export function SignUpForm({
     if (pending) return;
     const form = event.currentTarget;
     const data = new FormData(form);
-    const name = displayNameSchema.safeParse(formText(data, "name"));
-    const email = formText(data, "email").trim();
-    if (!name.success) {
-      return fail(name.error.issues[0]?.message ?? "Confira seu nome.", nameRef.current);
+    const check = checkSignUp({
+      name: formText(data, "name"),
+      email: formText(data, "email"),
+      password,
+      minPassword: MIN_PASSWORD,
+    });
+    if (!check.ok) {
+      const fields = {
+        name: nameRef.current,
+        email: form.querySelector<HTMLElement>("[name=email]"),
+        password: passwordRef.current,
+      };
+      return fail(check.message, fields[check.field]);
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-      return fail("Digite um e-mail válido.", form.querySelector<HTMLElement>("[name=email]"));
-    }
-    if (password.length < MIN_PASSWORD) {
-      return fail(`A senha precisa ter ao menos ${MIN_PASSWORD} caracteres.`, passwordRef.current);
-    }
+    const { name, email } = check;
 
     setPending(true);
     setError(undefined);
     const { error: failure } = await authClient.signUp.email({
-      name: name.data,
+      name,
       email,
       password,
       callbackURL: returnTo,

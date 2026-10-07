@@ -66,13 +66,17 @@ Abra duas abas (ou uma janela anônima), entre na mesma sala e compartilhe a tel
 | `pnpm format:check`                        | Confere a formatação do projeto sem alterar arquivos                                    |
 | `pnpm test`                                | Vitest: unitários + integração (esta só com `TEST_DATABASE_URL`)                        |
 | `pnpm test:unit` / `pnpm test:integration` | Só um dos projetos do Vitest                                                            |
-| `pnpm test:watch` / `pnpm test:coverage`   | Modo observação / cobertura (`coverage/`)                                               |
+| `pnpm test:watch` / `pnpm test:coverage`   | Modo observação / cobertura (`coverage/`, com mínimo por catraca)                       |
+| `pnpm test:e2e`                            | Playwright: fluxos da sala, do painel e da conta (Postgres e LiveKit de dev ligados)    |
+| `pnpm knip`                                | Arquivos, exports e dependências sem uso                                                |
+| `pnpm dup`                                 | Duplicação de código (jscpd, limite em `.jscpd.json`)                                   |
 | `pnpm db:bootstrap:dev`                    | Sobe o Postgres local (`docker-compose.dev.yml`) com os papéis                          |
-| `pnpm db:generate`                         | Gera a migração SQL em `drizzle/` a partir de `server/db/schema.ts`                     |
+| `pnpm db:generate`                         | Gera a migração SQL em `drizzle/` a partir de `server/db/schema/`                       |
 | `pnpm db:migrate`                          | Aplica as migrações com `MIGRATOR_DATABASE_URL`                                         |
 | `pnpm db:studio`                           | Abre o Drizzle Studio                                                                   |
 | `pnpm db:seed`                             | Dados de exemplo (só banco local). `--perfil=carga --linhas=300000` para teste de carga |
 | `pnpm build:migrate`                       | Empacota o migrador em `dist/migrate.mjs` (usado na imagem Docker)                      |
+| `pnpm build:scripts`                       | Migrador, `create-owner.mjs` (roda na imagem) e seed                                    |
 
 ### Formatação nas tarefas de IA
 
@@ -84,8 +88,18 @@ dependências, builds e metadados gerados. O CI também verifica a formatação.
 ### Oxlint
 
 `oxlint.config.ts` é a configuração principal, compatível com o Oxlint 1.86 instalado.
-Ela inclui `app`, `components` (também `components/ui`), `hooks`, `lib`, testes e arquivos
-de configuração. Build, dependências, cobertura e capturas temporárias ficam de fora.
+Ela inclui `app`, `components` (também `components/ui`), `features`, `lib`, `server`, testes
+e arquivos de configuração. Build, dependências, cobertura e capturas temporárias ficam de fora.
+
+Além da qualidade do código, o lint **impõe a arquitetura** (ver
+[`docs/refactor/03-arquitetura-alvo.md`](docs/refactor/03-arquitetura-alvo.md) e `docs/adr/`):
+
+- `components/` e `lib/` (genéricos) não importam features, rotas nem o servidor;
+- a UI de cada feature não importa servidor, banco nem a UI de outra feature (só o mascote e o
+  aviso de compartilhamento são públicos); a regra é gerada por feature a partir de `features/`;
+- `features/*/domain` e `features/mascot/engine` são TypeScript puro (sem React, Next, banco ou SDK);
+- `server/` (infra) só conhece o `domain/` das features;
+- nenhum arquivo acima de 300 linhas úteis, nenhuma função com complexidade acima de 15.
 
 As regras verificam Hooks e dependências de efeitos, imports circulares e duplicados,
 acessibilidade (incluindo `Link`, `Image`, `Input` e `Label`), práticas do Next.js,
@@ -99,7 +113,7 @@ do Oxlint. `useGSAP` recebe dependências em um objeto de configuração; não �
 a `additionalHooks`, que espera a assinatura com um array de dependências.
 
 As exceções são localizadas: o foco inicial dos popovers de microfone, reações e
-compartilhamento permite navegação por teclado. Em `PreJoin`, a regra de autocomplete
+compartilhamento permite navegação por teclado. Em `SignUpForm`, a regra de autocomplete
 tem uma exceção porque a [implementação do Oxlint 1.86](https://github.com/oxc-project/oxc/blob/oxlint_v1.86.0/crates/oxc_linter/src/rules/jsx_a11y/autocomplete_valid.rs)
 omite `nickname`, que é [válido no padrão HTML](https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill-detail-tokens).
 Essa exceção deve ser revista quando o Oxlint for atualizado.
@@ -160,10 +174,11 @@ Tudo é validado com Zod em `server/env.ts`. Se faltar algo, o container sai com
 
 O app usa **PostgreSQL 18** com **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + driver `pg`). O plano completo do painel está em [`docs/PLANO-ADMIN.md`](docs/PLANO-ADMIN.md).
 
-- O schema fica em `server/db/schema.ts`. Depois de mudar o schema, rode `pnpm db:generate`, revise o SQL e faça commit dele em `drizzle/`.
+- O schema fica em `server/db/schema/` (um arquivo por área). Depois de mudar o schema, rode `pnpm db:generate`, revise o SQL e faça commit dele em `drizzle/`. O CI falha se o schema e as migrações não baterem.
 - **Migrações nunca rodam no boot do app.** São um job separado (`scripts/migrate.ts`), com um usuário próprio do Postgres, advisory lock e `lock_timeout` de 5 s. Mudanças seguem _expand/contract_ (o código antigo continua funcionando com o schema novo).
 - Configurações editáveis ficam em `app_settings` (uma linha por grupo, valor JSON validado por Zod em `server/settings.ts`). Um grupo novo de configuração não precisa de migração.
 - `DATABASE_URL` é obrigatória: entrar numa sala exige conta.
+- **Retenção (LGPD) e reprocessamento:** a cada 6 h o próprio processo do app (`features/maintenance`) apaga pedidos de token com mais de 6 meses, tira o IP das participações com mais de 6 meses e o nome com mais de 12, apaga eventos do LiveKit e falhas de login com mais de 30 dias e sessões vencidas há 7 dias, e reprojeta eventos do webhook que falharam.
 
 ### Papéis do Postgres (privilégio mínimo)
 
@@ -177,16 +192,17 @@ Os papéis são criados uma vez com `deploy/postgres/bootstrap.sql` (idempotente
 
 ### Testes
 
-- `tests/unit`: sem banco.
-- `tests/integration`: Postgres real. Com `TEST_DATABASE_URL` (banco **descartável**; em dev ele é lido do `.env.local`), o Vitest recria um banco-modelo já migrado e cada arquivo de teste recebe uma cópia limpa (`CREATE DATABASE … TEMPLATE`).
+- `tests/unit`: sem banco (domínio puro: decisão do token, regras do mascote, protocolo da sala…).
+- `tests/integration`: Postgres real. Com `TEST_DATABASE_URL` (banco **descartável**; em dev ele é lido do `.env.local`), o Vitest recria um banco-modelo já migrado e cada arquivo de teste recebe uma cópia limpa (`CREATE DATABASE … TEMPLATE`). Sem a variável, avisa que só os unitários vão rodar. Um dos testes roda como `nelcota_app` para conferir os grants.
+- `tests/e2e`: Playwright com Postgres e LiveKit de dev ligados. Sobe o app na porta 3100 com um banco próprio (`nelcota_e2e`, recriado a cada execução) e Chromium com microfone e tela falsos. Instale o navegador uma vez com `pnpm exec playwright install chromium`.
 
 ### Contas de participantes
 
-Entrar numa sala (e criar uma) exige **conta com e-mail confirmado**. É uma segunda instância do Better Auth em `/api/auth` (tabelas `users*`, cookie `nelcota.*`, `SameSite=Lax`), separada do painel admin.
+Entrar numa sala (e criar uma) exige **conta** (e e-mail confirmado, se `REQUIRE_EMAIL_VERIFICATION=true`). É uma segunda instância do Better Auth em `/api/auth` (tabelas `users*`, cookie `nelcota.*`, `SameSite=Lax`), separada do painel admin.
 
 - **Cadastro:** nome de exibição, e-mail e senha (10 a 128 caracteres, argon2id) e aceite do [aviso de privacidade](/privacidade). Cadastrar um e-mail que já existe responde igual a um cadastro novo, e o dono do e-mail recebe um aviso.
-- **Confirmação de e-mail obrigatória** (link de 24 h; em dev o link aparece no log do servidor). Depois de confirmar, a pessoa já entra e volta para onde estava (ex.: a sala).
-- **Na sala:** a identidade no LiveKit é o ID da conta e o nome vem da conta. A mesma conta numa segunda aba desconecta a primeira, com aviso.
+- **Confirmação de e-mail** opcional (`REQUIRE_EMAIL_VERIFICATION`, desligada por padrão; link de 24 h; em dev o link aparece no log do servidor). Depois de confirmar, a pessoa já entra e volta para onde estava (ex.: a sala).
+- **Na sala:** a identidade no LiveKit é o ID da conta e o nome vem da conta (o token não deixa trocar o nome lá dentro; "levantar a mão" passa pelo servidor em `POST /api/sala/mao`). A mesma conta numa segunda aba desconecta a primeira, com aviso.
 - **Minha conta (`/conta`):** nome, troca de e-mail (com confirmação no novo), senha, 2FA opcional, sessões ativas, **baixar meus dados** (JSON) e **excluir a conta** (anonimização imediata).
 - Mesmas proteções do admin: bloqueio por tentativas, rate limit no banco, checagem de origem e mensagens que não revelam se o e-mail existe. Conta bloqueada pelo painel não entra nem abre sessão.
 
@@ -201,7 +217,7 @@ O painel usa uma **instância própria do [Better Auth](https://www.better-auth.
 - **Bloqueio por tentativas:** 5 senhas erradas na mesma conta bloqueiam por 15 min (dobra a cada 5, até 24 h); 20 erros do mesmo IP em 15 min bloqueiam o IP. Mais o rate limit do Better Auth (5 logins/min por IP), guardado no banco.
 - **Sem enumeração:** login, recuperação de senha e convite respondem igual exista o e-mail ou não.
 - **CSRF:** o Better Auth confere a origem; além disso, a rota recusa qualquer requisição de outra origem (inclusive o primeiro login, sem cookie).
-- **Permissões:** papéis `owner`, `admin` e `viewer` em `server/auth/permissions.ts` (matriz em `docs/PLANO-ADMIN.md` §5.2). Toda página chama `requireAdmin(...)` e toda Server Action passa por `adminAction` (sessão, 2FA, permissão e sessão fresca conferidas **dentro** da action).
+- **Permissões:** papéis `owner`, `admin` e `viewer` em `features/auth/server/permissions.ts` (matriz em `docs/PLANO-ADMIN.md` §5.2). Toda página chama `requireAdmin(...)` e toda Server Action passa por `adminAction` (sessão, 2FA, permissão e sessão fresca conferidas **dentro** da action).
 
 - **Auditoria:** `audit_logs` guarda quem fez o quê, quando, de onde (IP, navegador, `request_id`) e o "antes → depois" campo a campo, com segredos mascarados. É gravado na **mesma transação** da mudança. A tabela é imutável (trigger + papel do app sem UPDATE/DELETE; apagar só depois de 5 anos). Toda Server Action declara `audit: "required" | "none"`; uma action auditada que termina sem registrar falha. Logins, bloqueios, 2FA e trocas de senha do painel também são registrados.
 - **Shell:** sidebar recolhível (lembrada em cookie), breadcrumbs, busca/command palette (`Ctrl/⌘ K`), estados de carregamento, erro e 404 em pt-BR. O menu mostra só o que o papel pode abrir.
@@ -311,7 +327,14 @@ A imagem é construída no **GitHub Actions** (não na VPS, para não disputar C
    ACCESS_PASSWORD=<opcional>
    MAX_PARTICIPANTS=6
    SENTRY_DSN=<opcional>
+   AUTH_SECRET=<openssl rand -base64 48>
+   ADMIN_AUTH_SECRET=<outro openssl rand -base64 48; liga o /admin>
+   APP_URL=https://app.seudominio.com
+   SMTP_URL=smtps://usuario:senha@smtp.seudominio.com:465
+   MAIL_FROM=Nelcota <no-reply@seudominio.com>
    ```
+
+   Sem `APP_URL`, `SMTP_URL` e `MAIL_FROM`, o app recusa subir em produção (`server/env.ts`).
 
 3. Mantenha o rolling update ligado (sem mapear porta do host nem nome fixo de container). O `HEALTHCHECK` do Dockerfile consulta `/api/health`; o container roda como usuário não-root (`nextjs`).
 
@@ -321,7 +344,9 @@ Segredos do GitHub (environment `production`): `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_H
 
 > O rate limit fica em memória: vale para uma réplica (o padrão no Coolify). Para escalar horizontalmente, troque por Redis.
 >
-> O IP usado no rate limit é o último do `X-Forwarded-For`, o que o Traefik acrescenta. Se o `app.` passar pelo proxy da Cloudflare, esse IP vira o da Cloudflare; nesse caso, leia o `CF-Connecting-IP` em `server/rate-limit.ts`.
+> O IP usado no rate limit é o do `X-Forwarded-For` contado a partir do fim, conforme `TRUSTED_PROXY_HOPS` (Traefik = 1). Se o `app.` passar também pelo proxy da Cloudflare, use `TRUSTED_PROXY_HOPS=2`.
+>
+> **Rollback:** a tag `:main` muda a cada deploy. Para voltar uma versão, aponte o recurso para `ghcr.io/<org>/<repo>:<sha-anterior>` (tag imutável) e faça redeploy; as migrações são sempre aditivas (expand/contract), então o código anterior funciona com o schema novo.
 
 ### 4.1. PostgreSQL
 
@@ -383,34 +408,31 @@ Cada pedido ao `/api/token` também fica em `token_requests` (resultado, conta e
 
 ## Estrutura
 
+Organização por feature (decisões em `docs/adr/`, detalhes em `docs/refactor/03-arquitetura-alvo.md`):
+
 ```
-app/
-  layout.tsx              # Manrope, metadata, Toaster
-  globals.css             # @import "tailwindcss" + @theme (tokens dark)
-  page.tsx                # Home
-  sala/[codigo]/page.tsx  # valida o código e renderiza a sessão
-  api/token/route.ts      # JWT do LiveKit (Zod, senha, limite, rate limit)
-  api/health/route.ts     # liveness (HEALTHCHECK)
-  api/ready/route.ts      # prontidão: banco + versão (smoke test do deploy)
-  api/livekit/webhook/route.ts  # eventos do LiveKit → livekit_events → salas/participações
-  admin/{page,actions,session}.ts(x)  # painel admin (senha, sessão, saturação do mascote)
-  api/health/route.ts     # healthcheck
-components/
-  home/{HomeScene,JoinForm}.tsx
-  room/{RoomSession,PreJoin,RoomView,ScreenStage,ParticipantTile,ControlDock,DockButton,ShareMenu,MicMenu,Reactions,Chat,StatusScreen}.tsx
-  ui/                     # shadcn
-hooks/useRoomAnimations.ts  # entrada do dock, stagger dos tiles e Flip do layout
-hooks/useShortcut.ts        # atalhos de uma tecla (M, S, F, P, H, C)
-lib/{gsap,livekit,room-data,shortcuts,theme,copy-room-link,utils}.ts  # isomórfico, sem segredos
-server/                   # só servidor (import "server-only"): env, db, logger, csp, rate-limit, settings, auth
-server/db/{schema,index}.ts  # Drizzle: tabelas e pool de conexões
-scripts/migrate.ts        # migrador (job separado; empacotado como migrate.mjs na imagem)
+app/                      # rotas finas (páginas, layouts, route handlers); URLs em português
+features/
+  room/                   # sala ao vivo
+    domain/               #   puro: código da sala, contrato do /api/token, decisão de entrada,
+                          #   canal de dados, foco, presença (testes em tests/unit)
+    server/               #   token (orquestração + gateway do LiveKit), webhook, convites, presença
+    client/               #   chamadas do navegador, erros do SDK, microfone salvo
+    hooks/ ui/            #   conexão, microfone, compartilhamento; pré-entrada, chamada, palco, dock
+  mascot/                 # o Nelcota: engine/ (regras puras), dom/ (controlador, molas, eventos), ui/
+  auth/                   # as duas instâncias do Better Auth, sessões, permissões e telas de acesso
+  account/                # "Minha conta" do participante (actions, dados LGPD, formulários)
+  admin/                  # painel: rooms, participants, shares, audit, search, settings, shell
+  participants/           # operações sobre a conta (bloquear, excluir, anonimizar)
+  home/                   # página inicial (RSC) com a barra de entrada
+  maintenance/            # retenção LGPD e reprocessamento do webhook (a cada 6 h)
+components/               # UI genérica (shadcn em ui/, tabela de dados, formulários, navbar)
+lib/                      # utilitários isomórficos genéricos (+ lib/hooks)
+server/                   # infra do servidor: env, db (schema), logger, mail, rate limit, CSP,
+                          # clientes das actions, auditoria, tabelas (keyset, CSV, filtros)
+scripts/                  # migrate, create-owner, seed
 drizzle/                  # migrações SQL geradas (commitadas)
-deploy/postgres/          # postgresql.conf, bootstrap dos papéis, init de dev
-tests/{unit,integration}/ # Vitest
-.github/workflows/        # CI e deploy
-instrumentation.ts        # valida o env no boot
-deploy/livekit/livekit.yaml
-docker-compose.livekit.yml
-Dockerfile
+deploy/                   # Postgres (conf, papéis) e LiveKit
+tests/{unit,integration,e2e}/
+.github/workflows/        # CI (qualidade, testes, E2E, build e imagem) e deploy
 ```

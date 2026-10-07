@@ -2,7 +2,7 @@
 
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import type { CSSProperties } from "react";
-import { useTheme } from "@/components/ThemeToggle";
+import { useTheme } from "@/lib/hooks/use-theme";
 import {
   CircleCheckIcon,
   InfoIcon,

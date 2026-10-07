@@ -60,8 +60,6 @@ export function NavBrand({
   );
 }
 
-export { navItemClass } from "./nav-item-class";
-
 /** Item da navbar que abre um painel (popover) abaixo dele. */
 export function NavPopover({
   trigger,

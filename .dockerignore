@@ -19,3 +19,6 @@ coverage
 docs
 tests
 design
+playwright.config.ts
+test-results
+playwright-report

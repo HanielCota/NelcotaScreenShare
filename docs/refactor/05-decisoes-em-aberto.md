@@ -1,5 +1,7 @@
 # 05 — Decisões em aberto e premissas
 
+> **Atualização (execução, 2026-10-06):** a refatoração seguiu as premissas abaixo. Q2 foi resolvida com o WIP commitado como estava (`07e1259`), Q4 com o banco obrigatório (Fase 1) e Q5 mantendo `user.export`. Q1 e Q3 continuam com você. Ver [06-execucao.md](06-execucao.md).
+
 Nada disto bloqueou a análise. Onde precisei decidir, assumi a premissa marcada abaixo, e a proposta funciona com ela. Se alguma estiver errada, os docs 03 e 04 mudam no ponto indicado.
 
 ## Perguntas (a responder antes da Fase 0)

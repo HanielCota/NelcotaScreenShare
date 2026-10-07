@@ -10,6 +10,9 @@ const databaseUrlSchema = z.url({
   error: "DATABASE_URL é obrigatória (postgres:// ou postgresql://)",
 });
 
+// Origem pública do app (links de e-mail, CSRF do Better Auth). Em dev: localhost.
+const appUrlSchema = z.preprocess(emptyToUndefined, z.url().optional());
+
 export const logLevelSchema = z.preprocess(
   emptyToUndefined,
   z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).optional(),
@@ -55,7 +58,7 @@ const envSchema = z
       .string({ error: "AUTH_SECRET é obrigatória (openssl rand -base64 48)" })
       .min(32, "AUTH_SECRET precisa ter ao menos 32 caracteres"),
     // Origem pública do app (links de e-mail, CSRF do Better Auth). Em dev: localhost.
-    APP_URL: z.preprocess(emptyToUndefined, z.url().optional()),
+    APP_URL: appUrlSchema,
     // Segredo da instância de admin do Better Auth (cookies, 2FA cifrado). Sem ele,
     // o /admin fica desligado. Gere com: openssl rand -base64 48
     ADMIN_AUTH_SECRET: z.preprocess(
@@ -102,9 +105,12 @@ const envSchema = z
     }
   });
 
-/** Origem pública do app (sem barra no fim). */
+/**
+ * Origem pública do app (sem barra no fim). Lê só o APP_URL (validado pela mesma
+ * regra do ambiente completo): o create-owner gera o link sem precisar do resto.
+ */
 export function appUrl(): string {
-  return (getEnv().APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  return (appUrlSchema.parse(process.env.APP_URL) ?? "http://localhost:3000").replace(/\/$/, "");
 }
 
 type Env = z.infer<typeof envSchema>;

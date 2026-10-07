@@ -1,27 +1,29 @@
+type Cell = { column: number; row: number };
+
+const NEUTRAL: Cell = { column: 0, row: 0 };
+const EYES_CLOSED: Cell = { column: 0, row: 1 };
+
+/** Célula do atlas de cada expressão (as que faltam usam a neutra). */
+const CELLS = new Map<string, Cell>([
+  ["happy", { column: 1, row: 0 }],
+  ["celebrate", { column: 1, row: 0 }],
+  ["highFive", { column: 1, row: 0 }],
+  ["presenting", { column: 1, row: 0 }],
+  ["grumpy", { column: 1, row: 1 }],
+  ["worried", { column: 1, row: 1 }],
+  ["skeptical", { column: 1, row: 1 }],
+  ["surprised", { column: 2, row: 1 }],
+  ["ticklish", { column: 2, row: 1 }],
+  ["asleep", EYES_CLOSED],
+]);
+
 /** Grade do atlas: três colunas, duas linhas, sem recortes sobre o rosto. */
-export function avatarFrame(expression: string | undefined, lid0 = 0, lid1 = 0) {
+export function avatarFrame(expression: string | undefined, lid0 = 0, lid1 = 0): Cell {
   // A piscada fecha só as pálpebras, sem baixar a mão durante o encontro.
   if (expression === "greeting") return { column: 2, row: 0 };
   if (expression === "yawning") return { column: 2, row: 1 };
-  if (Math.max(lid0, lid1) > 0.85) return { column: 0, row: 1 };
-  switch (expression) {
-    case "happy":
-    case "celebrate":
-    case "highFive":
-    case "presenting":
-      return { column: 1, row: 0 };
-    case "grumpy":
-    case "worried":
-    case "skeptical":
-      return { column: 1, row: 1 };
-    case "surprised":
-    case "ticklish":
-      return { column: 2, row: 1 };
-    case "asleep":
-      return { column: 0, row: 1 };
-    default:
-      return { column: 0, row: 0 };
-  }
+  if (Math.max(lid0, lid1) > 0.85) return EYES_CLOSED;
+  return (expression === undefined ? undefined : CELLS.get(expression)) ?? NEUTRAL;
 }
 
 /** Poses A/B do mesmo braço: a troca discreta mantém o desenho inteiro intacto. */
