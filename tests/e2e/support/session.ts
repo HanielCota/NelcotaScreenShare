@@ -55,6 +55,9 @@ export function newRoomCode(): string {
 export async function joinRoom(page: Page, code: string, { micOn = true } = {}) {
   await page.goto(`/sala/${code}`);
   await expect(page.getByLabel("Senha da sala (quem te convidou sabe)")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Entrar na sala|Entrar só ouvindo/ }),
+  ).toBeEnabled();
   if (!micOn) await page.getByRole("switch").first().click();
   await page.getByLabel("Senha da sala (quem te convidou sabe)").fill(E2E_ACCESS_PASSWORD);
   await page.getByRole("button", { name: /Entrar na sala|Entrar só ouvindo/ }).click();

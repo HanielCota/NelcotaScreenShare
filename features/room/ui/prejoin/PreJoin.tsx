@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, Headphones, Loader2, Ticket } from "lucide-react";
 import { Link } from "react-router";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { upsetMascot } from "@/features/mascot/client/events";
 import { Mascot } from "@/features/mascot/ui/Mascot";
@@ -31,6 +31,18 @@ interface PreJoinProps {
   onJoin: (choices: JoinChoices) => void;
 }
 
+const subscribeNothing = () => () => {};
+
+/** Native submission stays unavailable until the client handler is attached. */
+function useJoinDisabled(submitting: boolean) {
+  const ready = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+  return !ready || submitting;
+}
+
 /** Pre-join: confirms who is joining, tests the microphone, asks for the password and the token. */
 export function PreJoin({
   code,
@@ -46,6 +58,7 @@ export function PreJoin({
   const [name, setName] = useState(userName);
   const [formError, setFormError] = useState<{ message: string; field?: "password" }>();
   const [submitting, setSubmitting] = useState(false);
+  const joinDisabled = useJoinDisabled(submitting);
   const meterRef = useRef<HTMLDivElement>(null);
   const mic = useMicSetup(submitting, meterRef);
 
@@ -126,6 +139,7 @@ export function PreJoin({
   return (
     <form
       ref={scope}
+      method="post"
       onSubmit={(event) => void handleSubmit(event)}
       noValidate
       className="apple-buttons flex w-full max-w-lg flex-col items-center gap-5"
@@ -182,7 +196,7 @@ export function PreJoin({
       ) : null}
 
       <div data-anim="row" className="flex w-full flex-col items-center gap-2.5">
-        <Button type="submit" size="lg" disabled={submitting} className="h-12! w-full">
+        <Button type="submit" size="lg" disabled={joinDisabled} className="h-12! w-full">
           {submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           {submitting ? "Entrando…" : mic.joinsMuted ? "Entrar só ouvindo" : "Entrar na sala"}
           {submitting ? null : <ArrowRight aria-hidden="true" />}
