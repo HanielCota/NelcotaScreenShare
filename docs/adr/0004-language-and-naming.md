@@ -20,7 +20,3 @@
   - documents (ADRs, guides and plans in `docs/`) in `kebab-case.md`.
 - **Domain terms**: `participant` is the person who joins rooms (`users` table); `admin` is the panel account. `TokenFetchResult` (the result of the request in the browser) is different from the record in `token_requests`.
 - **No barrel files.** Imports point directly at the file, with the `@/` alias.
-
-## Known pending items
-
-- The internal payload of bulk actions still uses `{ tipo: "ids" | "filtro", busca }` (`lib/table-params.ts`). Changing it requires changing actions, tables and tests together; it waits until that part is touched.
