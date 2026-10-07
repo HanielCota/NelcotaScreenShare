@@ -1,9 +1,11 @@
-import { ChevronsUpDown, LogOut, Search, UserRound } from "lucide-react";
+import { ArrowUpRight, ChevronsUpDown, LogOut, Search, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate, useRevalidator } from "react-router";
 
 import { Fragment, useState, type ReactNode } from "react";
-import { NavBrand } from "@/components/shell/NavBar";
+import { NavBar, NavBrand, NavDivider } from "@/components/shell/NavBar";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
+import { UserAvatar } from "@/components/UserAvatar";
+import { cn } from "@/lib/utils";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -35,6 +38,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
+  SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
@@ -105,13 +109,14 @@ export function AdminShell({
   }
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
-      <Sidebar collapsible="icon">
-        <SidebarHeader>
-          <div className="flex h-10 items-center px-1 group-data-[collapsible=icon]:justify-center">
+    <SidebarProvider defaultOpen={defaultOpen} className="admin-shell apple-buttons">
+      <Sidebar collapsible="icon" variant="floating">
+        <SidebarHeader className="gap-0 pt-4 pb-3 group-data-[collapsible=icon]:pt-2">
+          <div className="flex h-10 items-center group-data-[collapsible=icon]:justify-center">
             <NavBrand href="/admin" showName={false} />
-            <span className="truncate text-sm font-medium group-data-[collapsible=icon]:hidden">
-              Painel Nelcota
+            <span className="flex min-w-0 flex-col gap-0.5 group-data-[collapsible=icon]:hidden">
+              <span className="truncate text-sm font-medium">Nelcota</span>
+              <span className="text-xs text-ink-subtle">Painel admin</span>
             </span>
           </div>
         </SidebarHeader>
@@ -130,7 +135,10 @@ export function AdminShell({
                           isActive={isActive(pathname, item.href)}
                           tooltip={item.label}
                         >
-                          <Link to={item.href}>
+                          <Link
+                            to={item.href}
+                            aria-current={isActive(pathname, item.href) ? "page" : undefined}
+                          >
                             <Icon aria-hidden="true" />
                             <span>{item.label}</span>
                           </Link>
@@ -146,17 +154,26 @@ export function AdminShell({
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Voltar ao app">
+                <Link to="/">
+                  <ArrowUpRight aria-hidden="true" />
+                  <span>Voltar ao app</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          <SidebarSeparator className="mx-0" />
+          <SidebarMenu>
+            <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton size="lg" tooltip={user.name}>
-                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-3 text-sm font-medium">
-                      {user.name.slice(0, 1).toUpperCase()}
-                    </span>
+                    <UserAvatar name={user.name} image={null} className="size-8" />
                     <span className="flex min-w-0 flex-col text-left leading-tight">
                       <span className="truncate text-sm font-medium">{user.name}</span>
                       <span className="truncate text-xs text-ink-subtle">{user.roleLabel}</span>
                     </span>
-                    <ChevronsUpDown className="ml-auto size-4" aria-hidden="true" />
+                    <ChevronsUpDown className="ml-auto" aria-hidden="true" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="top" align="start" className="w-60">
@@ -167,16 +184,18 @@ export function AdminShell({
                     </span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/conta/seguranca">
-                      <UserRound aria-hidden="true" />
-                      Minha conta
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={signOut}>
-                    <LogOut aria-hidden="true" />
-                    Sair
-                  </DropdownMenuItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/conta/seguranca">
+                        <UserRound aria-hidden="true" />
+                        Minha conta
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={signOut}>
+                      <LogOut aria-hidden="true" />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </SidebarMenuItem>
@@ -186,44 +205,45 @@ export function AdminShell({
       </Sidebar>
 
       <SidebarInset className="min-w-0">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-line bg-canvas/85 px-3 backdrop-blur-xl sm:px-4">
-          <SidebarTrigger aria-label="Mostrar ou esconder o menu" />
-          <Breadcrumb className="min-w-0">
-            <BreadcrumbList>
-              {crumbs.map((crumb, index) => (
-                <Fragment key={crumb.href}>
-                  {index > 0 ? <BreadcrumbSeparator /> : null}
-                  <BreadcrumbItem className="max-w-48 truncate">
-                    {crumb.current ? (
-                      <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                    ) : (
-                      <BreadcrumbLink asChild>
-                        <Link to={crumb.href}>{crumb.label}</Link>
-                      </BreadcrumbLink>
-                    )}
-                  </BreadcrumbItem>
-                </Fragment>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
-          <span className="ml-auto flex items-center gap-1">
-            <Button
-              variant="outline"
-              className="h-9 gap-2 rounded-xl px-3 text-ink-muted"
-              onClick={() => setPaletteOpen(true)}
-            >
-              <Search aria-hidden="true" />
-              <span className="max-sm:sr-only">Buscar</span>
-              <kbd className="rounded-md border border-line px-1.5 text-[0.7rem] font-medium max-sm:hidden">
-                Ctrl K
-              </kbd>
-            </Button>
-            <ThemeToggle />
-          </span>
+        <header className="sticky top-0 z-20 bg-canvas/85 px-4 pt-4 pb-2 backdrop-blur-xl sm:px-6">
+          <NavBar aria-label="Painel administrativo" className="mx-auto max-w-6xl">
+            <SidebarTrigger aria-label="Mostrar ou esconder o menu" />
+            <NavDivider />
+            <Breadcrumb className="min-w-0">
+              <BreadcrumbList className="flex-nowrap">
+                {crumbs.map((crumb, index) => (
+                  <Fragment key={crumb.href}>
+                    {index > 0 ? <BreadcrumbSeparator className="max-sm:hidden" /> : null}
+                    <BreadcrumbItem
+                      className={cn("max-w-48 truncate", !crumb.current && "max-sm:hidden")}
+                    >
+                      {crumb.current ? (
+                        <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink asChild>
+                          <Link to={crumb.href}>{crumb.label}</Link>
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  </Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+            <span className="ml-auto flex items-center gap-1">
+              <Button variant="secondary" onClick={() => setPaletteOpen(true)}>
+                <Search data-icon="inline-start" aria-hidden="true" />
+                <span className="max-sm:sr-only">Buscar</span>
+                <kbd className="rounded-md border border-line px-1.5 text-[0.7rem] font-medium max-sm:hidden">
+                  Ctrl K
+                </kbd>
+              </Button>
+              <ThemeToggle />
+            </span>
+          </NavBar>
         </header>
-        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pt-6 pb-8 sm:px-6">
           {children}
-        </main>
+        </div>
       </SidebarInset>
       <CommandPalette
         groups={groups}
