@@ -8,7 +8,7 @@ import {
   getSetting,
   mascotSettings,
   saveSetting,
-} from "@/server/settings.server";
+} from "@/features/admin/settings/server/settings.server";
 import { runMigrations } from "../../scripts/migrate";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

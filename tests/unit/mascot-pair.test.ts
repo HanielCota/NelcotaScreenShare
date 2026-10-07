@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { createPairMotion } from "@/features/mascot/engine/pair-motion";
-import { nextPairRest, PAIR_STEP_MS } from "@/features/mascot/engine/pair";
+import { createPairMotion } from "@/features/mascot/domain/pair-motion";
+import { nextPairRest, PAIR_STEP_MS } from "@/features/mascot/domain/pair";
 
 function approaching() {
   const motion = createPairMotion(() => 0);

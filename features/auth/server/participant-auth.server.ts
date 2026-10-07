@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { twoFactor } from "better-auth/plugins/two-factor";
-import { CLIENT_IP_HEADER } from "@/server/client-ip";
+import { CLIENT_IP_HEADER } from "@/server/client-ip.server";
 import { getDb, type Database } from "@/server/db/index.server";
 import {
   userAccounts,

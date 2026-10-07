@@ -11,7 +11,7 @@ As fronteiras ficam no `oxlint.config.ts`, com `no-restricted-imports` por pasta
 | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `components/**`, `lib/**`                                                                   | features, rotas, servidor                                                                                         |
 | UI, hooks e client de cada feature (um override gerado por feature a partir de `features/`) | servidor, banco, SDK de servidor, UI de outra feature (exceto `features/mascot/ui` e o aviso de compartilhamento) |
-| `features/*/domain/**`, `features/mascot/engine/**`                                         | React, React Router, banco, SDKs, `@/server`                                                                      |
+| `features/*/domain/**`, `features/admin/*/domain/**`                                        | React, React Router, banco, SDKs, `@/server`                                                                      |
 | `server/**`                                                                                 | features (exceto `domain/`), rotas, componentes                                                                   |
 
 Completam a proteção:
@@ -31,3 +31,12 @@ Tudo isso roda no CI.
 ## Consequências
 
 - A regra é por padrão de caminho, menos precisa que um grafo, mas suficiente aqui. As três violações plantadas em teste (UI de outra feature, React no domínio, infra importando servidor de feature) foram barradas.
+
+## Revisão (2026-10-07)
+
+Duas brechas encontradas ao reorganizar as pastas:
+
+- No oxlint, `*` não atravessa `/`: `@/server/*` não pegava `@/server/db/index.server`, e `@/features/*/server/*` não pegava as subfeatures do painel (`@/features/admin/rooms/server/...`). Os padrões passaram a usar `**`.
+- O oxlint junta os grupos de padrões de uma regra, então a exceção "a feature importa a própria UI" (`!@/features/<nome>/**`) liberava também o servidor da feature. A exceção agora cobre só `ui/`.
+
+As duas foram confirmadas plantando os imports proibidos antes e depois da correção.

@@ -3,7 +3,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { requestHeaders } from "@/server/request-context.server";
 
 const { handle } = vi.hoisted(() => ({ handle: vi.fn() }));
-vi.mock("@/features/auth/server/operation-registry.server", () => ({
+vi.mock("@/app/operations.server", () => ({
   operations: {
     "auth-acceptInvitation": { handle },
     "account-revokeMySession": { handle },

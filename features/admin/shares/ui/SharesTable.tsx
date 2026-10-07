@@ -16,8 +16,8 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime, formatDuration } from "@/lib/format";
 import { resetPage } from "@/lib/table-params";
-import type { ShareRow } from "@/features/admin/shares/queries.server";
-import { shareParsers } from "@/features/admin/shares/search-params";
+import type { ShareRow } from "@/features/admin/shares/server/queries.server";
+import { shareParsers } from "@/features/admin/shares/domain/search-params";
 
 const AUDIO_OPTIONS = [
   { value: "com", label: "Com áudio" },

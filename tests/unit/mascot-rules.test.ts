@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pairActivity } from "@/features/mascot/engine/pair";
+import { pairActivity } from "@/features/mascot/domain/pair";
 import {
   blinkLid,
   blocksPlay,
@@ -13,7 +13,7 @@ import {
   PAIR_BUSY_SELECTOR,
   reactionTo,
   waitingGaze,
-} from "@/features/mascot/engine/rules";
+} from "@/features/mascot/domain/rules";
 
 describe("regras por expressão", () => {
   it("sono: olhar parado e pálpebras lentas, mas a pupila segue normal", () => {

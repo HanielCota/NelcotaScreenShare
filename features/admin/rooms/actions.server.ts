@@ -2,15 +2,15 @@ import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { BULK_FILTER_LIMIT } from "@/lib/table-params";
 import { roomLink } from "@/features/room/domain/room-code";
-import { defineAdminOperation } from "@/features/auth/server/operations.server";
-import { ActionError } from "@/server/actions/errors";
-import { diffChanges } from "@/server/audit/record.server";
+import { defineAdminOperation } from "@/features/auth/server/operation-policies.server";
+import { ActionError } from "@/server/operations/action-error";
+import { diffChanges } from "@/server/audit.server";
 import { getDb } from "@/server/db/index.server";
 import { rooms } from "@/server/db/schema";
 import { appUrl } from "@/server/env.server";
 import { createRoomInvite, revokeRoomInvite } from "@/features/room/server/invites.server";
 import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection.server";
-import { roomIdsForFilter } from "./queries.server";
+import { roomIdsForFilter } from "./server/queries.server";
 
 /** Exclusão reversível. Sala ao vivo não pode: encerre antes. */
 export const deleteRoomsAction = defineAdminOperation(

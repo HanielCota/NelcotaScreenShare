@@ -3,12 +3,12 @@ import { Hint } from "@/components/Hint";
 import { useId, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { cn } from "@/lib/utils";
 const atlas = "/mascot/nelcota-mint-atlas.png";
-import { avatarFrame } from "@/features/mascot/engine/avatar-frames";
-import type { Expression } from "@/features/mascot/engine/face";
-import { useMascot } from "./use-mascot";
+import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
+import type { Expression } from "@/features/mascot/domain/face";
+import { useMascot } from "../hooks/use-mascot";
 import { SpriteEyes } from "./SpriteEyes";
 import styles from "./Mascot.module.css";
-import type { MascotActivity } from "@/features/mascot/engine/personality";
+import type { MascotActivity } from "@/features/mascot/domain/personality";
 
 interface MascotProps {
   className?: string;

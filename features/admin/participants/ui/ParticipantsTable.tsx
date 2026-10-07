@@ -1,13 +1,13 @@
 import { Hint } from "@/components/Hint";
 
 import { Ban, LockOpen, Trash2 } from "lucide-react";
-import { useOperation } from "@/lib/use-operation";
+import { useOperation } from "@/lib/operations/use-operation";
 import { Link } from "react-router";
 import { debounce, useQueryStates } from "nuqs";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { toastWithUndo } from "@/components/undo-toast";
+import { toastWithUndo } from "@/lib/undo-toast";
 import type { PageInfo } from "@/components/data-table/page-info";
 import {
   DataTable,
@@ -31,9 +31,13 @@ import {
   restoreParticipantsAction,
   unblockParticipantsAction,
 } from "@/features/admin/participants/actions";
-import { SORT_OPTIONS, STATUS_LABELS, STATUS_OPTIONS } from "@/features/admin/participants/labels";
-import type { ParticipantRow } from "@/features/admin/participants/queries.server";
-import { participantParsers } from "@/features/admin/participants/search-params";
+import {
+  SORT_OPTIONS,
+  STATUS_LABELS,
+  STATUS_OPTIONS,
+} from "@/features/admin/participants/domain/labels";
+import type { ParticipantRow } from "@/features/admin/participants/server/queries.server";
+import { participantParsers } from "@/features/admin/participants/domain/search-params";
 
 export interface ParticipantPermissions {
   update: boolean;

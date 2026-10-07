@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { useTimeouts } from "@/lib/hooks/use-timeouts";
 import { setHandRaised } from "@/features/room/client/api";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 import { participantName } from "@/features/room/domain/participant-label";
 import {
   createReceiveThrottle,

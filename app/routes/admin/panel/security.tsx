@@ -1,7 +1,7 @@
 import { routeLoader } from "@/server/route-loader.server";
 import { useLoaderData } from "react-router";
 
-import { TwoFactorSettings } from "@/features/auth/ui/TwoFactorSettings";
+import { TwoFactorSettings } from "@/features/security/ui/TwoFactorSettings";
 import { needsTwoFactorSetup, requireAdmin } from "@/features/auth/server/admin-session.server";
 import { ROLES_REQUIRING_2FA } from "@/features/auth/domain/roles";
 

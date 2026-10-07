@@ -15,7 +15,7 @@ Object.assign(process.env, {
 });
 
 const { AccessToken } = await import("livekit-server-sdk");
-const { POST } = await import("../../app/routes/api/livekit-webhook.server");
+const { receiveLivekitWebhook } = await import("../../features/room/server/webhook/route.server");
 const { logger } = await import("../../server/logger.server");
 
 const body = JSON.stringify({
@@ -33,7 +33,7 @@ async function signature(payload: string, secret = SECRET): Promise<string> {
 }
 
 function post(payload: string, authorization?: string) {
-  return POST(
+  return receiveLivekitWebhook(
     new Request("http://localhost/api/livekit/webhook", {
       method: "POST",
       headers: {

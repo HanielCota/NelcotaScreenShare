@@ -1,12 +1,12 @@
 import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
-import { defineUserOperation } from "@/features/auth/server/operations.server";
-import { ActionError } from "@/server/actions/errors";
+import { defineUserOperation } from "@/features/auth/server/operation-policies.server";
+import { ActionError } from "@/server/operations/action-error";
 import { verifyPassword } from "@/features/auth/server/password.server";
 import { getDb } from "@/server/db/index.server";
 import { userAccounts, userSessions } from "@/server/db/schema";
 import { logger } from "@/server/logger.server";
-import { anonymizeParticipant } from "@/features/participants/server/operations.server";
+import { anonymizeParticipant } from "@/features/account/server/participant-accounts.server";
 import { createRateLimiter } from "@/server/rate-limit.server";
 
 /** Senha errada ao excluir a conta: poucas chances por conta, contra adivinhação. */

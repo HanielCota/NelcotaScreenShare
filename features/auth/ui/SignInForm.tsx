@@ -7,7 +7,7 @@ import { EmailField, forgetTypedEmail } from "./EmailField";
 import { AuthCard } from "./AuthCard";
 import { FormError } from "@/components/FormError";
 import { PasswordInput } from "@/components/PasswordInput";
-import { celebrateMascot, nodMascot, upsetMascot } from "@/features/mascot/events";
+import { celebrateMascot, nodMascot, upsetMascot } from "@/features/mascot/client/events";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { AccessContext } from "@/features/auth/domain/access-context";

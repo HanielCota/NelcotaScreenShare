@@ -4,11 +4,11 @@ import { useLoaderData } from "react-router";
 import { pageInfo } from "@/components/data-table/page-info";
 import { createSerializer } from "nuqs/server";
 import { ParticipantsTable } from "@/features/admin/participants/ui/ParticipantsTable";
-import { listParticipants } from "@/features/admin/participants/queries.server";
+import { listParticipants } from "@/features/admin/participants/server/queries.server";
 import {
   loadParticipantParams,
   participantParsers,
-} from "@/features/admin/participants/search-params";
+} from "@/features/admin/participants/domain/search-params";
 import { PAGE_SIZE } from "@/lib/table-params";
 import { requireAdmin } from "@/features/auth/server/admin-session.server";
 import { can } from "@/features/auth/server/permissions.server";

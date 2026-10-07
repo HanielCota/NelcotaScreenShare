@@ -2,8 +2,14 @@ import type { Participant } from "livekit-client";
 import { Check, Copy, MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { NavBar, NavBrand, NavDivider, NavPopover, ShortcutsPanel } from "@/components/NavBar";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  NavBar,
+  NavBrand,
+  NavDivider,
+  NavPopover,
+  ShortcutsPanel,
+} from "@/components/shell/NavBar";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { roomPath } from "@/features/room/domain/room-code";
 import { participantName } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";

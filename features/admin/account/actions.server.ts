@@ -1,8 +1,8 @@
 import { and, eq, ne } from "drizzle-orm";
 import { requestHeaders } from "@/server/request-context.server";
 import { z } from "zod";
-import { defineAdminOperation } from "@/features/auth/server/operations.server";
-import { ActionError } from "@/server/actions/errors";
+import { defineAdminOperation } from "@/features/auth/server/operation-policies.server";
+import { ActionError } from "@/server/operations/action-error";
 import { getAdminAuth } from "@/features/auth/server/admin-auth.server";
 import { getDb } from "@/server/db/index.server";
 import { adminSessions } from "@/server/db/schema";

@@ -26,7 +26,7 @@ vi.mock("@/server/request-context.server", () => ({
   }),
 }));
 const root = fileURLToPath(new URL("../../", import.meta.url));
-// Actions ficam em app/ e em features/ (o painel); as duas pastas entram.
+// Actions ficam nas features (e, se um dia houver, em app/); as duas pastas entram.
 const files = globSync(["app/**/actions.server.ts", "features/**/actions.server.ts"], {
   cwd: root,
 }).map((file) => file.replaceAll("\\", "/"));

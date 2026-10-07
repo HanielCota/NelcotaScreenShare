@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { AppHeader } from "@/components/AppHeader";
+import { AppHeader } from "@/components/shell/AppHeader";
 import { requestToken } from "@/features/room/client/api";
 import type { JoinChoices } from "@/features/room/domain/join";
 import { callDuration, type LeaveNotice, type LeaveReason } from "@/features/room/domain/leave";

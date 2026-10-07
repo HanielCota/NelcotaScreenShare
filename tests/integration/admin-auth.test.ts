@@ -7,10 +7,7 @@ import {
   ADMIN_AUTH_BASE_PATH,
   createAdminAuthForTests,
 } from "@/features/auth/server/admin-auth.server";
-import {
-  forbiddenCrossSite,
-  isCrossSiteMutation,
-} from "@/features/auth/server/origin-guard.server";
+import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/origin-guard.server";
 import {
   acceptAdminInvitation,
   createAdminInvitation,

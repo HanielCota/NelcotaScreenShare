@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mascot } from "./Mascot";
-import { createPairController } from "@/features/mascot/dom/pair-controller";
-import { pairActivity, type PairPhase } from "@/features/mascot/engine/pair";
+import { createPairController } from "@/features/mascot/client/pair-controller";
+import { pairActivity, type PairPhase } from "@/features/mascot/domain/pair";
 import styles from "./MascotPair.module.css";
 
 /** Os dois percorrem a barra juntos; um relógio só mantém o encontro sincronizado. */

@@ -1,7 +1,7 @@
 import { Outlet } from "react-router";
 import { BrandPanel } from "@/features/auth/ui/BrandPanel";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
-import { ParticipantHeader } from "@/features/auth/ui/ParticipantHeader";
+import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 
 /**
  * Telas de acesso da conta de participante: um painel no centro da página,

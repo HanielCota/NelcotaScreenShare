@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
 import type { ComponentProps } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
 import { cn } from "@/lib/utils";
 
 type DockTone = "default" | "active" | "danger" | "muted";

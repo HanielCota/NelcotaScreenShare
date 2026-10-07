@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { useRef, type ReactNode } from "react";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
+import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 import { cn } from "@/lib/utils";
 
 interface StatusScreenProps {

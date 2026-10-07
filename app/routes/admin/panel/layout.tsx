@@ -3,7 +3,7 @@ import { useLoaderData, Outlet } from "react-router";
 import { readCookie } from "@/server/request-context.server";
 
 import { AdminShell } from "@/features/admin/shell/ui/AdminShell";
-import { navFor } from "@/features/admin/shell/nav.server";
+import { navFor } from "@/features/admin/shell/server/nav.server";
 import { needsTwoFactorSetup, requireAdmin } from "@/features/auth/server/admin-session.server";
 import { ADMIN_ROLE_LABELS } from "@/features/auth/domain/roles";
 

@@ -14,7 +14,7 @@ import {
   RoomSummary,
 } from "@/features/admin/rooms/ui/RoomDetailSections";
 import { AdminHistory } from "@/features/admin/audit/ui/AdminHistory";
-import { getRoomDetail } from "@/features/admin/rooms/queries.server";
+import { getRoomDetail } from "@/features/admin/rooms/server/queries.server";
 import { requireAdmin } from "@/features/auth/server/admin-session.server";
 import { can } from "@/features/auth/server/permissions.server";
 import { getDb } from "@/server/db/index.server";

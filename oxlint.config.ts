@@ -90,7 +90,7 @@ export default defineConfig({
                 message: "Código genérico não depende de features nem de rotas.",
               },
               {
-                group: ["@/server", "@/server/*", "pg", "drizzle-orm", "drizzle-orm/*"],
+                group: ["@/server", "@/server/**", "pg", "drizzle-orm", "drizzle-orm/*"],
                 allowTypeImports: true,
                 message: "Código genérico não acessa o servidor nem o banco.",
               },
@@ -107,6 +107,8 @@ export default defineConfig({
         `features/${feature}/hooks/**`,
         `features/${feature}/client/**`,
         `features/${feature}/*/ui/**`,
+        `features/${feature}/*/hooks/**`,
+        `features/${feature}/*/client/**`,
       ],
       rules: {
         "eslint/no-restricted-imports": [
@@ -116,9 +118,8 @@ export default defineConfig({
               {
                 group: [
                   "@/server",
-                  "@/server/*",
-                  "@/features/*/server/*",
-                  "@/features/admin/*/queries",
+                  "@/server/**",
+                  "@/features/**/server/**",
                   "pg",
                   "drizzle-orm",
                   "drizzle-orm/*",
@@ -131,7 +132,8 @@ export default defineConfig({
                 group: [
                   "@/features/*/ui/**",
                   "@/features/*/*/ui/**",
-                  `!@/features/${feature}/**`,
+                  `!@/features/${feature}/ui/**`,
+                  `!@/features/${feature}/*/ui/**`,
                   "!@/features/mascot/ui/*",
                   "!@/features/room/ui/ShareSupportNote",
                 ],
@@ -146,7 +148,7 @@ export default defineConfig({
     })),
     {
       // Domínio: TypeScript puro (testável sem React, roteador, banco ou SDK).
-      files: ["features/*/domain/**", "features/mascot/engine/**"],
+      files: ["features/*/domain/**", "features/*/*/domain/**"],
       rules: {
         "eslint/no-restricted-imports": [
           "error",
@@ -166,9 +168,9 @@ export default defineConfig({
                   "better-auth",
                   "better-auth/*",
                   "@/server",
-                  "@/server/*",
-                  "@/features/*/server/*",
-                  "@/features/*/ui/*",
+                  "@/server/**",
+                  "@/features/**/server/**",
+                  "@/features/**/ui/**",
                 ],
                 allowTypeImports: true,
                 message: "domain/ é TypeScript puro: dependências entram por parâmetro.",
@@ -191,11 +193,11 @@ export default defineConfig({
                   "@/app/*",
                   "@/app/**",
                   "@/components/*",
-                  "@/features/*/server/*",
-                  "@/features/*/ui/*",
-                  "@/features/*/hooks/*",
-                  "@/features/*/client/*",
-                  "@/features/*/actions",
+                  "@/features/**/server/**",
+                  "@/features/**/ui/**",
+                  "@/features/**/hooks/**",
+                  "@/features/**/client/**",
+                  "@/features/**/actions",
                 ],
                 message: "Infra não conhece features (exceto o domain/, que é puro).",
               },
@@ -226,7 +228,7 @@ export default defineConfig({
         "features/room/ui/dock/MicMenu.tsx",
         "features/room/ui/dock/Reactions.tsx",
         "features/room/ui/dock/ShareMenu.tsx",
-        "features/auth/ui/TwoFactorSettings.tsx",
+        "features/security/ui/TwoFactorSettings.tsx",
         "features/auth/ui/TwoFactorCodeForm.tsx",
       ],
       // Popovers abertos por ação da pessoa e telas de um único campo (código do

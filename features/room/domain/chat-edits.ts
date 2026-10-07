@@ -20,7 +20,7 @@ export const chatEditSchema = z.discriminatedUnion("type", [
 ]);
 export type ChatEditOp = z.infer<typeof chatEditSchema>;
 
-export interface ChatEditEntry {
+interface ChatEditEntry {
   text?: string;
   deleted: boolean;
 }

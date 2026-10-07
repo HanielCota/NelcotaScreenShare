@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { createPairController } from "@/features/mascot/dom/pair-controller";
-import type { PairPhase } from "@/features/mascot/engine/pair";
+import { createPairController } from "@/features/mascot/client/pair-controller";
+import type { PairPhase } from "@/features/mascot/domain/pair";
 
 afterEach(() => {
   vi.useRealTimers();

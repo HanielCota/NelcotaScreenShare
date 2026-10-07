@@ -1,7 +1,7 @@
 import { SearchX } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import { ParticipantHeader } from "@/features/auth/ui/ParticipantHeader";
+import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 
 export const meta = () => [{ title: "Página não encontrada · Nelcota" }];
 export const loader = () => new Response(null, { status: 404 });

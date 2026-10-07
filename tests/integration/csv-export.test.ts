@@ -23,10 +23,10 @@ vi.mock("@/server/request-context.server", () => ({
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
 const { adminSession } = await import("./support/admin-session");
 const routes = {
-  salas: await import("@/app/routes/api/export-rooms.server"),
-  usuarios: await import("@/app/routes/api/export-participants.server"),
-  compartilhamentos: await import("@/app/routes/api/export-shares.server"),
-  auditoria: await import("@/app/routes/api/export-audit.server"),
+  salas: await import("@/features/admin/rooms/server/csv-export.server"),
+  usuarios: await import("@/features/admin/participants/server/csv-export.server"),
+  compartilhamentos: await import("@/features/admin/shares/server/csv-export.server"),
+  auditoria: await import("@/features/admin/audit/server/csv-export.server"),
 };
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -97,7 +97,9 @@ async function csvText(response: Response): Promise<string> {
 }
 
 async function call(name: keyof typeof routes, query = "") {
-  return routes[name].GET(new Request(`http://localhost:3000/api/admin/exportar/${name}${query}`));
+  return routes[name].exportCsv(
+    new Request(`http://localhost:3000/api/admin/exportar/${name}${query}`),
+  );
 }
 
 describe("exportação CSV", () => {

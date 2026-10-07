@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { MiddlewareFunction } from "react-router";
 import { buildCsp } from "./csp.server";
-import { CLIENT_IP_HEADER, getClientIp } from "./client-ip";
+import { CLIENT_IP_HEADER, getClientIp } from "./client-ip.server";
 import { getEnv } from "./env.server";
 
 const REQUEST_ID = /^[A-Za-z0-9._-]{8,64}$/;

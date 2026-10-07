@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { definePublicOperation } from "@/features/auth/server/operations.server";
-import { ActionError } from "@/server/actions/errors";
+import { definePublicOperation } from "@/features/auth/server/operation-policies.server";
+import { ActionError } from "@/server/operations/action-error";
 import { getAdminAuth } from "@/features/auth/server/admin-auth.server";
 import { acceptAdminInvitation } from "@/features/auth/server/admin-invitations.server";
 import { PASSWORD_LIMITS } from "@/features/auth/server/password.server";

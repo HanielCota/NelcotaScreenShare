@@ -1,9 +1,9 @@
 import { Ban, LockOpen, LogOut, MailCheck, RotateCcw, ShieldX, Trash2 } from "lucide-react";
-import { useOperation } from "@/lib/use-operation";
+import { useOperation } from "@/lib/operations/use-operation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { toastWithUndo } from "@/components/undo-toast";
+import { toastWithUndo } from "@/lib/undo-toast";
 import { Button } from "@/components/ui/button";
 import {
   anonymizeParticipantAction,
@@ -14,8 +14,8 @@ import {
   revokeParticipantSessionsAction,
   unblockParticipantsAction,
 } from "@/features/admin/participants/actions";
-import type { ParticipantStatus } from "@/features/admin/participants/search-params";
-import { availableActions } from "@/features/admin/participants/available-actions";
+import type { ParticipantStatus } from "@/features/admin/participants/domain/search-params";
+import { availableActions } from "@/features/admin/participants/domain/available-actions";
 
 type Dialog = "block" | "delete" | "anonymize" | null;
 

@@ -5,8 +5,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { actionLabel, actorText, resourceLabel } from "@/features/admin/audit/labels";
-import type { AuditRow } from "@/features/admin/audit/queries.server";
+import { actionLabel, actorText, resourceLabel } from "@/features/admin/audit/domain/labels";
+import type { AuditRow } from "@/features/admin/audit/server/queries.server";
 import { formatDateTime } from "@/lib/format";
 
 function value(v: unknown): string {

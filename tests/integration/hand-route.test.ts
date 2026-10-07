@@ -32,7 +32,7 @@ Object.assign(process.env, {
   AUTH_SECRET: "segredo-participantes-de-teste-0123456789abcdef",
 });
 
-const { POST } = await import("@/app/routes/api/hand.server");
+const { setRaisedHand } = await import("@/features/room/server/hand-route.server");
 const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -46,7 +46,7 @@ const handler = (request: Request) => getUserAuth().handler(request);
 function post(body: unknown, cookie?: string, origin = "http://localhost:3000") {
   const headers = new Headers({ "content-type": "application/json", origin });
   if (cookie) headers.set("cookie", cookie);
-  return POST(
+  return setRaisedHand(
     new Request("http://localhost:3000/api/sala/mao", {
       method: "POST",
       headers,

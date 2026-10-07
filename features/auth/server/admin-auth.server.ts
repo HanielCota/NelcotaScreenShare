@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins/admin";
 import { twoFactor } from "better-auth/plugins/two-factor";
-import { CLIENT_IP_HEADER } from "@/server/client-ip";
+import { CLIENT_IP_HEADER } from "@/server/client-ip.server";
 import { getDb, type Database } from "@/server/db/index.server";
 import {
   adminAccounts,
@@ -13,7 +13,7 @@ import {
   adminVerifications,
 } from "@/server/db/schema";
 import { appUrl, getEnv } from "@/server/env.server";
-import { recordAudit } from "@/server/audit/record.server";
+import { recordAudit } from "@/server/audit.server";
 import { logger } from "@/server/logger.server";
 import { mailLayout, sendMail } from "@/server/mail.server";
 import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password.server";

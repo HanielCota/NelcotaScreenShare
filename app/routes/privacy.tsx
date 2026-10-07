@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { ParticipantHeader } from "@/features/auth/ui/ParticipantHeader";
+import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 import { PrivacyItem, PrivacyList, PrivacySection } from "@/features/privacy/ui/PrivacySection";
 import { PrivacyToc } from "@/features/privacy/ui/PrivacyToc";
 

@@ -25,10 +25,13 @@ test("toda página do painel chama requireAdmin", () => {
 
 test("toda exportação do painel confere sessão e permissão", () => {
   const root = fileURLToPath(new URL("../../", import.meta.url));
-  const routes = globSync("app/routes/api/export-*.server.ts", { cwd: root });
+  const routes = globSync("features/admin/*/server/csv-export.server.ts", { cwd: root });
   assert.ok(routes.length >= 4, `encontrou ${routes.length} exportações`);
   // A fábrica comum autoriza e registra a exportação antes de transmitir.
-  const factory = readFileSync(`${root}features/admin/csv-export-route.server.ts`, "utf8");
+  const factory = readFileSync(
+    `${root}features/admin/shell/server/csv-export-route.server.ts`,
+    "utf8",
+  );
   assert.match(factory, /await requireAdminApi\(spec\.permission\)/);
   assert.match(factory, /await recordAudit\(/);
   for (const route of routes) {

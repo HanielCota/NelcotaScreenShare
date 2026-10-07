@@ -1,6 +1,6 @@
 import { and, desc, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { defineAdminOperation } from "@/features/auth/server/operations.server";
+import { defineAdminOperation } from "@/features/auth/server/operation-policies.server";
 import { can } from "@/features/auth/server/permissions.server";
 import { getDb } from "@/server/db/index.server";
 import { rooms, users } from "@/server/db/schema";

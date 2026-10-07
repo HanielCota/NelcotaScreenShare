@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 
-import { useOperation } from "@/lib/use-operation";
+import { useOperation } from "@/lib/operations/use-operation";
 import { useId, useState } from "react";
 import { deleteMyAccount } from "@/features/account/actions";
 import { FormError } from "@/components/FormError";

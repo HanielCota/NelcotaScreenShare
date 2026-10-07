@@ -1,12 +1,12 @@
 import { Loader2, RotateCcw } from "lucide-react";
-import { useOperation } from "@/lib/use-operation";
+import { useOperation } from "@/lib/operations/use-operation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { saveMascotSettings } from "@/features/admin/settings/actions";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import type { MascotSettings } from "@/server/settings.server";
+import type { MascotSettings } from "@/features/admin/settings/server/settings.server";
 import { cn } from "@/lib/utils";
 
 interface Limits {

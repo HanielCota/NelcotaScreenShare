@@ -1,11 +1,11 @@
 import { Trash2 } from "lucide-react";
-import { useOperation } from "@/lib/use-operation";
+import { useOperation } from "@/lib/operations/use-operation";
 import { Link } from "react-router";
 import { debounce, useQueryStates } from "nuqs";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { toastWithUndo } from "@/components/undo-toast";
+import { toastWithUndo } from "@/lib/undo-toast";
 import type { PageInfo } from "@/components/data-table/page-info";
 import {
   DataTable,
@@ -23,8 +23,8 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime, formatNumber, formatSpan } from "@/lib/format";
 import { resetPage, type BulkSelection } from "@/lib/table-params";
 import { deleteRoomsAction, restoreRoomsAction } from "@/features/admin/rooms/actions";
-import type { RoomRow } from "@/features/admin/rooms/queries.server";
-import { roomParsers } from "@/features/admin/rooms/search-params";
+import type { RoomRow } from "@/features/admin/rooms/server/queries.server";
+import { roomParsers } from "@/features/admin/rooms/domain/search-params";
 import { RoomStatus } from "./RoomStatus";
 
 const STATUS_OPTIONS = [
