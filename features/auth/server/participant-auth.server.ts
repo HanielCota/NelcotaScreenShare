@@ -13,18 +13,15 @@ import {
   userVerifications,
 } from "@/server/db/schema";
 import { appUrl, getEnv } from "@/server/env.server";
-import { logger } from "@/server/logger.server";
-import { mailLayout, sendMail } from "@/server/mail.server";
+import { mailLayout } from "@/server/mail.server";
+import { deliverAccountMail } from "./auth-mail.server";
 import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password.server";
 import { AUTH_RATE_LIMIT_RULES, authHooks, FRESH_SESSION_SECONDS } from "./auth-shared.server";
 
 export const USER_AUTH_BASE_PATH = "/api/auth";
 
-/** Account e-mails are sent in the background: the response time reveals nothing. */
 function deliver(to: string, subject: string, content: ReturnType<typeof mailLayout>) {
-  void sendMail({ to, subject, ...content }).catch((error: unknown) =>
-    logger.error({ err: error, subject }, "failed to send account e-mail"),
-  );
+  return deliverAccountMail({ to, subject, ...content });
 }
 
 function createUserAuth(db: Database, secret: string) {
@@ -84,7 +81,7 @@ function createUserAuth(db: Database, secret: string) {
       resetPasswordTokenExpiresIn: 30 * 60,
       revokeSessionsOnPasswordReset: true,
       sendResetPassword: async ({ user, url }) => {
-        deliver(
+        await deliver(
           user.email,
           "Redefinir sua senha do Nelcota",
           mailLayout({
@@ -98,7 +95,7 @@ function createUserAuth(db: Database, secret: string) {
       // Sign-up with an existing e-mail: the screen responds the same (no enumeration)
       // and the e-mail owner is notified.
       onExistingUserSignUp: async ({ user }) => {
-        deliver(
+        await deliver(
           user.email,
           "Alguém tentou criar uma conta com seu e-mail",
           mailLayout({
@@ -117,7 +114,7 @@ function createUserAuth(db: Database, secret: string) {
       autoSignInAfterVerification: true,
       expiresIn: 24 * 60 * 60,
       sendVerificationEmail: async ({ user, url }) => {
-        deliver(
+        await deliver(
           user.email,
           "Confirme seu e-mail no Nelcota",
           mailLayout({
