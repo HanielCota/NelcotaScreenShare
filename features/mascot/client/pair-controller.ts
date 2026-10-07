@@ -60,8 +60,11 @@ export function createPairController(
 
   function schedule() {
     if (disposed || paused() || (idle && motion.state.phase === "rest")) return;
-    if (motion.nextIn === 0) frame = requestAnimationFrame(tick);
-    else timer = window.setTimeout(tick, motion.nextIn);
+    if (motion.nextIn === 0) {
+      frame = requestAnimationFrame(tick);
+      return;
+    }
+    timer = window.setTimeout(tick, motion.nextIn);
   }
 
   function tick() {

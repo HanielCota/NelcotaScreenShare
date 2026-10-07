@@ -86,9 +86,15 @@ export function createPairMotion(random: () => number = Math.random) {
       if (geometry?.width === next.width && geometry.size === next.size) return;
       const initial = !geometry;
       geometry = next;
-      if (initial) [visitor, resident] = targets();
-      else if (phase === "ready") change("approach");
-      else if (phase !== "approach" && phase !== "return") change("return");
+      if (initial) {
+        [visitor, resident] = targets();
+        return;
+      }
+      if (phase === "ready") {
+        change("approach");
+        return;
+      }
+      if (phase !== "approach" && phase !== "return") change("return");
     },
     suspend(value: boolean) {
       suspended = value;

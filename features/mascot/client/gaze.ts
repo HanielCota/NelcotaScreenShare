@@ -1,4 +1,5 @@
 import { gazeAt, IDLE, type Gaze, type Point } from "@/features/mascot/domain/eye-tracking";
+import type { Expression } from "@/features/mascot/domain/face";
 
 export { IDLE, type Gaze } from "@/features/mascot/domain/eye-tracking";
 
@@ -57,12 +58,26 @@ function caretPoint(input: HTMLInputElement): Point {
 }
 
 /** Focused password field (hidden or, with "Mostrar senha", visible). */
-export function focusedPasswordField(): HTMLInputElement | undefined {
+function focusedPasswordField(): HTMLInputElement | undefined {
   const active = document.activeElement;
   if (!(active instanceof HTMLInputElement)) return undefined;
   return active.type === "password" || active.autocomplete.includes("password")
     ? active
     : undefined;
+}
+
+/** Hidden password: eyes closed. Shown: peeks with one eye only (but not while asleep). */
+export function passwordEyes(expression: Expression): readonly [number, number] | undefined {
+  const field = focusedPasswordField();
+  if (!field || expression === "asleep") return undefined;
+  return field.type === "password" ? [1, 1] : [1, 0];
+}
+
+/** The other mascot of the pair (walking or greeting, they look at each other). */
+export function pairPartner(root: Element): Element | undefined {
+  return [
+    ...(root.closest("[data-mascot-pair]")?.querySelectorAll("[data-slot=mascot]") ?? []),
+  ].find((other) => other !== root);
 }
 
 /**

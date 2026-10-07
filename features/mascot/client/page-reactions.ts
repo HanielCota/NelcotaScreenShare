@@ -31,6 +31,15 @@ export function pageReactions(ctx: PageReactionContext): PageInputHandlers {
     ctx.requestUpdate();
   }
 
+  /** Curious about a control outside of it while idle; otherwise the curiosity ends. */
+  function updateCuriosity(next: Element | null) {
+    if (next && ctx.activity() === "idle") {
+      ctx.setReason("curiosity", "curious");
+      return;
+    }
+    ctx.clearReason("curiosity");
+  }
+
   return {
     pointerMove(event) {
       if (event.pointerType !== "mouse" && event.pointerType !== "pen") return;
@@ -44,8 +53,7 @@ export function pageReactions(ctx: PageReactionContext): PageInputHandlers {
       const next = control && !ctx.root.contains(control) ? control : null;
       if (next !== curiosityTarget) {
         curiosityTarget = next;
-        if (next && ctx.activity() === "idle") ctx.setReason("curiosity", "curious");
-        else ctx.clearReason("curiosity");
+        updateCuriosity(next);
       }
       ctx.requestUpdate();
     },
@@ -95,15 +103,19 @@ export function pageReactions(ctx: PageReactionContext): PageInputHandlers {
       // Autofill fires "keydown"/"keyup" without getModifierState: ignore it.
       if (!(event instanceof KeyboardEvent) || !(event.target instanceof HTMLInputElement)) return;
       // Caps Lock on in a field: wide eyes, reinforcing the on-screen warning.
-      if (event.getModifierState("CapsLock")) ctx.setReason("capsLock", "surprised");
-      else ctx.clearReason("capsLock");
+      if (event.getModifierState("CapsLock")) {
+        ctx.setReason("capsLock", "surprised");
+        return;
+      }
+      ctx.clearReason("capsLock");
     },
     visibilityChange() {
-      if (document.hidden) ctx.pauseMotion();
-      else {
-        ctx.onActivity();
-        ctx.update();
+      if (document.hidden) {
+        ctx.pauseMotion();
+        return;
       }
+      ctx.onActivity();
+      ctx.update();
     },
   };
 }

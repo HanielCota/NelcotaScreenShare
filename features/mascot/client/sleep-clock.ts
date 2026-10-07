@@ -29,12 +29,19 @@ export function createSleepClock(ctx: SleepClockContext) {
     const { expression, nextIn } = idleSleep(lastActivity, performance.now());
     const previous = stage;
     stage = expression;
-    if (expression) {
-      ctx.setSleep(expression);
-      if (expression === "sleepy" && previous !== "sleepy") ctx.personality.yawn();
-      if (expression === "asleep") ctx.personality.cancel();
-    } else ctx.clearSleep();
+    applyStage(expression, previous);
     if (Number.isFinite(nextIn)) timer = window.setTimeout(check, nextIn);
+  }
+
+  /** Shows the sleep stage (yawning when it gets sleepy) or clears it when awake. */
+  function applyStage(expression: typeof stage, previous: typeof stage) {
+    if (!expression) {
+      ctx.clearSleep();
+      return;
+    }
+    ctx.setSleep(expression);
+    if (expression === "sleepy" && previous !== "sleepy") ctx.personality.yawn();
+    if (expression === "asleep") ctx.personality.cancel();
   }
 
   return {
