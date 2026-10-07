@@ -101,7 +101,7 @@ export async function listParticipants(
     limit,
   };
   const clauses = keysetClauses(query);
-  const rows = await db
+  const rowsQuery = db
     .select({
       id: users.id,
       name: users.name,
@@ -117,10 +117,12 @@ export async function listParticipants(
     .where(and(...where, clauses.where))
     .orderBy(...clauses.orderBy)
     .limit(clauses.limit);
-  const page = keysetPage(rows, query);
-  const total = count
-    ? await approximateCount(db, sql`select 1 from ${users} where ${and(...where)}`)
+
+  const totalQuery = count
+    ? approximateCount(db, sql`select 1 from ${users} where ${and(...where)}`)
     : { total: 0, capped: false };
+  const [rows, total] = await Promise.all([rowsQuery, totalQuery]);
+  const page = keysetPage(rows, query);
   return {
     items: page.items.map(({ sortKey: _, ...row }): ParticipantRow => ({
       ...row,
