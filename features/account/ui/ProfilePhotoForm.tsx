@@ -25,11 +25,9 @@ import { authErrorMessage } from "@/features/auth/domain/auth-errors";
  * takes effect after "Salvar foto". `children` is the text beside the avatar.
  */
 export function ProfilePhotoForm({
-  name,
   image,
   children,
 }: {
-  name: string;
   image: string | null;
   children: ReactNode;
 }) {
@@ -80,7 +78,6 @@ export function ProfilePhotoForm({
   const avatar = (
     <>
       <UserAvatar
-        name={name}
         image={preview}
         className="size-20 text-2xl sm:size-24 [&_[data-slot=avatar-fallback]]:bg-brand [&_[data-slot=avatar-fallback]]:text-brand-ink"
       />

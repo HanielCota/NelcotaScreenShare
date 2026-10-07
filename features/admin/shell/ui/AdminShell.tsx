@@ -168,7 +168,7 @@ export function AdminShell({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton size="lg" tooltip={user.name}>
-                    <UserAvatar name={user.name} image={null} className="size-8" />
+                    <UserAvatar image={null} className="size-8" />
                     <span className="flex min-w-0 flex-col text-left leading-tight">
                       <span className="truncate text-sm font-medium">{user.name}</span>
                       <span className="truncate text-xs text-ink-subtle">{user.roleLabel}</span>

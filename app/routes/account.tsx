@@ -103,7 +103,7 @@ export default function AccountPage() {
         ) : null}
 
         <header className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
-          <ProfilePhotoForm name={user.name} image={user.image}>
+          <ProfilePhotoForm image={user.image}>
             <h1 className="truncate text-2xl font-medium tracking-tight sm:text-3xl">
               {user.name}
             </h1>

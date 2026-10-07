@@ -89,7 +89,8 @@ test("profile photo: preview, persistence on the account and avatar on the home 
   await expect(page.getByText("Foto de perfil removida.", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.locator("main [data-slot=avatar-image]")).toHaveCount(0);
-  await expect(page.locator("main [data-slot=avatar-fallback]")).toHaveText("FT");
+  // Without a photo, the default icon.
+  await expect(page.locator("main [data-slot=avatar-fallback] svg")).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Excluir conta", exact: true }).click();
   await expect(page.getByLabel("Digite sua senha para confirmar")).toBeFocused();

@@ -66,7 +66,7 @@ export function AppHeader({
               aria-current={accountCurrent ? "page" : undefined}
               className={cn(navItemClass, "max-w-44 pl-0.5 max-sm:pr-0.5")}
             >
-              <UserAvatar name={account.name} image={account.image} className="size-8" />
+              <UserAvatar image={account.image} className="size-8" />
               <span className="truncate max-sm:hidden">{account.name}</span>
             </Link>
           </>
