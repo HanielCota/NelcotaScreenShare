@@ -39,7 +39,9 @@ test("admin panel: invitation, sign-in with required 2FA, room filter and CSV ex
   const email = `dono.${Date.now()}@exemplo.dev`;
   const token = await ownerInvitation(email);
   const roomCode = `painel-${Date.now().toString(36)}`;
+  const otherCode = `outra-${Date.now().toString(36)}`;
   await sql("insert into rooms (code) values ($1)", [roomCode]);
+  await sql("insert into rooms (code) values ($1)", [otherCode]);
   const { page, context } = await newVisitor(browser);
 
   await page.goto(`/admin/convite/${token}`);
@@ -69,10 +71,41 @@ test("admin panel: invitation, sign-in with required 2FA, room filter and CSV ex
   await page.getByRole("searchbox").first().fill(roomCode);
   await expect(page).toHaveURL(new RegExp(`q=${roomCode}`));
 
+  // Same mounted table, a browser-history navigation with a different nonempty search value.
+  await page.evaluate((code) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("q", code);
+    const current = window.history.state as { idx?: number };
+    const state = { ...current, idx: (current.idx ?? 0) + 1, key: "filter-history" };
+    window.history.pushState(state, "", url);
+    window.dispatchEvent(new PopStateEvent("popstate", { state }));
+  }, otherCode);
+  await expect(page.getByRole("searchbox").first()).toHaveValue(otherCode);
+  await expect(page.getByRole("cell", { name: otherCode })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("searchbox").first()).toHaveValue(roomCode);
+  await expect(page.getByRole("cell", { name: roomCode })).toBeVisible();
+
   // Search uses a GET loader and discards stale responses while typing.
   await page.keyboard.press("Control+k");
   await page.getByPlaceholder("Ir para…, código da sala ou nome de alguém").fill(roomCode);
   await expect(page.getByRole("option", { name: new RegExp(roomCode) })).toBeVisible();
+  const blocked = Promise.withResolvers<void>();
+  const searchPattern = /\/api\/operations\/admin-search-searchPanelAction/;
+  await page.route(searchPattern, async (route) => {
+    await blocked.promise;
+    await route.continue();
+  });
+  const arriving = page.waitForRequest(searchPattern);
+  await page.getByPlaceholder("Ir para…, código da sala ou nome de alguém").fill(otherCode);
+  try {
+    await arriving;
+    await expect(page.getByRole("option", { name: new RegExp(roomCode) })).toBeHidden();
+  } finally {
+    blocked.resolve();
+  }
+  await expect(page.getByRole("option", { name: new RegExp(otherCode) })).toBeVisible();
+  await page.unroute(searchPattern);
   await page.keyboard.press("Escape");
 
   const download = page.waitForEvent("download");
