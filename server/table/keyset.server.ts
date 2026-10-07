@@ -61,6 +61,11 @@ function afterCursor(
       page === "prev" ? sql`${sort.column} is not null` : undefined,
     );
   }
+  // A row comparison becomes an index range, instead of filtering earlier rows.
+  if (sort.column.notNull) {
+    const operator = sql.raw(order === "desc" ? "<" : ">");
+    return sql`(${sort.column}, ${idColumn}) ${operator} (${value}, ${cursor.id})`;
+  }
   return or(
     beyond(sort.column, value),
     and(eq(sort.column, value), beyond(idColumn, cursor.id)),
@@ -81,13 +86,21 @@ export interface KeysetQuery<TRow> {
 export function keysetClauses<TRow>(query: KeysetQuery<TRow>) {
   const order = query.page === "prev" ? flip(query.direction) : query.direction;
   const by = order === "desc" ? desc : asc;
+  // Drizzle indexes use DESC NULLS LAST; their reverse order is ASC NULLS FIRST.
+  // Null placement does not change non-null columns, but must match the index for a seek.
+  const indexNulls = order === "desc" ? "nulls last" : "nulls first";
+  const sortNulls = query.sort.column.notNull
+    ? indexNulls
+    : query.page === "prev"
+      ? "nulls first"
+      : "nulls last";
   return {
     where: query.cursor
       ? afterCursor(query.sort, query.idColumn, query.cursor, order, query.page)
       : undefined,
     orderBy: [
-      sql`${by(query.sort.column)} ${sql.raw(query.page === "prev" ? "nulls first" : "nulls last")}`,
-      by(query.idColumn),
+      sql`${by(query.sort.column)} ${sql.raw(sortNulls)}`,
+      sql`${by(query.idColumn)} ${sql.raw(indexNulls)}`,
     ],
     limit: query.limit + 1,
   };
