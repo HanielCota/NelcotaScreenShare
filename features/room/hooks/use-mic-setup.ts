@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore, type RefObject } from "react";
-import { micErrorMessage } from "@/features/room/client/connection-errors";
+import { micErrorMessage } from "@/features/room/client/microphone-errors";
 import { saveMicrophone, savedMicrophone } from "@/features/room/client/saved-microphone";
 import { useMicLevel } from "./use-mic-level";
 import { useMicPermission } from "./use-mic-permission";
@@ -19,21 +19,31 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
   const [error, setError] = useState<string>();
   const [requesting, setRequesting] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [captured, setCaptured] = useState<{
+    requestedId: string | undefined;
+    deviceId: string | undefined;
+  }>();
   const [check, setCheck] = useState<{ deviceId: string | undefined; state: MicrophoneCheck }>();
   const { permission, setPermission, request } = useMicPermission();
   // Choice made on this screen; before that, the microphone from last time applies.
   // `null` is "Padrão do sistema" chosen on purpose.
   const [chosen, setChosen] = useState<string | null>();
   const saved = useSyncExternalStore(subscribeNothing, savedMicrophone, () => undefined);
-  const deviceId = chosen === undefined ? saved : (chosen ?? undefined);
+  const requestedId = chosen === undefined ? saved : (chosen ?? undefined);
+  const deviceId = captured?.requestedId === requestedId ? captured?.deviceId : requestedId;
   // Live meter on its own: with permission granted and the microphone on, nobody
   // has to find a "Testar" button (non-technical users do not test and join muted).
   const testing = enabled && permission === "granted" && !error && !paused;
   const blocked = permission === "denied";
 
-  const levelRef = useMicLevel(meterRef, testing, deviceId, {
+  const levelRef = useMicLevel(meterRef, testing, requestedId, {
     onDevices: setDevices,
-    onMissingDevice: () => setChosen(null),
+    onDevice: (id, requested) => setCaptured({ requestedId: requested, deviceId: id }),
+    onMissingDevice: () => {
+      setChosen(null);
+      setCheck(undefined);
+      saveMicrophone(undefined);
+    },
     onPermissionDenied: () => setPermission("denied"),
     onError: (failure) => setError(micErrorMessage(failure)),
     onCheck: (state, source) => setCheck({ deviceId: source, state }),
