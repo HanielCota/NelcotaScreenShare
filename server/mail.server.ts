@@ -13,12 +13,16 @@ export interface MailMessage {
 let transporter: Transporter | undefined;
 
 /**
- * Transactional e-mail. With SMTP_URL, it really sends. Without it (dev only;
- * production refuses to start), the content goes to the log so the links still work.
+ * Transactional e-mail. Without SMTP_URL, production skips delivery without
+ * logging links or recipients. Development logs the content for local testing.
  */
 export async function sendMail(message: MailMessage): Promise<void> {
   const { SMTP_URL, MAIL_FROM } = getEnv();
   if (!SMTP_URL) {
+    if (process.env.NODE_ENV === "production") {
+      logger.warn({ subject: message.subject }, "e-mail not sent: delivery is disabled");
+      return;
+    }
     logger.warn(
       { mail: { to: message.to, subject: message.subject }, body: message.text },
       "e-mail not sent (no SMTP_URL): content in the log",

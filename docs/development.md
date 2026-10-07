@@ -62,23 +62,23 @@ Open two tabs (or a private window), join the same room and share your screen.
 
 ## Environment variables
 
-| Variable                     | Required   | Description                                                                                |
-| ---------------------------- | ---------- | ------------------------------------------------------------------------------------------ |
-| `LIVEKIT_API_KEY`            | yes        | LiveKit API key (same as the LiveKit server)                                               |
-| `LIVEKIT_API_SECRET`         | yes        | Secret (32+ characters). **Never** sent to the browser                                     |
-| `LIVEKIT_URL`                | yes        | `wss://lk.yourdomain.com`                                                                  |
-| `ACCESS_PASSWORD`            | no         | If set, everyone needs it to join (constant-time comparison)                               |
-| `MAX_PARTICIPANTS`           | no         | Per-room limit, from 2 to 8 (default 6)                                                    |
-| `REQUIRE_EMAIL_VERIFICATION` | no         | `true` requires confirming the e-mail before joining rooms (default `false`, off for now)  |
-| `DATABASE_URL`               | yes        | Postgres (`postgres://…`), `nelcota_app` role                                              |
-| `AUTH_SECRET`                | yes        | Secret for participant accounts (32+ characters)                                           |
-| `ADMIN_AUTH_SECRET`          | no         | Enables `/admin` (32+ characters, `openssl rand -base64 48`). Requires the database        |
-| `APP_URL`                    | production | Public origin of the app (e-mail links; required with the panel enabled)                   |
-| `SMTP_URL` / `MAIL_FROM`     | production | Transactional e-mail (invitations, password). In dev, without SMTP, e-mail goes to the log |
-| `SENTRY_DSN`                 | no         | Enables Sentry on the server (no personal data)                                            |
-| `PUBLIC_SENTRY_DSN`          | no         | Enables browser error capture; loaded at runtime, no rebuild needed                        |
-| `LOG_LEVEL`                  | no         | Log level (default `info` in production, `debug` in dev)                                   |
-| `APP_VERSION`                | no         | Set by the image (commit SHA); shown in `/api/ready` and in Sentry                         |
+| Variable                     | Required   | Description                                                                                                                                           |
+| ---------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LIVEKIT_API_KEY`            | yes        | LiveKit API key (same as the LiveKit server)                                                                                                          |
+| `LIVEKIT_API_SECRET`         | yes        | Secret (32+ characters). **Never** sent to the browser                                                                                                |
+| `LIVEKIT_URL`                | yes        | `wss://lk.yourdomain.com`                                                                                                                             |
+| `ACCESS_PASSWORD`            | no         | If set, everyone needs it to join (constant-time comparison)                                                                                          |
+| `MAX_PARTICIPANTS`           | no         | Per-room limit, from 2 to 8 (default 6)                                                                                                               |
+| `REQUIRE_EMAIL_VERIFICATION` | no         | `true` requires confirming the e-mail before joining rooms (default `false`, off for now)                                                             |
+| `DATABASE_URL`               | yes        | Postgres (`postgres://…`), `nelcota_app` role                                                                                                         |
+| `AUTH_SECRET`                | yes        | Secret for participant accounts (32+ characters)                                                                                                      |
+| `ADMIN_AUTH_SECRET`          | no         | Enables `/admin` (32+ characters, `openssl rand -base64 48`). Requires the database                                                                   |
+| `APP_URL`                    | production | Public origin of the app (e-mail links; required with the panel enabled)                                                                              |
+| `SMTP_URL` / `MAIL_FROM`     | no         | Set both to enable e-mail delivery. Required in production with e-mail verification; without SMTP, production skips delivery and dev logs the content |
+| `SENTRY_DSN`                 | no         | Enables Sentry on the server (no personal data)                                                                                                       |
+| `PUBLIC_SENTRY_DSN`          | no         | Enables browser error capture; loaded at runtime, no rebuild needed                                                                                   |
+| `LOG_LEVEL`                  | no         | Log level (default `info` in production, `debug` in dev)                                                                                              |
+| `APP_VERSION`                | no         | Set by the image (commit SHA); shown in `/api/ready` and in Sentry                                                                                    |
 
 Everything is validated with Zod in `server/env.server.ts`. If something is missing, the container exits with code 1 at boot and lists the problem in the logs.
 
