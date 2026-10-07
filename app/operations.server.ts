@@ -1,4 +1,4 @@
-import type { OperationResult } from "@/lib/operations/operation";
+import type { OperationHandlers } from "@/server/operations/dispatch.server";
 import {
   revokeMySession,
   revokeMyOtherSessions,
@@ -24,10 +24,12 @@ import {
 import { searchPanelAction } from "@/features/admin/search/actions.server";
 import { saveMascotSettings } from "@/features/admin/settings/actions.server";
 import { acceptInvitation } from "@/features/auth/actions.server";
-export const operations: Record<
-  string,
-  { handle: (input: unknown) => Promise<OperationResult<unknown>> }
-> = {
+
+/**
+ * Tudo que o navegador pode chamar por `/api/operations/:id`. O id segue
+ * `<feature>-<nome>` e é o mesmo do descritor em cada `actions.ts`.
+ */
+export const operations: OperationHandlers = {
   "account-revokeMySession": revokeMySession,
   "account-revokeMyOtherSessions": revokeMyOtherSessions,
   "account-deleteMyAccount": deleteMyAccount,

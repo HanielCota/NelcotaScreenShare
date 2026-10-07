@@ -1,22 +1,19 @@
-import { z } from "zod";
 import { ActionError } from "@/server/operations/action-error";
+import { defineOperation, type BasePolicy } from "@/server/operations/define-operation.server";
 import { createAuditRecorder, type AuditRecorder } from "@/server/audit.server";
 import { requestHeaders } from "@/server/request-context.server";
-import { requestLogger } from "@/server/request-log.server";
 import { clientIpFrom } from "@/server/client-ip.server";
 import { createRateLimiter, type RateLimiter } from "@/server/rate-limit.server";
-import type { OperationResult } from "@/lib/operations/operation";
 import { getAdminSession, needsTwoFactorSetup } from "./admin-session.server";
 import { getUserSession } from "./participant-session.server";
 import { can, type PermissionRequest } from "./permissions.server";
 import { FRESH_SESSION_SECONDS } from "./auth-shared.server";
 
-interface Policy {
-  name: string;
+/** Quem pode chamar: sessão de admin ou de participante, ou acesso público com limite. */
+interface Policy extends BasePolicy {
   permission?: PermissionRequest;
   fresh?: boolean;
   allowWithoutTwoFactor?: boolean;
-  audit: "required" | "none";
 }
 type AdminContext = {
   admin: NonNullable<Awaited<ReturnType<typeof getAdminSession>>>;
@@ -34,39 +31,7 @@ function checkFresh(createdAt: Date, policy: Policy) {
   }
 }
 
-function defineOperation<C extends { audit: AuditRecorder }>(
-  authorize: (policy: Policy) => Promise<C>,
-) {
-  return <S extends z.ZodType, O>(
-    policy: Policy,
-    schema: S,
-    run: (args: { parsedInput: z.output<S>; ctx: C }) => Promise<O>,
-  ) => {
-    const handle = async (input: unknown): Promise<OperationResult<O>> => {
-      try {
-        // Autoriza antes de validar: uma entrada inválida não contorna a sessão.
-        const ctx = await authorize(policy);
-        const parsed = schema.safeParse(input);
-        if (!parsed.success) return { validationErrors: z.flattenError(parsed.error) };
-        const data = await run({ parsedInput: parsed.data, ctx });
-        if (policy.audit === "required" && ctx.audit.count === 0) {
-          throw new Error(`A operação ${policy.name} não registrou sua auditoria.`);
-        }
-        return { data };
-      } catch (error) {
-        if (error instanceof ActionError) return { serverError: error.message };
-        (await requestLogger({ operation: policy.name })).error(
-          { err: error },
-          "falha numa operação",
-        );
-        return { serverError: "Algo deu errado do nosso lado. Tente de novo em instantes." };
-      }
-    };
-    return Object.assign((input: z.input<S>) => handle(input), { handle });
-  };
-}
-
-export const defineAdminOperation = defineOperation<AdminContext>(async (policy) => {
+export const defineAdminOperation = defineOperation<Policy, AdminContext>(async (policy) => {
   const admin = await getAdminSession();
   if (!admin) throw new ActionError("Sua sessão expirou. Entre de novo.");
   if (!policy.allowWithoutTwoFactor && needsTwoFactorSetup(admin))
@@ -77,14 +42,14 @@ export const defineAdminOperation = defineOperation<AdminContext>(async (policy)
   return { admin, audit: createAuditRecorder({ adminId: admin.user.id }) };
 });
 
-export const defineUserOperation = defineOperation<UserContext>(async (policy) => {
+export const defineUserOperation = defineOperation<Policy, UserContext>(async (policy) => {
   const current = await getUserSession();
   if (!current) throw new ActionError("Sua sessão expirou. Entre de novo.");
   checkFresh(current.session.createdAt, policy);
   return { current, audit: createAuditRecorder({ userId: current.user.id }) };
 });
 
-export const definePublicOperation = defineOperation(async (policy) => {
+export const definePublicOperation = defineOperation(async (policy: Policy) => {
   let limiter = publicLimiters.get(policy.name);
   if (!limiter) {
     limiter = createRateLimiter({ limit: 10, windowMs: 15 * 60_000 });

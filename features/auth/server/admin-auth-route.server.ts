@@ -2,7 +2,7 @@ import { getAdminAuth } from "@/features/auth/server/admin-auth.server";
 import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/origin-guard.server";
 
 /** Better Auth da instância de admin (login, 2FA, sessões, redefinição de senha). */
-async function handle(request: Request): Promise<Response> {
+export async function handleAdminAuth(request: Request): Promise<Response> {
   const auth = getAdminAuth();
   if (!auth) {
     return Response.json(
@@ -13,5 +13,3 @@ async function handle(request: Request): Promise<Response> {
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();
   return auth.handler(request);
 }
-
-export { handle as GET, handle as POST };

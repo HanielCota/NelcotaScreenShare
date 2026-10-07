@@ -97,7 +97,9 @@ async function csvText(response: Response): Promise<string> {
 }
 
 async function call(name: keyof typeof routes, query = "") {
-  return routes[name].GET(new Request(`http://localhost:3000/api/admin/exportar/${name}${query}`));
+  return routes[name].exportCsv(
+    new Request(`http://localhost:3000/api/admin/exportar/${name}${query}`),
+  );
 }
 
 describe("exportação CSV", () => {

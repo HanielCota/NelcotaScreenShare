@@ -1,11 +1,5 @@
-import { type LoaderFunctionArgs, type ActionFunctionArgs } from "react-router";
-import { withRequest } from "@/server/request-context.server";
-import { GET, POST } from "../../../../features/auth/server/admin-auth-route.server";
-export const loader = ({ request, context }: LoaderFunctionArgs) =>
-  withRequest(request, context, () => GET(request));
-export const action = ({ request, context }: ActionFunctionArgs) =>
-  withRequest(request, context, () =>
-    request.method === "POST"
-      ? POST(request)
-      : new Response(null, { status: 405, headers: { Allow: "POST" } }),
-  );
+import { apiAction, apiLoader } from "@/server/api-route.server";
+import { handleAdminAuth } from "@/features/auth/server/admin-auth-route.server";
+
+export const loader = apiLoader(handleAdminAuth);
+export const action = apiAction(handleAdminAuth);

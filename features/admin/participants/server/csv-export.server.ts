@@ -4,7 +4,7 @@ import { iterateParticipants } from "@/features/admin/participants/server/querie
 import { loadParticipantParams } from "@/features/admin/participants/domain/search-params";
 
 /** CSV dos participantes com os filtros da tela (exige `participant.export`). */
-export const GET = csvExportRoute({
+export const exportCsv = csvExportRoute({
   permission: { participant: ["export"] },
   // "user.export" é o nome já gravado no audit log (decisão em aberto: Q5).
   audit: { action: "user.export", resourceType: "user" },

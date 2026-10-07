@@ -7,7 +7,7 @@ import { actionLabel, resourceLabel } from "@/features/admin/audit/domain/labels
  * CSV do audit log com os filtros da tela, em stream (lotes keyset de 1.000).
  * Exige `audit.export`; a própria exportação fica registrada no audit log.
  */
-export const GET = csvExportRoute({
+export const exportCsv = csvExportRoute({
   permission: { audit: ["export"] },
   audit: { action: "audit.export", resourceType: "audit_logs" },
   filename: "auditoria",

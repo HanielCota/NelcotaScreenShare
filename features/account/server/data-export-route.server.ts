@@ -9,7 +9,7 @@ const limiter = createRateLimiter({ limit: 5, windowMs: 60 * 60 * 1000 });
  * "Baixar meus dados" (LGPD, art. 18), em JSON. Só o próprio titular, com
  * sessão válida e no máximo 5 pedidos por hora.
  */
-export async function GET(request: Request) {
+export async function downloadAccountData(request: Request) {
   const auth = await getUserAuth().api.getSession({ headers: request.headers });
   // Conta bloqueada ou excluída não tem sessão, como em getUserSession.
   if (!auth || auth.user.deletedAt || auth.user.blockedAt) {

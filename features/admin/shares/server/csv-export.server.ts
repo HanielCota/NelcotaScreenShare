@@ -3,7 +3,7 @@ import { iterateShares } from "@/features/admin/shares/server/queries.server";
 import { loadShareParams } from "@/features/admin/shares/domain/search-params";
 
 /** CSV dos compartilhamentos com os filtros da tela (exige `shareSession.export`). */
-export const GET = csvExportRoute({
+export const exportCsv = csvExportRoute({
   permission: { shareSession: ["export"] },
   audit: { action: "share_session.export", resourceType: "share_session" },
   filename: "compartilhamentos",

@@ -39,7 +39,7 @@ async function readBody(request: Request) {
  * Token do LiveKit para entrar numa sala. Aqui fica só a borda HTTP (origem,
  * IP, corpo, sessão); quem pode entrar é decidido em features/room.
  */
-export async function POST(request: Request) {
+export async function requestRoomToken(request: Request) {
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();
   const ip = clientIpFrom(request.headers) ?? null;
   const limit = perIpLimit.hit(ip ?? "desconhecido");

@@ -17,13 +17,13 @@ interface CsvExport<TParams extends { cursor: unknown; dir: unknown }, TRow> {
 }
 
 /**
- * GET de uma exportação CSV do painel: autoriza, registra a exportação na
+ * Handler de uma exportação CSV do painel: autoriza, registra a exportação na
  * auditoria (antes de transmitir) e manda as linhas em stream.
  */
 export function csvExportRoute<TParams extends { cursor: unknown; dir: unknown }, TRow>(
   spec: CsvExport<TParams, TRow>,
 ) {
-  return async function GET(request: Request): Promise<Response> {
+  return async function exportCsv(request: Request): Promise<Response> {
     const auth = await requireAdminApi(spec.permission);
     if ("response" in auth) return auth.response;
     const db = getDb();

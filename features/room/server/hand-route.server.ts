@@ -20,7 +20,7 @@ function fail(message: string, status: number) {
  * navegador: o token não tem canUpdateOwnMetadata, que também permitiria
  * trocar o próprio nome na sala. A identidade é sempre a da conta logada.
  */
-export async function POST(request: Request) {
+export async function setRaisedHand(request: Request) {
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();
   const auth = await getUserAuth().api.getSession({ headers: request.headers });
   if (!auth || auth.user.blockedAt || auth.user.deletedAt) {

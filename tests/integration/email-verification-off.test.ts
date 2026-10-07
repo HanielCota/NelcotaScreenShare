@@ -28,7 +28,7 @@ Object.assign(process.env, {
 });
 
 const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
-const { POST } = await import("@/features/room/server/token-route.server");
+const { requestRoomToken } = await import("@/features/room/server/token-route.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -53,7 +53,7 @@ describe("confirmação de e-mail desligada", () => {
     const [user] = await db.select().from(schema.users).where(eq(schema.users.email, email));
     assert.equal(user?.emailVerified, false);
 
-    const response = await POST(
+    const response = await requestRoomToken(
       new Request("http://localhost:3000/api/token", {
         method: "POST",
         headers: {

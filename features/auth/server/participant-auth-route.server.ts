@@ -2,9 +2,7 @@ import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/origin-guard.s
 import { getUserAuth } from "@/features/auth/server/participant-auth.server";
 
 /** Better Auth das contas de participantes (cadastro, login, verificação, 2FA). */
-async function handle(request: Request): Promise<Response> {
+export async function handleParticipantAuth(request: Request): Promise<Response> {
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();
   return getUserAuth().handler(request);
 }
-
-export { handle as GET, handle as POST };

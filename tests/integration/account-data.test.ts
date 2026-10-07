@@ -29,7 +29,7 @@ vi.mock("@/server/http.server", () => ({
   },
 }));
 
-const { GET } = await import("@/features/account/server/data-export-route.server");
+const { downloadAccountData } = await import("@/features/account/server/data-export-route.server");
 const { deleteMyAccount } = await import("@/features/account/actions.server");
 const { getUserAuth } = await import("@/features/auth/server/participant-auth.server");
 
@@ -136,7 +136,7 @@ describe("dados do titular", () => {
   test("a exportação traz salas, compartilhamentos e pedidos de entrada", async () => {
     const lia = await verifiedParticipant(db, handler);
     const { code } = await withHistory(lia.id);
-    const response = await GET(
+    const response = await downloadAccountData(
       new Request("http://localhost:3000/api/conta/dados", {
         headers: { cookie: lia.jar.header() },
       }),

@@ -38,7 +38,7 @@ function tooLarge() {
  * para o LiveKit tentar de novo; se só a projeção falhar, o evento já está
  * salvo e a manutenção (server/maintenance.ts) reprojeta depois.
  */
-export async function POST(request: Request) {
+export async function receiveLivekitWebhook(request: Request) {
   const env = getEnv();
   receiver ??= new WebhookReceiver(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET);
 

@@ -3,12 +3,17 @@ import { getDb } from "@/server/db/index.server";
 import { getEnv } from "@/server/env.server";
 import { logger } from "@/server/logger.server";
 
+/** Vivacidade: só o processo responde (HEALTHCHECK do container). */
+export function liveness() {
+  return Response.json({ status: "ok" }, { headers: { "Cache-Control": "no-store" } });
+}
+
 /**
  * Prontidão: o app consegue falar com o banco? Usado pelo smoke test do deploy
  * e pelo monitor de uptime. O HEALTHCHECK do container usa /api/health (só o
  * processo), para uma queda do banco não derrubar o app em loop de reinício.
  */
-export async function GET() {
+export async function readiness() {
   const headers = { "Cache-Control": "no-store" };
   const version = getEnv().APP_VERSION ?? "dev";
   const db = getDb();
