@@ -18,7 +18,7 @@ export function PresenceLine({ presence, max }: { presence: RoomPresence | null;
         <>
           <AvatarGroup aria-hidden="true" title={names}>
             {shown.map((participant) => (
-              <UserAvatar key={participant.id} name={participant.name} image={participant.image} />
+              <UserAvatar key={participant.id} image={participant.image} />
             ))}
             {remaining > 0 ? <AvatarGroupCount>+{remaining}</AvatarGroupCount> : null}
           </AvatarGroup>

@@ -14,39 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PROFILE_PHOTO, profilePhotoSchema } from "@/features/account/domain/profile-photo";
+import { photoErrorMessage, preparePhoto } from "@/features/account/client/prepare-photo";
+import { PROFILE_PHOTO } from "@/features/account/domain/profile-photo";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
-
-async function preparePhoto(file: File) {
-  if (!PROFILE_PHOTO.mimeTypes.includes(file.type))
-    throw new Error("Escolha uma imagem JPG, PNG ou WebP.");
-  if (file.size > PROFILE_PHOTO.maxFileBytes) throw new Error("Escolha uma imagem de até 5 MB.");
-  const bitmap = await createImageBitmap(file);
-  try {
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = PROFILE_PHOTO.size;
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Não foi possível preparar a imagem. Tente novamente.");
-    const side = Math.min(bitmap.width, bitmap.height);
-    context.drawImage(
-      bitmap,
-      (bitmap.width - side) / 2,
-      (bitmap.height - side) / 2,
-      side,
-      side,
-      0,
-      0,
-      canvas.width,
-      canvas.height,
-    );
-    const result = profilePhotoSchema.safeParse(canvas.toDataURL("image/webp", 0.85));
-    if (!result.success) throw new Error("Não foi possível preparar a imagem. Escolha outra foto.");
-    return result.data;
-  } finally {
-    bitmap.close();
-  }
-}
 
 /**
  * Identity card photo: the avatar itself is the control. Without a photo, it opens
@@ -54,11 +25,9 @@ async function preparePhoto(file: File) {
  * takes effect after "Salvar foto". `children` is the text beside the avatar.
  */
 export function ProfilePhotoForm({
-  name,
   image,
   children,
 }: {
-  name: string;
   image: string | null;
   children: ReactNode;
 }) {
@@ -79,13 +48,7 @@ export function ProfilePhotoForm({
     try {
       setDraft(await preparePhoto(file));
     } catch (failure) {
-      setError(
-        failure instanceof DOMException
-          ? "Não foi possível abrir a imagem. Escolha outra foto."
-          : failure instanceof Error
-            ? failure.message
-            : "Não foi possível abrir a imagem.",
-      );
+      setError(photoErrorMessage(failure));
     } finally {
       setPreparing(false);
     }
@@ -115,7 +78,6 @@ export function ProfilePhotoForm({
   const avatar = (
     <>
       <UserAvatar
-        name={name}
         image={preview}
         className="size-20 text-2xl sm:size-24 [&_[data-slot=avatar-fallback]]:bg-brand [&_[data-slot=avatar-fallback]]:text-brand-ink"
       />

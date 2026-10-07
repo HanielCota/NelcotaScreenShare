@@ -1,8 +1,7 @@
 import { Moon, Sun } from "lucide-react";
 import { Hint } from "@/components/Hint";
 import { useTheme } from "@/lib/hooks/use-theme";
-import { prefersReducedMotion } from "@/lib/animation/motion";
-import { applyTheme, type Theme } from "@/lib/theme";
+import { switchTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { navItemClass } from "./nav-item-class";
 
@@ -12,20 +11,11 @@ export function ThemeToggle({ className }: { className?: string }) {
   const next: Theme = theme === "light" ? "dark" : "light";
   const label = theme === "light" ? "Ativar modo escuro" : "Ativar modo claro";
 
-  function toggle() {
-    // Smooth transition of every color at once, where the browser supports it.
-    if (document.startViewTransition && !prefersReducedMotion()) {
-      document.startViewTransition(() => applyTheme(next));
-      return;
-    }
-    applyTheme(next);
-  }
-
   return (
     <Hint text={label}>
       <button
         type="button"
-        onClick={toggle}
+        onClick={() => switchTheme(next)}
         aria-label={label}
         className={cn(navItemClass, "relative w-9 justify-center px-0", className)}
       >
