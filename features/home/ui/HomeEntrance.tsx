@@ -11,16 +11,16 @@ export function HomeEntrance({ className, children }: { className: string; child
 
       mm.add(MOTION_QUERIES.motion, () => {
         gsap.from("[data-anim]", {
-          y: 24,
+          y: 12,
           opacity: 0,
-          duration: 0.9,
-          stagger: 0.09,
+          duration: 0.28,
+          stagger: 0.035,
           ease: "expo.out",
         });
       });
 
       mm.add(MOTION_QUERIES.reduced, () => {
-        gsap.from("[data-anim]", { opacity: 0, duration: 0.3 });
+        gsap.set("[data-anim]", { opacity: 1 });
       });
     },
     { scope },
