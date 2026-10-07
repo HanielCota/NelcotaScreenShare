@@ -148,11 +148,11 @@ describe("bloquear e desbloquear", () => {
       reason: "Grande demais",
     });
     assert.equal(result.serverError, "Mais de 10.000 resultados. Refine o filtro e tente de novo.");
-    const { rows } = await pool.query(
+    const { rows } = await pool.query<{ n: number }>(
       "select count(*)::int as n from users where name like $1 and blocked_at is not null",
       [`${tag}%`],
     );
-    assert.equal(rows[0].n, 0);
+    assert.equal(rows[0]?.n, 0);
   });
 });
 

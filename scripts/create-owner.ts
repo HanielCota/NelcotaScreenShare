@@ -23,11 +23,15 @@ if (!email.success) {
   process.exit(1);
 }
 
-const db = getDb();
-if (!db) {
-  console.error("Defina DATABASE_URL (o painel admin precisa do banco).");
-  process.exit(1);
+function openDb() {
+  try {
+    return getDb();
+  } catch {
+    console.error("Defina DATABASE_URL (o painel admin precisa do banco).");
+    process.exit(1);
+  }
 }
+const db = openDb();
 
 const owners = await db
   .select({ id: adminUsers.id })

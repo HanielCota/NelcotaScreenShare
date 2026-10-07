@@ -4,7 +4,8 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { BULK_FILTER_LIMIT } from "@/lib/table-params";
-import { ActionError, adminAction } from "@/server/actions/client";
+import { adminAction } from "@/server/actions/client";
+import { ActionError } from "@/server/actions/errors";
 import { getUserAuth } from "@/server/auth/user";
 import { getDb } from "@/server/db";
 import { users } from "@/server/db/schema";
@@ -18,12 +19,6 @@ import {
 } from "@/server/participants/operations";
 import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection";
 import { participantIdsForFilter } from "./queries";
-
-function database() {
-  const db = getDb();
-  if (!db) throw new ActionError("Banco de dados indisponível.");
-  return db;
-}
 
 function refresh(id?: string) {
   revalidatePath("/admin/usuarios");
@@ -45,7 +40,7 @@ export const blockParticipantsAction = adminAction
   })
   .inputSchema(z.object({ selection: bulkSelectionSchema, reason: reasonSchema }))
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
       participantIdsForFilter(db, search, limit),
     );
@@ -75,7 +70,7 @@ export const unblockParticipantsAction = adminAction
   })
   .inputSchema(z.object({ selection: bulkSelectionSchema }))
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
       participantIdsForFilter(db, search, limit),
     );
@@ -101,7 +96,7 @@ export const deleteParticipantsAction = adminAction
   })
   .inputSchema(z.object({ selection: bulkSelectionSchema }))
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
       participantIdsForFilter(db, search, limit),
     );
@@ -126,7 +121,7 @@ export const restoreParticipantsAction = adminAction
   })
   .inputSchema(z.object({ ids: z.array(z.uuid()).min(1).max(BULK_FILTER_LIMIT) }))
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const changed = await db.transaction(async (tx) => {
       const done = await restoreParticipants(tx, parsedInput.ids);
       if (done.length === 0) throw new ActionError("Nada para restaurar.");
@@ -150,7 +145,7 @@ export const revokeParticipantSessionsAction = adminAction
   })
   .inputSchema(idInput)
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const count = await db.transaction(async (tx) => {
       const removed = await revokeParticipantSessions(tx, [parsedInput.id]);
       if (removed === 0) throw new ActionError("Essa conta não tem sessões ativas.");
@@ -175,7 +170,7 @@ export const resendVerificationAction = adminAction
   })
   .inputSchema(idInput)
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const [user] = await db
       .select({ email: users.email, verified: users.emailVerified, deletedAt: users.deletedAt })
       .from(users)
@@ -208,7 +203,7 @@ export const anonymizeParticipantAction = adminAction
     }),
   )
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     await db.transaction(async (tx) => {
       if (!(await anonymizeParticipant(tx, parsedInput.id))) {
         throw new ActionError("Essa conta já foi anonimizada.");

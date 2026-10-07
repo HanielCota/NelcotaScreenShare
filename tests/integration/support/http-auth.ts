@@ -1,5 +1,5 @@
 /** Cliente HTTP mínimo para o handler do Better Auth, como o navegador faria. */
-export const ORIGIN = "http://localhost:3000";
+const ORIGIN = "http://localhost:3000";
 
 export interface AuthCallResult {
   status: number;

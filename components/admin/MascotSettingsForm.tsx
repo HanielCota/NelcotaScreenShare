@@ -2,7 +2,7 @@
 
 import { Loader2, RotateCcw } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useId, useState, type CSSProperties } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { saveMascotSettings } from "@/app/admin/(painel)/configuracoes/actions";
 import { Mascot } from "@/components/Mascot";
@@ -82,7 +82,7 @@ export function MascotSettingsForm({
               <legend className="sr-only">{title}</legend>
               <div
                 className={cn("grid h-44 place-items-center rounded-xl", swatch)}
-                style={{ "--mascot-saturation": value } as CSSProperties}
+                style={{ "--mascot-saturation": value }}
               >
                 <Mascot className="size-32" sizes="256px" canSleep={false} />
               </div>

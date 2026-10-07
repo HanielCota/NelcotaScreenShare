@@ -15,7 +15,6 @@ const serialize = createSerializer(shareParsers);
 export default async function SharesPage({ searchParams }: PageProps<"/admin/compartilhamentos">) {
   const admin = await requireAdmin({ shareSession: ["read"] });
   const db = getDb();
-  if (!db) throw new Error("Banco indisponível");
   const params = await loadShareParams(searchParams);
   const page = await listShares(db, params, PAGE_SIZE);
 

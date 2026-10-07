@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ActionError, adminAction } from "@/server/actions/client";
+import { adminAction } from "@/server/actions/client";
+import { ActionError } from "@/server/actions/errors";
 import { diffChanges } from "@/server/audit/record";
 import { getDb } from "@/server/db";
 import { getSetting, invalidateSetting, mascotSettings, saveSetting } from "@/server/settings";
@@ -22,7 +23,6 @@ export const saveMascotSettings = adminAction
   .inputSchema(mascotInput)
   .action(async ({ parsedInput, ctx }) => {
     const db = getDb();
-    if (!db) throw new ActionError("Banco de dados não configurado.");
     const before = await getSetting(mascotSettings, db);
     try {
       await db.transaction(async (tx) => {

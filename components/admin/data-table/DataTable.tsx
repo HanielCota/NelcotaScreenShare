@@ -36,8 +36,8 @@ import { filterQuery, pageParsers, type BulkSelection } from "@/lib/table-params
 import { cn } from "@/lib/utils";
 
 /** Ordenação, filtros e paginação são do servidor: a tabela só exibe e seleciona. */
-export const dataTableFeatures = tableFeatures({ rowSelectionFeature });
-export type DataTableFeatures = typeof dataTableFeatures;
+const dataTableFeatures = tableFeatures({ rowSelectionFeature });
+type DataTableFeatures = typeof dataTableFeatures;
 export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures, TData>;
 
 export interface PageInfo {

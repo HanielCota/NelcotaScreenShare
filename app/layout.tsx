@@ -34,10 +34,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   // requisição: a configuração vem do banco (com cache em memória), não do build.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const mascot = await getSetting(mascotSettings);
-  const style = {
+  const style: CSSProperties = {
     "--mascot-saturation-dark": mascot.saturationDark,
     "--mascot-saturation-light": mascot.saturationLight,
-  } as CSSProperties;
+  };
 
   return (
     // O script abaixo põe data-theme no <html> antes da hidratação (sem JS: escuro).

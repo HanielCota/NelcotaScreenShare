@@ -4,7 +4,7 @@ import type { Logger } from "pino";
 import { logger } from "@/server/logger";
 
 /** ID da requisição definido no `proxy.ts` (ou `undefined` fora de uma requisição). */
-export async function getRequestId(): Promise<string | undefined> {
+async function getRequestId(): Promise<string | undefined> {
   try {
     return (await headers()).get("x-request-id") ?? undefined;
   } catch {

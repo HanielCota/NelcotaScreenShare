@@ -7,14 +7,23 @@ export const CSV_BOM = String.fromCharCode(0xfeff);
 const SEPARATOR = ";";
 const FORMULA_START = /^[=+\-@\t\r]/;
 
+function cellText(value: unknown): string {
+  if (value instanceof Date) return value.toISOString();
+  switch (typeof value) {
+    case "string":
+      return value;
+    case "number":
+    case "bigint":
+    case "boolean":
+      return value.toString();
+    default:
+      return JSON.stringify(value) ?? "";
+  }
+}
+
 export function csvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
-  let text =
-    value instanceof Date
-      ? value.toISOString()
-      : typeof value === "object"
-        ? JSON.stringify(value)
-        : String(value);
+  let text = cellText(value);
   if (FORMULA_START.test(text)) text = `'${text}`;
   return /[";\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }

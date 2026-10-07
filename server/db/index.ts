@@ -1,13 +1,13 @@
 import "server-only";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { getEnv } from "@/server/env";
+import { databaseUrl } from "@/server/env";
 import { logger } from "@/server/logger";
 import * as schema from "./schema";
 
 export type Database = NodePgDatabase<typeof schema>;
 /** Transação do Drizzle (o mesmo que `db`, mas dentro de `db.transaction`). */
-export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 /** Quem executa a consulta: a conexão normal ou uma transação. */
 export type DbExecutor = Database | Transaction;
 
@@ -15,14 +15,12 @@ export type DbExecutor = Database | Transaction;
 // evita abrir uma conexão nova por recarga.
 const globalForDb = globalThis as typeof globalThis & { nelcotaDb?: Database };
 
-/** Conexão com o Postgres, ou `undefined` sem DATABASE_URL (o app usa os padrões). */
-export function getDb(): Database | undefined {
+/** Conexão com o Postgres (DATABASE_URL é obrigatória; ver server/env.ts). */
+export function getDb(): Database {
   if (globalForDb.nelcotaDb) return globalForDb.nelcotaDb;
-  const url = getEnv().DATABASE_URL;
-  if (!url) return undefined;
 
   const pool = new Pool({
-    connectionString: url,
+    connectionString: databaseUrl(),
     // Poucas pessoas por vez: um pool pequeno basta e não esgota o Postgres.
     max: 5,
     idleTimeoutMillis: 30_000,

@@ -1,7 +1,8 @@
 "use server";
 
 import { z } from "zod";
-import { ActionError, publicAction } from "@/server/actions/client";
+import { publicAction } from "@/server/actions/client";
+import { ActionError } from "@/server/actions/errors";
 import { getAdminAuth } from "@/server/auth/admin";
 import { acceptAdminInvitation } from "@/server/auth/invitations";
 import { PASSWORD_LIMITS } from "@/server/auth/password";
@@ -27,7 +28,7 @@ export const acceptInvitation = publicAction
   .action(async ({ parsedInput, ctx }) => {
     const db = getDb();
     const auth = getAdminAuth();
-    if (!db || !auth) throw new ActionError("O painel admin está desligado neste servidor.");
+    if (!auth) throw new ActionError("O painel admin está desligado neste servidor.");
     const result = await acceptAdminInvitation(db, auth, parsedInput);
     if (!result.ok) throw new ActionError(REASONS[result.reason]);
     // Autor: o admin que acabou de nascer deste convite.

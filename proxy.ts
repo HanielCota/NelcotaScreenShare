@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { buildCsp } from "@/server/csp";
-import { CLIENT_IP_HEADER } from "@/server/client-ip";
+import { CLIENT_IP_HEADER, getClientIp } from "@/server/client-ip";
 import { getEnv } from "@/server/env";
-import { getClientIp } from "@/server/rate-limit";
 
 const REQUEST_ID = /^[A-Za-z0-9._-]{8,64}$/;
 

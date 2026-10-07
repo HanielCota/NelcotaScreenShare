@@ -1,7 +1,7 @@
-import { and, desc, eq, gt, sql } from "drizzle-orm";
 import type { Metadata } from "next";
 import { SessionList } from "@/components/auth/SessionList";
 import { requireAdmin } from "@/server/auth/admin-session";
+import { listActiveSessions } from "@/server/auth/sessions";
 import { getDb } from "@/server/db";
 import { adminSessions } from "@/server/db/schema";
 
@@ -9,22 +9,7 @@ export const metadata: Metadata = { title: "Sessões ativas" };
 
 export default async function AccountSessionsPage() {
   const admin = await requireAdmin(undefined, { allowWithoutTwoFactor: true });
-  const db = getDb();
-  const rows = db
-    ? await db
-        .select({
-          id: adminSessions.id,
-          ipAddress: adminSessions.ipAddress,
-          userAgent: adminSessions.userAgent,
-          createdAt: adminSessions.createdAt,
-          updatedAt: adminSessions.updatedAt,
-        })
-        .from(adminSessions)
-        .where(
-          and(eq(adminSessions.userId, admin.user.id), gt(adminSessions.expiresAt, sql`now()`)),
-        )
-        .orderBy(desc(adminSessions.updatedAt))
-    : [];
+  const rows = await listActiveSessions(getDb(), adminSessions, admin.user.id);
 
   return (
     <>

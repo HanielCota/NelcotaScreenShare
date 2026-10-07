@@ -15,7 +15,6 @@ const serialize = createSerializer(participantParsers);
 export default async function ParticipantsPage({ searchParams }: PageProps<"/admin/usuarios">) {
   const admin = await requireAdmin({ participant: ["read"] });
   const db = getDb();
-  if (!db) throw new Error("Banco indisponível");
   const params = await loadParticipantParams(searchParams);
   const page = await listParticipants(db, params, PAGE_SIZE);
   const role = admin.user.role;

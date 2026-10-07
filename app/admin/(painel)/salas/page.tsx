@@ -15,7 +15,6 @@ const serialize = createSerializer(roomParsers);
 export default async function RoomsPage({ searchParams }: PageProps<"/admin/salas">) {
   const admin = await requireAdmin({ room: ["read"] });
   const db = getDb();
-  if (!db) throw new Error("Banco indisponível");
   const params = await loadRoomParams(searchParams);
   const page = await listRooms(db, params, PAGE_SIZE);
   const role = admin.user.role;

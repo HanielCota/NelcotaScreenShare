@@ -5,7 +5,7 @@ interface Bucket {
   resetAt: number;
 }
 
-export interface RateLimitResult {
+interface RateLimitResult {
   ok: boolean;
   retryAfterSeconds: number;
 }
@@ -74,23 +74,4 @@ export function createRateLimiter({
       buckets.delete(key);
     },
   };
-}
-
-/**
- * IP do cliente atrás de proxies confiáveis. Cada proxy acrescenta ao fim do
- * X-Forwarded-For o IP de quem falou com ele; os valores à esquerda vêm do
- * cliente e podem ser forjados. Com `trustedHops` proxies na frente do app
- * (Traefik = 1; Cloudflare + Traefik = 2), o IP real é o `trustedHops`-ésimo
- * a partir do fim.
- */
-export function getClientIp(headers: Headers, trustedHops = 1): string {
-  const hops =
-    headers
-      .get("x-forwarded-for")
-      ?.split(",")
-      .map((ip) => ip.trim())
-      .filter(Boolean) ?? [];
-  const ip = hops.at(Math.max(0, hops.length - trustedHops));
-  if (ip) return ip;
-  return headers.get("x-real-ip")?.trim() || "unknown";
 }

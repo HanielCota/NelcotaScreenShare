@@ -3,8 +3,8 @@ import { CSV_BOM, csvRow } from "@/lib/csv";
 import { logger } from "@/server/logger";
 
 /**
- * Resposta CSV em stream: as linhas são lidas em lotes enquanto o download
- * acontece, sem montar o arquivo na memória.
+ * Resposta CSV em stream: cada linha é lida só quando o download pede mais
+ * (`pull`), sem montar o arquivo na memória. Download cancelado para a leitura.
  */
 export function csvResponse(
   filename: string,
@@ -12,16 +12,23 @@ export function csvResponse(
   rows: AsyncIterable<unknown[]>,
 ): Response {
   const encoder = new TextEncoder();
+  const iterator = rows[Symbol.asyncIterator]();
   const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
+    start(controller) {
+      controller.enqueue(encoder.encode(CSV_BOM + csvRow(header)));
+    },
+    async pull(controller) {
       try {
-        controller.enqueue(encoder.encode(CSV_BOM + csvRow(header)));
-        for await (const row of rows) controller.enqueue(encoder.encode(csvRow(row)));
-        controller.close();
+        const next = await iterator.next();
+        if (next.done) controller.close();
+        else controller.enqueue(encoder.encode(csvRow(next.value)));
       } catch (error) {
         logger.error({ err: error, filename }, "falha ao exportar CSV");
         controller.error(error);
       }
+    },
+    async cancel() {
+      await iterator.return?.();
     },
   });
   const stamp = new Date().toISOString().slice(0, 10);

@@ -1,10 +1,9 @@
 import { createLoader, parseAsString, parseAsStringLiteral } from "nuqs/server";
-import { pageParsers } from "@/lib/table-params";
+import { pageParsers, periodParsers } from "@/lib/table-params";
 
-export const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
-export type RoomStatusFilter = (typeof ROOM_STATUSES)[number];
+const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
 
-export const ROOM_SORTS = ["atividade", "inicio", "pico"] as const;
+const ROOM_SORTS = ["atividade", "inicio", "pico"] as const;
 
 /** Estado da lista de salas na URL. */
 export const roomParsers = {
@@ -13,9 +12,7 @@ export const roomParsers = {
   q: parseAsString.withDefault(""),
   status: parseAsStringLiteral(ROOM_STATUSES),
   por: parseAsStringLiteral(ROOM_SORTS).withDefault("atividade"),
-  /** Período de início em dias de São Paulo: AAAA-MM-DD. */
-  de: parseAsString,
-  ate: parseAsString,
+  ...periodParsers,
 };
 
 export const loadRoomParams = createLoader(roomParsers);

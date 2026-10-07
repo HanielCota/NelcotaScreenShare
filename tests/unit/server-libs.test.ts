@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
-const { createRateLimiter, getClientIp } = await import("../../server/rate-limit");
+const { createRateLimiter } = await import("../../server/rate-limit");
+const { getClientIp } = await import("../../server/client-ip");
 const { buildCsp } = await import("../../server/csp");
 const { generateRoomCode, roomCodeSchema, roomPath } = await import("../../lib/livekit");
 
-await test("rate limit: conta, bloqueia e libera quando a janela vira", () => {
+test("rate limit: conta, bloqueia e libera quando a janela vira", () => {
   let now = 1_000;
   const limiter = createRateLimiter({ limit: 2, windowMs: 10_000, now: () => now });
 
@@ -26,7 +27,7 @@ await test("rate limit: conta, bloqueia e libera quando a janela vira", () => {
   assert.equal(limiter.peek("a").ok, true);
 });
 
-await test("IP do cliente respeita o número de proxies confiáveis", () => {
+test("IP do cliente respeita o número de proxies confiáveis", () => {
   const headers = new Headers({ "x-forwarded-for": "6.6.6.6, 203.0.113.9, 172.70.1.1" });
   assert.equal(getClientIp(headers), "172.70.1.1");
   assert.equal(getClientIp(headers, 2), "203.0.113.9");
@@ -35,7 +36,7 @@ await test("IP do cliente respeita o número de proxies confiáveis", () => {
   assert.equal(getClientIp(new Headers()), "unknown");
 });
 
-await test("CSP libera só o próprio app e o LiveKit", () => {
+test("CSP libera só o próprio app e o LiveKit", () => {
   const prod = buildCsp({ livekitUrl: "wss://lk.exemplo.com", dev: false, nonce: "bm9uY2U=" });
   assert.match(prod, /script-src 'self' 'nonce-bm9uY2U=' 'strict-dynamic';/);
   assert.doesNotMatch(prod, /script-src[^;]*'unsafe-inline'/, "nonce substitui unsafe-inline");
@@ -59,7 +60,7 @@ await test("CSP libera só o próprio app e o LiveKit", () => {
   assert.match(withSentry, /connect-src [^;]*https:\/\/o123\.ingest\.sentry\.io/);
 });
 
-await test("código de sala: normaliza e recusa formatos inválidos", () => {
+test("código de sala: normaliza e recusa formatos inválidos", () => {
   assert.equal(roomCodeSchema.parse("  ABC-Defg-H1J "), "abc-defg-h1j");
   for (const bad of ["a", "-abc", "abc-", "ab c", "sala_1", "á-bc", "a".repeat(33)]) {
     assert.equal(roomCodeSchema.safeParse(bad).success, false, bad);
@@ -67,7 +68,7 @@ await test("código de sala: normaliza e recusa formatos inválidos", () => {
   assert.equal(roomPath("abc-defg-hij"), "/sala/abc-defg-hij");
 });
 
-await test("códigos gerados são válidos e evitam caracteres ambíguos", () => {
+test("códigos gerados são válidos e evitam caracteres ambíguos", () => {
   for (let i = 0; i < 500; i++) {
     const code = generateRoomCode();
     assert.match(code, /^[a-z2-9]{3}-[a-z2-9]{4}-[a-z2-9]{3}$/);

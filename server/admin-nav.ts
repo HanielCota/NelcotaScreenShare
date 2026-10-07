@@ -96,7 +96,7 @@ const NAV: { label: string; items: NavItemDefinition[] }[] = [
   },
 ];
 
-export interface NavItem {
+interface NavItem {
   href: string;
   label: string;
   icon: NavIcon;

@@ -16,7 +16,6 @@ function fixture() {
   const dataset: DOMStringMap = {};
   const pending = new Map<number, { at: number; callback: () => void }>();
   const controller = createPersonality({
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Fixture só precisa do dataset; não simula renderização.
     root: { dataset } as unknown as HTMLElement,
     hands: {
       wave: () => {
@@ -180,7 +179,6 @@ describe("personalidade do Nelcota", () => {
     const animate = vi.fn();
     vi.stubGlobal("window", { matchMedia: () => ({ matches: true }) });
     try {
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Fixture parcial da camada de desenho, sem DOM real.
       const root = { querySelector: () => ({ animate }) } as unknown as HTMLElement;
       const hands = createHandMotions(root);
       hands.hold();

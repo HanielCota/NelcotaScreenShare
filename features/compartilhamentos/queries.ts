@@ -1,6 +1,5 @@
 import "server-only";
-import { and, eq, gte, isNotNull, isNull, lt, sql, type SQL } from "drizzle-orm";
-import { endOfDayInSaoPaulo, startOfDayInSaoPaulo } from "@/lib/format";
+import { and, eq, gte, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
 import type { DbExecutor } from "@/server/db";
 import { roomParticipations, rooms, shareSessions, users } from "@/server/db/schema";
 import {
@@ -11,6 +10,8 @@ import {
   sortableColumn,
   type KeysetQuery,
 } from "@/server/table/keyset";
+import { iterateAll } from "@/server/table/iterate";
+import { periodFilters } from "@/server/table/period-filter";
 import { likeEscape } from "@/server/table/search";
 import type { ShareParams } from "./search-params";
 
@@ -28,10 +29,7 @@ export interface ShareRow {
 
 function filtersFrom(params: ShareParams): SQL[] {
   const filters: SQL[] = [];
-  const from = params.de ? startOfDayInSaoPaulo(params.de) : undefined;
-  if (from) filters.push(gte(shareSessions.startedAt, from));
-  const until = params.ate ? endOfDayInSaoPaulo(params.ate) : undefined;
-  if (until) filters.push(lt(shareSessions.startedAt, until));
+  filters.push(...periodFilters(shareSessions.startedAt, params));
   if (params.audio) filters.push(eq(shareSessions.withAudio, params.audio === "com"));
   if (params.situacao === "andamento") filters.push(isNull(shareSessions.endedAt));
   if (params.situacao === "finalizados") filters.push(isNotNull(shareSessions.endedAt));
@@ -112,12 +110,8 @@ export async function listShares(
   };
 }
 
-export async function* iterateShares(db: DbExecutor, params: ShareParams) {
-  let cursor: string | null = null;
-  for (;;) {
-    const page = await listShares(db, { ...params, cursor, dir: "next" }, 1000, { count: false });
-    yield* page.items;
-    if (!page.nextCursor) return;
-    cursor = page.nextCursor;
-  }
+export function iterateShares(db: DbExecutor, params: ShareParams) {
+  return iterateAll((cursor) =>
+    listShares(db, { ...params, cursor, dir: "next" }, 1000, { count: false }),
+  );
 }

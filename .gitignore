@@ -45,3 +45,5 @@ next-env.d.ts
 
 # Artefatos de build fora do Next (ex.: migrador empacotado)
 /dist
+/test-results
+/playwright-report

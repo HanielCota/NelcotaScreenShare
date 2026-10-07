@@ -1,5 +1,5 @@
 import { createLoader, parseAsInteger, parseAsString, parseAsStringLiteral } from "nuqs/server";
-import { pageParsers } from "@/lib/table-params";
+import { pageParsers, periodParsers } from "@/lib/table-params";
 
 /** Estado da lista de compartilhamentos na URL. */
 export const shareParsers = {
@@ -10,9 +10,7 @@ export const shareParsers = {
   situacao: parseAsStringLiteral(["andamento", "finalizados"] as const),
   /** Duração mínima em minutos (só compartilhamentos finalizados). */
   min: parseAsInteger,
-  /** Período de início em dias de São Paulo: AAAA-MM-DD. */
-  de: parseAsString,
-  ate: parseAsString,
+  ...periodParsers,
 };
 
 export const loadShareParams = createLoader(shareParsers);

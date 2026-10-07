@@ -31,7 +31,7 @@ export async function sendMail(message: MailMessage): Promise<void> {
 }
 
 /** Escapa texto para os templates HTML. */
-export function escapeHtml(value: string): string {
+function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

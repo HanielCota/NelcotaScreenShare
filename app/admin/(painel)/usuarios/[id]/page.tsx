@@ -22,7 +22,6 @@ export default async function ParticipantPage({ params }: PageProps<"/admin/usua
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const db = getDb();
-  if (!db) throw new Error("Banco indisponível");
   const detail = await getParticipantDetail(db, id);
   if (!detail) notFound();
   const { account, sessions, timeline, history } = detail;

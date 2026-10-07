@@ -17,7 +17,6 @@ export async function recordTokenRequest(entry: {
   ip: string | null;
 }): Promise<void> {
   const db = getDb();
-  if (!db) return;
   const roomCode = entry.roomCode.slice(0, 64);
   try {
     await db.insert(tokenRequests).values({

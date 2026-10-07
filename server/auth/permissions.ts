@@ -1,3 +1,4 @@
+import "server-only";
 import { createAccessControl } from "better-auth/plugins/access";
 import type { AdminRole } from "./roles";
 
@@ -68,8 +69,8 @@ export const roles = {
   }),
 } satisfies Record<AdminRole, unknown>;
 
-export type Resource = keyof typeof statements;
-export type Action<R extends Resource> = (typeof statements)[R][number];
+type Resource = keyof typeof statements;
+type Action<R extends Resource> = (typeof statements)[R][number];
 /** Pedido de permissão: `{ room: ["close"] }`. */
 export type PermissionRequest = { [R in Resource]?: readonly Action<R>[] };
 

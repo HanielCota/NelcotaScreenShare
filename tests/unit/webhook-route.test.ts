@@ -46,7 +46,7 @@ function post(payload: string, authorization?: string) {
   );
 }
 
-await test("evento assinado com o banco fora do ar: registra no log e pede reenvio (503)", async () => {
+test("evento assinado com o banco fora do ar: registra no log e pede reenvio (503)", async () => {
   const logs: unknown[] = [];
   vi.spyOn(logger, "info").mockImplementation((entry: unknown) => {
     logs.push(entry);
@@ -62,22 +62,22 @@ await test("evento assinado com o banco fora do ar: registra no log e pede reenv
   assert.deepEqual(line.participant, { identity: "ana-1234", name: "Ana" });
 });
 
-await test("recusa sem assinatura", async () => {
+test("recusa sem assinatura", async () => {
   assert.equal((await post(body)).status, 401);
 });
 
-await test("recusa assinatura com outro segredo", async () => {
+test("recusa assinatura com outro segredo", async () => {
   const forged = await signature(body, "outro-segredo-0123456789abcdef0123456789");
   assert.equal((await post(body, forged)).status, 401);
 });
 
-await test("recusa corpo alterado depois de assinado", async () => {
+test("recusa corpo alterado depois de assinado", async () => {
   const signed = await signature(body);
   const tampered = body.replace("Ana", "Eva");
   assert.equal((await post(tampered, signed)).status, 401);
 });
 
-await test("recusa corpo grande demais sem ler a assinatura", async () => {
+test("recusa corpo grande demais sem ler a assinatura", async () => {
   const huge = JSON.stringify({ event: "room_started", padding: "x".repeat(70 * 1024) });
   assert.equal((await post(huge, await signature(huge))).status, 413);
 });

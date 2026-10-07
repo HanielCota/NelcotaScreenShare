@@ -21,7 +21,7 @@ export function useMicPermission() {
       if (status) setPermission(status.state);
     };
     navigator.permissions
-      ?.query({ name: "microphone" as PermissionName })
+      ?.query({ name: "microphone" })
       .then((result) => {
         if (cancelled) return;
         status = result;

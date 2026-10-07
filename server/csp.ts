@@ -1,3 +1,4 @@
+import "server-only";
 /**
  * Content-Security-Policy do app. A origem do LiveKit só é conhecida em runtime
  * (NEXT_PUBLIC_LIVEKIT_URL), por isso o cabeçalho é montado no `proxy.ts`.

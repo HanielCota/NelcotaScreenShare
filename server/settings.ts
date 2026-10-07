@@ -8,7 +8,7 @@ import { logger } from "@/server/logger";
 /**
  * Configurações do app editadas no /admin. Cada grupo é uma linha em
  * `app_settings` (chave + JSON) com um schema Zod próprio e valores padrão:
- * sem banco, sem linha ou com JSON inválido, valem os padrões.
+ * banco fora do ar, sem linha ou com JSON inválido, valem os padrões.
  */
 interface SettingGroup<T> {
   key: string;
@@ -55,19 +55,14 @@ async function readRaw(db: Database, key: string): Promise<unknown> {
   return row?.value;
 }
 
-/** `db`: conexão a usar (testes); omitido usa a do app, `null` é "sem banco". */
-export async function getSetting<T>(
-  group: SettingGroup<T>,
-  db: Database | null = getDb() ?? null,
-): Promise<T> {
+/** `db`: conexão a usar (testes); omitido usa a do app. */
+export async function getSetting<T>(group: SettingGroup<T>, db: Database = getDb()): Promise<T> {
   const hit = cache.get(group.key);
   if (hit && hit.expiresAt > Date.now()) {
     // Revalida em vez de afirmar o tipo: custa nada para objetos deste tamanho.
     const cached = group.schema.safeParse(hit.value);
     if (cached.success) return cached.data;
   }
-  if (!db) return group.defaults;
-
   let value = group.defaults;
   try {
     const parsed = group.schema.safeParse(await readRaw(db, group.key));
@@ -84,12 +79,6 @@ export async function getSetting<T>(
   return value;
 }
 
-export class SettingsUnavailableError extends Error {
-  constructor() {
-    super("Banco de dados não configurado (DATABASE_URL)");
-  }
-}
-
 /**
  * Valida e grava (upsert). Lança `ZodError` para valor inválido. Aceita uma
  * transação para gravar junto com o audit log; `updatedBy` = admin que mudou.
@@ -97,10 +86,9 @@ export class SettingsUnavailableError extends Error {
 export async function saveSetting<T>(
   group: SettingGroup<T>,
   input: unknown,
-  db: DbExecutor | null = getDb() ?? null,
+  db: DbExecutor = getDb(),
   updatedBy?: string,
 ): Promise<T> {
-  if (!db) throw new SettingsUnavailableError();
   const value = group.schema.parse(input);
   await db
     .insert(appSettings)

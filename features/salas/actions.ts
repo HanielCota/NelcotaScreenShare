@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { BULK_FILTER_LIMIT } from "@/lib/table-params";
 import { roomLink } from "@/lib/livekit";
-import { ActionError, adminAction } from "@/server/actions/client";
+import { adminAction } from "@/server/actions/client";
+import { ActionError } from "@/server/actions/errors";
 import { diffChanges } from "@/server/audit/record";
 import { getDb } from "@/server/db";
 import { rooms } from "@/server/db/schema";
@@ -13,12 +14,6 @@ import { appUrl } from "@/server/env";
 import { createRoomInvite, revokeRoomInvite } from "@/server/rooms/invites";
 import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection";
 import { roomIdsForFilter } from "./queries";
-
-function database() {
-  const db = getDb();
-  if (!db) throw new ActionError("Banco de dados indisponível.");
-  return db;
-}
 
 function refresh(id?: string) {
   revalidatePath("/admin/salas");
@@ -30,7 +25,7 @@ export const deleteRoomsAction = adminAction
   .metadata({ name: "room.delete", permission: { room: ["delete"] }, audit: "required" })
   .inputSchema(z.object({ selection: bulkSelectionSchema }))
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
       roomIdsForFilter(db, search, limit),
     );
@@ -75,7 +70,7 @@ export const restoreRoomsAction = adminAction
   .metadata({ name: "room.restore", permission: { room: ["delete"] }, audit: "required" })
   .inputSchema(z.object({ ids: z.array(z.uuid()).min(1).max(BULK_FILTER_LIMIT) }))
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const changed = await db.transaction(async (tx) => {
       const done = await tx
         .update(rooms)
@@ -114,7 +109,7 @@ export const updateRoomNoteAction = adminAction
     }),
   )
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const note = parsedInput.note || null;
     await db.transaction(async (tx) => {
       const [before] = await tx
@@ -158,7 +153,7 @@ export const createInviteAction = adminAction
     }),
   )
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const result = await db.transaction(async (tx) => {
       const [room] = await tx
         .select({ code: rooms.code })
@@ -199,7 +194,7 @@ export const revokeInviteAction = adminAction
   })
   .inputSchema(z.object({ id: z.uuid() }))
   .action(async ({ parsedInput, ctx }) => {
-    const db = database();
+    const db = getDb();
     const invite = await db.transaction(async (tx) => {
       const revoked = await revokeRoomInvite(tx, parsedInput.id);
       if (!revoked) throw new ActionError("Esse convite já foi revogado.");

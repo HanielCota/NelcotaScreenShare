@@ -354,7 +354,6 @@ export function useMascot(
         case "upset":
           reasons.delete("celebrate");
           reasons.delete("typing");
-          reasons.delete("tap");
           hands.cancel();
           bodyAnimation?.cancel();
           if (signal.target) lookAtFor(signal.target);

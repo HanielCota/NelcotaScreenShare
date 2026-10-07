@@ -1,5 +1,5 @@
-export const SLEEPY_AFTER_MS = 30_000;
-export const ASLEEP_AFTER_MS = 45_000;
+const SLEEPY_AFTER_MS = 30_000;
+const ASLEEP_AFTER_MS = 45_000;
 
 /** Reavalia a última atividade, inclusive se um timer disparar atrasado. */
 export function idleSleep(lastActivity: number, now: number) {

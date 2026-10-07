@@ -10,7 +10,10 @@ import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PASSWORD_LIMITS } from "@/lib/password-rules";
 import { formText } from "@/lib/utils";
+
+const MIN = PASSWORD_LIMITS.admin.min;
 
 export function AcceptInvitationForm({
   token,
@@ -37,8 +40,8 @@ export function AcceptInvitationForm({
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const password = formText(data, "password");
-    if (password.length < 12) {
-      setLocalError("A senha precisa ter ao menos 12 caracteres.");
+    if (password.length < MIN) {
+      setLocalError(`A senha precisa ter ao menos ${MIN} caracteres.`);
       return;
     }
     if (password !== formText(data, "confirm")) {
@@ -74,14 +77,14 @@ export function AcceptInvitationForm({
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor={passwordId}>Senha (mínimo de 12 caracteres)</Label>
+          <Label htmlFor={passwordId}>Senha (mínimo de {MIN} caracteres)</Label>
           <PasswordInput
             id={passwordId}
             name="password"
             autoComplete="new-password"
             required
-            minLength={12}
-            maxLength={128}
+            minLength={MIN}
+            maxLength={PASSWORD_LIMITS.admin.max}
           />
         </div>
         <div className="flex flex-col gap-2">

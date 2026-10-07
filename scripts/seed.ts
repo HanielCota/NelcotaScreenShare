@@ -31,11 +31,15 @@ if (process.env.NODE_ENV === "production" || (!local && !args.has("forcar"))) {
   console.error("Seed recusado: só roda em banco local (ou com --forcar num banco descartável).");
   process.exit(1);
 }
-const db = getDb();
-if (!db) {
-  console.error("Defina DATABASE_URL.");
-  process.exit(1);
+function openDb() {
+  try {
+    return getDb();
+  } catch {
+    console.error("Defina DATABASE_URL.");
+    process.exit(1);
+  }
 }
+const db = openDb();
 
 const ACTIONS = [
   ["auth.sign_in", "admin_user"],
@@ -59,13 +63,13 @@ async function seedParticipants(count: number) {
       createdAt: faker.date.past({ years: 1 }),
     };
   });
-  const inserted = await db!
+  const inserted = await db
     .insert(users)
     .values(values)
     .onConflictDoNothing()
     .returning({ id: users.id });
   if (inserted.length > 0) {
-    await db!.insert(userAccounts).values(
+    await db.insert(userAccounts).values(
       inserted.map((user) => ({
         userId: user.id,
         accountId: user.id,
@@ -78,15 +82,15 @@ async function seedParticipants(count: number) {
 }
 
 async function seedAudit(target: number) {
-  const [existing] = await db!
+  const [existing] = await db
     .execute<{ total: number }>(
       sql`select count(*)::int as total from audit_logs where metadata->>'seed' = 'true'`,
     )
     .then((result) => result.rows);
-  const missing = target - Number(existing?.total ?? 0);
+  const missing = target - (existing?.total ?? 0);
   if (missing <= 0) return 0;
   faker.seed(7);
-  const admins = await db!.execute<{ id: string }>(sql`select id from admin_users limit 20`);
+  const admins = await db.execute<{ id: string }>(sql`select id from admin_users limit 20`);
   const adminIds = admins.rows.map((row) => row.id);
   const batch = Array.from({ length: missing }, () => {
     const [action, resourceType] = faker.helpers.arrayElement(ACTIONS);
@@ -116,19 +120,19 @@ async function seedAudit(target: number) {
     };
   });
   for (let i = 0; i < batch.length; i += 1000) {
-    await db!.insert(auditLogs).values(batch.slice(i, i + 1000));
+    await db.insert(auditLogs).values(batch.slice(i, i + 1000));
   }
   return missing;
 }
 
 /** Carga: geração no próprio Postgres (generate_series), segundos para 300 mil linhas. */
 async function seedLoad(total: number) {
-  const before = await db!.execute<{ total: number }>(
+  const before = await db.execute<{ total: number }>(
     sql`select count(*)::int as total from audit_logs where metadata->>'seed' = 'carga'`,
   );
-  const missing = total - Number(before.rows[0]?.total ?? 0);
+  const missing = total - (before.rows[0]?.total ?? 0);
   if (missing > 0) {
-    await db!.execute(sql`
+    await db.execute(sql`
       insert into audit_logs (action, resource_type, resource_id, metadata, ip, request_id, created_at)
       select
         (array['auth.sign_in','auth.sign_in_failed','settings.update','admin_session.revoke'])[1 + (g % 4)],
@@ -142,14 +146,14 @@ async function seedLoad(total: number) {
     `);
   }
   const people = Math.ceil(total / 10);
-  await db!.execute(sql`
+  await db.execute(sql`
     insert into users (name, email, email_verified, created_at, last_seen_at)
     select 'Carga ' || g, 'carga' || g || '@exemplo.dev', true,
            now() - (g % 700) * interval '1 day', now() - (g % 90) * interval '1 hour'
     from generate_series(1, ${people}) as g
     on conflict do nothing
   `);
-  await db!.execute(sql`analyze audit_logs; analyze users;`);
+  await db.execute(sql`analyze audit_logs; analyze users;`);
   return { audit: Math.max(missing, 0), participants: people };
 }
 
@@ -159,10 +163,10 @@ async function seedLoad(total: number) {
  * As 3 primeiras salas ficam ativas, com gente dentro.
  */
 async function seedRooms(count: number, prefix: string, userPattern: string) {
-  const before = await db!.execute<{ total: number }>(
+  const before = await db.execute<{ total: number }>(
     sql`select count(*)::int as total from rooms where code like ${`${prefix}%`}`,
   );
-  await db!.execute(sql`
+  await db.execute(sql`
     insert into rooms (code, status, started_at, finished_at, last_activity_at, created_by_user_id)
     select code, case when g <= 3 then 'active' else 'finished' end::room_status,
            started, case when g <= 3 then null else started + length end,
@@ -179,7 +183,7 @@ async function seedRooms(count: number, prefix: string, userPattern: string) {
     where pool.total > 0
     on conflict do nothing
   `);
-  await db!.execute(sql`
+  await db.execute(sql`
     insert into room_participations
       (room_id, user_id, livekit_identity, livekit_sid, display_name, ip, joined_at, left_at, leave_reason)
     select r.id, u.id, u.id::text, 'PA_' || r.code || '_' || n, u.name,
@@ -197,7 +201,7 @@ async function seedRooms(count: number, prefix: string, userPattern: string) {
     where r.code like ${`${prefix}%`}
     on conflict (livekit_sid) do nothing
   `);
-  await db!.execute(sql`
+  await db.execute(sql`
     insert into share_sessions (room_id, participation_id, track_sid, with_audio, started_at, ended_at)
     select p.room_id, p.id, 'TR_' || p.livekit_sid, abs(hashtext(p.livekit_sid)) % 3 = 0,
            p.joined_at + interval '1 minute',
@@ -207,12 +211,12 @@ async function seedRooms(count: number, prefix: string, userPattern: string) {
     where p.livekit_sid like ${`PA_${prefix}%`} and abs(hashtext(p.livekit_sid)) % 2 = 0
     on conflict (track_sid) do nothing
   `);
-  await db!.execute(sql`
+  await db.execute(sql`
     update rooms r set peak_participants = (select count(*) from room_participations p where p.room_id = r.id)
     where r.code like ${`${prefix}%`} and r.peak_participants = 0
   `);
   // Um pedido aceito por entrada e algumas recusas; só na primeira vez.
-  await db!.execute(sql`
+  await db.execute(sql`
     insert into token_requests (room_code, room_id, user_id, result, ip, created_at)
     select r.code, r.id, p.user_id,
            case when abs(hashtext(p.livekit_sid)) % 10 = 0 then 'wrong_password'
@@ -223,17 +227,17 @@ async function seedRooms(count: number, prefix: string, userPattern: string) {
     where r.code like ${`${prefix}%`}
       and not exists (select 1 from token_requests t where t.room_code like ${`${prefix}%`})
   `);
-  const after = await db!.execute<{ total: number }>(
+  const after = await db.execute<{ total: number }>(
     sql`select count(*)::int as total from rooms where code like ${`${prefix}%`}`,
   );
-  return Number(after.rows[0]?.total ?? 0) - Number(before.rows[0]?.total ?? 0);
+  return (after.rows[0]?.total ?? 0) - (before.rows[0]?.total ?? 0);
 }
 
 const started = Date.now();
 if (profile === "carga") {
   const result = await seedLoad(rows);
   const loadRooms = await seedRooms(Math.ceil(rows / 15), "carga-", "carga%@exemplo.dev");
-  await db!.execute(sql`analyze rooms; analyze room_participations; analyze share_sessions;`);
+  await db.execute(sql`analyze rooms; analyze room_participations; analyze share_sessions;`);
   console.info(`[seed] carga: +${loadRooms} salas com participações e compartilhamentos`);
   console.info(
     `[seed] carga: +${result.audit} auditoria, até ${result.participants} participantes (${Date.now() - started} ms)`,

@@ -1,5 +1,5 @@
 import { createLoader, parseAsString } from "nuqs/server";
-import { pageParsers } from "@/lib/table-params";
+import { pageParsers, periodParsers } from "@/lib/table-params";
 
 /** Estado da tela de auditoria na URL (servidor e cliente usam os mesmos parsers). */
 export const auditParsers = {
@@ -9,9 +9,7 @@ export const auditParsers = {
   acao: parseAsString,
   recurso: parseAsString,
   autor: parseAsString,
-  /** Período em dias de São Paulo: AAAA-MM-DD. */
-  de: parseAsString,
-  ate: parseAsString,
+  ...periodParsers,
 };
 
 export const loadAuditParams = createLoader(auditParsers);

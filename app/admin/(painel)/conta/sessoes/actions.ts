@@ -4,7 +4,8 @@ import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
-import { ActionError, adminAction } from "@/server/actions/client";
+import { adminAction } from "@/server/actions/client";
+import { ActionError } from "@/server/actions/errors";
 import { getAdminAuth } from "@/server/auth/admin";
 import { getDb } from "@/server/db";
 import { adminSessions } from "@/server/db/schema";
@@ -19,7 +20,7 @@ export const revokeOwnSession = adminAction
   .action(async ({ parsedInput, ctx }) => {
     const db = getDb();
     const auth = getAdminAuth();
-    if (!db || !auth) throw new ActionError("O painel admin está desligado.");
+    if (!auth) throw new ActionError("O painel admin está desligado.");
     if (parsedInput.sessionId === ctx.admin.session.id) {
       throw new ActionError("Para sair deste dispositivo, use o botão Sair.");
     }
@@ -52,7 +53,6 @@ export const revokeOtherOwnSessions = adminAction
   })
   .action(async ({ ctx }) => {
     const db = getDb();
-    if (!db) throw new ActionError("O painel admin está desligado.");
     const deleted = await db.transaction(async (tx) => {
       const rows = await tx
         .delete(adminSessions)

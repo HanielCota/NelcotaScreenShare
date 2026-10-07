@@ -10,8 +10,7 @@ const NOTICES: Record<string, string> = {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const { erro, aviso } = await searchParams;
   const current = await getUserSession();
-  const db = getDb();
-  const recentRooms = current && db ? await recentRoomsFor(db, current.user.id) : [];
+  const recentRooms = current ? await recentRoomsFor(getDb(), current.user.id) : [];
 
   return (
     <HomeScene

@@ -7,6 +7,7 @@ import { getDb } from "@/server/db";
 import { users } from "@/server/db/schema";
 import { safeReturnPath } from "@/lib/return-path";
 import { getEnv } from "@/server/env";
+import { logger } from "@/server/logger";
 import { getUserAuth } from "./user";
 
 export interface UserSession {
@@ -30,16 +31,14 @@ export const getUserSession = cache(async (): Promise<UserSession | null> => {
   const { user, session } = result;
   if (user.blockedAt || user.deletedAt) return null;
   // Último acesso (no máximo uma escrita por hora por pessoa).
-  const db = getDb();
-  if (db) {
-    await db
-      .update(users)
-      .set({ lastSeenAt: sql`now()` })
-      .where(
-        sql`${users.id} = ${user.id} and (${users.lastSeenAt} is null or ${users.lastSeenAt} < now() - interval '1 hour')`,
-      )
-      .catch(() => {});
-  }
+  await getDb()
+    .update(users)
+    .set({ lastSeenAt: sql`now()` })
+    .where(
+      sql`${users.id} = ${user.id} and (${users.lastSeenAt} is null or ${users.lastSeenAt} < now() - interval '1 hour')`,
+    )
+    // Só uma estatística: falhar aqui não pode impedir a página de abrir.
+    .catch((error: unknown) => logger.warn({ err: error }, "falha ao gravar último acesso"));
   return {
     user: {
       id: user.id,

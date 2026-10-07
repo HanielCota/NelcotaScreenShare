@@ -24,7 +24,7 @@ import {
 
 /** Formato JSON do protobuf (`WebhookEvent.toJson()`): bigint vira string, enum vira nome. */
 const timestampSchema = z.coerce.number().nonnegative().optional();
-export const webhookPayloadSchema = z.object({
+const webhookPayloadSchema = z.object({
   id: z.string().optional(),
   event: z.string(),
   createdAt: timestampSchema,
@@ -47,7 +47,7 @@ export const webhookPayloadSchema = z.object({
     .optional(),
   track: z.object({ sid: z.string(), source: z.string().optional() }).optional(),
 });
-export type WebhookPayload = z.infer<typeof webhookPayloadSchema>;
+type WebhookPayload = z.infer<typeof webhookPayloadSchema>;
 
 const ROOM_CODE = new RegExp(ROOM_CODE_PATTERN);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -73,7 +73,7 @@ function leaveReasonFrom(reason: string | undefined): LeaveReason {
   }
 }
 
-export function occurredAt(payload: WebhookPayload): Date {
+function occurredAt(payload: WebhookPayload): Date {
   return payload.createdAt ? new Date(payload.createdAt * 1000) : new Date();
 }
 
@@ -188,13 +188,10 @@ async function closeShares(tx: DbExecutor, where: ReturnType<typeof and>, at: Da
     .where(and(where, isNull(shareSessions.endedAt), lte(shareSessions.startedAt, at)));
 }
 
-export type ProjectionResult = "projected" | "ignored";
+type ProjectionResult = "projected" | "ignored";
 
 /** Aplica um evento às tabelas. Idempotente: aplicar de novo não muda nada. */
-export async function projectEvent(
-  tx: DbExecutor,
-  payload: WebhookPayload,
-): Promise<ProjectionResult> {
+async function projectEvent(tx: DbExecutor, payload: WebhookPayload): Promise<ProjectionResult> {
   const code = payload.room?.name;
   if (!code || !ROOM_CODE.test(code)) return "ignored";
   const at = occurredAt(payload);
@@ -315,7 +312,7 @@ export async function projectEvent(
 export type IngestResult = "duplicate" | ProjectionResult | "failed";
 
 /** Projeta um evento já gravado; o erro fica registrado no próprio evento. */
-export async function processStoredEvent(
+async function processStoredEvent(
   db: Database,
   id: string,
   payload: unknown,
@@ -352,7 +349,11 @@ export async function ingestEvent(
     .insert(livekitEvents)
     .values({
       id,
-      event: parsed.success ? parsed.data.event : String(payload.event ?? "desconhecido"),
+      event: parsed.success
+        ? parsed.data.event
+        : typeof payload.event === "string"
+          ? payload.event
+          : "desconhecido",
       roomName: parsed.success ? (parsed.data.room?.name ?? null) : null,
       payload,
       occurredAt: parsed.success ? occurredAt(parsed.data) : new Date(),

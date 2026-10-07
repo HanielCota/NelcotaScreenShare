@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { displayNameSchema } from "@/lib/livekit";
+import { PASSWORD_LIMITS } from "@/lib/password-rules";
 import { formText } from "@/lib/utils";
 
 export function Section({
@@ -165,8 +166,8 @@ export function ChangePasswordForm() {
     const form = event.currentTarget;
     const data = new FormData(form);
     const newPassword = formText(data, "next");
-    if (newPassword.length < 10)
-      return setError("A nova senha precisa ter ao menos 10 caracteres.");
+    if (newPassword.length < PASSWORD_LIMITS.user.min)
+      return setError(`A nova senha precisa ter ao menos ${PASSWORD_LIMITS.user.min} caracteres.`);
     if (newPassword !== formText(data, "confirm")) return setError("As senhas não são iguais.");
     setPending(true);
     setError(undefined);
@@ -193,14 +194,16 @@ export function ChangePasswordForm() {
         <PasswordInput id={ids.current} name="current" autoComplete="current-password" required />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor={ids.next}>Nova senha (mínimo de 10 caracteres)</Label>
+        <Label htmlFor={ids.next}>
+          Nova senha (mínimo de {PASSWORD_LIMITS.user.min} caracteres)
+        </Label>
         <PasswordInput
           id={ids.next}
           name="next"
           autoComplete="new-password"
           required
-          minLength={10}
-          maxLength={128}
+          minLength={PASSWORD_LIMITS.user.min}
+          maxLength={PASSWORD_LIMITS.user.max}
         />
       </div>
       <div className="flex flex-col gap-2">

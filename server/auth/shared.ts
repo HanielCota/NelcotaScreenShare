@@ -6,7 +6,19 @@ import type { Database } from "@/server/db";
 import { logger } from "@/server/logger";
 import { checkLockout, clearFailures, emailHash, recordFailure, type AuthScope } from "./lockout";
 
-export const SIGN_IN_PATH = "/sign-in/email";
+const SIGN_IN_PATH = "/sign-in/email";
+
+/** Ações críticas exigem login recente: Better Auth (freshAge) e actions usam a mesma janela. */
+export const FRESH_SESSION_SECONDS = 10 * 60;
+
+/** Limites por IP comuns ao painel e às contas de participantes (janela em segundos). */
+export const AUTH_RATE_LIMIT_RULES = {
+  [SIGN_IN_PATH]: { window: 60, max: 5 },
+  "/request-password-reset": { window: 60, max: 3 },
+  "/reset-password": { window: 60, max: 5 },
+  "/two-factor/verify-totp": { window: 60, max: 10 },
+  "/two-factor/verify-backup-code": { window: 60, max: 5 },
+};
 /** Login concluído pelo segundo fator (TOTP ou backup code). */
 const TWO_FACTOR_SIGN_IN = new Set(["/two-factor/verify-totp", "/two-factor/verify-backup-code"]);
 

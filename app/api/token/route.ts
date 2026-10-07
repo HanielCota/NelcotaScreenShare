@@ -177,11 +177,7 @@ export async function POST(request: NextRequest) {
 
     // Depois da lotação: sala cheia não gasta uso do convite.
     if (invite !== undefined) {
-      const db = getDb();
-      if (
-        !db ||
-        !(await redeemRoomInvite(db, { token: invite, roomCode: room, userId: user.id }))
-      ) {
+      if (!(await redeemRoomInvite(getDb(), { token: invite, roomCode: room, userId: user.id }))) {
         await log("invite_invalid");
         return errorResponse(
           "invite_invalid",

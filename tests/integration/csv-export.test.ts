@@ -1,0 +1,145 @@
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import * as schema from "@/server/db/schema";
+
+/**
+ * As quatro exportações CSV do painel: cabeçalho, BOM, separador, auditoria
+ * da exportação e recusa sem sessão ou sem permissão.
+ */
+const requestHeaders = { current: new Headers() };
+vi.mock("next/headers", () => ({
+  headers: async () => requestHeaders.current,
+  cookies: async () => ({
+    get: () => undefined,
+    getAll: () => [],
+    set: () => {},
+    delete: () => {},
+  }),
+}));
+
+process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
+const { adminSession } = await import("./support/admin-session");
+const routes = {
+  salas: await import("@/app/api/admin/exportar/salas/route"),
+  usuarios: await import("@/app/api/admin/exportar/usuarios/route"),
+  compartilhamentos: await import("@/app/api/admin/exportar/compartilhamentos/route"),
+  auditoria: await import("@/app/api/admin/exportar/auditoria/route"),
+};
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool, { schema });
+afterAll(() => pool.end());
+
+type Session = Awaited<ReturnType<typeof adminSession>>;
+let owner: Session;
+let viewer: Session;
+let roomCode: string;
+beforeAll(async () => {
+  owner = await adminSession(db, "owner");
+  viewer = await adminSession(db, "viewer");
+  roomCode = `sala-csv-${Date.now().toString(36)}`;
+  const [room] = await db
+    .insert(schema.rooms)
+    .values({
+      code: roomCode,
+      status: "finished",
+      startedAt: new Date(Date.now() - 120_000),
+      finishedAt: new Date(),
+    })
+    .returning();
+  const [participation] = await db
+    .insert(schema.roomParticipations)
+    .values({
+      roomId: room!.id,
+      livekitIdentity: "pessoa-csv",
+      livekitSid: `PA_${crypto.randomUUID()}`,
+      displayName: "Pessoa Csv",
+      joinedAt: new Date(Date.now() - 60_000),
+    })
+    .returning();
+  await db.insert(schema.shareSessions).values({
+    roomId: room!.id,
+    participationId: participation!.id,
+    trackSid: `TR_${crypto.randomUUID()}`,
+    startedAt: new Date(Date.now() - 30_000),
+  });
+});
+
+const EXPECTED = {
+  salas: {
+    header: "id;codigo;status;inicio;fim;duracao_segundos;pico;compartilhamentos",
+    action: "room.export",
+    filename: /^attachment; filename="salas-\d{4}-\d{2}-\d{2}\.csv"$/,
+  },
+  usuarios: {
+    header: "id;nome;email;status;email_verificado;cadastro;ultimo_acesso;participacoes",
+    action: "user.export",
+    filename: /^attachment; filename="participantes-/,
+  },
+  compartilhamentos: {
+    header: undefined,
+    action: "share_session.export",
+    filename: /^attachment; filename="compartilhamentos-/,
+  },
+  auditoria: {
+    header: "quando;acao;descricao;autor;email_autor;recurso;id_recurso;ip;request_id;mudancas",
+    action: "audit.export",
+    filename: /^attachment; filename="auditoria-/,
+  },
+} as const;
+
+/** Texto do CSV sem perder o BOM (o `Response.text()` o remove ao decodificar). */
+async function csvText(response: Response): Promise<string> {
+  return new TextDecoder("utf-8", { ignoreBOM: true }).decode(await response.arrayBuffer());
+}
+
+async function call(name: keyof typeof routes, query = "") {
+  return routes[name].GET(new Request(`http://localhost:3000/api/admin/exportar/${name}${query}`));
+}
+
+describe("exportação CSV", () => {
+  for (const name of Object.keys(routes) as (keyof typeof routes)[]) {
+    it(`${name}: CSV com BOM e ";", e a exportação fica na auditoria`, async () => {
+      requestHeaders.current = owner.headers;
+      const response = await call(name);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe("text/csv; charset=utf-8");
+      expect(response.headers.get("content-disposition")).toMatch(EXPECTED[name].filename);
+      const text = await csvText(response);
+      expect(text.startsWith("﻿")).toBe(true);
+      const [header, ...lines] = text.slice(1).split("\r\n").filter(Boolean);
+      if (EXPECTED[name].header) expect(header).toBe(EXPECTED[name].header);
+      expect(header).toContain(";");
+      if (name === "salas") expect(lines.some((line) => line.includes(roomCode))).toBe(true);
+
+      const audits = await db
+        .select()
+        .from(schema.auditLogs)
+        .where(eq(schema.auditLogs.action, EXPECTED[name].action));
+      expect(audits.length).toBeGreaterThanOrEqual(1);
+      expect(audits.at(-1)?.actorAdminId).toBe(owner.id);
+    });
+  }
+
+  it("filtro da tela vale na exportação (busca por código)", async () => {
+    requestHeaders.current = owner.headers;
+    const text = await csvText(await call("salas", `?q=${roomCode}`));
+    const lines = text.slice(1).split("\r\n").filter(Boolean);
+    expect(lines).toHaveLength(2);
+  });
+
+  it("sem sessão: 401; sem permissão de exportar: 403", async () => {
+    requestHeaders.current = new Headers();
+    expect((await call("salas")).status).toBe(401);
+    requestHeaders.current = viewer.headers;
+    const forbidden = await Promise.all(
+      (Object.keys(routes) as (keyof typeof routes)[]).map(
+        async (name) => (await call(name)).status,
+      ),
+    );
+    // O leitor (viewer) vê as tabelas, mas não exporta nenhuma.
+    expect(forbidden).toEqual([403, 403, 403, 403]);
+  });
+});

@@ -103,7 +103,7 @@ export function TwoFactorSettings({
     const { data, error: failure } = await fn();
     setPending(false);
     if (failure) {
-      setError(authErrorMessage(failure as { code?: string; status?: number; message?: string }));
+      setError(authErrorMessage(failure));
       return null;
     }
     return data;

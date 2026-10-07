@@ -2,12 +2,13 @@ import "server-only";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { logger } from "@/server/logger";
 import { getAdminAuth } from "./admin";
 import { can, type PermissionRequest } from "./permissions";
 import { isAdminRole, ROLES_REQUIRING_2FA, type AdminRole } from "./roles";
 
 /** Máximo absoluto de uma sessão, mesmo com uso contínuo. */
-export const ADMIN_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const ADMIN_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface AdminSession {
   user: {
@@ -35,7 +36,8 @@ export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
   if (Date.now() - new Date(session.createdAt).getTime() > ADMIN_SESSION_MAX_AGE_MS) {
     await auth.api
       .revokeSession({ body: { token: session.token }, headers: await headers() })
-      .catch(() => {});
+      // A sessão já é recusada aqui; a revogação só limpa o banco mais cedo.
+      .catch((error: unknown) => logger.warn({ err: error }, "falha ao revogar sessão vencida"));
     return null;
   }
   return {

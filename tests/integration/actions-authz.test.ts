@@ -3,6 +3,7 @@ import { globSync } from "node:fs";
 import { relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { describe, test, vi } from "vitest";
+import { z } from "zod";
 
 /**
  * Toda Server Action do app precisa recusar quem não está logado (docs/PLANO-ADMIN.md §5.3).
@@ -30,9 +31,11 @@ vi.mock("next/cache", () => ({
 }));
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
-const files = globSync("app/**/actions.ts", { cwd: root }).map((file) =>
+// Actions ficam em app/ e em features/ (o painel); as duas pastas entram.
+const files = globSync(["app/**/actions.ts", "features/**/actions.ts"], { cwd: root }).map((file) =>
   file.replaceAll("\\", "/"),
 );
+const actionResult = z.object({ serverError: z.string().optional() }).loose();
 
 describe("todas as Server Actions recusam quem não está logado", () => {
   test("há actions para conferir", () => {
@@ -41,17 +44,16 @@ describe("todas as Server Actions recusam quem não está logado", () => {
 
   for (const file of files) {
     test(file, async () => {
-      const mod: Record<string, unknown> = await import(pathToFileURL(`${root}${file}`).href);
-      const actions = Object.entries(mod).filter(([, value]) => typeof value === "function");
+      const mod: unknown = await import(pathToFileURL(`${root}${file}`).href);
+      const actions = Object.entries(z.record(z.string(), z.unknown()).parse(mod)).filter(
+        (entry): entry is [string, (input: unknown) => Promise<unknown>] =>
+          typeof entry[1] === "function",
+      );
       assert.ok(actions.length > 0, `${file} não exporta actions`);
       for (const [name, action] of actions) {
         const id = `${relative(root, `${root}${file}`).replaceAll("\\", "/")}#${name}`;
         if (PUBLIC_ACTIONS.has(id)) continue;
-        const result = (await (action as (input: unknown) => Promise<unknown>)({})) as {
-          serverError?: string;
-          validationErrors?: unknown;
-          data?: unknown;
-        };
+        const result = actionResult.parse(await action({}));
         assert.equal(
           result.serverError,
           "Sua sessão expirou. Entre de novo.",
