@@ -6,6 +6,7 @@ import { RoomSession } from "@/features/room/ui/RoomSession";
 import { requireUser } from "@/features/auth/server/participant-session.server";
 import { getDb } from "@/server/db/index.server";
 import { getEnv } from "@/server/env.server";
+import { presenceForGuests } from "@/features/room/domain/presence";
 import { roomPresence } from "@/features/room/server/presence.server";
 import { decodeRoomParam, roomCodeSchema, roomLink } from "@/features/room/domain/room-code";
 import { INVITE_TOKEN_PATTERN } from "@/features/room/domain/invite-token";
@@ -31,14 +32,15 @@ export const loader = routeLoader(async ({ params: routeParams, searchParams }) 
   // Joining a room requires an account with a confirmed e-mail; after sign-in, it comes back here.
   const { user } = await requireUser(roomLink(code.data, invite));
   const { ACCESS_PASSWORD, MAX_PARTICIPANTS } = getEnv();
+  const passwordRequired = ACCESS_PASSWORD !== undefined;
   // Who is already inside, for the pre-join screen to show.
-  const presence = await roomPresence(getDb(), code.data);
+  const presence = presenceForGuests(await roomPresence(getDb(), code.data), passwordRequired);
 
   return {
     invite,
     code: code.data,
     user: { name: user.name, image: user.image },
-    passwordRequired: ACCESS_PASSWORD !== undefined,
+    passwordRequired,
     maxParticipants: MAX_PARTICIPANTS,
     presence,
   };
