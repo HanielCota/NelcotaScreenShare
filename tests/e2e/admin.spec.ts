@@ -120,14 +120,25 @@ test("admin panel: invitation, sign-in with required 2FA, room filter and CSV ex
   await expect(page.getByText("Ninguém entrou nesta sala.")).toBeVisible();
   await expect(page.getByText("Ninguém compartilhou a tela.")).toBeVisible();
 
-  const audit = await sql("select count(*)::int as n from audit_logs where action = 'room.export'");
+  const audit = await sql(
+    `select count(*)::int as n from audit_logs as audit
+     join admin_users as actor on actor.id = audit.actor_admin_id
+     where audit.action = 'room.export' and actor.email = $1`,
+    [email],
+  );
   expect(audit.rows[0]).toEqual({ n: 1 });
 
   // Participant detail: account, sessions, participations and history.
+  const participantEmail = `pessoa.${Date.now()}@exemplo.dev`;
   await sql(`insert into users (name, email, email_verified) values ('Pessoa Painel', $1, true)`, [
-    `pessoa.${Date.now()}@exemplo.dev`,
+    participantEmail,
   ]);
   await page.goto("/admin/usuarios");
+  // Filtering waits for hydration and isolates this attempt's participant from previous retries.
+  await page.getByRole("searchbox", { name: "Nome ou e-mail" }).fill(participantEmail);
+  await expect(page).toHaveURL((url) => url.searchParams.get("q") === participantEmail);
+  await expect(page.getByText("1 resultado", { exact: true })).toBeVisible();
+  await expect(page.getByRole("cell", { name: `Pessoa Painel ${participantEmail}` })).toBeVisible();
   await page.getByRole("link", { name: "Pessoa Painel" }).click();
   await expect(page.getByRole("heading", { name: "Pessoa Painel" })).toBeVisible();
   await expect(page.getByText("Ainda não entrou em nenhuma sala.")).toBeVisible();
