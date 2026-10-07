@@ -1,4 +1,5 @@
-import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { BULK_FILTER_LIMIT } from "@/lib/table-params";
 import { roomLink } from "@/features/room/domain/room-code";
@@ -64,17 +65,24 @@ export const restoreRoomsAction = defineAdminOperation(
   async ({ parsedInput, ctx }) => {
     const db = getDb();
     const changed = await db.transaction(async (tx) => {
+      const candidates = alias(rooms, "candidates");
+      // Multiple deleted generations can share a code. Restore only the newest selected one.
+      const restorable = tx
+        .selectDistinctOn([candidates.code], { id: candidates.id })
+        .from(candidates)
+        .where(
+          and(
+            inArray(candidates.id, parsedInput.ids),
+            isNotNull(candidates.deletedAt),
+            sql`not exists (select 1 from rooms as live
+              where live.code = ${candidates.code} and live.deleted_at is null)`,
+          ),
+        )
+        .orderBy(asc(candidates.code), desc(candidates.deletedAt), asc(candidates.id));
       const done = await tx
         .update(rooms)
         .set({ deletedAt: null })
-        .where(
-          and(
-            inArray(rooms.id, parsedInput.ids),
-            isNotNull(rooms.deletedAt),
-            sql`not exists (select 1 from rooms as live
-              where live.code = ${rooms.code} and live.deleted_at is null)`,
-          ),
-        )
+        .where(inArray(rooms.id, restorable))
         .returning({ id: rooms.id });
       if (done.length === 0) {
         throw new ActionError(
