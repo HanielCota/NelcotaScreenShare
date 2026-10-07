@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 /**
  * Card for the access screens (sign-in, 2FA, password, invitation), for admin and app.
- * Inside the app's split layout (`data-layout="split"`), it becomes the form
+ * Inside a split access layout (`data-layout="split"`), it becomes the form
  * itself: no card background and no icon (the mascot beside it already plays
  * that role).
  */
