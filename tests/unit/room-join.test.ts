@@ -1,5 +1,5 @@
-import { ConnectionError, DisconnectReason, MediaDeviceFailure } from "livekit-client";
-import { describe, expect, it, vi } from "vitest";
+import { ConnectionError, DisconnectReason } from "livekit-client";
+import { describe, expect, it } from "vitest";
 import {
   connectErrorMessage,
   disconnectMessage,
@@ -71,12 +71,8 @@ describe("LiveKit error messages", () => {
   });
 
   it("microphone: blocked, missing and in use", () => {
-    const failure = vi.spyOn(MediaDeviceFailure, "getFailure");
-    failure.mockReturnValueOnce(MediaDeviceFailure.PermissionDenied);
-    expect(micErrorMessage(new Error())).toContain("bloqueou");
-    failure.mockReturnValueOnce(MediaDeviceFailure.NotFound);
-    expect(micErrorMessage(new Error())).toContain("Nenhum microfone");
-    failure.mockReturnValueOnce(MediaDeviceFailure.DeviceInUse);
-    expect(micErrorMessage(new Error())).toContain("em uso");
+    expect(micErrorMessage(new DOMException("", "NotAllowedError"))).toContain("bloqueou");
+    expect(micErrorMessage(new DOMException("", "NotFoundError"))).toContain("Nenhum microfone");
+    expect(micErrorMessage(new DOMException("", "NotReadableError"))).toContain("em uso");
   });
 });

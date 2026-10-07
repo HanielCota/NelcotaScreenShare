@@ -1,9 +1,5 @@
-import {
-  ConnectionError,
-  ConnectionErrorReason,
-  DisconnectReason,
-  MediaDeviceFailure,
-} from "livekit-client";
+import { ConnectionError, ConnectionErrorReason, DisconnectReason } from "livekit-client";
+export { micErrorMessage } from "./microphone-errors";
 import type { LeaveReason } from "@/features/room/domain/leave";
 
 /** LiveKit errors (connection, drop, microphone) as messages for the person. */
@@ -63,19 +59,5 @@ export function disconnectReason(reason: DisconnectReason | undefined): LeaveRea
       return "ended";
     default:
       return "dropped";
-  }
-}
-
-/** Microphone that failed to open in the pre-join screen. */
-export function micErrorMessage(error: unknown): string {
-  switch (MediaDeviceFailure.getFailure(error)) {
-    case MediaDeviceFailure.PermissionDenied:
-      return "O navegador bloqueou o microfone.";
-    case MediaDeviceFailure.NotFound:
-      return "Nenhum microfone encontrado. Conecte um microfone ou fone com microfone.";
-    case MediaDeviceFailure.DeviceInUse:
-      return "O microfone está em uso por outro programa (outra chamada, por exemplo). Feche esse programa e tente de novo.";
-    default:
-      return "Não deu para usar o microfone. Confira se ele está conectado e tente de novo.";
   }
 }
