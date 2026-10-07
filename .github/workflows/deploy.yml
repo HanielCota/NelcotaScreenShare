@@ -1,6 +1,6 @@
 name: Deploy
 
-# Só depois do CI verde na main. Ordem: imagem → migração (job separado) → deploy → smoke.
+# Only after a green CI on main. Order: image → migration (separate job) → deploy → smoke.
 on:
   workflow_run:
     workflows: [CI]
@@ -21,9 +21,9 @@ env:
 
 jobs:
   image:
-    name: Imagem no GHCR
-    # Só push na main deste repositório: um PR de fork com branch "main" também
-    # dispara workflow_run, e não pode gerar imagem nem migrar a produção.
+    name: Image on GHCR
+    # Only a push to main of this repository: a fork PR with a "main" branch also
+    # triggers workflow_run, and must not build an image or migrate production.
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
@@ -58,24 +58,24 @@ jobs:
           cache-to: type=gha,mode=max
 
   migrate:
-    name: Migrações (usuário de migração)
+    name: Migrations (migration user)
     needs: image
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Chave SSH do deploy
+      - name: Deploy SSH key
         run: |
           install -m 700 -d ~/.ssh
           printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy
           chmod 600 ~/.ssh/deploy
           printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-      - name: docker run da imagem nova com o migrador
+      - name: docker run of the new image with the migrator
         env:
           IMAGE_REF: ${{ env.IMAGE }}:${{ needs.image.outputs.sha }}
           MIGRATOR_DATABASE_URL: ${{ secrets.MIGRATOR_DATABASE_URL }}
           DOCKER_NETWORK: ${{ vars.DEPLOY_DOCKER_NETWORK || 'coolify' }}
-        # A URL do migrator vai pelo stdin e é lida dentro do container: não aparece
-        # em `ps`, nos argumentos do docker nem no histórico do servidor.
+        # The migrator URL goes through stdin and is read inside the container: it does not show up
+        # in `ps`, in the docker arguments or in the server's shell history.
         run: |
           printf '%s\n' "$MIGRATOR_DATABASE_URL" | ssh -i ~/.ssh/deploy \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
@@ -83,16 +83,16 @@ jobs:
               '$IMAGE_REF' sh -c 'read -r DATABASE_URL && export DATABASE_URL && exec node migrate.mjs'"
 
   deploy:
-    name: Deploy no Coolify + smoke test
+    name: Deploy to Coolify + smoke test
     needs: [image, migrate]
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Webhook do Coolify (puxa :main)
+      - name: Coolify webhook (pulls :main)
         run: |
           curl --fail --silent --show-error -X POST "${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}" \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
-      - name: Esperar a versão nova responder em /api/ready
+      - name: Wait for the new version to answer on /api/ready
         env:
           EXPECTED: ${{ needs.image.outputs.sha }}
           URL: ${{ vars.APP_URL }}/api/ready
@@ -102,5 +102,5 @@ jobs:
             echo "$body" | grep -q "\"version\":\"$EXPECTED\"" && echo "$body" && exit 0
             sleep 10
           done
-          echo "A versão $EXPECTED não respondeu em 10 minutos: confira o deploy no Coolify." >&2
+          echo "Version $EXPECTED did not answer within 10 minutes: check the deploy in Coolify." >&2
           exit 1
