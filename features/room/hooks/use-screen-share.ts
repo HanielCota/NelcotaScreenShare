@@ -41,15 +41,17 @@ export function useScreenShare() {
         toast.info(
           "O compartilhamento foi cancelado ou bloqueado. Tente de novo e confirme a tela no navegador.",
         );
-      } else if (error instanceof DOMException && error.name === "NotSupportedError") {
+        return;
+      }
+      if (error instanceof DOMException && error.name === "NotSupportedError") {
         toast.error(
           "Este navegador não consegue compartilhar a tela. Tente pelo Chrome, Edge ou Firefox no computador.",
         );
-      } else {
-        toast.error(
-          "Não foi possível compartilhar a tela. Tente de novo e confirme a tela no seletor do navegador.",
-        );
+        return;
       }
+      toast.error(
+        "Não foi possível compartilhar a tela. Tente de novo e confirme a tela no seletor do navegador.",
+      );
     } finally {
       setBusy(false);
     }

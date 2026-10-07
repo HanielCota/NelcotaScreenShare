@@ -163,8 +163,11 @@ export function ReactionsMenu() {
   function toggleHand() {
     const next = !handRaised;
     void setHandRaised(room.name, next).then((ok) => {
-      if (ok) toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
-      else toast.error("Não foi possível levantar a mão. Tente de novo.");
+      if (ok) {
+        toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
+        return;
+      }
+      toast.error("Não foi possível levantar a mão. Tente de novo.");
     });
   }
 

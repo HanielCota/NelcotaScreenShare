@@ -51,9 +51,9 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
-      } else {
-        await el.requestFullscreen();
+        return;
       }
+      await el.requestFullscreen();
     } catch {
       toast.error("Não foi possível alternar a tela cheia.");
     }

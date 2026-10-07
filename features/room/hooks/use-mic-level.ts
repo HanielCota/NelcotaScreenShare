@@ -85,9 +85,9 @@ export function useMicLevel(
         if (cancelled) return;
         if (MediaDeviceFailure.getFailure(error) === MediaDeviceFailure.PermissionDenied) {
           onPermissionDenied();
-        } else {
-          onError(error);
+          return;
         }
+        onError(error);
       }
     };
 

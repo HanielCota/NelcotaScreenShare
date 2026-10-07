@@ -26,30 +26,29 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
       pulse.current = null;
       const reduced = prefersReducedMotion();
 
-      if (isSpeaking) {
-        gsap.to("[data-ring]", { opacity: 1, duration: reduced ? 0 : 0.2, overwrite: "auto" });
-        if (!reduced) {
-          pulse.current = gsap.fromTo(
-            "[data-glow]",
-            { opacity: 0.35, scale: 1 },
-            {
-              opacity: 0.8,
-              scale: 1.03,
-              duration: 0.75,
-              ease: "sine.inOut",
-              repeat: -1,
-              yoyo: true,
-            },
-          );
-        }
-      } else {
+      if (!isSpeaking) {
         gsap.to(["[data-ring]", "[data-glow]"], {
           opacity: 0,
           scale: 1,
           duration: reduced ? 0 : 0.4,
           overwrite: "auto",
         });
+        return;
       }
+      gsap.to("[data-ring]", { opacity: 1, duration: reduced ? 0 : 0.2, overwrite: "auto" });
+      if (reduced) return;
+      pulse.current = gsap.fromTo(
+        "[data-glow]",
+        { opacity: 0.35, scale: 1 },
+        {
+          opacity: 0.8,
+          scale: 1.03,
+          duration: 0.75,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true,
+        },
+      );
     },
     { scope, dependencies: [isSpeaking, compact] },
   );

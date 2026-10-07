@@ -74,10 +74,17 @@ export function ChatComposer({
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
               onSubmit();
-            } else if (event.key === "Escape") {
-              if (editing) onCancelEdit();
-              else onClose();
-            } else if (event.key === "ArrowUp" && !draft && !editing && onEditLast()) {
+              return;
+            }
+            if (event.key === "Escape") {
+              if (editing) {
+                onCancelEdit();
+                return;
+              }
+              onClose();
+              return;
+            }
+            if (event.key === "ArrowUp" && !draft && !editing && onEditLast()) {
               event.preventDefault();
             }
           }}
