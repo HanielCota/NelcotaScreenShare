@@ -9,13 +9,13 @@
 Screen sharing for small teams, with audio, chat and a mascot that reacts to you.
 Self-hosted, with LiveKit and React Router.
 
-![Node.js 26.9](https://img.shields.io/badge/Node.js-26.9-5FA04E?logo=nodedotjs&logoColor=white)
-![React Router 8](https://img.shields.io/badge/React_Router-8.4-CA4245?logo=reactrouter&logoColor=white)
-![React 19](https://img.shields.io/badge/React-19.3-61DAFB?logo=react&logoColor=black)
-![TypeScript 7](https://img.shields.io/badge/TypeScript-7.0-3178C6?logo=typescript&logoColor=white)
-![LiveKit](https://img.shields.io/badge/LiveKit-1.13-FF6352?logo=webrtc&logoColor=white)
-![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)
-![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4.3-06B6D4?logo=tailwindcss&logoColor=white)
+![Node.js 26.9](https://img.shields.io/badge/Node.js_26.9-1b1f24?style=flat-square&logo=nodedotjs&logoColor=5FA04E)
+![React Router 8.4](https://img.shields.io/badge/React_Router_8.4-1b1f24?style=flat-square&logo=reactrouter&logoColor=F44250)
+![React 19.3](https://img.shields.io/badge/React_19.3-1b1f24?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript 7.0](https://img.shields.io/badge/TypeScript_7.0-1b1f24?style=flat-square&logo=typescript&logoColor=3178C6)
+![LiveKit 1.13](https://img.shields.io/badge/LiveKit_1.13-1b1f24?style=flat-square&logo=livekit&logoColor=FF6352)
+![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL_18-1b1f24?style=flat-square&logo=postgresql&logoColor=6B9BF0)
+![Tailwind CSS 4.3](https://img.shields.io/badge/Tailwind_CSS_4.3-1b1f24?style=flat-square&logo=tailwindcss&logoColor=06B6D4)
 
 [Quick start](#-quick-start) · [Features](#-features) · [Architecture](#-architecture) · [Documentation](#-documentation)
 
