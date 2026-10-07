@@ -2,7 +2,7 @@ import { csvExportRoute } from "@/features/admin/shell/server/csv-export-route.s
 import { iterateRooms } from "@/features/admin/rooms/server/queries.server";
 import { loadRoomParams } from "@/features/admin/rooms/domain/search-params";
 
-/** CSV das salas com os filtros da tela (exige `room.export`). */
+/** Rooms CSV with the screen filters (requires `room.export`). */
 export const exportCsv = csvExportRoute({
   permission: { room: ["export"] },
   audit: { action: "room.export", resourceType: "room" },

@@ -5,9 +5,9 @@ interface ActionResult {
 }
 
 /**
- * Toast "… · Desfazer" por 10 s. O desfazer chama a action direto (não por
- * um hook): a barra de seleção que disparou a exclusão já saiu da tela, e o
- * resultado do desfazer ainda precisa aparecer.
+ * "… · Desfazer" toast for 10 s. Undo calls the action directly (not through
+ * a hook): the selection bar that triggered the deletion has already left the
+ * screen, and the undo result still needs to show.
  */
 export function toastWithUndo(
   message: string,

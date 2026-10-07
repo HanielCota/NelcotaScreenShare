@@ -26,7 +26,7 @@ const { min: MIN_PASSWORD, max: MAX_PASSWORD } = PASSWORD_LIMITS.user;
 
 const STRENGTH_COLORS = ["bg-line", "bg-danger", "bg-warning", "bg-success"] as const;
 
-/** Requisito e força da senha, ao vivo (a força só orienta; o servidor exige o tamanho). */
+/** Password requirement and strength, live (strength only guides; the server requires the length). */
 function PasswordGuide({
   id,
   password,
@@ -78,7 +78,7 @@ export function SignUpForm({
 }: {
   returnTo: string;
   context: AccessContext;
-  /** Com a confirmação desligada, o cadastro já entra na conta. */
+  /** With confirmation off, sign-up signs into the account right away. */
   verificationRequired: boolean;
 }) {
   const navigate = useNavigate();
@@ -127,7 +127,7 @@ export function SignUpForm({
       password,
       callbackURL: returnTo,
     });
-    // Com confirmação, e-mail já cadastrado responde igual (o dono é avisado por e-mail).
+    // With confirmation, an already registered e-mail responds the same (the owner is notified by e-mail).
     const genericDuplicate =
       verificationRequired && (failure?.status === 422 || failure?.code === "USER_ALREADY_EXISTS");
     if (failure && !genericDuplicate) {
@@ -144,7 +144,7 @@ export function SignUpForm({
       });
       return;
     }
-    // Sem confirmação, o Better Auth já abriu a sessão: segue para onde a pessoa ia.
+    // Without confirmation, Better Auth already opened the session: go where the person was heading.
     void navigate(returnTo, { replace: true });
     void revalidator.revalidate();
   }
@@ -166,7 +166,7 @@ export function SignUpForm({
         method="post"
         onSubmit={(event) => void handleSubmit(event)}
         onChange={(event) => {
-          // Nome e e-mail entram na conta da força: senha com eles fica "Fraca".
+          // Name and e-mail count in the strength score: a password containing them is "Fraca".
           const form = event.currentTarget;
           const value = (field: string) =>
             form.querySelector<HTMLInputElement>(`[name=${field}]`)?.value ?? "";

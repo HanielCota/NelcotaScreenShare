@@ -19,7 +19,7 @@ import { availableActions } from "@/features/admin/participants/domain/available
 
 type Dialog = "block" | "delete" | "anonymize" | null;
 
-/** Erro do servidor no toast (a mensagem já vem pronta para quem usa). */
+/** Server error in a toast (the message already comes ready for the user). */
 function fail(fallback: string) {
   return {
     onError: ({ error }: { error: { serverError?: string } }) =>
@@ -27,7 +27,7 @@ function fail(fallback: string) {
   };
 }
 
-/** Ações do detalhe de um participante, conforme o status e as permissões. */
+/** Actions on a participant's detail page, according to status and permissions. */
 export function ParticipantActions({
   id,
   status,

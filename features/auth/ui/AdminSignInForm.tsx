@@ -36,7 +36,7 @@ export function AdminSignInForm({ notice }: { notice?: string | undefined }) {
       setError(authErrorMessage(failure));
       return;
     }
-    // Com 2FA ativo, o plugin redireciona para /admin/verificar-2fa.
+    // With 2FA active, the plugin redirects to /admin/verificar-2fa.
     if (result && "twoFactorRedirect" in result && result.twoFactorRedirect) return;
     void navigate("/admin", { replace: true });
     void revalidator.revalidate();

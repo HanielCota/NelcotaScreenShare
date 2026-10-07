@@ -1,12 +1,12 @@
 /**
- * Cria o convite do primeiro dono do painel (não existe senha padrão).
- * Imprime um link de uso único, válido por 30 minutos.
+ * Creates the invitation for the panel's first owner (there is no default password).
+ * Prints a single-use link, valid for 30 minutes.
  *
- *   Dev:      pnpm admin:create-owner dono@exemplo.com
- *   Produção: docker exec -it <container-do-app> node create-owner.mjs dono@exemplo.com
+ *   Dev:        pnpm admin:create-owner owner@example.com
+ *   Production: docker exec -it <app-container> node create-owner.mjs owner@example.com
  *
- * Se já existe um dono ativo, recusa (use --force só para recuperar acesso,
- * por exemplo quando o único dono perdeu o 2FA e os códigos de backup).
+ * Refuses if an active owner already exists (use --force only to recover access,
+ * for example when the only owner lost their 2FA and backup codes).
  */
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";

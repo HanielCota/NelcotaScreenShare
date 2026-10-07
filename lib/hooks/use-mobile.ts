@@ -9,7 +9,7 @@ function subscribe(onChange: () => void) {
   return () => mql.removeEventListener("change", onChange);
 }
 
-/** Tela de celular? (No servidor, "não": o primeiro render no cliente corrige sem efeito.) */
+/** Phone screen? (On the server, "no": the first client render corrects it without an effect.) */
 export function useIsMobile() {
   return React.useSyncExternalStore(
     subscribe,

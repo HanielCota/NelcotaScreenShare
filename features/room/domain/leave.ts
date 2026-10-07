@@ -1,19 +1,19 @@
 /**
- * Por que a pessoa está na tela de saída. Cada motivo tem título e ações
- * próprios: quem saiu de propósito volta para a sala; quem foi removido, não.
+ * Why the person is on the leave screen. Each reason has its own title and
+ * actions: whoever left on purpose can go back to the room; whoever was removed cannot.
  */
 export type LeaveReason =
-  /** Clicou em Sair. */
+  /** Clicked Sair. */
   | "self"
-  /** A sala foi encerrada (ou apagada no painel). */
+  /** The room was ended (or deleted in the dashboard). */
   | "ended"
-  /** Alguém tirou a pessoa da sala. */
+  /** Someone removed the person from the room. */
   | "removed"
-  /** Entrou na mesma sala em outra aba ou aparelho. */
+  /** Joined the same room in another tab or device. */
   | "elsewhere"
-  /** A conexão caiu no meio da chamada. */
+  /** The connection dropped mid-call. */
   | "dropped"
-  /** Nem chegou a entrar (token negado, conexão não abriu). */
+  /** Never got in (token denied, connection did not open). */
   | "failed";
 
 export interface LeaveNotice {
@@ -21,7 +21,7 @@ export interface LeaveNotice {
   message?: string;
 }
 
-/** Tempo na chamada, ou `undefined` se a hora de entrada não for conhecida. */
+/** Time in the call, or `undefined` if the join time is unknown. */
 export function callDuration(startedAt: number | undefined, now: number): number | undefined {
   if (startedAt === undefined || !Number.isFinite(startedAt)) return undefined;
   return Math.max(0, now - startedAt);

@@ -8,7 +8,7 @@ import { formatCallDuration, type LeaveReason } from "@/features/room/domain/lea
 import { roomPath } from "@/features/room/domain/room-code";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 
-/** Título, humor do mascote e o que dá para fazer em cada motivo de saída. */
+/** Title, mascot mood and what can be done for each leave reason. */
 const COPY: Record<
   LeaveReason,
   { title: string; expression: Expression; rejoin: string | null; copyLink: boolean }
@@ -31,7 +31,7 @@ const COPY: Record<
     rejoin: "Tentar de novo",
     copyLink: false,
   },
-  // Voltar aqui derruba a outra aba: fica como opção, não como ação principal.
+  // Rejoining here drops the other tab: it stays an option, not the main action.
   elsewhere: {
     title: "Você está na sala em outro lugar",
     expression: "surprised",
@@ -60,7 +60,7 @@ function CopyRoomLink({ code }: { code: string }) {
       size="lg"
       aria-live="polite"
       onClick={() => {
-        // Sem o convite: o link serve para mandar a outra pessoa.
+        // Without the invite: the link is meant to be sent to another person.
         void navigator.clipboard
           .writeText(`${window.location.origin}${roomPath(code)}`)
           .then(() => setCopied(true))
@@ -78,8 +78,8 @@ function CopyRoomLink({ code }: { code: string }) {
 }
 
 /**
- * Depois da chamada: por que acabou, quanto tempo durou e o próximo passo.
- * Sem cartão: o mascote se despede, como recebeu na entrada.
+ * After the call: why it ended, how long it lasted and the next step.
+ * No card: the mascot says goodbye, just as it welcomed on the way in.
  */
 export function LeftScreen({
   code,
@@ -91,14 +91,14 @@ export function LeftScreen({
   code: string;
   reason: LeaveReason;
   message?: string;
-  /** Tempo na chamada; ausente quando a pessoa nem chegou a entrar. */
+  /** Time in the call; absent when the person never got in. */
   durationMs?: number;
   onRejoin: () => void;
 }) {
   const scope = useRef<HTMLElement>(null);
   const copy = COPY[reason];
   const joined = durationMs !== undefined && reason !== "failed";
-  // Sala encerrada ou pessoa removida: o caminho é o início, não a mesma sala.
+  // Room ended or person removed: the way forward is the home page, not the same room.
   const rejoinIsPrimary = copy.rejoin !== null && reason !== "elsewhere";
 
   useGSAP(
@@ -111,7 +111,7 @@ export function LeftScreen({
     { scope },
   );
 
-  // Foco no próximo passo: Enter já volta para a sala (ou vai ao início).
+  // Focus on the next step: Enter goes back to the room (or to the home page).
   useEffect(() => {
     scope.current?.querySelector<HTMLElement>("[data-primary]")?.focus();
   }, []);

@@ -5,14 +5,14 @@ import { BubbleText } from "./BubbleText";
 import { SpeechBubble } from "./SpeechBubble";
 
 /**
- * Lado do mascote no painel de acesso. Ele reage ao formulário ao lado e
- * fala pelo balão; embaixo, o que o navegador de quem está vendo consegue
- * fazer na sala.
+ * Mascot side of the access panel. It reacts to the form beside it and
+ * speaks through the bubble; below, what the viewer's browser can
+ * do in the room.
  */
 export function BrandPanel() {
   return (
     <aside className="flex flex-col border-b border-line bg-surface-2 px-5 py-4 sm:px-8 lg:border-r lg:border-b-0 lg:p-10">
-      {/* Mascote e balão juntos: lado a lado no celular, balão em cima no computador. */}
+      {/* Mascot and bubble together: side by side on mobile, bubble on top on desktop. */}
       <div className="flex items-center gap-3 lg:flex-1 lg:flex-col-reverse lg:items-start lg:justify-center lg:gap-1">
         <Mascot
           facing="right"

@@ -5,10 +5,10 @@ const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
 
 const ROOM_SORTS = ["atividade", "inicio", "pico"] as const;
 
-/** Estado da lista de salas na URL. */
+/** Room list state in the URL. */
 export const roomParsers = {
   ...pageParsers,
-  /** Parte do código da sala. */
+  /** Part of the room code. */
   q: parseAsString.withDefault(""),
   status: parseAsStringLiteral(ROOM_STATUSES),
   por: parseAsStringLiteral(ROOM_SORTS).withDefault("atividade"),

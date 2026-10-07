@@ -1,4 +1,4 @@
-/** Mensagem de erro do formulário, anunciada por leitores de tela. */
+/** Form error message, announced by screen readers. */
 export function FormError({ id, message }: { id?: string; message?: string | undefined }) {
   if (!message) return null;
   return (

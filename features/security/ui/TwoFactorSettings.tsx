@@ -31,14 +31,14 @@ export function TwoFactorSettings({
   doneHref,
   variant = "card",
 }: {
-  /** Qual instância do Better Auth: painel admin ou conta de participante. */
+  /** Which Better Auth instance: admin panel or participant account. */
   scope: "admin" | "user";
   enabled: boolean;
-  /** O papel exige 2FA (owner/admin): não dá para desativar. */
+  /** The role requires 2FA (owner/admin): it cannot be turned off. */
   required: boolean;
-  /** Para onde ir depois de ativar. */
+  /** Where to go after enabling. */
   doneHref: string;
-  /** `plain`: sem cartão nem cabeçalho; quem usa já mostra título e estado. */
+  /** `plain`: no card or header; the caller already shows title and state. */
   variant?: "card" | "plain";
 }) {
   const plain = variant === "plain";
@@ -81,7 +81,7 @@ export function TwoFactorSettings({
     const password = requiredPassword(event.currentTarget);
     if (password === null) return;
     const data = await run(() => client.twoFactor.enable({ password }));
-    // O painel só usa TOTP (app autenticador); "otp" seria código por e-mail.
+    // The panel only uses TOTP (authenticator app); "otp" would be a code by e-mail.
     if (data?.method === "totp") {
       setStep({ name: "scan", totpURI: data.totpURI, backupCodes: data.backupCodes });
     }

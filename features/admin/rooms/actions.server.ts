@@ -12,7 +12,7 @@ import { createRoomInvite, revokeRoomInvite } from "@/features/room/server/invit
 import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection.server";
 import { roomIdsForFilter } from "./server/queries.server";
 
-/** Exclusão reversível. Sala ao vivo não pode: encerre antes. */
+/** Reversible deletion. A live room cannot be deleted: end it first. */
 export const deleteRoomsAction = defineAdminOperation(
   { name: "room.delete", permission: { room: ["delete"] }, audit: "required" },
   z.object({ selection: bulkSelectionSchema }),
@@ -55,8 +55,8 @@ export const deleteRoomsAction = defineAdminOperation(
 );
 
 /**
- * Desfaz a exclusão. Se o mesmo código já voltou a ser usado (sala nova
- * criada depois), aquela sala fica excluída: só uma sala viva por código.
+ * Undoes the deletion. If the same code is already in use again (a new room
+ * created later), that room stays deleted: only one live room per code.
  */
 export const restoreRoomsAction = defineAdminOperation(
   { name: "room.restore", permission: { room: ["delete"] }, audit: "required" },
@@ -91,7 +91,7 @@ export const restoreRoomsAction = defineAdminOperation(
   },
 );
 
-/** Nota interna da sala (só o painel vê). */
+/** Internal room note (only the admin panel sees it). */
 export const updateRoomNoteAction = defineAdminOperation(
   { name: "room.updateNote", permission: { room: ["update"] }, audit: "required" },
   z.object({
@@ -124,7 +124,7 @@ export const updateRoomNoteAction = defineAdminOperation(
 
 const VALIDITY_HOURS = [1, 24, 24 * 7, 24 * 30] as const;
 
-/** Convite com validade e/ou limite de pessoas. O link só aparece agora. */
+/** Invite with an expiry and/or a people limit. The link is only shown now. */
 export const createInviteAction = defineAdminOperation(
   {
     name: "roomInvite.create",

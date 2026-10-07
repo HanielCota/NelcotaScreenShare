@@ -23,11 +23,11 @@ interface SmartBarProps {
   invalidCode: boolean;
   pending: boolean;
   onNavigate: (href: string) => void;
-  /** Mascote "espiando" por cima da barra. */
+  /** Mascot "peeking" over the bar. */
   mascot?: ReactNode;
 }
 
-/** Tecla desenhada como tecla de verdade (borda de baixo mais grossa). */
+/** Key drawn like a real key (thicker bottom border). */
 function Keycap({ children }: { children: ReactNode }) {
   return (
     <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-b-2 border-line-strong bg-surface-2 px-1.5 font-sans text-xs font-medium text-ink">
@@ -36,7 +36,7 @@ function Keycap({ children }: { children: ReactNode }) {
   );
 }
 
-/** Aviso de erro da barra: ícone + frase, alinhados mesmo quando quebra a linha. */
+/** Bar error notice: icon + sentence, aligned even when the line wraps. */
 function ErrorHint({ children }: { children: ReactNode }) {
   return (
     <span className="inline-flex items-start gap-1.5 text-left">
@@ -46,7 +46,7 @@ function ErrorHint({ children }: { children: ReactNode }) {
   );
 }
 
-/** Dica da barra vazia: dois atalhos curtos, lado a lado. */
+/** Empty bar hint: two short shortcuts, side by side. */
 const EMPTY_HINT = (
   <span className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
     <span className="inline-flex items-center gap-1.5 max-sm:hidden">
@@ -65,7 +65,7 @@ const EMPTY_HINT = (
   </span>
 );
 
-/** Dica abaixo da barra: atalhos com a barra vazia; sala reconhecida; ou o erro. */
+/** Hint below the bar: shortcuts when the bar is empty; recognized room; or the error. */
 function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "error" } {
   switch (input.kind) {
     case "empty":
@@ -108,8 +108,8 @@ function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "e
 }
 
 /**
- * A barra da home: vazia, cria uma sala; com um código ou um link colado
- * (com ou sem convite), entra. Tecla "/" em qualquer lugar foca a barra.
+ * The home bar: when empty, creates a room; with a code or a pasted link
+ * (with or without an invite), joins. The "/" key anywhere focuses the bar.
  */
 export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarProps) {
   const inputId = useId();
@@ -135,7 +135,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
     upsetMascot("worried", inputRef.current ?? undefined);
   }, [invalidCode]);
 
-  // "/" foca a barra (fora de campos de texto), como em buscadores.
+  // "/" focuses the bar (outside text fields), like in search engines.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
@@ -178,13 +178,13 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
     );
   }
 
-  // "Criar sala" só com a barra vazia; com texto, a pessoa está tentando entrar.
+  // "Criar sala" only with an empty bar; with text, the person is trying to join.
   const creating = input.kind === "empty";
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col items-center gap-3">
       <div className="relative w-full">
         {mascot ? (
-          // Os pés passam à frente da borda da barra, sem serem cortados por ela.
+          // The feet go in front of the bar's border, without being clipped by it.
           <div className="relative z-20 flex justify-center">{mascot}</div>
         ) : null}
         <div
@@ -237,7 +237,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
           hint.tone === "error" && "text-danger",
         )}
       >
-        {/* Um filho só: no flex, texto e <strong> virariam itens e o espaço entre eles sumiria. */}
+        {/* A single child: in flex, text and <strong> would become items and the space between them would vanish. */}
         <span>{hint.text}</span>
       </p>
     </form>

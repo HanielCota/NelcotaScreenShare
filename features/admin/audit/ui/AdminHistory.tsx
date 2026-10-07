@@ -11,8 +11,8 @@ interface HistoryEntry {
 }
 
 /**
- * "Histórico no painel" de uma sala ou conta: o que os admins fizeram com ela.
- * Sem `emptyMessage`, a seção some quando não há nada.
+ * "Histórico no painel" of a room or account: what the admins did to it.
+ * Without `emptyMessage`, the section is hidden when there is nothing.
  */
 export function AdminHistory({
   entries,

@@ -4,14 +4,14 @@ import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { HomeEntrance } from "./HomeEntrance";
 import { HomeStart } from "./HomeStart";
 
-/** Página inicial; a barra de entrada e o mascote têm comportamento interativo. */
+/** Home page; the entry bar and the mascot have interactive behavior. */
 export function HomeScene({
   invalidCode,
   account,
   notice,
 }: {
   invalidCode: boolean;
-  /** Participante logado (nome e foto para a navbar), ou null. */
+  /** Signed-in participant (name and photo for the navbar), or null. */
   account: { name: string; image: string | null } | null;
   notice?: string | undefined;
 }) {

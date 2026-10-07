@@ -10,8 +10,8 @@ import {
 } from "@/server/db/schema";
 
 /**
- * "Baixar meus dados" (LGPD, art. 18): tudo o que guardamos ligado à conta.
- * As chaves em português são o formato do arquivo que a pessoa recebe.
+ * "Baixar meus dados" (download my data; LGPD, art. 18): everything we store linked to the account.
+ * The Portuguese keys are the format of the file the person receives.
  */
 export async function personalData(db: DbExecutor, userId: string) {
   const [profile] = await db
@@ -72,7 +72,7 @@ export async function personalData(db: DbExecutor, userId: string) {
     aviso: "Dados pessoais guardados pelo Nelcota ligados à sua conta.",
     conta: profile,
     sessoes_ativas: sessions,
-    // Registros de acesso: guardados por 6 meses (Marco Civil, art. 15).
+    // Access records: kept for 6 months (Marco Civil, art. 15).
     participacoes_em_salas: participations,
     pedidos_de_entrada: tokenLog,
   };

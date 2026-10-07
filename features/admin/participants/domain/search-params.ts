@@ -6,10 +6,10 @@ export type ParticipantStatus = (typeof PARTICIPANT_STATUSES)[number];
 
 const PARTICIPANT_SORTS = ["cadastro", "acesso", "participacoes"] as const;
 
-/** Estado da lista de participantes na URL. */
+/** Participant list state in the URL. */
 export const participantParsers = {
   ...pageParsers,
-  /** Nome ou e-mail, sem acento. */
+  /** Name or e-mail, accent-insensitive. */
   q: parseAsString.withDefault(""),
   status: parseAsStringLiteral(PARTICIPANT_STATUSES),
   por: parseAsStringLiteral(PARTICIPANT_SORTS).withDefault("cadastro"),

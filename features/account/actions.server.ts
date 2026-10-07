@@ -9,10 +9,10 @@ import { logger } from "@/server/logger.server";
 import { anonymizeParticipant } from "@/features/account/server/participant-accounts.server";
 import { createRateLimiter } from "@/server/rate-limit.server";
 
-/** Senha errada ao excluir a conta: poucas chances por conta, contra adivinhação. */
+/** Wrong password when deleting the account: few attempts per account, against guessing. */
 const deletePasswordFailures = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
 
-/** Encerra uma sessão da própria conta (o token nunca vai ao navegador). */
+/** Ends a session of the user's own account (the token never goes to the browser). */
 export const revokeMySession = defineUserOperation(
   { name: "account.revokeSession", audit: "none" },
   z.object({ sessionId: z.uuid() }),
@@ -52,9 +52,9 @@ export const revokeMyOtherSessions = defineUserOperation(
 );
 
 /**
- * Exclusão da conta (LGPD): anonimiza em vez de apagar a linha, para manter só
- * os registros de acesso exigidos por lei pelo prazo legal. E-mail, nome,
- * senha, 2FA e sessões somem na hora. Exige a senha atual.
+ * Account deletion (LGPD): anonymizes instead of deleting the row, to keep only
+ * the access records required by law for the legal period. E-mail, name,
+ * password, 2FA and sessions are removed immediately. Requires the current password.
  */
 export const deleteMyAccount = defineUserOperation(
   { name: "account.delete", audit: "required" },
@@ -79,7 +79,7 @@ export const deleteMyAccount = defineUserOperation(
     deletePasswordFailures.reset(userId);
     await db.transaction(async (tx) => {
       await anonymizeParticipant(tx, userId);
-      // LGPD: registro da exclusão pedida pelo próprio titular (sem dados pessoais).
+      // LGPD: record of the deletion requested by the data subject (no personal data).
       await ctx.audit.record(tx, {
         action: "user.self_delete",
         resourceType: "user",

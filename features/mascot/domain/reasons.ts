@@ -1,6 +1,6 @@
 import { PRIORITY, type Expression } from "./face";
 
-/** Motivos que mudam a expressão. Cada um dura até um prazo ou até ser removido. */
+/** Reasons that change the expression. Each lasts until a deadline or until it is removed. */
 export type Reason =
   | "celebrate"
   | "error"
@@ -13,8 +13,8 @@ export type Reason =
   | "curiosity";
 
 /**
- * Os motivos ativos da expressão, com prazo. A expressão mostrada é a do motivo de maior
- * prioridade (PRIORITY); sem nenhum, a de repouso.
+ * The active expression reasons, with deadlines. The expression shown is that of the
+ * highest-priority reason (PRIORITY); with none, the resting one.
  */
 export function createReasons(now: () => number = () => performance.now()) {
   const reasons = new Map<Reason, { expression: Expression; until: number }>();
@@ -23,11 +23,11 @@ export function createReasons(now: () => number = () => performance.now()) {
     set(reason: Reason, expression: Expression, durationMs = Infinity) {
       reasons.set(reason, { expression, until: now() + durationMs });
     },
-    /** Remove o motivo; diz se ele existia. */
+    /** Removes the reason; tells whether it existed. */
     delete(reason: Reason): boolean {
       return reasons.delete(reason);
     },
-    /** Expressão que aparece agora (e descarta os motivos vencidos). */
+    /** Expression shown now (and discards expired reasons). */
     current(base: Expression): Expression {
       const time = now();
       let best = base;
@@ -45,7 +45,7 @@ export function createReasons(now: () => number = () => performance.now()) {
       }
       return best;
     },
-    /** Quando vence o próximo motivo (Infinity se nenhum vence sozinho). */
+    /** When the next reason expires (Infinity if none expires on its own). */
     nextExpiry(): number {
       return Math.min(...[...reasons.values()].map((entry) => entry.until));
     },

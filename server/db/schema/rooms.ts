@@ -23,9 +23,9 @@ import { ROOM_CODE_PATTERN } from "@/features/room/domain/room-code";
 const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
 
 /**
- * Dados de negócio (docs/archive/admin-plan.md §4.3). Salas, participações e
- * compartilhamentos são projeções dos webhooks do LiveKit (`livekit_events`);
- * ver `server/livekit/projector.ts`.
+ * Business data (docs/archive/admin-plan.md §4.3). Rooms, participations and
+ * shares are projections of the LiveKit webhooks (`livekit_events`);
+ * see `server/livekit/projector.ts`.
  */
 export const roomStatus = pgEnum("room_status", ["active", "finished"]);
 
@@ -35,7 +35,7 @@ export const rooms = pgTable(
     id: id(),
     code: text("code").notNull(),
     status: roomStatus("status").notNull().default("active"),
-    // sid da instância atual no LiveKit (muda quando a sala é reaberta).
+    // sid of the current instance in LiveKit (changes when the room is reopened).
     livekitSid: text("livekit_sid"),
     startedAt: timestamptz("started_at").notNull().defaultNow(),
     finishedAt: timestamptz("finished_at"),
@@ -58,7 +58,7 @@ export const rooms = pgTable(
       "rooms_finished_check",
       sql`${t.finishedAt} is null or ${t.finishedAt} >= ${t.startedAt}`,
     ),
-    // O mesmo código pode ser reaberto: só uma sala "viva" (não excluída) por código.
+    // The same code can be reopened: only one "live" (not deleted) room per code.
     uniqueIndex("rooms_code_live_key")
       .on(t.code)
       .where(sql`${t.deletedAt} is null`),
@@ -88,14 +88,14 @@ export const roomParticipations = pgTable(
       .notNull()
       .references(() => rooms.id, { onDelete: "restrict" }),
     userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
-    // = users.id no token.
+    // = users.id in the token.
     livekitIdentity: text("livekit_identity").notNull(),
-    // sid da conexão no LiveKit (PA_…): vem em todo evento do participante,
-    // inclusive nos de faixa, que não trazem joined_at.
+    // sid of the connection in LiveKit (PA_…): comes in every participant event,
+    // including track events, which do not carry joined_at.
     livekitSid: text("livekit_sid").notNull(),
-    // Anonimizável (LGPD, 12 meses).
+    // Anonymizable (LGPD, 12 months).
     displayName: text("display_name"),
-    // Registro de acesso (Marco Civil): vira NULL depois de 6 meses.
+    // Access record (Marco Civil): becomes NULL after 6 months.
     ip: inet("ip"),
     joinedAt: timestamptz("joined_at").notNull(),
     leftAt: timestamptz("left_at"),
@@ -104,7 +104,7 @@ export const roomParticipations = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [
-    // Uma linha por conexão: entrada, faixas e saída caem na mesma linha.
+    // One row per connection: join, tracks and leave land on the same row.
     uniqueIndex("room_participations_livekit_sid_key").on(t.livekitSid),
     check("room_participations_name_check", sql`length(${t.displayName}) <= 32`),
     check(
@@ -153,7 +153,7 @@ export const shareSessions = pgTable(
   ],
 );
 
-/** Convite com validade/limite de usos (telas na Fase 5). O token só existe como hash. */
+/** Invitation with expiry/usage limit (screens in Phase 5). The token only exists as a hash. */
 export const roomInvites = pgTable(
   "room_invites",
   {
@@ -184,8 +184,8 @@ export const roomInvites = pgTable(
 );
 
 /**
- * Quem já usou cada convite: o limite conta pessoas, não entradas (voltar
- * para a sala com o mesmo convite não gasta outro uso).
+ * Who has already used each invitation: the limit counts people, not joins (returning
+ * to the room with the same invitation does not spend another use).
  */
 export const roomInviteUses = pgTable(
   "room_invite_uses",
@@ -214,7 +214,7 @@ export const tokenResult = pgEnum("token_result", [
   "error",
 ]);
 
-/** Cada pedido ao /api/token (só inserção; retenção de 6 meses). */
+/** Every request to /api/token (insert-only; 6-month retention). */
 export const tokenRequests = pgTable(
   "token_requests",
   {
@@ -234,7 +234,7 @@ export const tokenRequests = pgTable(
   ],
 );
 
-/** Webhook bruto: o id do evento garante idempotência; pendentes podem ser reprocessados. */
+/** Raw webhook: the event id guarantees idempotency; pending ones can be reprocessed. */
 export const livekitEvents = pgTable(
   "livekit_events",
   {
@@ -242,7 +242,7 @@ export const livekitEvents = pgTable(
     event: text("event").notNull(),
     roomName: text("room_name"),
     payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
-    // Momento do evento no LiveKit (ordena o reprocessamento).
+    // Time of the event in LiveKit (orders reprocessing).
     occurredAt: timestamptz("occurred_at").notNull(),
     receivedAt: timestamptz("received_at").notNull().defaultNow(),
     processedAt: timestamptz("processed_at"),

@@ -1,9 +1,9 @@
 import { MOTION_QUERIES } from "@/lib/animation/motion";
 
 /**
- * O que acontece na página e interessa aos mascotes. Um único conjunto de
- * listeners serve a todos os mascotes da tela (a sala chega a montar três):
- * liga no primeiro que assina e desliga quando o último sai.
+ * What happens on the page that matters to the mascots. A single set of
+ * listeners serves every mascot on screen (the room mounts up to three):
+ * attached on the first subscriber and detached when the last one leaves.
  */
 export interface PageInputHandlers {
   pointerMove(event: PointerEvent): void;
@@ -12,7 +12,7 @@ export interface PageInputHandlers {
   windowBlur(): void;
   windowFocus(): void;
   scroll(): void;
-  /** Tamanho da janela, preferência de movimento, seleção ou tipo de campo mudaram. */
+  /** Window size, motion preference, selection or field type changed. */
   layoutChange(): void;
   focusChange(event: FocusEvent): void;
   input(event: Event): void;
@@ -43,7 +43,7 @@ function attach(): () => void {
   const visibilityChange = dispatch<Event>((h) => h.visibilityChange());
   const motionPreference = window.matchMedia(MOTION_QUERIES.reduced);
 
-  // O campo de senha troca de tipo ao "Mostrar senha": os olhos precisam acompanhar.
+  // The password field changes type on "Mostrar senha": the eyes must follow.
   const typeObserver = new MutationObserver(() => layoutChange(undefined));
   typeObserver.observe(document.body, {
     subtree: true,

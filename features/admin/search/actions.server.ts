@@ -7,8 +7,8 @@ import { rooms, users } from "@/server/db/schema";
 import { likeEscape, unaccentLike } from "@/server/table/search.server";
 
 /**
- * Busca do command palette: salas por código e participantes por nome ou
- * e-mail, só no que o papel pode ler. Leitura pura: sem auditoria.
+ * Command palette search: rooms by code and participants by name or
+ * e-mail, only within what the role can read. Read-only: no audit entry.
  */
 export const searchPanelAction = defineAdminOperation(
   { name: "panel.search", audit: "none" },

@@ -12,14 +12,14 @@ import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { displayNameSchema } from "@/features/room/domain/participant-label";
 import { formText } from "@/lib/utils";
 
-/** Nome mostrado na sala. */
+/** Name shown in the room. */
 export function ProfileForm({ name }: { name: string }) {
   const revalidator = useRevalidator();
   const nameId = useId();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
   const [value, setValue] = useState(name);
-  // Sem mudança, não há o que salvar.
+  // No change, nothing to save.
   const unchanged = value.trim() === name;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {

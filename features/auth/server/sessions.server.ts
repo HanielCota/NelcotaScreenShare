@@ -2,7 +2,7 @@ import { and, desc, eq, gt, sql } from "drizzle-orm";
 import type { DbExecutor } from "@/server/db/index.server";
 import type { adminSessions, userSessions } from "@/server/db/schema";
 
-/** Sessões ainda válidas de uma conta, da usada mais recentemente para trás. */
+/** Still-valid sessions of an account, from the most recently used backwards. */
 export async function listActiveSessions(
   db: DbExecutor,
   table: typeof userSessions | typeof adminSessions,

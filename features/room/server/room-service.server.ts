@@ -7,7 +7,7 @@ function httpUrlFrom(wsUrl: string): string {
   return url.origin;
 }
 
-/** API de administração do LiveKit (mesmas chaves do token). */
+/** LiveKit admin API (same keys as the token). */
 export function roomService(): RoomServiceClient {
   const env = getEnv();
   return new RoomServiceClient(

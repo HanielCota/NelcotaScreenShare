@@ -4,7 +4,7 @@ import { createPairController } from "@/features/mascot/client/pair-controller";
 import { pairActivity, type PairPhase } from "@/features/mascot/domain/pair";
 import styles from "./MascotPair.module.css";
 
-/** Os dois percorrem a barra juntos; um relógio só mantém o encontro sincronizado. */
+/** Both cross the bar together; a single clock keeps the meeting in sync. */
 export function MascotPair({ pending }: { pending: boolean }) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const [{ phase, suspended }, setPlayback] = useState<{ phase: PairPhase; suspended: boolean }>({

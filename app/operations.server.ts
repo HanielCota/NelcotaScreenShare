@@ -26,8 +26,8 @@ import { saveMascotSettings } from "@/features/admin/settings/actions.server";
 import { acceptInvitation } from "@/features/auth/actions.server";
 
 /**
- * Tudo que o navegador pode chamar por `/api/operations/:id`. O id segue
- * `<feature>-<nome>` e é o mesmo do descritor em cada `actions.ts`.
+ * Everything the browser can call through `/api/operations/:id`. The id follows
+ * `<feature>-<name>` and matches the descriptor in each `actions.ts`.
  */
 export const operations: OperationHandlers = {
   "account-revokeMySession": revokeMySession,

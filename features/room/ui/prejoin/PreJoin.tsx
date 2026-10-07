@@ -19,18 +19,18 @@ import { PresenceLine } from "./PresenceLine";
 
 interface PreJoinProps {
   code: string;
-  /** Nome da conta logada: é como a pessoa aparece na sala. */
+  /** Signed-in account name: how the person appears in the room. */
   userName: string;
   passwordRequired: boolean;
-  /** Convite do painel: substitui a senha de acesso. */
+  /** Dashboard invite: replaces the access password. */
   invite?: string;
-  /** Pessoas na sala agora (null: desconhecido). */
+  /** People in the room now (null: unknown). */
   presence: { online: number } | null;
   maxParticipants: number;
   onJoin: (choices: JoinChoices) => void;
 }
 
-/** Pré-entrada: confere quem entra, testa o microfone, pede a senha e o token. */
+/** Pre-join: confirms who is joining, tests the microphone, asks for the password and the token. */
 export function PreJoin({
   code,
   userName,
@@ -63,12 +63,12 @@ export function PreJoin({
     { scope },
   );
 
-  // Com senha de acesso, o foco já começa no único campo que falta.
+  // With an access password, focus starts on the only missing field.
   useEffect(() => {
     passwordRef.current?.focus();
   }, []);
 
-  /** Mostra o erro e leva o foco ao campo que precisa de correção. */
+  /** Shows the error and moves focus to the field that needs fixing. */
   function showFailure(message: string, failure: ReturnType<typeof joinFailure>) {
     setFormError({ message, field: failure.passwordField ? "password" : undefined });
     if (failure.passwordField) passwordRef.current?.focus();
@@ -100,7 +100,7 @@ export function PreJoin({
     const result = await requestToken({ room: code, password, invite });
     if (!result.ok) {
       const failure = joinFailure(result.code);
-      // Sessão expirou ou e-mail ainda não confirmado: volta para a sala depois.
+      // Session expired or email not verified yet: come back to the room afterwards.
       if (failure.redirect) {
         const back = encodeURIComponent(roomLink(code, invite));
         const page = failure.redirect === "login" ? "/entrar" : "/verificar-email";
@@ -116,7 +116,7 @@ export function PreJoin({
       password,
       token: result.data.token,
       serverUrl: result.data.serverUrl,
-      // Microfone bloqueado: entra ouvindo, em vez de falhar lá dentro.
+      // Microphone blocked: join listen-only instead of failing inside.
       micEnabled: mic.enabled && !mic.blocked,
       audioDeviceId: mic.deviceId,
     });

@@ -63,7 +63,7 @@ function filtersFrom(params: ParticipantParams): SQL[] {
       filters.push(isNull(users.deletedAt), isNull(users.blockedAt), eq(users.emailVerified, true));
       break;
     default:
-      // Sem filtro de status: excluídos ficam de fora.
+      // No status filter: deleted accounts are left out.
       filters.push(isNull(users.deletedAt));
   }
   filters.push(...periodFilters(users.createdAt, params));
@@ -133,14 +133,14 @@ export async function listParticipants(
   };
 }
 
-/** Todas as linhas do filtro em lotes (CSV). */
+/** Every row of the filter in batches (CSV). */
 export function iterateParticipants(db: DbExecutor, params: ParticipantParams) {
   return iterateAll((cursor) =>
     listParticipants(db, { ...params, cursor, dir: "next" }, 1000, { count: false }),
   );
 }
 
-/** IDs que batem com o filtro (ações em massa "todos os resultados"). */
+/** IDs matching the filter ("all results" bulk actions). */
 export async function participantIdsForFilter(
   db: DbExecutor,
   search: URLSearchParams,
@@ -155,7 +155,7 @@ export async function participantIdsForFilter(
   return rows.map((row) => row.id);
 }
 
-/** Conta, sessões ativas, histórico de salas e o que o painel fez com ela. */
+/** Account, active sessions, room history and what the admin panel did to it. */
 export async function getParticipantDetail(db: DbExecutor, id: string) {
   const [account] = await db
     .select({

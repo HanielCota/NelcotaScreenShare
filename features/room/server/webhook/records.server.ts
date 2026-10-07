@@ -11,10 +11,10 @@ import {
 import type { WebhookParticipant } from "./payload";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-/** Janela para ligar um evento ao pedido de token que o originou. */
+/** Window for linking an event to the token request that originated it. */
 const TOKEN_WINDOW = sql`interval '15 minutes'`;
 
-/** Sala pelo código; atividade nova reabre uma sala encerrada antes dela. */
+/** Room by code; new activity reopens a room that was finished before it. */
 export async function ensureRoom(
   tx: DbExecutor,
   code: string,
@@ -31,7 +31,7 @@ export async function ensureRoom(
       livekitSid: sid,
       startedAt: at,
       lastActivityAt: at,
-      // Quem pediu o primeiro token para este código "criou" a sala.
+      // Whoever requested the first token for this code "created" the room.
       createdByUserId: sql`(
         select ${tokenRequests.userId} from ${tokenRequests}
         where ${tokenRequests.roomCode} = ${code} and ${tokenRequests.result} = 'granted'
@@ -54,14 +54,14 @@ export async function ensureRoom(
   return room.id;
 }
 
-/** Eventos de faixa não trazem joined_at: aí vale o horário do evento, corrigido quando a entrada chegar. */
+/** Track events carry no joined_at: the event time is used then, corrected when the join arrives. */
 function joinedAtOf(participant: WebhookParticipant, fallback: Date): Date {
   if (participant.joinedAtMs) return new Date(participant.joinedAtMs);
   if (participant.joinedAt) return new Date(participant.joinedAt * 1000);
   return fallback;
 }
 
-/** Encerramento já projetado após o evento, inclusive de uma abertura anterior. */
+/** Closure already projected after the event, including from an earlier opening. */
 async function roomClosureAt(
   tx: DbExecutor,
   roomId: string,
@@ -82,7 +82,7 @@ async function roomClosureAt(
   return room?.closedAt ? new Date(room.closedAt) : null;
 }
 
-/** Participação pelo sid da conexão (entrada, faixas e saída caem na mesma linha). */
+/** Participation by connection sid (join, tracks and leave land on the same row). */
 export async function ensureParticipation(
   tx: DbExecutor,
   roomId: string,
@@ -92,15 +92,15 @@ export async function ensureParticipation(
 ): Promise<{ id: string; joinedAt: Date; leftAt: Date | null }> {
   const joinedAt = joinedAtOf(participant, at);
   const userId = UUID.test(participant.identity) ? participant.identity : null;
-  // A trava serializa com a anonimização, que limpa as participações depois de
-  // atualizar a conta. Um webhook concorrente não pode recolocar o nome.
+  // The lock serializes with anonymization, which clears participations after
+  // updating the account. A concurrent webhook cannot put the name back.
   const [account] = userId
     ? await tx
         .select({ anonymizedAt: users.anonymizedAt })
         .from(users)
         .where(eq(users.id, userId))
-        // O trigger da participação também atualiza o contador nesta conta;
-        // travar para escrita evita promoção concorrente de travas compartilhadas.
+        // The participation trigger also updates the counter on this account;
+        // locking for write avoids concurrent promotion of shared locks.
         .for("update")
     : [];
   const keepName = !userId || (account && !account.anonymizedAt);
@@ -111,10 +111,10 @@ export async function ensureParticipation(
       roomId,
       livekitIdentity: participant.identity,
       livekitSid: participant.sid,
-      // A identidade é o id da conta (ver /api/token); conta apagada fica nula.
+      // The identity is the account id (see /api/token); a deleted account becomes null.
       userId: userId ? sql`(select id from users where id = ${userId}::uuid)` : null,
       displayName: keepName && participant.name ? participant.name.slice(0, 32) : null,
-      // IP do pedido de token que deu esta entrada (registro de acesso).
+      // IP of the token request that granted this join (access record).
       ip: userId
         ? sql`(
             select ${tokenRequests.ip} from ${tokenRequests}

@@ -4,18 +4,18 @@ import { idleSleep } from "@/features/mascot/domain/sleep";
 
 interface SleepClockContext {
   personality: ReturnType<typeof createPersonality>;
-  /** Pode cochilar agora (habilitado, parado, aba visível, na tela)? */
+  /** Can it nap now (enabled, still, tab visible, on screen)? */
   canSleep: () => boolean;
   setSleep: (expression: Expression) => void;
-  /** Remove o sono; diz se ele estava ativo. */
+  /** Removes sleep; tells whether it was active. */
   dropSleep: () => boolean;
   clearSleep: () => void;
   update: () => void;
 }
 
 /**
- * Sono por inatividade: sonolento aos 30 s, dormindo aos 45 s (engine/sleep.ts).
- * Qualquer atividade acorda, com um espreguiçar.
+ * Inactivity sleep: sleepy at 30 s, asleep at 45 s (engine/sleep.ts).
+ * Any activity wakes it up, with a stretch.
  */
 export function createSleepClock(ctx: SleepClockContext) {
   let lastActivity = performance.now();
@@ -39,7 +39,7 @@ export function createSleepClock(ctx: SleepClockContext) {
 
   return {
     check,
-    /** Acorda sem manter uma expressão sonolenta durante a próxima interação. */
+    /** Wakes up without keeping a sleepy expression during the next interaction. */
     activity() {
       lastActivity = performance.now();
       if (ctx.dropSleep()) {
@@ -48,15 +48,15 @@ export function createSleepClock(ctx: SleepClockContext) {
         ctx.update();
         ctx.personality.stretch();
       }
-      // O timer consulta a atividade mais recente ao disparar; não o recria a cada pixel.
+      // The timer reads the latest activity when it fires; it is not recreated on every pixel.
       if (!timer) check();
     },
-    /** Sai do sono sem reagir (mudou o contexto: andando, apresentando…). */
+    /** Leaves sleep without reacting (the context changed: walking, presenting…). */
     forget() {
       ctx.dropSleep();
       stage = null;
     },
-    /** Recomeça a contar do zero (ligou ou desligou o sono). */
+    /** Starts counting from zero again (sleep was turned on or off). */
     restart() {
       lastActivity = performance.now();
       check();

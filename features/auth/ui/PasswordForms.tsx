@@ -39,7 +39,7 @@ function BackToLogin({ scope }: { scope: Scope }) {
   );
 }
 
-/** Pede o link. A resposta é sempre a mesma: não revela quais e-mails têm conta. */
+/** Requests the link. The response is always the same: it does not reveal which e-mails have an account. */
 export function ForgotPasswordForm({ scope }: { scope: Scope }) {
   const client = scope === "admin" ? adminAuthClient : authClient;
   const emailId = useId();
@@ -117,7 +117,7 @@ export function ForgotPasswordForm({ scope }: { scope: Scope }) {
   );
 }
 
-/** Nova senha a partir do link do e-mail (token de uso único). */
+/** New password from the e-mail link (single-use token). */
 export function ResetPasswordForm({ scope, token }: { scope: Scope; token: string | undefined }) {
   const client = scope === "admin" ? adminAuthClient : authClient;
   const { minLength } = PATHS[scope];

@@ -7,7 +7,7 @@ import { auditLogs } from "@/server/db/schema";
 export type AuditActor = { adminId: string } | { userId: string } | "system";
 
 export interface AuditEntry {
-  /** "recurso.verbo" em snake_case, ex.: "room.close", "settings.update". */
+  /** "resource.verb" in snake_case, e.g. "room.close", "settings.update". */
   action: string;
   resourceType: string;
   resourceId?: string | null;
@@ -23,8 +23,8 @@ function mask(key: string, value: unknown): unknown {
 }
 
 /**
- * Diferença campo a campo entre dois objetos rasos (só o que mudou), com
- * campos sensíveis mascarados. `null` quando nada mudou.
+ * Field-by-field diff between two shallow objects (only what changed), with
+ * sensitive fields masked. `null` when nothing changed.
  */
 export function diffChanges(
   before: Record<string, unknown> | null | undefined,
@@ -42,7 +42,7 @@ export function diffChanges(
   return Object.keys(changes).length > 0 ? changes : null;
 }
 
-/** IP, navegador e request_id da requisição atual (vazios fora de uma requisição). */
+/** IP, browser and request_id of the current request (empty outside a request). */
 async function requestInfo() {
   try {
     const h = requestHeaders();
@@ -57,7 +57,7 @@ async function requestInfo() {
   }
 }
 
-/** Grava uma linha de auditoria (use a transação da mudança como `executor`). */
+/** Writes an audit row (use the change's transaction as `executor`). */
 export async function recordAudit(executor: DbExecutor, actor: AuditActor, entry: AuditEntry) {
   const info = await requestInfo();
   await executor.insert(auditLogs).values({
@@ -72,7 +72,7 @@ export async function recordAudit(executor: DbExecutor, actor: AuditActor, entry
   });
 }
 
-/** Várias linhas de uma vez (ações em massa: uma linha por item afetado). */
+/** Several rows at once (bulk actions: one row per affected item). */
 async function recordAuditMany(executor: DbExecutor, actor: AuditActor, entries: AuditEntry[]) {
   if (entries.length === 0) return;
   const info = await requestInfo();
@@ -92,13 +92,13 @@ async function recordAuditMany(executor: DbExecutor, actor: AuditActor, entries:
 }
 
 /**
- * Gravador amarrado a um autor, entregue às actions no `ctx`. Marca quando foi
- * usado: action declarada como auditada que termina sem registrar é um bug.
+ * Recorder bound to an actor, handed to actions in `ctx`. Tracks whether it was
+ * used: an action declared as audited that finishes without recording is a bug.
  */
 export function createAuditRecorder(actor: AuditActor) {
   let used = 0;
   return {
-    /** `as`: outro autor só para este registro (ex.: o admin recém-criado num convite). */
+    /** `as`: a different actor for this record only (e.g. the admin just created by an invitation). */
     async record(executor: DbExecutor, entry: AuditEntry, as?: AuditActor) {
       used += 1;
       await recordAudit(executor, as ?? actor, entry);

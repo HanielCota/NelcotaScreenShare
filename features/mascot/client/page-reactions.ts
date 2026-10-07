@@ -4,14 +4,14 @@ import type { Reason } from "@/features/mascot/domain/reasons";
 import { HAPPY_AFTER_TYPING_MS } from "@/features/mascot/domain/rules";
 import type { PageInputHandlers } from "./page-input";
 
-/** O que as reações à página precisam do mascote (o controlador fornece). */
+/** What the page reactions need from the mascot (provided by the controller). */
 export interface PageReactionContext {
   root: HTMLElement;
   personality: ReturnType<typeof createPersonality>;
   activity(): MascotActivity;
   setReason(reason: Reason, expression: Expression, durationMs?: number): void;
   clearReason(reason: Reason): void;
-  /** Remove sem recalcular (o próximo setReason recalcula). */
+  /** Removes without recomputing (the next setReason recomputes). */
   dropReason(reason: Reason): void;
   setPointer(pointer: { x: number; y: number } | null): void;
   update(): void;
@@ -20,7 +20,7 @@ export interface PageReactionContext {
   pauseMotion(): void;
 }
 
-/** Mouse, foco, digitação e rolagem da página viram expressão e olhar. */
+/** Page mouse, focus, typing and scrolling become expression and gaze. */
 export function pageReactions(ctx: PageReactionContext): PageInputHandlers {
   let curiosityTarget: Element | null = null;
 
@@ -36,7 +36,7 @@ export function pageReactions(ctx: PageReactionContext): PageInputHandlers {
       if (event.pointerType !== "mouse" && event.pointerType !== "pen") return;
       ctx.setPointer({ x: event.clientX, y: event.clientY });
       ctx.onActivity();
-      // Passou por cima de um botão ou link fora dele: fica curioso.
+      // Hovered over a button or link outside of it: gets curious.
       const control =
         event.target instanceof Element
           ? event.target.closest("button, a[href], [role=button]")
@@ -49,20 +49,20 @@ export function pageReactions(ctx: PageReactionContext): PageInputHandlers {
       }
       ctx.requestUpdate();
     },
-    // Ao sair da janela, volta a olhar para a frente (ou para o campo com foco).
+    // When leaving the window, looks forward again (or at the focused field).
     pointerOut(event) {
       if (event.relatedTarget === null && event.pointerType !== "touch") resetPointer();
     },
     pointerDown: () => ctx.onActivity(),
     windowBlur: resetPointer,
     windowFocus: () => ctx.onActivity(),
-    // Rolar muda a posição de tudo na tela: o olhar precisa acompanhar.
+    // Scrolling moves everything on screen: the gaze must follow.
     scroll() {
       ctx.onActivity();
       ctx.requestUpdate();
     },
     layoutChange: () => ctx.requestUpdate(),
-    // O foco só muda depois do focusout; espera o próximo ciclo pra ler o elemento ativo.
+    // Focus only changes after focusout; waits for the next cycle to read the active element.
     focusChange(event) {
       ctx.setPointer(null);
       ctx.onActivity();
@@ -85,16 +85,16 @@ export function pageReactions(ctx: PageReactionContext): PageInputHandlers {
         ctx.update();
         return;
       }
-      // Digitando: fica feliz e "perdoa" o erro anterior.
+      // Typing: gets happy and "forgives" the previous error.
       ctx.dropReason("error");
       ctx.setReason("typing", "happy", HAPPY_AFTER_TYPING_MS);
     },
     key(event) {
       ctx.setPointer(null);
       ctx.onActivity();
-      // O preenchimento automático dispara "keydown"/"keyup" sem getModifierState: ignora.
+      // Autofill fires "keydown"/"keyup" without getModifierState: ignore it.
       if (!(event instanceof KeyboardEvent) || !(event.target instanceof HTMLInputElement)) return;
-      // Caps Lock ligado num campo: olhos arregalados, reforçando o aviso da tela.
+      // Caps Lock on in a field: wide eyes, reinforcing the on-screen warning.
       if (event.getModifierState("CapsLock")) ctx.setReason("capsLock", "surprised");
       else ctx.clearReason("capsLock");
     },

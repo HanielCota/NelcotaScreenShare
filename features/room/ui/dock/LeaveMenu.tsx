@@ -7,8 +7,8 @@ import { DockButton } from "./DockButton";
 import { DockPopoverContent } from "./DockPopover";
 
 /**
- * Sair pede confirmação: um clique sem querer não derruba a chamada.
- * Atalho E abre a confirmação; Enter confirma e Esc cancela.
+ * Leaving asks for confirmation: an accidental click does not drop the call.
+ * Shortcut E opens the confirmation; Enter confirms and Esc cancels.
  */
 export function LeaveMenu({ onLeave }: { onLeave: () => void }) {
   const [open, setOpen] = useState(false);

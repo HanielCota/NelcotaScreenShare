@@ -1,13 +1,13 @@
 import { displayNameSchema } from "@/features/room/domain/participant-label";
 
-/** E-mail com cara de válido (o servidor confere de verdade). */
+/** E-mail that looks valid (the server does the real check). */
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export type SignUpCheck =
   | { ok: true; name: string; email: string }
   | { ok: false; field: "name" | "email" | "password"; message: string };
 
-/** Confere o cadastro antes de enviar, na ordem dos campos da tela. */
+/** Checks the sign-up before submitting, in the order of the screen's fields. */
 export function checkSignUp(input: {
   name: string;
   email: string;

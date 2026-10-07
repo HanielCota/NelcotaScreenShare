@@ -1,8 +1,8 @@
-/** Sem atividade por este tempo, o mascote fica sonolento (o par da home para de andar). */
+/** With no activity for this long, the mascot gets sleepy (the home page pair stops walking). */
 export const SLEEPY_AFTER_MS = 30_000;
 const ASLEEP_AFTER_MS = 45_000;
 
-/** Reavalia a última atividade, inclusive se um timer disparar atrasado. */
+/** Re-evaluates the last activity, even if a timer fires late. */
 export function idleSleep(lastActivity: number, now: number) {
   const elapsed = Math.max(0, now - lastActivity);
   if (elapsed < SLEEPY_AFTER_MS)

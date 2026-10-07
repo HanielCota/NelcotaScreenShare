@@ -2,13 +2,13 @@ import { z } from "zod";
 import { roomCodeSchema } from "./room-code";
 
 /**
- * Contrato HTTP do POST /api/token, o mesmo no navegador e no servidor.
+ * HTTP contract of POST /api/token, the same in the browser and on the server.
  */
-/** O nome e a identidade vêm da conta logada (servidor), nunca do navegador. */
+/** The name and identity come from the signed-in account (server), never from the browser. */
 export const tokenRequestSchema = z.object({
   room: roomCodeSchema,
   password: z.string().max(128).optional(),
-  /** Token de convite do painel (?convite= no link da sala). */
+  /** Dashboard invite token (?convite= in the room link). */
   invite: z.string().max(64).optional(),
 });
 

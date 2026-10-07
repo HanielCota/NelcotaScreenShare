@@ -6,14 +6,14 @@ import { formatDateTime, formatSpan } from "@/lib/format";
 
 type RoomDetail = NonNullable<Awaited<ReturnType<typeof getRoomDetail>>>;
 
-/** Resumo da sala: horários, duração, pico, quem criou. */
+/** Room summary: times, duration, peak, who created it. */
 export function RoomSummary({
   room,
   online,
   shareCount,
 }: {
   room: RoomDetail["room"];
-  /** Pessoas na sala agora (só com a sala ao vivo). */
+  /** People in the room right now (only while the room is live). */
   online: number | null;
   shareCount: number;
 }) {
@@ -50,7 +50,7 @@ export function RoomSummary({
   );
 }
 
-/** Quem entrou, quando e por que saiu. */
+/** Who joined, when, and why they left. */
 export function RoomParticipants({ participants }: { participants: RoomDetail["participants"] }) {
   return (
     <Section
@@ -108,7 +108,7 @@ export function RoomParticipants({ participants }: { participants: RoomDetail["p
   );
 }
 
-/** Compartilhamentos de tela da sala, com duração e áudio. */
+/** The room's screen shares, with duration and audio. */
 export function RoomShares({ shares }: { shares: RoomDetail["shares"] }) {
   return (
     <Section

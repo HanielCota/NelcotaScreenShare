@@ -8,7 +8,7 @@ import { PASSWORD_LIMITS } from "./password.server";
 import type { AdminRole } from "@/features/auth/domain/roles";
 
 const INVITE_TTL_MS = 48 * 60 * 60 * 1000;
-/** Convite do script de bootstrap do primeiro owner: curto de propósito. */
+/** Invitation from the first owner's bootstrap script: short on purpose. */
 export const OWNER_BOOTSTRAP_TTL_MS = 30 * 60 * 1000;
 
 function hashToken(token: string): string {
@@ -20,8 +20,8 @@ function invitationUrl(token: string): string {
 }
 
 /**
- * Cria um convite (o token só existe no retorno; o banco guarda o SHA-256).
- * Um convite pendente anterior para o mesmo e-mail é revogado.
+ * Creates an invitation (the token only exists in the return value; the database stores the SHA-256).
+ * A previous pending invitation for the same e-mail is revoked.
  */
 export async function createAdminInvitation(
   db: Database,
@@ -60,7 +60,7 @@ export async function createAdminInvitation(
   return { token, url: invitationUrl(token), invitation };
 }
 
-/** Convite pendente e dentro da validade, ou `undefined`. */
+/** Pending, unexpired invitation, or `undefined`. */
 export async function findPendingInvitation(db: Database, token: string) {
   const [row] = await db
     .select()
@@ -80,9 +80,10 @@ export type AcceptResult =
   | { ok: false; reason: "invalid" | "already_admin" | "weak_password" };
 
 /**
- * Aceita o convite: cria a conta de admin com e-mail já verificado e a senha
- * escolhida. O convite é "reservado" com um UPDATE condicional antes de criar a
- * conta, então o mesmo link não cria duas contas mesmo com cliques simultâneos.
+ * Accepts the invitation: creates the admin account with an already verified e-mail
+ * and the chosen password. The invitation is "reserved" with a conditional UPDATE
+ * before creating the account, so the same link never creates two accounts even
+ * with simultaneous clicks.
  */
 export async function acceptAdminInvitation(
   db: Database,
@@ -124,9 +125,10 @@ export async function acceptAdminInvitation(
     return { ok: false, reason: "already_admin" };
   }
 
-  // O Better Auth cria a conta pela própria conexão (fora de uma transação
-  // nossa): se algo falhar depois, a conta criada é desfeita antes de liberar o
-  // convite, senão sobraria um admin sem senha e o convite seria revogado.
+  // Better Auth creates the account through its own connection (outside any
+  // transaction of ours): if something fails afterwards, the created account is
+  // undone before releasing the invitation, otherwise an admin without a password
+  // would be left over and the invitation would be revoked.
   let createdUserId: string | undefined;
   try {
     const ctx = await auth.$context;

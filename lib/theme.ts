@@ -2,12 +2,12 @@ export type Theme = "dark" | "light";
 
 const STORAGE_KEY = "nelcota:tema";
 
-/** Cor da barra do navegador (celular) em cada tema: igual ao `--color-canvas`. */
+/** Browser bar color (phone) for each theme: same as `--color-canvas`. */
 export const THEME_COLOR: Record<Theme, string> = { dark: "#17181a", light: "#e6e4df" };
 
 /**
- * Roda no <head> antes da primeira pintura: aplica o tema salvo ou, sem escolha
- * salva, o do sistema. Evita a página piscar no tema errado.
+ * Runs in <head> before the first paint: applies the saved theme or, with no saved
+ * choice, the system one. Keeps the page from flashing in the wrong theme.
  */
 export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem(${JSON.stringify(STORAGE_KEY)})}catch(e){}if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==="light"?${JSON.stringify(THEME_COLOR.light)}:${JSON.stringify(THEME_COLOR.dark)}})()`;
 
@@ -21,11 +21,11 @@ export function applyTheme(theme: Theme) {
   try {
     localStorage.setItem(STORAGE_KEY, theme);
   } catch {
-    // Armazenamento bloqueado: o tema vale só até recarregar.
+    // Storage blocked: the theme only lasts until reload.
   }
 }
 
-/** Avisa quem depende do tema (botão, toasts) quando o atributo muda. */
+/** Notifies whoever depends on the theme (button, toasts) when the attribute changes. */
 export function subscribeTheme(onChange: () => void): () => void {
   const observer = new MutationObserver(onChange);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });

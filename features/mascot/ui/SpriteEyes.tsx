@@ -6,7 +6,7 @@ import {
   eyelidOffset,
 } from "@/features/mascot/domain/eye-tracking";
 
-/** Camada vetorial sobre os olhos fixos, movida junto com cada quadro do atlas. */
+/** Vector layer over the fixed eyes, moved along with each atlas frame. */
 export function SpriteEyes() {
   const id = useId();
 

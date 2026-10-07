@@ -17,7 +17,7 @@ const port = Number(portIndex >= 0 ? process.argv[portIndex + 1] : (process.env.
 const app = express();
 const server = createHttpServer(app);
 app.disable("x-powered-by");
-// Sobrescreve o header interno: o fallback sem proxy vem do socket, nunca do cliente.
+// Overwrites the internal header: the no-proxy fallback comes from the socket, never the client.
 app.use((request, _response, next) => {
   request.headers["x-nelcota-peer-ip"] = request.socket.remoteAddress;
   next();
@@ -37,7 +37,7 @@ if (production) {
     appType: "custom",
   });
   app.use(vite.middlewares);
-  // Carrega o servidor e valida o ambiente antes de aceitar requisições.
+  // Loads the server and validates the environment before accepting requests.
   activeBuild = buildSchema.parse(await vite.ssrLoadModule("virtual:react-router/server-build"));
   await vite.environments.client.warmupRequest("/app/entry.client.tsx");
   const devServer = vite;

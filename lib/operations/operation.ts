@@ -11,7 +11,7 @@ export type Operation<I, O> = ((input: I) => Promise<OperationResult<O>>) & {
   method: "get" | "post";
 };
 
-/** Descritor público: só URL e tipos; nenhum código ou segredo do servidor. */
+/** Public descriptor: only URL and types; no server code or secrets. */
 export function operation<I, O>(id: string, method: "get" | "post" = "post"): Operation<I, O> {
   const url = `/api/operations/${id}`;
   const execute = async (input: I): Promise<OperationResult<O>> => {

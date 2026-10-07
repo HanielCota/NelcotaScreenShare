@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { roomPath } from "@/features/room/domain/room-code";
 import { cn } from "@/lib/utils";
 
-/** Copia o convite; sem acesso à área de transferência, mostra o link para copiar à mão. */
+/** Copies the invite; without clipboard access, shows the link to copy by hand. */
 export function InviteLinkButton({ code }: { code: string }) {
   const [state, setState] = useState<"idle" | "copied" | "manual">("idle");
 

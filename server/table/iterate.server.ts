@@ -1,12 +1,12 @@
-/** Uma página da listagem: itens e o cursor da próxima. */
+/** One page of the listing: items and the cursor of the next one. */
 interface PageOf<T> {
   items: T[];
   nextCursor: string | null;
 }
 
 /**
- * Percorre todas as páginas de uma listagem keyset (exportação CSV): pede a
- * próxima só quando a anterior terminou de ser lida.
+ * Walks every page of a keyset listing (CSV export): requests the
+ * next one only after the previous one has been fully read.
  */
 export async function* iterateAll<T>(
   page: (cursor: string | null) => Promise<PageOf<T>>,

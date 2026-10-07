@@ -18,13 +18,13 @@ interface MascotProps {
   activity?: MascotActivity;
   voiceLevelRef?: RefObject<number>;
   /**
-   * Para que lado ele fica virado. A arte original olha para a esquerda;
-   * "right" espelha só o desenho (o olhar e o "Zzz" continuam certos).
+   * Which way it faces. The original art looks to the left;
+   * "right" mirrors only the drawing (the gaze and the "Zzz" stay correct).
    */
   facing?: "left" | "right";
 }
 
-/** Poses do mascote verde-menta preservam a arte aprovada em todas as reações. */
+/** The mint-green mascot's poses preserve the approved art in every reaction. */
 export function Mascot({
   className,
   expression = "neutral",
@@ -61,14 +61,14 @@ export function Mascot({
         className,
       )}
     >
-      {/* Espelho fora do rosto: inclinação e olhar (refletido em gaze.ts) seguem consistentes. */}
+      {/* Mirror outside the face: tilt and gaze (reflected in gaze.ts) stay consistent. */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={facing === "right" ? { transform: "scaleX(-1)" } : undefined}
       >
         <div ref={faceRef} data-slot="mascot-face" className="absolute inset-0" style={faceStyle}>
-          {/* Recortes da própria arte, atrás do corpo: o encaixe da perna fica escondido ao levantar o pé. */}
+          {/* Cutouts of the art itself, behind the body: the leg joint stays hidden when the foot lifts. */}
           <svg aria-hidden="true" viewBox="0 0 512 512" className={styles.walkingFeet}>
             <defs>
               <clipPath id={`${footClipId}-left`}>
@@ -128,8 +128,8 @@ export function Mascot({
       <Hint text="Fazer carinho">
         <button
           type="button"
-          // Brincadeira de mouse e toque: fora da ordem do Tab, para não ficar
-          // entre a pessoa e o campo principal da página.
+          // Mouse and touch play: out of the Tab order, so it does not get
+          // between the person and the page's main field.
           tabIndex={-1}
           disabled={activity !== "idle" && activity !== "walking"}
           data-mascot-action="pet"
@@ -140,8 +140,8 @@ export function Mascot({
       <Hint text="Toca aqui!">
         <button
           type="button"
-          // Brincadeira de mouse e toque: fora da ordem do Tab, para não ficar
-          // entre a pessoa e o campo principal da página.
+          // Mouse and touch play: out of the Tab order, so it does not get
+          // between the person and the page's main field.
           tabIndex={-1}
           disabled={activity !== "idle" && activity !== "walking"}
           data-mascot-action="high-five"

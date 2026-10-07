@@ -1,9 +1,9 @@
 import { encode } from "uqr";
 
 /**
- * QR code como imagem SVG (data URI): cada módulo escuro vira um quadrado do
- * mesmo `<path>`. Fundo branco e borda de 4 módulos, como pede a norma.
- * Montado no servidor ou no cliente, sem innerHTML.
+ * QR code as an SVG image (data URI): each dark module becomes a square in the
+ * same `<path>`. White background and a 4-module quiet zone, as the spec requires.
+ * Built on the server or the client, without innerHTML.
  */
 export function QrCode({
   value,

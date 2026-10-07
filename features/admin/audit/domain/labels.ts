@@ -1,5 +1,5 @@
 import type { AuditRow } from "../server/queries.server";
-/** Rótulos em pt-BR das ações do audit log (a desconhecida aparece como está). */
+/** pt-BR labels for the audit log actions (an unknown one is shown as is). */
 const ACTION_LABELS: Record<string, string> = {
   "auth.sign_in": "Entrou no painel",
   "auth.sign_in_failed": "Login recusado",
@@ -51,7 +51,7 @@ export function resourceLabel(resourceType: string): string {
   return RESOURCE_LABELS[resourceType] ?? resourceType;
 }
 
-/** Motivo de saída de uma participação. */
+/** Leave reason of a participation. */
 export const LEAVE_REASON_LABELS: Record<string, string> = {
   left: "Saiu",
   disconnected: "Caiu a conexão",
@@ -60,7 +60,7 @@ export const LEAVE_REASON_LABELS: Record<string, string> = {
   unknown: "Desconhecido",
 };
 
-/** Quem fez: admin pelo nome, participante marcado, ou o próprio sistema. */
+/** Who did it: admin by name, a flagged participant, or the system itself. */
 export function actorText(actor: AuditRow["actor"]): string {
   if (actor.kind === "admin") return actor.name;
   if (actor.kind === "user") return `${actor.name} (participante)`;

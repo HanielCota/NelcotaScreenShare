@@ -5,7 +5,7 @@ import { ResetPasswordForm } from "@/features/auth/ui/PasswordForms";
 
 export const meta = () => [{ title: "Nova senha · Nelcota" }];
 
-/** O Better Auth redireciona para cá com ?token=… (ou ?error=INVALID_TOKEN). */
+/** Better Auth redirects here with ?token=… (or ?error=INVALID_TOKEN). */
 export const loader = routeLoader(async ({ searchParams }) => {
   const { token, error } = searchParams;
   const valid = typeof token === "string" && token.length > 0 && !error;

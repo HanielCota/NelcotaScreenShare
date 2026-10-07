@@ -12,7 +12,7 @@ import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { formText } from "@/lib/utils";
 
-/** Segundo fator no login (app autenticador ou código de backup). */
+/** Second factor at sign-in (authenticator app or backup code). */
 export function TwoFactorCodeForm({
   scope,
   doneHref,

@@ -5,8 +5,8 @@ import { CHAT_MAX_LENGTH } from "@/features/room/domain/data-channel";
 import { cn } from "@/lib/utils";
 
 /**
- * Campo de escrever do chat. Enter envia, Shift+Enter quebra a linha, ↑ com o
- * campo vazio edita a última mensagem e Esc cancela a edição (ou fecha o chat).
+ * Chat input field. Enter sends, Shift+Enter inserts a line break, ↑ with an
+ * empty field edits the last message and Esc cancels the edit (or closes the chat).
  */
 export function ChatComposer({
   inputRef,
@@ -26,7 +26,7 @@ export function ChatComposer({
   busy: boolean;
   onSubmit: () => void;
   onCancelEdit: () => void;
-  /** Devolve `true` se havia uma mensagem para editar. */
+  /** Returns `true` if there was a message to edit. */
   onEditLast: () => boolean;
   onClose: () => void;
 }) {

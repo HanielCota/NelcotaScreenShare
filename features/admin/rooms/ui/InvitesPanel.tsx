@@ -28,7 +28,7 @@ export interface InviteRow {
   revokedAt: string | null;
   createdAt: string;
   createdBy: string;
-  /** Calculado no banco (relógio do servidor). */
+  /** Computed in the database (server clock). */
   state: keyof typeof STATES;
 }
 
@@ -119,7 +119,7 @@ function CreateInviteDialog({
             onSubmit={(event) => {
               event.preventDefault();
               const data = new FormData(event.currentTarget);
-              // Campos de texto: um File aqui só viria de um formulário adulterado.
+              // Text fields: a File here could only come from a tampered form.
               const field = (name: string) => {
                 const value = data.get(name);
                 return typeof value === "string" ? value : "";
@@ -201,7 +201,7 @@ function CreateInviteDialog({
   );
 }
 
-/** Convites da sala: criar (link mostrado uma vez) e revogar. */
+/** Room invites: create (link shown once) and revoke. */
 export function InvitesPanel({
   roomId,
   invites,

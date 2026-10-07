@@ -2,8 +2,8 @@ import { can, type PermissionRequest } from "@/features/auth/server/permissions.
 import type { AdminRole } from "@/features/auth/domain/roles";
 
 /**
- * Navegação do painel. Cada fase acrescenta as telas que ficam prontas; o
- * servidor filtra pelo papel e manda ao cliente só o que a pessoa pode abrir.
+ * Admin panel navigation. Each phase adds the screens that become ready; the
+ * server filters by role and sends the client only what the person can open.
  */
 export type NavIcon =
   | "home"
@@ -22,7 +22,7 @@ interface NavItemDefinition {
   label: string;
   icon: NavIcon;
   permission?: PermissionRequest;
-  /** Palavras extras para a busca do command palette. */
+  /** Extra words for the command palette search. */
   keywords?: string[];
 }
 

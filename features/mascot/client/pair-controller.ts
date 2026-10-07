@@ -5,7 +5,7 @@ import { PAIR_BUSY_SELECTOR } from "@/features/mascot/domain/rules";
 import { SLEEPY_AFTER_MS } from "@/features/mascot/domain/sleep";
 import { MOTION_QUERIES } from "@/lib/animation/motion";
 
-/** Mantém a posição ao pausar; React recebe apenas as mudanças de fase. */
+/** Keeps the position when pausing; React only receives phase changes. */
 export function createPairController(
   scene: HTMLElement,
   initialPending: boolean,
@@ -108,7 +108,7 @@ export function createPairController(
 
   function suspend() {
     const suspended = paused();
-    // Registra o último intervalo ativo antes de congelar também o prazo da pose.
+    // Records the last active interval before also freezing the pose deadline.
     if (suspended && !motion.state.suspended)
       motion.advance(performance.now() - lastTick, available());
     motion.suspend(suspended);

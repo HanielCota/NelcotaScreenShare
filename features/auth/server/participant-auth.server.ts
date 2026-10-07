@@ -20,7 +20,7 @@ import { AUTH_RATE_LIMIT_RULES, authHooks, FRESH_SESSION_SECONDS } from "./auth-
 
 export const USER_AUTH_BASE_PATH = "/api/auth";
 
-/** E-mails de conta vão em segundo plano: o tempo de resposta não revela nada. */
+/** Account e-mails are sent in the background: the response time reveals nothing. */
 function deliver(to: string, subject: string, content: ReturnType<typeof mailLayout>) {
   void sendMail({ to, subject, ...content }).catch((error: unknown) =>
     logger.error({ err: error, subject }, "falha ao enviar e-mail de conta"),
@@ -58,7 +58,7 @@ function createUserAuth(db: Database, secret: string) {
         anonymizedAt: { type: "date", required: false, input: false },
         deletedAt: { type: "date", required: false, input: false },
       },
-      // Trocar e-mail: link enviado ao NOVO endereço; vale depois de confirmar.
+      // Change e-mail: link sent to the NEW address; takes effect after confirming.
       changeEmail: {
         enabled: true,
         updateEmailWithoutVerification: false,
@@ -70,13 +70,13 @@ function createUserAuth(db: Database, secret: string) {
       modelName: "userSessions",
       expiresIn: 30 * 24 * 60 * 60,
       updateAge: 24 * 60 * 60,
-      // Trocar senha/e-mail e excluir a conta exigem login nos últimos 10 min.
+      // Changing password/e-mail and deleting the account require a sign-in in the last 10 min.
       freshAge: FRESH_SESSION_SECONDS,
       cookieCache: { enabled: false },
     },
     emailAndPassword: {
       enabled: true,
-      // Desligada por enquanto (REQUIRE_EMAIL_VERIFICATION): o cadastro já entra.
+      // Off for now (REQUIRE_EMAIL_VERIFICATION): sign-up signs the user in right away.
       requireEmailVerification: verificationRequired,
       minPasswordLength: PASSWORD_LIMITS.user.min,
       maxPasswordLength: PASSWORD_LIMITS.user.max,
@@ -95,8 +95,8 @@ function createUserAuth(db: Database, secret: string) {
           }),
         );
       },
-      // Cadastro com e-mail já existente: a tela responde igual (sem enumeração)
-      // e o dono do e-mail fica sabendo.
+      // Sign-up with an existing e-mail: the screen responds the same (no enumeration)
+      // and the e-mail owner is notified.
       onExistingUserSignUp: async ({ user }) => {
         deliver(
           user.email,
@@ -111,7 +111,7 @@ function createUserAuth(db: Database, secret: string) {
       },
     },
     emailVerification: {
-      // Com a confirmação desligada, o link só sai quando a pessoa pede (em /conta).
+      // With confirmation off, the link is only sent when the person asks (at /conta).
       sendOnSignUp: verificationRequired,
       sendOnSignIn: verificationRequired,
       autoSignInAfterVerification: true,
@@ -144,7 +144,7 @@ function createUserAuth(db: Database, secret: string) {
     advanced: {
       cookiePrefix: "nelcota",
       useSecureCookies: production,
-      // Lax: links de e-mail e de convite de sala chegam com a sessão.
+      // Lax: e-mail links and room invite links arrive with the session.
       defaultCookieAttributes: { sameSite: "lax", httpOnly: true, path: "/" },
       database: { generateId: false },
       ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
@@ -152,7 +152,7 @@ function createUserAuth(db: Database, secret: string) {
     databaseHooks: {
       session: {
         create: {
-          // Conta bloqueada pelo painel ou excluída não abre sessão.
+          // An account blocked by the panel or deleted does not open a session.
           before: async (session) => {
             const [user] = await db
               .select({ blockedAt: users.blockedAt, deletedAt: users.deletedAt })
@@ -178,7 +178,7 @@ export type UserAuth = ReturnType<typeof createUserAuth>;
 
 let instance: UserAuth | undefined;
 
-/** Instância de participantes do Better Auth. */
+/** Participant Better Auth instance. */
 export function getUserAuth(): UserAuth {
   if (instance) return instance;
   const db = getDb();
@@ -186,7 +186,7 @@ export function getUserAuth(): UserAuth {
   return instance;
 }
 
-/** Só para testes. */
+/** Tests only. */
 export function createUserAuthForTests(db: Database, secret: string): UserAuth {
   return createUserAuth(db, secret);
 }

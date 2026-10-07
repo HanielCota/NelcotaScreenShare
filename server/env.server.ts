@@ -3,13 +3,13 @@ import { z } from "zod";
 const emptyToUndefined = (value: unknown) =>
   typeof value === "string" && value.trim() === "" ? undefined : value;
 
-// Postgres: contas, salas e configurações. Use o papel sem DDL (nelcota_app).
+// Postgres: accounts, rooms and settings. Use the role without DDL (nelcota_app).
 const databaseUrlSchema = z.url({
   protocol: /^postgres(ql)?$/,
   error: "DATABASE_URL é obrigatória (postgres:// ou postgresql://)",
 });
 
-// Origem pública do app (links de e-mail, CSRF do Better Auth). Em dev: localhost.
+// Public origin of the app (e-mail links, Better Auth CSRF). In dev: localhost.
 const appUrlSchema = z.preprocess(emptyToUndefined, z.url().optional());
 
 export const logLevelSchema = z.preprocess(
@@ -35,8 +35,8 @@ const envSchema = z
       emptyToUndefined,
       z.coerce.number().int().min(2).max(8).default(6),
     ),
-    // Confirmação de e-mail dos participantes. Desligada por enquanto: a conta
-    // entra na hora, sem o link. "true" volta a exigir o link para entrar em salas.
+    // Participant e-mail confirmation. Disabled for now: the account
+    // gets in right away, without the link. "true" requires the link again to join rooms.
     REQUIRE_EMAIL_VERIFICATION: z.preprocess(
       emptyToUndefined,
       z
@@ -44,38 +44,38 @@ const envSchema = z
         .default("false")
         .transform((value) => value === "true"),
     ),
-    // Quantos proxies confiáveis acrescentam IPs ao X-Forwarded-For (Traefik = 1;
-    // Cloudflare na frente do Traefik = 2). Define qual IP o rate limit usa.
+    // How many trusted proxies append IPs to X-Forwarded-For (Traefik = 1;
+    // Cloudflare in front of Traefik = 2). Determines which IP the rate limit uses.
     TRUSTED_PROXY_HOPS: z.preprocess(
       emptyToUndefined,
       z.coerce.number().int().min(1).max(5).default(1),
     ),
     DATABASE_URL: databaseUrlSchema,
-    // Segredo da instância de participantes do Better Auth (cookies, 2FA cifrado).
-    // Gere com: openssl rand -base64 48
+    // Secret of the Better Auth participant instance (cookies, encrypted 2FA).
+    // Generate with: openssl rand -base64 48
     AUTH_SECRET: z
       .string({ error: "AUTH_SECRET é obrigatória (openssl rand -base64 48)" })
       .min(32, "AUTH_SECRET precisa ter ao menos 32 caracteres"),
-    // Origem pública do app (links de e-mail, CSRF do Better Auth). Em dev: localhost.
+    // Public origin of the app (e-mail links, Better Auth CSRF). In dev: localhost.
     APP_URL: appUrlSchema,
-    // Segredo da instância de admin do Better Auth (cookies, 2FA cifrado). Sem ele,
-    // o /admin fica desligado. Gere com: openssl rand -base64 48
+    // Secret of the Better Auth admin instance (cookies, encrypted 2FA). Without it,
+    // /admin is disabled. Generate with: openssl rand -base64 48
     ADMIN_AUTH_SECRET: z.preprocess(
       emptyToUndefined,
       z.string().min(32, "ADMIN_AUTH_SECRET precisa ter ao menos 32 caracteres").optional(),
     ),
-    // E-mail transacional (convites, recuperação de senha, verificação).
-    // Sem SMTP_URL em desenvolvimento, os e-mails vão para o log.
+    // Transactional e-mail (invitations, password recovery, verification).
+    // Without SMTP_URL in development, e-mails go to the log.
     SMTP_URL: z.preprocess(
       emptyToUndefined,
       z.url({ protocol: /^smtps?$/, error: "SMTP_URL precisa ser smtp:// ou smtps://" }).optional(),
     ),
     MAIL_FROM: z.preprocess(emptyToUndefined, z.string().min(3).optional()),
-    // Observabilidade opcional. Só o DSN público é enviado ao navegador.
+    // Optional observability. Only the public DSN is sent to the browser.
     SENTRY_DSN: z.preprocess(emptyToUndefined, z.url().optional()),
     PUBLIC_SENTRY_DSN: z.preprocess(emptyToUndefined, z.url().optional()),
     LOG_LEVEL: logLevelSchema,
-    // SHA do commit, definido pelo CI na imagem (aparece no /api/ready e no Sentry).
+    // Commit SHA, set by CI in the image (shows up in /api/ready and in Sentry).
     APP_VERSION: z.preprocess(emptyToUndefined, z.string().max(64).optional()),
   })
   .superRefine((env, ctx) => {
@@ -105,8 +105,8 @@ const envSchema = z
   });
 
 /**
- * Origem pública do app (sem barra no fim). Lê só o APP_URL (validado pela mesma
- * regra do ambiente completo): o create-owner gera o link sem precisar do resto.
+ * Public origin of the app (no trailing slash). Reads only APP_URL (validated by the same
+ * rule as the full environment): create-owner builds the link without needing the rest.
  */
 export function appUrl(): string {
   return (appUrlSchema.parse(process.env.APP_URL) ?? "http://localhost:3000").replace(/\/$/, "");
@@ -117,8 +117,8 @@ type Env = z.infer<typeof envSchema>;
 let cached: Env | undefined;
 
 /**
- * Lê e valida as variáveis de ambiente em runtime (nunca inlinadas no bundle).
- * O entry do servidor chama esta função no boot para falhar cedo.
+ * Reads and validates the environment variables at runtime (never inlined into the bundle).
+ * The server entry calls this function on boot to fail early.
  */
 export function getEnv(): Env {
   if (cached) return cached;
@@ -134,8 +134,8 @@ export function getEnv(): Env {
 }
 
 /**
- * Só a URL do banco, validada pela mesma regra do ambiente completo. Os scripts
- * (seed, create-owner) usam o banco sem precisar das chaves do LiveKit etc.
+ * Only the database URL, validated by the same rule as the full environment. The scripts
+ * (seed, create-owner) use the database without needing the LiveKit keys etc.
  */
 export function databaseUrl(): string {
   const parsed = databaseUrlSchema.safeParse(process.env.DATABASE_URL);
@@ -144,8 +144,8 @@ export function databaseUrl(): string {
 }
 
 /**
- * Falha antes de aceitar requisições quando falta configuração obrigatória.
- * O Coolify mostra o erro e não marca o deploy como saudável.
+ * Fails before accepting requests when required configuration is missing.
+ * Coolify shows the error and does not mark the deploy as healthy.
  */
 export function validateEnvOnBoot(): void {
   try {

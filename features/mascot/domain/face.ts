@@ -1,11 +1,11 @@
 /**
- * Poses do atlas e valores animados do mascote verde-menta.
+ * Atlas poses and animated values of the mint-green mascot.
  *
- * Traços do rosto, cada um animado por mola até o valor da expressão:
- * - tilt: inclina a cabeça (graus)
- * - pupil: tamanho da pupila (menor = olhos arregalados)
- * - lid: quanto as pálpebras ficam fechadas (0 abertas, 1 fechadas)
- * - rest: quanto o corpo se acomoda e achata para dormir
+ * Facial features, each animated by a spring towards the expression's value:
+ * - tilt: tilts the head (degrees)
+ * - pupil: pupil size (smaller = wide eyes)
+ * - lid: how closed the eyelids are (0 open, 1 closed)
+ * - rest: how much the body settles and flattens to sleep
  */
 export const EXPRESSIONS = {
   neutral: { tilt: 0, pupil: 1, lid: 0, rest: 0 },
@@ -33,12 +33,12 @@ export const EXPRESSIONS = {
 
 export type Expression = keyof typeof EXPRESSIONS;
 export type Face = { -readonly [K in keyof (typeof EXPRESSIONS)["neutral"]]: number };
-/** Estado animado: como Face, mas com uma pálpebra por olho (pra espiar com um olho só). */
+/** Animated state: like Face, but with one eyelid per eye (to peek with one eye only). */
 export type FaceState = Omit<Face, "lid"> & { lid0: number; lid1: number };
 
-/** Quando duas reações acontecem juntas, a que vem primeiro nesta lista aparece. */
+/** When two reactions happen together, the one listed first here is shown. */
 export const PRIORITY: readonly Expression[] = [
-  // Qualquer interação remove o sono; enquanto inativo, ele pode relaxar até com Caps Lock ligado.
+  // Any interaction removes sleep; while inactive, it may relax even with Caps Lock on.
   "asleep",
   "grumpy",
   "worried",
@@ -61,7 +61,7 @@ export const PRIORITY: readonly Expression[] = [
   "curious",
 ];
 
-/** Expressão com uma pálpebra por olho; `lids` substitui a da expressão (ex.: senha). */
+/** Expression with one eyelid per eye; `lids` overrides the expression's (e.g. password). */
 export function toFaceState({ lid, ...face }: Face, lids?: readonly [number, number]): FaceState {
   return { ...face, lid0: lids?.[0] ?? lid, lid1: lids?.[1] ?? lid };
 }

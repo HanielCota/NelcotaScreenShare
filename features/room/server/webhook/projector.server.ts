@@ -5,19 +5,19 @@ import { projectEvent, type ProjectionResult } from "./handlers.server";
 import { occurredAt, webhookPayloadSchema } from "./payload";
 
 /**
- * Webhook do LiveKit → tabelas de negócio (docs/archive/admin-plan.md §4.4).
+ * LiveKit webhook → business tables (docs/archive/admin-plan.md §4.4).
  *
- * Cada evento é gravado bruto em `livekit_events` (o id do LiveKit garante que
- * reenvios não dupliquem) e projetado em seguida. A projeção não depende da
- * ordem de chegada: participações são achadas pela chave natural (sala,
- * identidade, joined_at do próprio participante), compartilhamentos pelo sid
- * da faixa, e horários só avançam (greatest/least). Um evento que falhou fica
- * com `error` e `processed_at` nulo, para reprocessar.
+ * Each event is stored raw in `livekit_events` (the LiveKit id ensures that
+ * redeliveries do not duplicate) and projected right after. The projection does not depend
+ * on arrival order: participations are found by their natural key (room,
+ * identity, the participant's own joined_at), shares by the track
+ * sid, and times only move forward (greatest/least). An event that failed keeps
+ * `error` set and `processed_at` null, to be reprocessed.
  */
 
 export type IngestResult = "duplicate" | ProjectionResult | "failed";
 
-/** Projeta um evento já gravado; o erro fica registrado no próprio evento. */
+/** Projects an already stored event; the error is recorded on the event itself. */
 async function processStoredEvent(
   db: Database,
   id: string,
@@ -44,7 +44,7 @@ async function processStoredEvent(
   }
 }
 
-/** Grava o evento bruto (reenvio do mesmo id é ignorado) e projeta. */
+/** Stores the raw event (a redelivery of the same id is ignored) and projects it. */
 export async function ingestEvent(
   db: Database,
   id: string,
@@ -71,9 +71,9 @@ export async function ingestEvent(
 }
 
 /**
- * Reprocessa eventos pendentes (falhas), do mais antigo ao mais novo.
- * `receivedBefore` deixa de fora os que acabaram de chegar e ainda estão
- * sendo projetados pelo próprio webhook.
+ * Reprocesses pending events (failures), from oldest to newest.
+ * `receivedBefore` leaves out those that just arrived and are still
+ * being projected by the webhook itself.
  */
 export async function reprocessPendingEvents(
   db: Database,

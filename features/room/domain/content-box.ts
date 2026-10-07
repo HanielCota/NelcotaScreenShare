@@ -1,4 +1,4 @@
-/** Área ocupada pela imagem dentro do elemento (`object-contain`), relativa a ele. */
+/** Area taken by the image inside the element (`object-contain`), relative to it. */
 export function contentBox(
   box: { width: number; height: number },
   video: { width: number; height: number },

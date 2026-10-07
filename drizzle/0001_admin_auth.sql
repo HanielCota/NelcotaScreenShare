@@ -112,16 +112,16 @@ CREATE UNIQUE INDEX "admin_users_email_key" ON "admin_users" USING btree (lower(
 CREATE INDEX "admin_verifications_identifier_idx" ON "admin_verifications" USING btree ("identifier");--> statement-breakpoint
 CREATE INDEX "login_failures_email_idx" ON "login_failures" USING btree ("scope","email_hash","created_at" DESC NULLS LAST);--> statement-breakpoint
 CREATE INDEX "login_failures_ip_idx" ON "login_failures" USING btree ("scope","ip","created_at" DESC NULLS LAST);--> statement-breakpoint
--- ===== Escrito à mão (o drizzle-kit não gera funções, triggers nem extensões) =====
--- pg_trgm e unaccent são extensões "trusted": o usuário de migração pode criá-las.
--- pg_stat_statements não é: fica no bootstrap (superusuário).
+-- ===== Handwritten (drizzle-kit does not generate functions, triggers or extensions) =====
+-- pg_trgm and unaccent are "trusted" extensions: the migration user can create them.
+-- pg_stat_statements is not: it lives in the bootstrap (superuser).
 CREATE EXTENSION IF NOT EXISTS pg_trgm;--> statement-breakpoint
 CREATE EXTENSION IF NOT EXISTS unaccent;--> statement-breakpoint
--- Busca sem acento em índice: unaccent() não é IMMUTABLE; este invólucro fixa o dicionário.
+-- Accent-insensitive indexed search: unaccent() is not IMMUTABLE; this wrapper pins the dictionary.
 CREATE OR REPLACE FUNCTION f_unaccent(text) RETURNS text
   LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT
   AS $$ SELECT public.unaccent('public.unaccent'::regdictionary, $1) $$;--> statement-breakpoint
--- updated_at mantido pelo banco (vale também para SQL escrito à mão).
+-- updated_at maintained by the database (also applies to handwritten SQL).
 CREATE OR REPLACE FUNCTION set_updated_at() RETURNS trigger
   LANGUAGE plpgsql
   AS $$ BEGIN NEW.updated_at := now(); RETURN NEW; END $$;--> statement-breakpoint

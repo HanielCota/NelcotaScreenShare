@@ -39,7 +39,7 @@ export function AuditFilters({
         label="request_id ou ID do recurso"
         placeholder="Cole um ID"
         value={params.q}
-        // Só a busca digitada espera a pessoa parar de digitar.
+        // Only the typed search waits for the person to stop typing.
         onChange={(q) =>
           void setParams({ q: q || null, ...resetPage }, { limitUrlUpdates: debounce(350) })
         }

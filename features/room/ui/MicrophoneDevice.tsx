@@ -3,13 +3,13 @@ import type { MicrophoneOption } from "@/features/room/domain/microphone-options
 import { cn } from "@/lib/utils";
 
 /**
- * Peças visuais de um microfone, iguais na pré-entrada e no dock da sala:
- * ícone colorido pelo tipo e etiquetas ("Padrão", "Chamadas", Bluetooth).
+ * Visual pieces of a microphone, the same in the pre-join screen and the room dock:
+ * icon colored by type and badges ("Padrão", "Chamadas", Bluetooth).
  */
 
 const ICONS = { system: Mic, microphone: Mic, headset: Headphones, camera: Camera };
 
-/** Uma cor por tipo de aparelho: dá para achar o fone ou a webcam de relance. */
+/** One color per device type: the headset or the webcam can be spotted at a glance. */
 const KIND_COLORS = {
   system: "bg-brand/15 text-brand-soft",
   microphone: "bg-brand/15 text-brand-soft",
@@ -78,7 +78,7 @@ export function DeviceBadges({ option }: { option: MicrophoneOption }) {
   );
 }
 
-/** Índice da opção que corresponde ao ID escolhido ("" ou "default" = padrão do sistema). */
+/** Index of the option matching the chosen ID ("" or "default" = system default). */
 export function selectedMicrophoneIndex(options: MicrophoneOption[], id: string | undefined) {
   const current = id === "default" ? "" : (id ?? "");
   return Math.max(

@@ -19,7 +19,7 @@ const REASONS = {
   weak_password: `Use uma senha com ${PASSWORD_LIMITS.admin.min} a ${PASSWORD_LIMITS.admin.max} caracteres.`,
 } as const;
 
-/** Aceita o convite de admin e cria a conta (sem sessão: action pública com rate limit). */
+/** Accepts the admin invitation and creates the account (no session: public action with rate limit). */
 export const acceptInvitation = definePublicOperation(
   { name: "adminInvitation.accept", audit: "required" },
   acceptInput,
@@ -29,7 +29,7 @@ export const acceptInvitation = definePublicOperation(
     if (!auth) throw new ActionError("O painel admin está desligado neste servidor.");
     const result = await acceptAdminInvitation(db, auth, parsedInput);
     if (!result.ok) throw new ActionError(REASONS[result.reason]);
-    // Autor: o admin que acabou de nascer deste convite.
+    // Actor: the admin just born from this invitation.
     await ctx.audit.record(
       db,
       {

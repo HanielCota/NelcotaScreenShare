@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/shell/ThemeToggle";
 
 export const meta = () => [{ title: "Admin · Nelcota" }];
 
-/** Telas de acesso do painel: fora do shell, acessíveis sem sessão. */
+/** Admin panel access screens: outside the shell, reachable without a session. */
 export default function AdminAuthLayout() {
   const children = <Outlet />;
   return (

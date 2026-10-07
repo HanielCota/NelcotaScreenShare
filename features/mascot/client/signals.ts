@@ -21,8 +21,8 @@ interface SignalContext {
 const MOTIONS = { jump: JUMP, shake: SHAKE, nod: NOD } as const;
 
 /**
- * Avisos das telas (events.ts): comemora, fica bravo, desconfia, acena. Um
- * aviso com `target` faz o mascote olhar para o elemento por um instante.
+ * Signals from the screens (events.ts): celebrates, gets angry, gets suspicious, nods. A
+ * signal with `target` makes the mascot look at the element for a moment.
  */
 export function listenToSignals(ctx: SignalContext) {
   let attention: { element: Element; until: number } | null = null;
@@ -57,7 +57,7 @@ export function listenToSignals(ctx: SignalContext) {
 
   const stop = onMascotSignal(onSignal);
   return {
-    /** Elemento que pediu atenção há pouco (o olhar vai para ele). */
+    /** Element that recently asked for attention (the gaze goes to it). */
     attentionTarget: () =>
       attention && performance.now() < attention.until ? attention.element : undefined,
     stop() {

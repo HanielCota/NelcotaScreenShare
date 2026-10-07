@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 /**
- * "unknown": o navegador não informa (sem Permissions API): tratado como
- * "ainda não pedido".
+ * "unknown": the browser does not tell (no Permissions API): treated as
+ * "not requested yet".
  */
 export type MicPermission = "unknown" | "prompt" | "granted" | "denied";
 
@@ -24,7 +24,7 @@ export function useMicPermission() {
         result.addEventListener("change", update);
       })
       .catch(() => {
-        // Navegador sem a permissão "microphone" na API: fica "unknown".
+        // Browser without the "microphone" permission in the API: stays "unknown".
       });
     return () => {
       cancelled = true;
@@ -32,7 +32,7 @@ export function useMicPermission() {
     };
   }, []);
 
-  /** Abre o pedido do navegador. Devolve o erro, se houver, para a mensagem. */
+  /** Opens the browser prompt. Returns the error, if any, for the message. */
   const request = useCallback(async (): Promise<unknown> => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

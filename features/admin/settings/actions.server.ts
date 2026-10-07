@@ -15,7 +15,7 @@ const mascotInput = z.object({
   saturationLight: z.number(),
 });
 
-/** Saturação do mascote por tema (só owner: settings.update). */
+/** Mascot saturation per theme (owner only: settings.update). */
 export const saveMascotSettings = defineAdminOperation(
   {
     name: "settings.saveMascot",
@@ -44,7 +44,7 @@ export const saveMascotSettings = defineAdminOperation(
     } finally {
       invalidateSetting(mascotSettings.key);
     }
-    // Páginas já abertas no navegador (cache do roteador) pegam o valor novo.
+    // Pages already open in the browser (router cache) pick up the new value.
     return { saved: true };
   },
 );

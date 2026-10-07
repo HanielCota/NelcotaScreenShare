@@ -1,6 +1,6 @@
 import { accessContext } from "./access-context";
 
-/** Falas do mascote conforme a tela e a sala de destino. */
+/** Mascot lines depending on the screen and the destination room. */
 export function mascotLine(pathname: string, returnTo: string | null): string {
   const context = accessContext(returnTo ?? "/");
   const room = context.kind === "room" ? context.code : undefined;

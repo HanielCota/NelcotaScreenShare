@@ -15,7 +15,7 @@ import { participantName } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
 
-/** "Sala abc-defg-hij" que copia o link; a confirmação aparece no próprio botão. */
+/** "Sala abc-defg-hij" that copies the link; the confirmation appears on the button itself. */
 function RoomCodeButton({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -56,7 +56,7 @@ function RoomCodeButton({ code }: { code: string }) {
   );
 }
 
-/** Avatares empilhados + "N pessoas"; ao tocar, a lista e o limite da sala. */
+/** Stacked avatars + "N pessoas"; on tap, the list and the room limit. */
 function PeopleButton({ participants, max }: { participants: Participant[]; max: number }) {
   const shown = participants.slice(0, 3);
   const count = participants.length;
@@ -106,7 +106,7 @@ function PeopleButton({ participants, max }: { participants: Participant[]; max:
   );
 }
 
-/** Link da sala, estado da conexão, participantes, atalhos e tema. */
+/** Room link, connection state, participants, shortcuts and theme. */
 export function RoomTopBar({
   code,
   participants,
@@ -123,8 +123,8 @@ export function RoomTopBar({
       <NavBrand showName={false} className="max-sm:hidden" />
       <NavDivider className="max-sm:hidden" />
       <RoomCodeButton code={code} />
-      {/* Só um ponto: verde conectado, amarelo pulsando enquanto reconecta (o
-          aviso escrito aparece no meio da tela). */}
+      {/* Just a dot: green when connected, pulsing yellow while reconnecting (the
+          written notice appears in the middle of the screen). */}
       <span className="flex shrink-0 items-center">
         <span
           aria-hidden="true"

@@ -9,19 +9,19 @@ function flipState(root: HTMLElement) {
 }
 
 /**
- * Animações da sala:
- * - entrada da barra superior e do dock;
- * - entrada dos tiles em stagger;
- * - reorganização fluida com Flip quando o layout muda (alguém começa/para de
- *   compartilhar, entra ou sai). O estado "antes" é capturado sempre que uma
- *   animação termina e quando o container muda de tamanho, então serve de
- *   ponto de partida para a próxima mudança.
+ * Room animations:
+ * - entrance of the top bar and the dock;
+ * - staggered entrance of the tiles;
+ * - smooth rearrangement with Flip when the layout changes (someone starts/stops
+ *   sharing, joins or leaves). The "before" state is captured whenever an
+ *   animation finishes and when the container resizes, so it serves as the
+ *   starting point for the next change.
  */
 export function useRoomAnimations(scope: RefObject<HTMLElement | null>, layoutKey: string) {
   const lastState = useRef<Flip.FlipState | null>(null);
   const running = useRef<gsap.core.Timeline | null>(null);
 
-  // Entrada da UI fixa (barra superior e dock).
+  // Entrance of the fixed UI (top bar and dock).
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
@@ -33,7 +33,7 @@ export function useRoomAnimations(scope: RefObject<HTMLElement | null>, layoutKe
     { scope },
   );
 
-  // Layout: Flip a partir do último estado conhecido.
+  // Layout: Flip from the last known state.
   useGSAP(
     () => {
       const root = scope.current;
@@ -83,7 +83,7 @@ export function useRoomAnimations(scope: RefObject<HTMLElement | null>, layoutKe
     { scope, dependencies: [layoutKey] },
   );
 
-  // Redimensionamento muda posições sem trocar o layoutKey: atualiza o estado base.
+  // Resizing changes positions without changing layoutKey: update the base state.
   useEffect(() => {
     const root = scope.current;
     if (!root) return;

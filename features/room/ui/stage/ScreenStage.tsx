@@ -23,11 +23,11 @@ function subscribeFullscreen(onChange: () => void) {
   return () => document.removeEventListener("fullscreenchange", onChange);
 }
 
-/** Pontos marcados na tela compartilhada (canal de dados, sem garantia de entrega). */
+/** Points marked on the shared screen (data channel, no delivery guarantee). */
 export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  // O modo de apontar vale para a tela em que foi ligado: trocar de tela desliga.
+  // Pointing mode applies to the screen it was turned on for: switching screens turns it off.
   const [pointingAt, setPointingAt] = useState<string>();
   const { pings, pointAt } = usePointers();
   const isFullscreen = useSyncExternalStore(
@@ -36,7 +36,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
     () => false,
   );
 
-  // O Safari do iPhone não tem tela cheia para elementos comuns: sem a API, sem o botão.
+  // iPhone Safari has no fullscreen for regular elements: no API, no button.
   const canFullscreen = document.fullscreenEnabled;
   const tooltipContainer = isFullscreen ? document.fullscreenElement : undefined;
   const fullscreenLabel = isFullscreen ? "Sair da tela cheia" : "Tela cheia";
@@ -71,7 +71,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
       className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-black shadow-soft"
     >
       {isOwnScreen ? (
-        // Sua própria tela em tamanho grande cria o efeito espelho (tela dentro da tela).
+        // Your own screen at large size creates the mirror effect (screen within a screen).
         <div className="flex size-full flex-col items-center justify-center gap-4 bg-surface p-6 text-center">
           <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-xl border border-line bg-black">
             <VideoTrack
@@ -105,7 +105,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
             aria-label={`Tela de ${sharerName(focused)}`}
           />
           <PointerLayer
-            // Outra tela no palco: remonta para medir o vídeo novo.
+            // Another screen on stage: remount to measure the new video.
             key={trackSid}
             videoRef={videoRef}
             trackSid={trackSid}

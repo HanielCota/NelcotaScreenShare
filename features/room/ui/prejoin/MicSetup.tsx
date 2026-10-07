@@ -15,13 +15,13 @@ const CHECK_TEXT: Record<MicrophoneCheck, string> = {
   confirmed: "Microfone testado",
 };
 
-/** Linha "Microfone" da pré-entrada: liga/desliga e, ligado, o que fazer em cada situação. */
+/** "Microfone" row of the pre-join screen: on/off and, when on, what to do in each situation. */
 export function MicSetup({
   mic,
   meterRef,
 }: {
   mic: MicSetupState;
-  /** Barra do medidor (escrita direto, sem re-render). */
+  /** Meter bar (written directly, no re-render). */
   meterRef: RefObject<HTMLDivElement | null>;
 }) {
   const micId = useId();
@@ -75,7 +75,7 @@ function MicStatus({
   if (mic.permission === "granted" && !mic.error)
     return <LiveMeter mic={mic} meterRef={meterRef} />;
   if (mic.error) {
-    // Outro problema (sem microfone, em uso): o que fazer e tentar de novo.
+    // Another problem (no microphone, in use): what to do, and retry.
     return (
       <div className="flex flex-col gap-3">
         <p className="text-base text-warning">{mic.error}</p>
@@ -92,7 +92,7 @@ function MicStatus({
       </div>
     );
   }
-  // Ainda não permitido: explicar antes que o navegador pergunte.
+  // Not allowed yet: explain before the browser asks.
   return (
     <div className="flex flex-col gap-3">
       <p className="text-base text-ink">
@@ -116,7 +116,7 @@ function MicStatus({
   );
 }
 
-/** Bloqueado: o passo a passo para liberar, à vista. */
+/** Blocked: the step-by-step to unblock, in plain sight. */
 function BlockedSteps() {
   return (
     <div className="flex flex-col gap-3 text-base">
@@ -139,7 +139,7 @@ function BlockedSteps() {
   );
 }
 
-/** Liberado: o medidor mexe com a voz, sem precisar testar. */
+/** Allowed: the meter moves with the voice, no testing needed. */
 function LiveMeter({
   mic,
   meterRef,
@@ -188,9 +188,9 @@ function LiveMeter({
           className="mic-meter relative h-3.5 min-w-16 flex-1 overflow-hidden bg-ink/12"
         >
           {/*
-           * Começa vazio por `transform` inline, o mesmo que o hook escreve. Não usar
-           * `scale-x-0`: no Tailwind 4 ela vira a propriedade `scale`, que se soma ao
-           * `transform` e prendia o preenchimento em zero.
+           * Starts empty via inline `transform`, the same one the hook writes. Do not use
+           * `scale-x-0`: in Tailwind 4 it becomes the `scale` property, which adds to
+           * `transform` and kept the fill stuck at zero.
            */}
           <div
             ref={meterRef}

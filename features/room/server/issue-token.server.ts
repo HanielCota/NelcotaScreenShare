@@ -13,12 +13,12 @@ import { redeemRoomInvite } from "./invites.server";
 import { liveKitGateway, type LiveKitGateway } from "./livekit-gateway.server";
 import { recordTokenRequest } from "./token-log.server";
 
-// Por conta: trocar de IP não dá mais tentativas.
+// Per account: switching IP does not grant more attempts.
 const perAccountLimit = createRateLimiter({ limit: 20, windowMs: 60_000 });
-// Senha errada: poucas chances por IP, com janela longa, contra força bruta.
+// Wrong password: few chances per IP, with a long window, against brute force.
 const passwordFailures = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
 
-/** Compara em tempo constante (o hash iguala os tamanhos antes do timingSafeEqual). */
+/** Compares in constant time (the hash equalizes lengths before timingSafeEqual). */
 function safeEqual(a: string, b: string): boolean {
   const hashA = createHash("sha256").update(a).digest();
   const hashB = createHash("sha256").update(b).digest();
@@ -33,15 +33,15 @@ export type IssueTokenResult =
 interface IssueTokenInput {
   account: TokenAccount | null;
   body: { readable: true; value: unknown } | { readable: false };
-  /** IP do cliente (null se desconhecido; o limite de senha usa "desconhecido"). */
+  /** Client IP (null if unknown; the password limit uses "desconhecido"). */
   ip: string | null;
-  /** Sala pedida, só para o registro (o pedido ainda pode ser inválido). */
+  /** Requested room, for the record only (the request may still be invalid). */
   requestedRoom: string;
 }
 
 /**
- * Emite o token do LiveKit: decide (domain/issue-token), registra o resultado
- * em token_requests e assina. Falha do LiveKit ou do banco vira "sala indisponível".
+ * Issues the LiveKit token: decides (domain/issue-token), records the result
+ * in token_requests and signs. A LiveKit or database failure becomes "room unavailable".
  */
 export async function issueRoomToken(
   { account, body, ip, requestedRoom }: IssueTokenInput,

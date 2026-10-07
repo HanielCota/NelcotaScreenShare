@@ -34,7 +34,7 @@ import { useSearchParams } from "react-router";
 import { filterQuery, pageParsers, type BulkSelection } from "@/lib/table-params";
 import { cn } from "@/lib/utils";
 
-/** Ordenação, filtros e paginação são do servidor: a tabela só exibe e seleciona. */
+/** Sorting, filters and pagination belong to the server: the table only displays and selects. */
 const dataTableFeatures = tableFeatures({ rowSelectionFeature });
 type DataTableFeatures = typeof dataTableFeatures;
 export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures, TData>;
@@ -42,24 +42,24 @@ export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures
 import type { PageInfo } from "./page-info";
 
 interface DataTableProps<TData extends RowData & { id: string }> {
-  /** Rótulo da tabela para leitores de tela. */
+  /** Table label for screen readers. */
   label: string;
   columns: DataTableColumn<TData>[];
   data: TData[];
   page: PageInfo;
   emptyMessage: string;
-  /** Filtros e busca (componentes que usam os mesmos parâmetros de URL). */
+  /** Filters and search (components that use the same URL parameters). */
   toolbar?: ReactNode;
   /**
-   * Ações em massa para a seleção (IDs da página ou todos os resultados do
-   * filtro); sem isso, não há seleção. `count` é o total aproximado.
+   * Bulk actions for the selection (IDs on the page or every result of the
+   * filter); without them there is no selection. `count` is the approximate total.
    */
   bulkActions?: (selection: BulkSelection, clear: () => void, count: number) => ReactNode;
-  /** Cartão por linha abaixo de 640 px (tabelas largas viram lista). */
+  /** One card per row below 640 px (wide tables become a list). */
   renderCard?: (row: TData) => ReactNode;
 }
 
-/** Caixa "selecionar todos desta página" (componente fora do render). */
+/** "Select all on this page" checkbox (component defined outside render). */
 function SelectAllHeader<TData extends RowData>({
   table,
 }: HeaderContext<DataTableFeatures, TData>) {
@@ -89,8 +89,8 @@ function SelectRowCell<TData extends RowData>({ row }: CellContext<DataTableFeat
 }
 
 /**
- * Transição da tabela para a barra de filtros: filtro mudou → a tabela fica
- * "carregando" (aria-busy, esmaecida) até os dados novos chegarem.
+ * Table transition for the filter bar: filter changed → the table shows as
+ * "loading" (aria-busy, dimmed) until the new data arrives.
  */
 const TableTransitionContext = createContext<TransitionStartFunction | null>(null);
 
@@ -110,7 +110,7 @@ function selectionLabel(allMatching: boolean, selected: number, total: number): 
   return selected === 1 ? "1 selecionado" : `${selected} selecionados`;
 }
 
-/** Barra que aparece com linhas marcadas: quantas, "selecionar todos" e as ações. */
+/** Bar shown when rows are checked: how many, "select all" and the actions. */
 function SelectionBar({
   label,
   offerAll,
@@ -120,7 +120,7 @@ function SelectionBar({
   children,
 }: {
   label: string;
-  /** A página inteira está marcada e há mais resultados além dela. */
+  /** The whole page is checked and there are more results beyond it. */
   offerAll: boolean;
   page: PageInfo;
   onSelectAll: () => void;
@@ -131,7 +131,7 @@ function SelectionBar({
     <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
       <span className="font-medium">{label}</span>
       {offerAll ? (
-        // Acima do limite o servidor sempre recusa a ação em massa (server/table/selection.ts).
+        // Above the limit the server always rejects the bulk action (server/table/selection.ts).
         page.capped ? (
           <span className="text-ink-muted">
             Mais de {formatNumber(page.total)} resultados: refine o filtro para agir em todos.
@@ -214,10 +214,10 @@ export function DataTable<TData extends RowData & { id: string }>({
     state: { rowSelection },
   });
 
-  // Só conta o que está na página atual (mudar o filtro "solta" o resto).
+  // Only counts what is on the current page (changing the filter "drops" the rest).
   const pageIds = new Set(data.map((row) => row.id));
   const selected = Object.keys(rowSelection).filter((id) => rowSelection[id] && pageIds.has(id));
-  // "Todos os resultados" vale só para o filtro em que foi escolhido.
+  // "All results" only applies to the filter it was chosen under.
   const filterKey = filterQuery(useSearchParams()[0].toString());
   const [allFor, setAllFor] = useState<string | null>(null);
   const allMatching = allFor === filterKey && selected.length === data.length;
@@ -268,7 +268,7 @@ export function DataTable<TData extends RowData & { id: string }>({
           </div>
         ) : (
           <>
-            {/* Desktop/tablet: tabela com rolagem horizontal se precisar. */}
+            {/* Desktop/tablet: table with horizontal scrolling when needed. */}
             <div className={cn("overflow-x-auto", renderCard && "max-sm:hidden")}>
               <Table>
                 <TableHeader>
@@ -298,7 +298,7 @@ export function DataTable<TData extends RowData & { id: string }>({
                 </TableBody>
               </Table>
             </div>
-            {/* Celular: um cartão por linha. */}
+            {/* Phone: one card per row. */}
             {renderCard ? (
               <ul className="flex flex-col divide-y divide-line sm:hidden">
                 {data.map((row) => (

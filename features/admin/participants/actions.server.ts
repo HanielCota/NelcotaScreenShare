@@ -23,7 +23,7 @@ const reasonSchema = z
   .min(3, "Escreva o motivo do bloqueio.")
   .max(300, "O motivo pode ter até 300 caracteres.");
 
-/** Bloquear: sessões encerradas; login e entrada em salas recusados. */
+/** Block: sessions ended; sign-in and joining rooms refused. */
 export const blockParticipantsAction = defineAdminOperation(
   {
     name: "participant.block",
@@ -79,7 +79,7 @@ export const unblockParticipantsAction = defineAdminOperation(
   },
 );
 
-/** Exclusão reversível: devolve os IDs para o "Desfazer". */
+/** Reversible deletion: returns the IDs for "Desfazer" (undo). */
 export const deleteParticipantsAction = defineAdminOperation(
   {
     name: "participant.delete",
@@ -153,7 +153,7 @@ export const revokeParticipantSessionsAction = defineAdminOperation(
   },
 );
 
-/** Reenvia o link de confirmação (o Better Auth limita e gera o link). */
+/** Resends the confirmation link (Better Auth rate-limits and generates the link). */
 export const resendVerificationAction = defineAdminOperation(
   {
     name: "participant.resendVerification",
@@ -181,7 +181,7 @@ export const resendVerificationAction = defineAdminOperation(
   },
 );
 
-/** LGPD, irreversível: só o owner, com sessão recente e digitando ANONIMIZAR. */
+/** LGPD, irreversible: owner only, with a recent session and typing ANONIMIZAR. */
 export const anonymizeParticipantAction = defineAdminOperation(
   {
     name: "participant.anonymize",

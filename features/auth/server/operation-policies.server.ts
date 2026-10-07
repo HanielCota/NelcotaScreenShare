@@ -9,7 +9,7 @@ import { getUserSession } from "./participant-session.server";
 import { can, type PermissionRequest } from "./permissions.server";
 import { FRESH_SESSION_SECONDS } from "./auth-shared.server";
 
-/** Quem pode chamar: sessão de admin ou de participante, ou acesso público com limite. */
+/** Who may call: an admin or participant session, or rate-limited public access. */
 interface Policy extends BasePolicy {
   permission?: PermissionRequest;
   fresh?: boolean;

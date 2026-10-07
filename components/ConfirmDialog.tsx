@@ -21,14 +21,14 @@ interface ConfirmDialogProps {
   confirmLabel: string;
   danger?: boolean;
   pending?: boolean;
-  /** Pede um texto (ex.: motivo do bloqueio), entregue ao confirmar. */
+  /** Asks for a text (e.g. the block reason), passed on confirm. */
   reason?: { label: string; placeholder?: string; maxLength: number };
-  /** Só libera o botão depois de digitar esta palavra (ações irreversíveis). */
+  /** Only enables the button after this word is typed (irreversible actions). */
   typedConfirmation?: string;
   onConfirm: (reason: string) => void;
 }
 
-/** Confirmação de ação sensível, com motivo ou palavra digitada quando preciso. */
+/** Confirmation for a sensitive action, with a reason or a typed word when needed. */
 export function ConfirmDialog({
   open,
   onOpenChange,

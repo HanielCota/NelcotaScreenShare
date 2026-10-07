@@ -1,26 +1,26 @@
 /**
- * O que o navegador de quem está vendo consegue fazer na sala. A tela é
- * detectada pelo recurso (getDisplayMedia); o áudio do computador não dá
- * para checar antes, então vem do motor do navegador.
+ * What the viewer's browser can do in the room. Screen sharing is
+ * detected by feature (getDisplayMedia); computer audio cannot be
+ * checked in advance, so it comes from the browser engine.
  */
 export type ShareSupport =
-  /** Chrome, Edge e outros Chromium no computador: tela e áudio. */
+  /** Chrome, Edge and other Chromium browsers on desktop: screen and audio. */
   | "full"
-  /** Firefox no computador: tela, sem o áudio do computador. */
+  /** Firefox on desktop: screen, without computer audio. */
   | "screen-only"
-  /** Safari no Mac: tela, sem áudio. */
+  /** Safari on Mac: screen, no audio. */
   | "safari"
-  /** Celular ou tablet: assiste e conversa, não compartilha. */
+  /** Phone or tablet: watches and talks, does not share. */
   | "mobile"
-  /** Computador com navegador antigo ou sem o recurso. */
+  /** Desktop with an old browser or without the feature. */
   | "unsupported";
 
 export interface BrowserTraits {
   userAgent: string;
   hasDisplayMedia: boolean;
-  /** navigator.userAgentData.mobile, quando o navegador informa. */
+  /** navigator.userAgentData.mobile, when the browser reports it. */
   mobileHint?: boolean | undefined;
-  /** iPad se apresenta como Mac; o toque denuncia. */
+  /** iPad presents itself as a Mac; touch gives it away. */
   maxTouchPoints?: number;
 }
 
@@ -35,12 +35,12 @@ export function classifyShareSupport({
   if (mobile) return "mobile";
   if (!hasDisplayMedia) return "unsupported";
   if (/Firefox\//.test(userAgent)) return "screen-only";
-  // Safari tem "Safari/" mas não "Chrome/" (Chromium inclui os dois).
+  // Safari has "Safari/" but not "Chrome/" (Chromium includes both).
   if (/Safari\//.test(userAgent) && !/Chrome\/|Chromium\//.test(userAgent)) return "safari";
   return "full";
 }
 
-/** Lê os traços do navegador atual (só no cliente). */
+/** Reads the current browser's traits (client only). */
 export function currentShareSupport(): ShareSupport {
   const nav = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
   return classifyShareSupport({
@@ -51,7 +51,7 @@ export function currentShareSupport(): ShareSupport {
   });
 }
 
-/** O navegador abre o seletor de tela? (mesma checagem da sala) */
+/** Does the browser open the screen picker? (same check as the room) */
 export function canShareScreen(): boolean {
   return "getDisplayMedia" in (navigator.mediaDevices ?? {});
 }
@@ -83,7 +83,7 @@ export const SHARE_SUPPORT_TEXT: Record<
   },
 };
 
-/** O que compartilhar: a tela inteira, uma janela ou uma aba (com ou sem o som). */
+/** What to share: the whole screen, a window or a tab (with or without sound). */
 export type ShareSurface = "monitor" | "window" | "browser";
 
 export interface ShareChoice {

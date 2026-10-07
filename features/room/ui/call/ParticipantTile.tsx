@@ -19,7 +19,7 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
   const isMuted = useIsMuted({ participant, source: Track.Source.Microphone });
   const name = participantName(participant);
 
-  // Pulso suave na borda de quem está falando.
+  // Soft pulse on the border of whoever is speaking.
   useGSAP(
     () => {
       pulse.current?.kill();
@@ -55,10 +55,10 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
   );
 
   if (compact) {
-    // Palco ocupado: avatar redondo com o nome embaixo (estilo FaceTime).
+    // Stage in use: round avatar with the name below (FaceTime style).
     return (
-      // key por variante: sem ela o React reaproveita os divs do bloco grande e o
-      // avatar herda estilos que o GSAP deixou neles (o brilho com opacidade 0).
+      // key per variant: without it React reuses the divs from the large block and the
+      // avatar inherits styles GSAP left on them (the glow with opacity 0).
       <div
         key="avatar"
         ref={scope}
@@ -110,7 +110,7 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
       data-flip-id={`tile-${participant.identity}`}
       className="relative isolate aspect-video w-full shrink-0 rounded-3xl"
     >
-      {/* Glow e anel de quem está falando. */}
+      {/* Glow and ring for whoever is speaking. */}
       <div
         data-glow
         aria-hidden="true"

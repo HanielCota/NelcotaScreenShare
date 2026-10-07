@@ -4,22 +4,22 @@ import { SettingsRowLabel } from "./Settings";
 
 const RowContext = createContext<(() => void) | null>(null);
 
-/** Evento para abrir uma linha pelo id (ex.: o "Ativar" do checklist). */
+/** Event to open a row by id (e.g. the checklist's "Ativar"). */
 export const OPEN_ROW_EVENT = "conta:abrir-linha";
 
 /**
- * Fecha a linha expansível em volta, se houver. Formulários usam para o
- * "Cancelar" e para fechar depois de salvar; fora de uma linha, devolve null.
+ * Closes the surrounding expandable row, if any. Forms use it for
+ * "Cancelar" and to close after saving; outside a row, it returns null.
  */
 export function useCloseRow(): (() => void) | null {
   return use(RowContext);
 }
 
 /**
- * Linha que mostra só o estado atual e um botão; o formulário abre na própria
- * linha. O conteúdo fica montado ao fechar (`hidden`): um fluxo em andamento,
- * como os códigos de backup, não se perde. Foco vai ao primeiro campo ao abrir
- * e volta ao botão ao fechar.
+ * Row that shows only the current state and a button; the form opens inside the
+ * row itself. The content stays mounted when closed (`hidden`): a flow in progress,
+ * like the backup codes, is not lost. Focus goes to the first field on open
+ * and back to the button on close.
  */
 export function ExpandableRow({
   id,
@@ -31,14 +31,14 @@ export function ExpandableRow({
   danger = false,
   children,
 }: {
-  /** Âncora da linha: `/conta#id` abre a linha já expandida. */
+  /** Row anchor: `/conta#id` opens the row already expanded. */
   id?: string;
   title: ReactNode;
   description?: ReactNode;
-  /** Estado atual, ao lado do botão (ex.: o e-mail, "Desativada"). */
+  /** Current state, beside the button (e.g. the e-mail, "Desativada"). */
   summary?: ReactNode;
   actionLabel: string;
-  /** Texto do botão com a linha aberta. */
+  /** Button text while the row is open. */
   openLabel?: string;
   danger?: boolean;
   children: ReactNode;
@@ -50,11 +50,11 @@ export function ExpandableRow({
   const content = useRef<HTMLElement>(null);
   const wasOpen = useRef(false);
   const row = useRef<HTMLDivElement>(null);
-  // Aberta por âncora ou evento: rola até a linha antes de focar o campo.
+  // Opened by anchor or event: scrolls to the row before focusing the field.
   const revealOnOpen = useRef(false);
 
-  // Abre pela âncora na URL ou pelo evento (o mesmo link clicado de novo
-  // não muda o hash, então o evento cobre esse caso).
+  // Opens from the URL anchor or from the event (the same link clicked again
+  // does not change the hash, so the event covers that case).
   useEffect(() => {
     if (!id) return;
     const reveal = () => {

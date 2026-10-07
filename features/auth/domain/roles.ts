@@ -1,6 +1,6 @@
 /**
- * Papéis do painel admin. Fonte única: o CHECK da coluna `admin_users.role`,
- * o controle de acesso do Better Auth e a matriz de permissões partem daqui.
+ * Admin panel roles. Single source: the CHECK on the `admin_users.role` column,
+ * the Better Auth access control and the permission matrix all start here.
  */
 export const ADMIN_ROLES = ["owner", "admin", "viewer"] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
@@ -11,7 +11,7 @@ export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
   viewer: "Leitor",
 };
 
-/** Papéis que alteram dados: exigem 2FA ativo para usar o painel. */
+/** Roles that change data: require active 2FA to use the panel. */
 export const ROLES_REQUIRING_2FA: readonly AdminRole[] = ["owner", "admin"];
 
 export function isAdminRole(value: unknown): value is AdminRole {

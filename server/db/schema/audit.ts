@@ -5,21 +5,21 @@ import { createdAt, id } from "./columns";
 import { users } from "./user-auth";
 
 /**
- * Audit log: toda ação sensível (quem, o quê, quando, de onde, antes e depois).
- * Só de inserção: trigger recusa UPDATE e só permite DELETE depois de 5 anos
- * (retenção); o papel do app não tem UPDATE/DELETE nesta tabela.
+ * Audit log: every sensitive action (who, what, when, from where, before and after).
+ * Insert-only: a trigger refuses UPDATE and only allows DELETE after 5 years
+ * (retention); the app role has no UPDATE/DELETE on this table.
  */
 export const auditLogs = pgTable(
   "audit_logs",
   {
     id: id(),
-    // No máximo um autor: admin, participante (autoatendimento) ou nenhum (sistema).
+    // At most one actor: admin, participant (self-service) or none (system).
     actorAdminId: uuid("actor_admin_id").references(() => adminUsers.id, { onDelete: "restrict" }),
     actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "restrict" }),
     action: text("action").notNull(),
     resourceType: text("resource_type").notNull(),
     resourceId: text("resource_id"),
-    // {"campo": {"antes": x, "depois": y}}, com segredos mascarados.
+    // {"field": {"antes": x, "depois": y}}, with secrets masked.
     changes: jsonb("changes").$type<Record<string, { antes: unknown; depois: unknown }>>(),
     metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
     ip: inet("ip"),

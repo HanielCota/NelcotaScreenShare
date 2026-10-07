@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { formText } from "@/lib/utils";
 import { useCloseRow } from "./settings/ExpandableRow";
 
-/** Confirmação da exclusão da conta (LGPD): pede a senha atual. */
+/** Account deletion confirmation (LGPD): asks for the current password. */
 export function DeleteAccountForm() {
   const passwordId = useId();
   const errorId = useId();

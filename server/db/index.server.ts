@@ -5,27 +5,27 @@ import { logger } from "@/server/logger.server";
 import * as schema from "./schema";
 
 export type Database = NodePgDatabase<typeof schema>;
-/** Transação do Drizzle (o mesmo que `db`, mas dentro de `db.transaction`). */
+/** Drizzle transaction (the same as `db`, but inside `db.transaction`). */
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-/** Quem executa a consulta: a conexão normal ou uma transação. */
+/** Whoever runs the query: the normal connection or a transaction. */
 export type DbExecutor = Database | Transaction;
 
-// No Vite os módulos recarregam a cada edição: guardar o pool no globalThis
-// evita abrir uma conexão nova por recarga.
+// In Vite modules reload on every edit: keeping the pool on globalThis
+// avoids opening a new connection per reload.
 const globalForDb = globalThis as typeof globalThis & { nelcotaDb?: Database; nelcotaPool?: Pool };
 
-/** Conexão com o Postgres (DATABASE_URL é obrigatória; ver server/env.server.ts). */
+/** Postgres connection (DATABASE_URL is required; see server/env.server.ts). */
 export function getDb(): Database {
   if (globalForDb.nelcotaDb) return globalForDb.nelcotaDb;
 
   const pool = new Pool({
     connectionString: databaseUrl(),
-    // Poucas pessoas por vez: um pool pequeno basta e não esgota o Postgres.
+    // Few people at a time: a small pool is enough and does not exhaust Postgres.
     max: 5,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
   });
-  // Conexão ociosa que cai (restart do Postgres) não pode derrubar o processo.
+  // An idle connection that drops (Postgres restart) must not bring the process down.
   pool.on("error", (error) => logger.error({ err: error }, "conexão ociosa do Postgres falhou"));
 
   globalForDb.nelcotaDb = drizzle(pool, { schema });
@@ -33,7 +33,7 @@ export function getDb(): Database {
   return globalForDb.nelcotaDb;
 }
 
-/** Fecha o pool após terminar as requisições e a manutenção em andamento. */
+/** Closes the pool after in-flight requests and maintenance finish. */
 export async function closeDb(): Promise<void> {
   const pool = globalForDb.nelcotaPool;
   globalForDb.nelcotaDb = undefined;

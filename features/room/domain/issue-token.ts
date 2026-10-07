@@ -1,12 +1,12 @@
 import { tokenRequestSchema, type TokenErrorCode } from "./token-contract";
 
 /**
- * Quem pode entrar numa sala, na ordem em que o /api/token confere. É TypeScript
- * puro: banco, LiveKit e limites de tentativas chegam como funções, e cada ramo
- * tem teste (tests/unit/issue-token.test.ts).
+ * Who may join a room, in the order /api/token checks it. It is plain
+ * TypeScript: database, LiveKit and attempt limits come in as functions, and every branch
+ * has a test (tests/unit/issue-token.test.ts).
  */
 
-/** Resultado gravado em token_requests (o enum `token_result` do banco). */
+/** Result recorded in token_requests (the database's `token_result` enum). */
 type TokenLogResult =
   | "granted"
   | "wrong_password"
@@ -28,7 +28,7 @@ export interface TokenAccount {
 
 export interface TokenPolicy {
   requireVerifiedEmail: boolean;
-  /** Senha de acesso às salas (sem ela, entra quem tem conta). */
+  /** Room access password (without it, anyone with an account can join). */
   accessPassword: string | undefined;
   maxParticipants: number;
 }
@@ -39,11 +39,11 @@ interface LimitResult {
 }
 
 export interface TokenDeps {
-  /** Conta uma tentativa da conta (trocar de IP não dá mais tentativas). */
+  /** Counts one attempt for the account (switching IP does not grant more attempts). */
   hitAccountLimit: (accountId: string) => LimitResult;
-  /** Senha errada: consulta, registra e zera as falhas deste IP. */
+  /** Wrong password: checks, records and resets this IP's failures. */
   passwordFailures: { peek: () => LimitResult; fail: () => void; reset: () => void };
-  /** Compara com a senha de acesso em tempo constante. */
+  /** Compares with the access password in constant time. */
   passwordMatches: (given: string) => boolean;
   countParticipants: (room: string) => Promise<number>;
   redeemInvite: (invite: string, room: string, accountId: string) => Promise<boolean>;
@@ -55,7 +55,7 @@ export interface TokenGrant {
   room: string;
 }
 
-/** Recusas que a decisão pode dar (a de outra origem é da borda HTTP). */
+/** Refusals the decision can produce (the cross-origin one belongs to the HTTP edge). */
 export type TokenRefusal = Exclude<TokenErrorCode, "cross_site">;
 
 export type TokenDecision =
@@ -68,7 +68,7 @@ export type TokenDecision =
       retryAfterSeconds?: number;
     };
 
-/** Status HTTP de cada recusa (o corpo leva o código e a mensagem). */
+/** HTTP status of each refusal (the body carries the code and the message). */
 export const TOKEN_ERROR_STATUS: Record<TokenRefusal, number> = {
   unauthenticated: 401,
   blocked: 403,
@@ -106,7 +106,7 @@ function invalidMessage(field: PropertyKey | undefined): string {
   return "Confira os dados de entrada e tente novamente.";
 }
 
-/** Conta: logada, ativa, com e-mail confirmado (se exigido) e dentro do limite. */
+/** Account: signed in, active, with a verified email (if required) and within the limit. */
 function checkAccount(
   account: TokenAccount | null,
   policy: TokenPolicy,
@@ -145,7 +145,7 @@ function checkAccount(
   return account;
 }
 
-/** Senha de acesso (quando existe e não há convite, que a substitui). */
+/** Access password (when one exists and there is no invite, which replaces it). */
 function checkPassword(password: string | undefined, deps: TokenDeps): TokenDecision | undefined {
   const failures = deps.passwordFailures.peek();
   if (!failures.ok) {
@@ -169,9 +169,9 @@ function checkPassword(password: string | undefined, deps: TokenDeps): TokenDeci
 }
 
 /**
- * Decide se a conta entra na sala. `body` é o JSON do pedido (`undefined` se
- * não deu para ler). Lança só se o LiveKit ou o banco falharem (o chamador
- * responde "sala indisponível").
+ * Decides whether the account joins the room. `body` is the request JSON (`undefined` if
+ * it could not be read). Throws only if LiveKit or the database fail (the caller
+ * responds "room unavailable").
  */
 export async function decideTokenRequest(
   account: TokenAccount | null,
@@ -195,7 +195,7 @@ export async function decideTokenRequest(
   }
   const { room, password, invite } = parsed.data;
 
-  // Convite do painel substitui a senha de acesso (é validado mais abaixo).
+  // A dashboard invite replaces the access password (it is validated further below).
   if (policy.accessPassword && invite === undefined) {
     const wrong = checkPassword(password, deps);
     if (wrong) return wrong;
@@ -208,7 +208,7 @@ export async function decideTokenRequest(
       `A sala está cheia (máximo de ${policy.maxParticipants} pessoas). Aguarde alguém sair e tente novamente.`,
     );
   }
-  // Depois da lotação: sala cheia não gasta uso do convite.
+  // After the capacity check: a full room does not consume an invite use.
   if (invite !== undefined && !(await deps.redeemInvite(invite, room, checked.id))) {
     return refuse(
       "invite_invalid",

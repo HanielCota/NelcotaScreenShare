@@ -4,9 +4,9 @@ import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 
 /**
- * Telas de acesso da conta de participante: um painel no centro da página,
- * com o mascote de um lado (faixa no topo, no celular) e o formulário do
- * outro. Dentro do painel o AuthCard não desenha cartão próprio
+ * Participant account access screens: a panel in the center of the page,
+ * with the mascot on one side (a strip at the top, on mobile) and the form on
+ * the other. Inside the panel the AuthCard does not draw its own card
  * (`data-layout="split"`).
  */
 export default function AccessLayout() {
@@ -22,7 +22,7 @@ export default function AccessLayout() {
             className="group/access flex flex-col items-center justify-center px-5 py-7 sm:px-10 sm:py-10"
           >
             {children}
-            {/* No celular o aviso vem depois do formulário (no computador, no lado do mascote). */}
+            {/* On mobile the notice comes after the form (on desktop, on the mascot side). */}
             <ShareSupportNote className="mt-8 w-full max-w-sm border-t border-line pt-5 lg:hidden" />
           </div>
         </div>

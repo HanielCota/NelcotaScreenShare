@@ -10,12 +10,12 @@ import {
 } from "@/server/db/schema";
 
 /**
- * Operações sobre contas de participantes, usadas pelo painel (em massa) e
- * pelo próprio titular. Cada uma devolve só as linhas que realmente mudaram,
- * para a auditoria registrar exatamente o que aconteceu.
+ * Operations on participant accounts, used by the panel (in bulk) and by the
+ * account owner. Each one returns only the rows that actually changed, so the
+ * audit log records exactly what happened.
  */
 
-/** Bloqueia e derruba as sessões: login e /api/token passam a recusar. */
+/** Blocks and kills the sessions: login and /api/token start refusing. */
 export async function blockParticipants(tx: DbExecutor, ids: string[], reason: string) {
   const changed = await tx
     .update(users)
@@ -38,7 +38,7 @@ export async function unblockParticipants(tx: DbExecutor, ids: string[]) {
   return changed.map((row) => row.id);
 }
 
-/** Exclusão reversível (some das listas e não entra mais); anonimizar é outra coisa. */
+/** Reversible deletion (gone from lists and can no longer join); anonymizing is something else. */
 export async function softDeleteParticipants(tx: DbExecutor, ids: string[]) {
   const changed = await tx
     .update(users)
@@ -52,7 +52,7 @@ export async function softDeleteParticipants(tx: DbExecutor, ids: string[]) {
   return changed.map((row) => row.id);
 }
 
-/** Desfaz a exclusão (conta anonimizada não volta). */
+/** Undoes the deletion (an anonymized account does not come back). */
 export async function restoreParticipants(tx: DbExecutor, ids: string[]) {
   const changed = await tx
     .update(users)
@@ -72,10 +72,10 @@ export async function revokeParticipantSessions(tx: DbExecutor, ids: string[]) {
 }
 
 /**
- * Anonimização definitiva (LGPD): e-mail e nome viram valores sem dados
- * pessoais, credenciais e sessões somem e o nome sai do histórico de salas.
- * O IP das participações fica até a retenção de 6 meses (registro de acesso
- * exigido pelo Marco Civil, art. 15).
+ * Permanent anonymization (LGPD): e-mail and name become values without personal
+ * data, credentials and sessions are removed and the name leaves the room history.
+ * The participation IP stays until the 6-month retention (access record
+ * required by the Marco Civil, art. 15).
  */
 export async function anonymizeParticipant(tx: DbExecutor, id: string) {
   const [current] = await tx
@@ -104,7 +104,7 @@ export async function anonymizeParticipant(tx: DbExecutor, id: string) {
   await tx.delete(userAccounts).where(eq(userAccounts.userId, id));
   await tx.delete(userTwoFactors).where(eq(userTwoFactors.userId, id));
   await tx.delete(userSessions).where(eq(userSessions.userId, id));
-  // Recuperação de senha: identifier = reset-password:<token>, value = user.id.
+  // Password recovery: identifier = reset-password:<token>, value = user.id.
   await tx
     .delete(userVerifications)
     .where(or(eq(userVerifications.identifier, current.email), eq(userVerifications.value, id)));

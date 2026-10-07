@@ -124,7 +124,7 @@ CREATE INDEX "share_sessions_active_idx" ON "share_sessions" USING btree ("room_
 CREATE INDEX "token_requests_created_brin" ON "token_requests" USING brin ("created_at");--> statement-breakpoint
 CREATE INDEX "token_requests_ip_idx" ON "token_requests" USING btree ("ip","created_at" DESC NULLS LAST);--> statement-breakpoint
 CREATE INDEX "token_requests_user_idx" ON "token_requests" USING btree ("user_id","room_code","created_at" DESC NULLS LAST);--> statement-breakpoint
--- ===== Escrito à mão: updated_at e tabelas só de inserção =====
+-- ===== Handwritten: updated_at and insert-only tables =====
 CREATE TRIGGER rooms_set_updated_at BEFORE UPDATE ON rooms
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();--> statement-breakpoint
 CREATE TRIGGER room_participations_set_updated_at BEFORE UPDATE ON room_participations
@@ -133,8 +133,8 @@ CREATE TRIGGER share_sessions_set_updated_at BEFORE UPDATE ON share_sessions
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();--> statement-breakpoint
 CREATE TRIGGER room_invites_set_updated_at BEFORE UPDATE ON room_invites
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();--> statement-breakpoint
--- token_requests: o app só insere e lê (DELETE fica para a retenção de 6 meses).
--- livekit_events: só insere, lê e marca processed_at/error.
+-- token_requests: the app only inserts and reads (DELETE is left to the 6-month retention).
+-- livekit_events: only inserts, reads and sets processed_at/error.
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nelcota_app') THEN

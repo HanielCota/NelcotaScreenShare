@@ -14,7 +14,7 @@ export const loader = routeLoader(async ({ searchParams }) => {
   const returnTo = safeReturnPath(voltar);
   const current = await getUserSession();
   if (current?.user.emailVerified) redirect(returnTo);
-  // Logado sem confirmar: usa o e-mail da conta. Logo após o cadastro: o que a pessoa digitou.
+  // Signed in but unconfirmed: use the account e-mail. Right after sign-up: what the person typed.
   const typed = z.email().safeParse(email);
   const address = current?.user.email ?? (typed.success ? typed.data : undefined);
 

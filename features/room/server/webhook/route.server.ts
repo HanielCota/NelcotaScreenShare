@@ -7,7 +7,7 @@ import { ingestEvent } from "@/features/room/server/webhook/projector.server";
 import { logger } from "@/server/logger.server";
 import { BodyTooLargeError, readBodyText } from "@/server/body.server";
 
-/** Eventos que viram linha de log. O resto (faixas, egress…) só vai para o banco. */
+/** Events that become a log line. The rest (tracks, egress…) only goes to the database. */
 const LOGGED_EVENTS = new Set([
   "room_started",
   "room_finished",
@@ -17,10 +17,10 @@ const LOGGED_EVENTS = new Set([
 
 let receiver: WebhookReceiver | undefined;
 
-/** O evento serializado é sempre um objeto JSON (o tipo do SDK é mais largo). */
+/** The serialized event is always a JSON object (the SDK type is wider). */
 const eventObject = z.record(z.string(), z.unknown());
 
-/** Eventos do LiveKit têm poucos KB; acima disso nem lê o corpo. */
+/** LiveKit events are a few KB; above that the body is not even read. */
 const MAX_BODY_BYTES = 64 * 1024;
 
 function tooLarge() {
@@ -31,12 +31,12 @@ function tooLarge() {
 }
 
 /**
- * Webhook do LiveKit. A assinatura usa as mesmas chaves do token, então só o
- * servidor LiveKit consegue chamar. Cada evento é gravado em `livekit_events`
- * e projetado em salas, participações e compartilhamentos
- * (server/livekit/webhook-projector.ts). Se a gravação falhar, responde 503
- * para o LiveKit tentar de novo; se só a projeção falhar, o evento já está
- * salvo e a manutenção (server/maintenance.ts) reprojeta depois.
+ * LiveKit webhook. The signature uses the same keys as the token, so only the
+ * LiveKit server can call it. Each event is stored in `livekit_events`
+ * and projected into rooms, participations and shares
+ * (server/livekit/webhook-projector.ts). If storing fails, it responds 503
+ * so LiveKit retries; if only the projection fails, the event is already
+ * saved and maintenance (server/maintenance.ts) re-projects it later.
  */
 export async function receiveLivekitWebhook(request: Request) {
   const env = getEnv();
@@ -72,7 +72,7 @@ export async function receiveLivekitWebhook(request: Request) {
   }
 
   const db = getDb();
-  // O LiveKit sempre manda id; o hash do corpo cobre um envio sem ele.
+  // LiveKit always sends an id; the body hash covers a delivery without one.
   const id = event.id || `sha256:${createHash("sha256").update(body).digest("hex")}`;
   try {
     const result = await ingestEvent(db, id, eventObject.parse(event.toJson()));

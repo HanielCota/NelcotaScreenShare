@@ -9,7 +9,7 @@ type DockTone = "default" | "active" | "danger" | "muted";
 const toneClasses: Record<DockTone, string> = {
   default: "border-line-strong bg-surface-2 text-ink group-hover:bg-surface-3",
   active: "border-brand bg-brand text-brand-ink group-hover:bg-brand-hover",
-  // Sair: sólido, para não se confundir com "Mudo" (vermelho translúcido).
+  // Leave: solid, so it is not confused with "Mudo" (translucent red).
   danger: "border-danger bg-danger text-canvas group-hover:bg-danger/90",
   muted: "border-danger/25 bg-danger/15 text-danger group-hover:bg-danger/25",
 };
@@ -17,7 +17,7 @@ const toneClasses: Record<DockTone, string> = {
 const captionClasses: Record<DockTone, string> = {
   default: "text-ink/85 group-hover:text-ink",
   active: "text-ink",
-  // O botão vermelho já diz "sair"; o texto neutro não pesa no dock.
+  // The red button already says "leave"; neutral text keeps the dock light.
   danger: "text-ink/85 group-hover:text-ink",
   muted: "text-danger",
 };
@@ -27,22 +27,22 @@ interface DockButtonProps extends Omit<ComponentProps<"button">, "aria-label"> {
   tone?: DockTone;
   pressed?: boolean;
   busy?: boolean;
-  /** Tecla de atalho, mostrada no tooltip (ex.: "M"). */
+  /** Shortcut key, shown in the tooltip (e.g. "M"). */
   shortcut?: string;
-  /** Nome visível embaixo do ícone (leigo não adivinha ícone; celular não tem tooltip). */
+  /** Visible name under the icon (non-technical users do not guess icons; phones have no tooltip). */
   caption?: string;
-  /** Versão curta do nome para o celular (ex.: "Tela" em vez de "Compartilhar"). */
+  /** Short version of the name for phones (e.g. "Tela" instead of "Compartilhar"). */
   shortCaption?: string;
-  /** Ajuste da superfície do ícone para controles agrupados. */
+  /** Icon surface adjustment for grouped controls. */
   iconClassName?: string;
 }
 
 /**
- * Botão do dock: superfície com ícone e nome embaixo.
- * Tooltip com o atalho e microinterações via GSAP. Repassa props e
- * ref ao <button>, então serve de gatilho de primitivos Radix
- * (`<Popover.Trigger asChild>`). Para indisponível, use `aria-disabled`: com
- * `disabled` o tooltip não abre.
+ * Dock button: a surface with an icon and a name below.
+ * Tooltip with the shortcut and micro-interactions via GSAP. Forwards props and
+ * ref to the <button>, so it works as a trigger for Radix primitives
+ * (`<Popover.Trigger asChild>`). For unavailable, use `aria-disabled`: with
+ * `disabled` the tooltip does not open.
  */
 export function DockButton({
   label,
@@ -62,8 +62,8 @@ export function DockButton({
 }: DockButtonProps) {
   const { contextSafe } = useGSAP();
 
-  // Só a superfície do ícone reage (não o botão inteiro): no controle do
-  // microfone, que tem duas metades, nada se descola do grupo.
+  // Only the icon surface reacts (not the whole button): in the microphone
+  // control, which has two halves, nothing comes loose from the group.
   const animate = contextSafe((button: HTMLElement, vars: gsap.TweenVars) => {
     const surface = button.querySelector<HTMLElement>("[data-dock-surface]");
     if (

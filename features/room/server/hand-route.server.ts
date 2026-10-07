@@ -16,9 +16,9 @@ function fail(message: string, status: number) {
 }
 
 /**
- * Levantar ou baixar a mão. O atributo é gravado pelo servidor, e não pelo
- * navegador: o token não tem canUpdateOwnMetadata, que também permitiria
- * trocar o próprio nome na sala. A identidade é sempre a da conta logada.
+ * Raising or lowering the hand. The attribute is written by the server, not by the
+ * browser: the token lacks canUpdateOwnMetadata, which would also allow
+ * changing one's own name in the room. The identity is always the signed-in account's.
  */
 export async function setRaisedHand(request: Request) {
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();

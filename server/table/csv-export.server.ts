@@ -2,8 +2,8 @@ import { CSV_BOM, csvRow } from "@/lib/csv";
 import { logger } from "@/server/logger.server";
 
 /**
- * Resposta CSV em stream: cada linha é lida só quando o download pede mais
- * (`pull`), sem montar o arquivo na memória. Download cancelado para a leitura.
+ * Streamed CSV response: each row is read only when the download asks for more
+ * (`pull`), without building the file in memory. A cancelled download stops the reading.
  */
 export function csvResponse(
   filename: string,

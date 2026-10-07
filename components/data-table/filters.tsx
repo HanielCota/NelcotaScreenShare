@@ -49,7 +49,7 @@ export function FilterSelect<T extends string>({
   label: string;
   value: T | null;
   options: readonly { value: T; label: string }[];
-  /** Opção "sem filtro"; sem ela, o select sempre tem um valor. */
+  /** "No filter" option; without it, the select always has a value. */
   allLabel?: string;
   onChange: (value: T | null) => void;
 }) {
@@ -133,7 +133,7 @@ export function FilterDate({
   );
 }
 
-/** Campo de texto com estado local (quem chama atualiza a URL com debounce). */
+/** Text field with local state (the caller updates the URL with a debounce). */
 export function FilterSearch({
   label,
   placeholder,
@@ -145,13 +145,13 @@ export function FilterSearch({
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
-  /** "text": busca exata (IDs), sem a lupa. */
+  /** "text": exact search (IDs), without the magnifier icon. */
   type?: "search" | "number" | "text";
 }) {
   const id = useId();
   const [text, setText] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  // A URL foi limpa por fora (botão "Limpar"): o campo acompanha.
+  // The URL was cleared from outside ("Limpar" button): the field follows.
   const [seen, setSeen] = useState(value);
   if (value !== seen) {
     setSeen(value);
@@ -200,7 +200,7 @@ export function FilterSearch({
   );
 }
 
-/** Alterna crescente/decrescente da ordenação escolhida. */
+/** Toggles ascending/descending for the chosen sort. */
 export function SortDirection({
   value,
   onChange,
@@ -224,7 +224,7 @@ export function SortDirection({
   );
 }
 
-/** "Limpar" (com filtro ativo) e "Exportar CSV" (com permissão), no fim da barra de filtros. */
+/** "Limpar" (with an active filter) and "Exportar CSV" (with permission), at the end of the filter bar. */
 export function FilterActions({
   active,
   onClear,

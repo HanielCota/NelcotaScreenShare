@@ -5,17 +5,17 @@ import { toast } from "sonner";
 import type { ShareChoice } from "@/features/room/domain/share-support";
 
 /**
- * Começar e parar o compartilhamento de tela. Uma instância por sala
- * (RoomLayout), repassada à dock e ao "Compartilhar minha tela" de quem está
- * sozinho: assim o `busy` é um só e não dá para abrir dois seletores.
+ * Starting and stopping screen sharing. One instance per room
+ * (RoomLayout), passed to the dock and to the "Compartilhar minha tela" shown when
+ * alone: that way there is a single `busy` and two pickers cannot be opened.
  */
 export function useScreenShare() {
   const { localParticipant, isScreenShareEnabled } = useLocalParticipant();
   const [busy, setBusy] = useState(false);
 
   async function start({ surface, audio }: ShareChoice) {
-    // Texto (tela, janela): 15fps sobra banda para cada quadro sair nítido.
-    // Aba costuma ser vídeo ou slides animados: 30fps.
+    // Text (screen, window): 15fps leaves bandwidth for every frame to come out sharp.
+    // A tab is usually video or animated slides: 30fps.
     const preset =
       surface === "browser" ? ScreenSharePresets.h1080fps30 : ScreenSharePresets.h1080fps15;
     setBusy(true);
@@ -23,7 +23,7 @@ export function useScreenShare() {
       await localParticipant.setScreenShareEnabled(
         true,
         {
-          // Abre o seletor do navegador direto na aba escolhida no nosso menu.
+          // Opens the browser picker directly on the tab chosen in our menu.
           video: { displaySurface: surface },
           audio: audio
             ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false }

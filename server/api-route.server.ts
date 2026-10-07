@@ -3,15 +3,15 @@ import { withRequest } from "./request-context.server";
 
 type Handler = (request: Request) => Response | Promise<Response>;
 
-/** `loader` de uma rota de API: o handler roda no escopo da requisição. */
+/** `loader` of an API route: the handler runs in the request scope. */
 export function apiLoader(handle: Handler) {
   return ({ request, context }: LoaderFunctionArgs) =>
     withRequest(request, context, () => handle(request));
 }
 
 /**
- * `action` de uma rota de API que só aceita POST. O roteador entrega aqui todo
- * método que não é GET/HEAD; os outros recebem 405.
+ * `action` of an API route that only accepts POST. The router hands every
+ * non-GET/HEAD method here; the others get 405.
  */
 export function apiAction(handle: Handler) {
   return ({ request, context }: ActionFunctionArgs) =>

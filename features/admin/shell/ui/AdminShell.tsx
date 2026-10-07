@@ -48,7 +48,7 @@ interface ShellUser {
   roleLabel: string;
 }
 
-/** Rótulos dos trechos de URL que não estão na navegação (ex.: "conta"). */
+/** Labels for URL segments that are not in the navigation (e.g. "conta"). */
 const SEGMENT_LABELS: Record<string, string> = {
   admin: "Início",
   conta: "Minha conta",
@@ -67,7 +67,7 @@ function useBreadcrumbs(groups: NavGroup[]) {
     const href = `/${parts.slice(0, index + 1).join("/")}`;
     return {
       href,
-      // IDs na URL (páginas de detalhe) viram "Detalhes": o título da página diz qual é.
+      // IDs in the URL (detail pages) become "Detalhes": the page title says which one.
       label: labels.get(href) ?? SEGMENT_LABELS[part] ?? (UUID.test(part) ? "Detalhes" : part),
       current: index === parts.length - 1,
     };

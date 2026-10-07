@@ -1,8 +1,8 @@
 import { roomCodeSchema } from "@/features/room/domain/room-code";
 
 /**
- * De onde a pessoa veio para a tela de acesso (pelo `voltar`): uma sala,
- * talvez por convite, ou nada específico. Muda o texto da tela.
+ * Where the person came from to the access screen (via `voltar`): a room,
+ * maybe through an invite, or nothing specific. It changes the screen text.
  */
 export type AccessContext = { kind: "room"; code: string; invited: boolean } | { kind: "app" };
 

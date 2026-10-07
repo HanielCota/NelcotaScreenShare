@@ -1,12 +1,12 @@
 /**
- * Dados de desenvolvimento e de carga (docs/archive/admin-plan.md §4.6). Idempotente:
- * rodar de novo não duplica nada.
+ * Development and load-test data (docs/archive/admin-plan.md §4.6). Idempotent:
+ * running it again duplicates nothing.
  *
- *   pnpm db:seed                      → perfil "dev"
+ *   pnpm db:seed                      → "dev" profile
  *   pnpm db:seed --perfil=carga --linhas=300000
  *
- * Recusa produção e bancos fora da máquina local (use --forcar se for um
- * banco de teste remoto descartável).
+ * Refuses production and databases outside the local machine (use --forcar for a
+ * disposable remote test database).
  */
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
@@ -22,7 +22,7 @@ const args = new Map(
 );
 const profile = args.get("perfil") ?? "dev";
 const rows = Number(args.get("linhas") ?? 300_000);
-/** Senha de todos os participantes do seed (só em dev). */
+/** Password of every seeded participant (dev only). */
 const SEED_PASSWORD = "senha-dev-1234";
 
 const url = process.env.DATABASE_URL ?? "";
@@ -125,7 +125,7 @@ async function seedAudit(target: number) {
   return missing;
 }
 
-/** Carga: geração no próprio Postgres (generate_series), segundos para 300 mil linhas. */
+/** Load: generated inside Postgres (generate_series), seconds for 300k rows. */
 async function seedLoad(total: number) {
   const before = await db.execute<{ total: number }>(
     sql`select count(*)::int as total from audit_logs where metadata->>'seed' = 'carga'`,
@@ -158,9 +158,9 @@ async function seedLoad(total: number) {
 }
 
 /**
- * Salas, participações, compartilhamentos e pedidos de token, gerados no
- * Postgres. Determinístico (hashtext) e idempotente (códigos e sids fixos).
- * As 3 primeiras salas ficam ativas, com gente dentro.
+ * Rooms, participations, shares and token requests, generated in
+ * Postgres. Deterministic (hashtext) and idempotent (fixed codes and sids).
+ * The first 3 rooms stay active, with people inside.
  */
 async function seedRooms(count: number, prefix: string, userPattern: string) {
   const before = await db.execute<{ total: number }>(
@@ -215,7 +215,7 @@ async function seedRooms(count: number, prefix: string, userPattern: string) {
     update rooms r set peak_participants = (select count(*) from room_participations p where p.room_id = r.id)
     where r.code like ${`${prefix}%`} and r.peak_participants = 0
   `);
-  // Um pedido aceito por entrada e algumas recusas; só na primeira vez.
+  // One granted request per join plus some refusals; only the first time.
   await db.execute(sql`
     insert into token_requests (room_code, room_id, user_id, result, ip, created_at)
     select r.code, r.id, p.user_id,

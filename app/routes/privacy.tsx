@@ -75,8 +75,8 @@ function Duration({ children }: { children: ReactNode }) {
 }
 
 /**
- * Resumo técnico do tratamento de dados (LGPD). O texto jurídico final é
- * responsabilidade de quem opera o serviço (ver docs/archive/admin-plan.md §7.2).
+ * Technical summary of data processing (LGPD). The final legal text is the
+ * responsibility of whoever operates the service (see docs/archive/admin-plan.md §7.2).
  */
 export default function PrivacyPage() {
   return (

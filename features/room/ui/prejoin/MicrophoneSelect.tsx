@@ -17,7 +17,7 @@ import {
   selectedMicrophoneIndex,
 } from "@/features/room/ui/MicrophoneDevice";
 
-/** Uma linha por aparelho: ícone do tipo, nome e etiquetas. */
+/** One row per device: type icon, name and badges. */
 function DeviceOption({ option, index }: { option: MicrophoneOption; index: number }) {
   return (
     <SelectItem

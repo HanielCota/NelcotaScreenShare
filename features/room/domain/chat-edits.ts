@@ -2,9 +2,9 @@ import { z } from "zod";
 import { CHAT_MAX_LENGTH } from "./data-channel";
 
 /**
- * Editar e apagar mensagens do chat. O chat do LiveKit só envia; a mudança vai
- * como um aviso à parte ("a mensagem X mudou") e cada tela aplica na sua cópia.
- * Nada é salvo: quem entra depois não vê histórico.
+ * Editing and deleting chat messages. LiveKit chat only sends; the change goes
+ * as a separate notice ("message X changed") and each screen applies it to its own copy.
+ * Nothing is stored: whoever joins later sees no history.
  */
 export const CHAT_EDIT_TOPIC = "nelcota.chat-edit";
 
@@ -26,10 +26,10 @@ interface ChatEditEntry {
 }
 
 /**
- * Mudanças recebidas, indexadas por "remetente:mensagem". Guardar pelo
- * remetente (identidade dada pelo servidor do LiveKit) é o que impede alguém
- * de mexer na mensagem de outra pessoa: na hora de mostrar, só vale a mudança
- * gravada com a identidade de quem escreveu a mensagem.
+ * Received changes, keyed by "sender:message". Keying by the
+ * sender (identity given by the LiveKit server) is what prevents someone
+ * from tampering with another person's message: when displaying, only the change
+ * recorded with the identity of the message's author counts.
  */
 export type ChatEdits = ReadonlyMap<string, ChatEditEntry>;
 
@@ -37,7 +37,7 @@ function editKey(sender: string, id: string): string {
   return `${sender}:${id}`;
 }
 
-/** Registra a mudança. Apagar é definitivo: edições depois disso são ignoradas. */
+/** Records the change. Deleting is final: later edits are ignored. */
 export function recordChatEdit(edits: ChatEdits, op: ChatEditOp, sender: string): ChatEdits {
   const key = editKey(sender, op.id);
   if (edits.get(key)?.deleted) return edits;
@@ -52,7 +52,7 @@ export interface ResolvedChatText {
   deleted: boolean;
 }
 
-/** O texto que aparece na tela, com as mudanças feitas por quem escreveu. */
+/** The text shown on screen, with the changes made by its author. */
 export function resolveChatText(
   edits: ChatEdits,
   message: { id: string; text: string; author: string | undefined },

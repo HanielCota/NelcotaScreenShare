@@ -13,8 +13,8 @@ import { reprocessPendingEvents } from "@/features/room/server/webhook/projector
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Prazos de retenção (docs/archive/admin-plan.md, LGPD). Registros de acesso ficam
- * 6 meses (Marco Civil, art. 15); o resto só o tempo de servir à segurança.
+ * Retention periods (docs/archive/admin-plan.md, LGPD). Access records are kept
+ * 6 months (Marco Civil, art. 15); the rest only as long as it serves security.
  */
 const RETENTION_DAYS = {
   tokenRequests: 183,
@@ -25,7 +25,7 @@ const RETENTION_DAYS = {
   expiredSessions: 7,
 } as const;
 
-/** Evento recém-chegado ainda pode estar sendo projetado pelo próprio webhook. */
+/** A freshly arrived event may still be being projected by the webhook itself. */
 const REPROCESS_AFTER_MS = 60_000;
 
 export interface MaintenanceReport {
@@ -39,9 +39,9 @@ export interface MaintenanceReport {
 }
 
 /**
- * Tarefas periódicas: reprojeta eventos do LiveKit que falharam e aplica a
- * retenção. Idempotente: rodar duas vezes (ex.: duas réplicas durante o
- * deploy) não causa nada além de consultas a mais.
+ * Periodic tasks: re-projects LiveKit events that failed and applies
+ * retention. Idempotent: running twice (e.g. two replicas during a
+ * deploy) causes nothing beyond extra queries.
  */
 export async function runMaintenance(db: Database, now = new Date()): Promise<MaintenanceReport> {
   const before = (days: number) => new Date(now.getTime() - days * DAY_MS);
@@ -108,7 +108,7 @@ export async function runMaintenance(db: Database, now = new Date()): Promise<Ma
 const FIRST_RUN_DELAY_MS = 60_000;
 const INTERVAL_MS = 6 * 60 * 60 * 1000;
 
-/** Agenda a manutenção no processo do servidor (uma réplica; ver docs/deployment.md). */
+/** Schedules maintenance in the server process (one replica; see docs/deployment.md). */
 export function scheduleMaintenance(getDatabase: () => Database, log: MaintenanceLog) {
   let pending: Promise<void> | undefined;
   const maintain = async () => {

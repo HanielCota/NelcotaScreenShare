@@ -10,12 +10,12 @@ import { EMAIL_PATTERN } from "@/features/auth/domain/sign-up";
 import { formText } from "@/lib/utils";
 import { useCloseRow } from "./settings/ExpandableRow";
 
-/** Troca de e-mail: o link vai para o endereço novo; até confirmar, vale o antigo. */
+/** E-mail change: the link goes to the new address; until confirmed, the old one stays valid. */
 export function ChangeEmailForm({ email }: { email: string }) {
   const emailId = useId();
   const [error, setError] = useState<string>();
   const [sentTo, setSentTo] = useState<string>();
-  // Ao voltar com "Usar outro e-mail", o campo vem com o que foi digitado.
+  // When going back with "Usar outro e-mail", the field keeps what was typed.
   const [draft, setDraft] = useState("");
   const closeRow = useCloseRow();
   const [pending, setPending] = useState(false);
@@ -34,8 +34,8 @@ export function ChangeEmailForm({ email }: { email: string }) {
       callbackURL: "/conta?aviso=email",
     });
     setPending(false);
-    // E-mail já usado por outra conta também volta 200 (o servidor não revela);
-    // qualquer erro aqui é real (sessão expirada, limite, falha do servidor).
+    // An e-mail already used by another account also returns 200 (the server does not reveal it);
+    // any error here is real (expired session, rate limit, server failure).
     if (failure) return setError(authErrorMessage(failure));
     setDraft(newEmail);
     setSentTo(newEmail);

@@ -25,7 +25,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
   const [editingId, setEditingId] = useState<string>();
   const [deletingId, setDeletingId] = useState<string>();
   const [busy, setBusy] = useState(false);
-  // Rolou para cima para ler: mensagens novas não puxam a lista para baixo.
+  // Scrolled up to read: new messages do not pull the list down.
   const [atBottom, setAtBottom] = useState(true);
   const [missed, setMissed] = useState(0);
 
@@ -49,7 +49,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
     setMissed(0);
   }
 
-  // Mensagem nova: acompanha se a pessoa está no fim (ou se foi ela que enviou).
+  // New message: follows along if the person is at the bottom (or if they sent it).
   const count = chat.messages.length;
   const seenCount = useRef(count);
   const onArrival = useEffectEvent((added: number) => {
@@ -71,7 +71,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
   );
 
   function focusInput() {
-    // Depois do React aplicar o texto: cursor no fim, pronto para continuar.
+    // After React applies the text: caret at the end, ready to continue.
     requestAnimationFrame(() => {
       const input = inputRef.current;
       if (!input) return;
@@ -139,7 +139,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
     <aside
       ref={scope}
       aria-label="Chat da sala"
-      // Tela larga: coluna da altura da sala, alinhada com o topo da barra e a base do dock.
+      // Wide screen: a column as tall as the room, aligned with the top of the bar and the bottom of the dock.
       className="glass fixed top-20 right-3 bottom-32 z-40 flex w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-3xl sm:right-6 lg:top-4 lg:bottom-4"
     >
       <header className="flex items-center justify-between gap-3 border-b border-line py-3 pr-2 pl-4">
@@ -219,7 +219,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
         onSubmit={() => void submit()}
         onCancelEdit={cancelEditing}
         onEditLast={() => {
-          // Seta para cima com o campo vazio: edita a sua última mensagem.
+          // Up arrow with an empty field: edits your last message.
           const last = chat.messages.findLast((message) => message.mine && !message.deleted);
           if (last) startEditing(last);
           return last !== undefined;

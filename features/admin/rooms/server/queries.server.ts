@@ -89,9 +89,9 @@ export async function listRooms(
       finishedAt: rooms.finishedAt,
       lastActivityAt: rooms.lastActivityAt,
       peak: rooms.peakParticipants,
-      // Só para as linhas da página (índice share_sessions_room_idx).
-      // "rooms"."id" explícito: sem join, o Drizzle escreve só "id" e a subconsulta
-      // compararia a própria tabela (contagem sempre zero).
+      // Only for the rows on the page (index share_sessions_room_idx).
+      // Explicit "rooms"."id": without a join, Drizzle writes just "id" and the subquery
+      // would compare its own table (count always zero).
       shares: sql<number>`(select count(*)::int from ${shareSessions}
         where ${shareSessions.roomId} = ${sql.identifier("rooms")}.${sql.identifier("id")})`,
       sortKey: sort.key,
@@ -133,7 +133,7 @@ export async function roomIdsForFilter(db: DbExecutor, search: URLSearchParams, 
   return rows.map((row) => row.id);
 }
 
-/** Sala com participantes, compartilhamentos, convites e histórico do painel. */
+/** Room with participants, screen shares, invites and admin panel history. */
 export async function getRoomDetail(db: DbExecutor, id: string) {
   const [room] = await db
     .select({

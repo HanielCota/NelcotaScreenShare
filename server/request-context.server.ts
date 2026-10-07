@@ -9,7 +9,7 @@ interface RequestScope {
 const scope = new AsyncLocalStorage<RequestScope>();
 const memoContext = createContext<Map<object, unknown>>();
 
-/** Compartilha apenas dados da mesma requisição entre loaders paralelos. */
+/** Shares only data from the same request between parallel loaders. */
 export function withRequest<T>(
   request: Request,
   context: Readonly<RouterContextProvider>,

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** Bloco de uma página de detalhe do painel: título, ação opcional e conteúdo. */
+/** Block of an admin detail page: title, optional action and content. */
 export function Section({
   title,
   description,
@@ -26,7 +26,7 @@ export function Section({
   );
 }
 
-/** Lista de pares "rótulo: valor" dos detalhes. */
+/** List of "label: value" pairs for the details. */
 export function Facts({ items }: { items: [string, ReactNode][] }) {
   return (
     <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">

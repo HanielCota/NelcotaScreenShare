@@ -2,16 +2,16 @@ import type { NodeOptions } from "@sentry/react-router";
 import { getEnv } from "@/server/env.server";
 
 /**
- * Sentry no servidor, sem dados pessoais (LGPD): sem usuário, IP, cookies,
- * headers de autenticação, query string nem corpo de requisição. `traceLifecycle: "static"` mantém os
- * traces compatíveis com GlitchTip, se um dia trocarmos.
+ * Server-side Sentry, without personal data (LGPD): no user, IP, cookies,
+ * auth headers, query string or request body. `traceLifecycle: "static"` keeps the
+ * traces compatible with GlitchTip, should we ever switch.
  */
 export function sentryOptions(dsn: string): NodeOptions {
   return {
     dsn,
     environment: process.env.NODE_ENV,
     release: getEnv().APP_VERSION,
-    // SDK 11: o padrão coleta usuário, cookies, headers e corpos. Aqui, só o mínimo.
+    // SDK 11: the default collects user, cookies, headers and bodies. Here, only the minimum.
     dataCollection: {
       userInfo: false,
       cookies: false,

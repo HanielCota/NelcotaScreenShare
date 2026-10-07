@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { navItemClass } from "./nav-item-class";
 import { Hint } from "@/components/Hint";
 
-/** Barra de vidro do topo, usada na home e na sala. Seções separadas por `NavDivider`. */
+/** Top glass bar, used on the home page and in the room. Sections separated by `NavDivider`. */
 export function NavBar({ className, ...props }: ComponentProps<"nav">) {
   return (
     <nav
@@ -22,7 +22,7 @@ export function NavDivider({ className }: { className?: string }) {
   );
 }
 
-/** Ícone + nome. Sem `href` não é link (na sala, sair por engano derrubaria a chamada). */
+/** Icon + name. Without `href` it is not a link (in the room, leaving by mistake would drop the call). */
 export function NavBrand({
   href,
   showName = true,
@@ -58,7 +58,7 @@ export function NavBrand({
   );
 }
 
-/** Item da navbar que abre um painel (popover) abaixo dele. */
+/** Navbar item that opens a panel (popover) below it. */
 export function NavPopover({
   trigger,
   label,
@@ -69,9 +69,9 @@ export function NavPopover({
 }: {
   trigger: ReactNode;
   label: string;
-  /** Gatilho só com ícone: usa o `label` como nome acessível. */
+  /** Icon-only trigger: uses `label` as the accessible name. */
   iconOnly?: boolean;
-  /** Itens do lado direito da barra abrem alinhados pelo fim. */
+  /** Items on the right side of the bar open aligned to the end. */
   align?: "start" | "end";
   className?: string;
   children: ReactNode;

@@ -54,9 +54,9 @@ function StatusChip({ ok, children }: { ok: boolean; children: ReactNode }) {
 }
 
 /**
- * Home da conta, numa coluna só: quem você é (cartão com a foto), o que falta
- * para proteger a conta (checklist com a ação ao lado) e os ajustes em seções
- * com âncora (/conta#seguranca). Formulários longos abrem na própria linha.
+ * Account home, in a single column: who you are (card with the photo), what is
+ * left to secure the account (checklist with the action alongside) and the settings
+ * in anchored sections (/conta#seguranca). Long forms open inline.
  */
 export const loader = routeLoader(async ({ searchParams }) => {
   const current = await requireUser("/conta", { requireVerified: false });

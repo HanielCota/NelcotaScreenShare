@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { initials } from "@/lib/initials";
 
-/** A mesma foto e alternativa em todos os pontos da conta. */
+/** The same photo and fallback everywhere the account appears. */
 export function UserAvatar({
   name,
   image,

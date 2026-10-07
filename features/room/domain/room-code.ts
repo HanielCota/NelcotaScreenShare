@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 /**
- * Código de sala: minúsculas, números e hífens (ex.: "abc-defg-hij"). A mesma
- * regra vale no CHECK da tabela `rooms` (server/db/schema/rooms.ts).
+ * Room code: lowercase letters, digits and hyphens (e.g. "abc-defg-hij"). The same
+ * rule applies in the `rooms` table CHECK (server/db/schema/rooms.ts).
  */
 export const ROOM_CODE_PATTERN = "^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$";
 
@@ -17,7 +17,7 @@ export const roomCodeSchema = z
 
 const ALPHABET = "abcdefghijkmnopqrstuvwxyz23456789";
 
-/** Maior múltiplo do tamanho do alfabeto que cabe em um byte: acima dele, o módulo teria viés. */
+/** Largest multiple of the alphabet size that fits in a byte: above it, the modulo would be biased. */
 const UNBIASED_LIMIT = 256 - (256 % ALPHABET.length);
 
 function randomChunk(length: number): string {
@@ -29,12 +29,12 @@ function randomChunk(length: number): string {
   return chunk;
 }
 
-/** Gera um código fácil de ditar, no estilo "kfa-mtrx-q2p". */
+/** Generates a code that is easy to read aloud, in the style "kfa-mtrx-q2p". */
 export function generateRoomCode(): string {
   return `${randomChunk(3)}-${randomChunk(4)}-${randomChunk(3)}`;
 }
 
-/** Segmento da URL decodificado; `undefined` se a codificação for inválida (ex.: "%E0"). */
+/** Decoded URL segment; `undefined` if the encoding is invalid (e.g. "%E0"). */
 export function decodeRoomParam(segment: string): string | undefined {
   try {
     return decodeURIComponent(segment);
@@ -47,7 +47,7 @@ export function roomPath(code: string): string {
   return `/sala/${encodeURIComponent(code)}`;
 }
 
-/** Link da sala com o convite do painel (quando houver). */
+/** Room link with the dashboard invite (when there is one). */
 export function roomLink(code: string, invite?: string): string {
   return invite ? `${roomPath(code)}?convite=${encodeURIComponent(invite)}` : roomPath(code);
 }

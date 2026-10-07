@@ -4,7 +4,7 @@ import type * as Sentry from "@sentry/react-router";
 let sdk: Promise<typeof Sentry | undefined> | undefined;
 const pending: unknown[] = [];
 
-/** O SDK só é baixado quando um DSN público foi configurado. */
+/** The SDK is only downloaded when a public DSN is configured. */
 export function configureBrowserTelemetry(config?: { dsn?: string; release?: string }) {
   if (!config?.dsn || sdk) return;
   const { dsn, release } = config;
@@ -21,7 +21,7 @@ export function configureBrowserTelemetry(config?: { dsn?: string; release?: str
           httpBodies: [],
           urlQueryParams: false,
         },
-        // Erros locais do navegador; erros do servidor já são registrados no entry.server.
+        // Local browser errors; server errors are already recorded in entry.server.
         beforeSend(event) {
           event.user = undefined;
           if (event.request) {

@@ -2,21 +2,21 @@ import { createAccessControl } from "better-auth/plugins/access";
 import type { AdminRole } from "@/features/auth/domain/roles";
 
 /**
- * Matriz de permissões do painel (docs/archive/admin-plan.md §5.2), fonte única.
+ * Panel permission matrix (docs/archive/admin-plan.md §5.2), single source.
  *
- * `user` e `session` são os recursos do plugin admin do Better Auth e se
- * referem às CONTAS DE ADMIN desta instância. Participantes (contas do app)
- * são o recurso `participant`.
+ * `user` and `session` are the Better Auth admin plugin resources and refer
+ * to the ADMIN ACCOUNTS of this instance. Participants (app accounts)
+ * are the `participant` resource.
  *
- * Ficam de fora de todo papel, de propósito: impersonar, apagar admin,
- * definir senha ou e-mail de outro admin.
+ * Left out of every role, on purpose: impersonating, deleting an admin,
+ * setting another admin's password or e-mail.
  */
 export const statements = {
-  // Plugin admin (contas de admin)
+  // Admin plugin (admin accounts)
   user: ["create", "list", "set-role", "ban", "get", "update"],
   session: ["list", "revoke", "delete"],
   adminInvitation: ["create", "revoke"],
-  // Painel
+  // Panel
   dashboard: ["read"],
   participant: ["read", "update", "delete", "export", "anonymize"],
   room: ["read", "update", "delete", "export"],
@@ -70,12 +70,12 @@ export const roles = {
 
 type Resource = keyof typeof statements;
 type Action<R extends Resource> = (typeof statements)[R][number];
-/** Pedido de permissão: `{ room: ["close"] }`. */
+/** Permission request: `{ room: ["close"] }`. */
 export type PermissionRequest = { [R in Resource]?: readonly Action<R>[] };
 
-/** O papel tem TODAS as permissões pedidas? */
+/** Does the role have ALL the requested permissions? */
 export function can(role: AdminRole, request: PermissionRequest): boolean {
-  // O tipo do Better Auth pede arrays mutáveis; a cópia não muda o conteúdo.
+  // The Better Auth type asks for mutable arrays; the copy does not change the content.
   const copy = Object.fromEntries(
     Object.entries(request).map(([resource, actions]) => [resource, [...(actions ?? [])]]),
   );

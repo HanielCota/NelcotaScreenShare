@@ -23,7 +23,7 @@ export const loader = routeLoader(async ({ searchParams }) => {
     listAuditLogs(db, params, PAGE_SIZE),
     auditFilterOptions(db),
   ]);
-  // Exporta exatamente o filtro da tela (sem a página atual).
+  // Exports exactly the on-screen filter (without the current page).
   const exportHref = can(admin.user.role, { audit: ["export"] })
     ? `/api/admin/exportar/auditoria${serialize({ ...params, cursor: null, dir: null })}`
     : null;

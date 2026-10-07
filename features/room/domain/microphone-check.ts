@@ -1,6 +1,6 @@
 export type MicrophoneCheck = "starting" | "waiting" | "detected" | "confirmed";
 
-/** Confirma captura de áudio sustentada; não faz reconhecimento de fala. */
+/** Confirms sustained audio capture; does not do speech recognition. */
 export function createMicrophoneCheck() {
   let state: MicrophoneCheck = "waiting";
   let audibleSince: number | undefined;

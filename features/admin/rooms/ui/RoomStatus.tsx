@@ -1,7 +1,7 @@
 import { StatusBadge } from "@/components/StatusBadge";
 import type { RoomRow } from "@/features/admin/rooms/server/queries.server";
 
-/** Selo da sala, compartilhado pela tabela e pela página de detalhes. */
+/** Room badge, shared by the table and the details page. */
 export function RoomStatus({ status, deleted }: { status: RoomRow["status"]; deleted: boolean }) {
   if (deleted) return <StatusBadge tone="neutral">Excluída</StatusBadge>;
   return status === "active" ? (

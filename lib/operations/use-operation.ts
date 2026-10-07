@@ -7,7 +7,7 @@ interface Callbacks<O> {
   onError?: (result: { error: Omit<OperationResult<O>, "data"> }) => void;
 }
 
-/** Mutação via action do roteador; ele cancela respostas antigas e revalida os loaders. */
+/** Mutation via a router action; the router cancels stale responses and revalidates the loaders. */
 export function useOperation<I, O>(command: Operation<I, O>, callbacks: Callbacks<O> = {}) {
   const fetcher = useFetcher<OperationResult<O>>();
   const { submit } = fetcher;

@@ -6,9 +6,9 @@ import {
 } from "@/features/room/domain/microphone-check";
 
 interface MicLevelEvents {
-  /** Microfones disponíveis (depois da permissão, com nome). */
+  /** Available microphones (after permission, with names). */
   onDevices: (devices: MediaDeviceInfo[]) => void;
-  /** O microfone escolhido sumiu (desconectado): volta para o padrão. */
+  /** The chosen microphone disappeared (disconnected): fall back to the default. */
   onMissingDevice: () => void;
   onPermissionDenied: () => void;
   onError: (error: unknown) => void;
@@ -16,9 +16,9 @@ interface MicLevelEvents {
 }
 
 /**
- * Medidor ao vivo do microfone: captura local + nível da voz, escrito direto no
- * elemento da barra (sem re-render por quadro). O nível também vai para o
- * mascote "ouvindo" pelo ref devolvido.
+ * Live microphone meter: local capture + voice level, written straight to the
+ * bar element (no re-render per frame). The level also goes to the
+ * "listening" mascot through the returned ref.
  */
 export function useMicLevel(
   meterRef: RefObject<HTMLDivElement | null>,
@@ -58,7 +58,7 @@ export function useMicLevel(
         };
 
         const list = await navigator.mediaDevices.enumerateDevices();
-        // Cancelado durante o await: a limpeza já rodou, então não inicia o medidor.
+        // Cancelled during the await: cleanup already ran, so do not start the meter.
         if (cancelled) return;
         const inputs = list.filter((d) => d.kind === "audioinput" && d.deviceId);
         onDevices(inputs);
@@ -71,7 +71,7 @@ export function useMicLevel(
         const tick = () => {
           const volume = Math.min(1, analyser.calculateVolume() * 2.5);
           levelRef.current = volume;
-          // Curva perceptiva: fala normal enche boa parte do medidor, não só a ponta.
+          // Perceptual curve: normal speech fills a good part of the meter, not just the tip.
           meter.style.transform = `scaleX(${Math.sqrt(volume).toFixed(3)})`;
           const next = check(volume, performance.now());
           if (next !== checkState) {

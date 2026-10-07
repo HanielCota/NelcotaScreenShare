@@ -15,8 +15,8 @@ import { DockButton } from "./DockButton";
 import { DockPopoverContent, DockPopoverTitle } from "./DockPopover";
 
 /**
- * Escolha do microfone dentro da sala, com a mesma lista da pré-entrada (um
- * item por aparelho, etiquetas de padrão). Só aparece com mais de um aparelho.
+ * Microphone choice inside the room, with the same list as the pre-join screen (one
+ * item per device, default badges). Only appears with more than one device.
  */
 export function MicMenu({ disabled = false }: { disabled?: boolean }) {
   const room = useRoomContext();
@@ -25,7 +25,7 @@ export function MicMenu({ disabled = false }: { disabled?: boolean }) {
     kind: "audioinput",
     room,
   });
-  // Sem a entrada "default" (Firefox, Safari), a opção genérica não teria para onde apontar.
+  // Without the "default" entry (Firefox, Safari), the generic option would have nothing to point to.
   const hasDefault = devices.some((device) => device.deviceId === "default");
   const options = microphoneOptions(devices).filter(
     (option) => option.kind !== "system" || hasDefault,
@@ -37,7 +37,7 @@ export function MicMenu({ disabled = false }: { disabled?: boolean }) {
   async function choose(value: string) {
     setOpen(false);
     try {
-      // "" segue o padrão do sistema: no LiveKit é o aparelho "default".
+      // "" follows the system default: in LiveKit it is the "default" device.
       await setActiveMediaDevice(value || "default");
       saveMicrophone(value || undefined);
     } catch {

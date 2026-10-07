@@ -6,7 +6,7 @@ import { clientIpFrom } from "@/server/client-ip.server";
 import { createRateLimiter } from "@/server/rate-limit.server";
 import { requestLogger } from "@/server/request-log.server";
 
-// Excesso por IP não vai para o banco: uma enxurrada não vira enxurrada de escrita.
+// Per-IP excess does not reach the database: a flood does not become a flood of writes.
 const perIpLimit = createRateLimiter({ limit: 20, windowMs: 60_000 });
 
 function rejection(error: TokenRefusal, message: string, retryAfterSeconds?: number) {
@@ -21,7 +21,7 @@ function rejection(error: TokenRefusal, message: string, retryAfterSeconds?: num
   );
 }
 
-/** Corpo lido antes das checagens, só para registrar a sala pedida em cada resultado. */
+/** Body read before the checks, only to record the requested room in every result. */
 async function readBody(request: Request) {
   try {
     const value: unknown = await request.json();
@@ -36,8 +36,8 @@ async function readBody(request: Request) {
 }
 
 /**
- * Token do LiveKit para entrar numa sala. Aqui fica só a borda HTTP (origem,
- * IP, corpo, sessão); quem pode entrar é decidido em features/room.
+ * LiveKit token for joining a room. Only the HTTP edge lives here (origin,
+ * IP, body, session); who may join is decided in features/room.
  */
 export async function requestRoomToken(request: Request) {
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();

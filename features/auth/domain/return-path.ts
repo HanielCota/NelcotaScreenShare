@@ -1,10 +1,10 @@
 const BASE = "http://nelcota.local";
 
 /**
- * Só aceita destinos internos (evita open redirect em `?voltar=`).
- * A checagem é feita pelo parser de URL do navegador, e não por prefixo: ele
- * descarta tab e quebra de linha e troca "\" por "/", então "/\t/evil.com"
- * viraria "//evil.com" (outro site) depois de passar por um teste de texto.
+ * Only accepts internal destinations (prevents open redirect in `?voltar=`).
+ * The check uses the browser's URL parser, not a prefix: it drops tabs and
+ * line breaks and turns "\" into "/", so "/\t/evil.com" would become
+ * "//evil.com" (another site) after passing a text test.
  */
 export function safeReturnPath(value: unknown, fallback = "/"): string {
   if (typeof value !== "string" || !value.startsWith("/")) return fallback;

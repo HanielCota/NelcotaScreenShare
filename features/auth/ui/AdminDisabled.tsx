@@ -1,7 +1,7 @@
 import { PowerOff } from "lucide-react";
 import { AuthCard } from "./AuthCard";
 
-/** Sem banco ou sem ADMIN_AUTH_SECRET o painel não liga. */
+/** Without a database or ADMIN_AUTH_SECRET the panel does not start. */
 export function AdminDisabled() {
   return (
     <AuthCard

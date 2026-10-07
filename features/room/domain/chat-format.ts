@@ -1,13 +1,13 @@
-/** Mensagens seguidas da mesma pessoa, com até 2 minutos entre elas, viram um grupo. */
+/** Consecutive messages from the same person, up to 2 minutes apart, form a group. */
 export const CHAT_GROUP_GAP_MS = 2 * 60 * 1000;
 
 interface ChatItem {
-  /** Quem enviou (identity); `undefined` quando o remetente é desconhecido. */
+  /** Who sent it (identity); `undefined` when the sender is unknown. */
   author: string | undefined;
   timestamp: number;
 }
 
-/** Para cada mensagem: ela abre um grupo novo (mostra nome e hora)? */
+/** For each message: does it start a new group (shows name and time)? */
 export function chatGroupStarts(items: readonly ChatItem[]): boolean[] {
   return items.map((item, index) => {
     const previous = items[index - 1];
@@ -22,10 +22,10 @@ export function chatGroupStarts(items: readonly ChatItem[]): boolean[] {
 export type ChatPart = { type: "text"; value: string } | { type: "link"; value: string };
 
 const LINK = /https?:\/\/[^\s<>"]+/g;
-/** Pontuação colada no fim do link costuma ser da frase, não do endereço. */
+/** Punctuation stuck to the end of a link usually belongs to the sentence, not the address. */
 const TRAILING = /[.,;:!?)\]]+$/;
 
-/** Separa o texto em trechos e links http(s), para o chat mostrar links clicáveis. */
+/** Splits the text into chunks and http(s) links, so the chat shows clickable links. */
 export function chatParts(text: string): ChatPart[] {
   const parts: ChatPart[] = [];
   let last = 0;

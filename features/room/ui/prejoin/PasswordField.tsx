@@ -3,7 +3,7 @@ import { useId, type RefObject } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-/** Senha da sala (só quando o servidor exige e não há convite). */
+/** Room password (only when the server requires it and there is no invite). */
 export function PasswordField({
   inputRef,
   error,

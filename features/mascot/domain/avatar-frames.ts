@@ -3,7 +3,7 @@ type Cell = { column: number; row: number };
 const NEUTRAL: Cell = { column: 0, row: 0 };
 const EYES_CLOSED: Cell = { column: 0, row: 1 };
 
-/** Célula do atlas de cada expressão (as que faltam usam a neutra). */
+/** Atlas cell for each expression (missing ones use the neutral cell). */
 const CELLS = new Map<string, Cell>([
   ["happy", { column: 1, row: 0 }],
   ["celebrate", { column: 1, row: 0 }],
@@ -17,16 +17,16 @@ const CELLS = new Map<string, Cell>([
   ["asleep", EYES_CLOSED],
 ]);
 
-/** Grade do atlas: três colunas, duas linhas, sem recortes sobre o rosto. */
+/** Atlas grid: three columns, two rows, no cutouts over the face. */
 export function avatarFrame(expression: string | undefined, lid0 = 0, lid1 = 0): Cell {
-  // A piscada fecha só as pálpebras, sem baixar a mão durante o encontro.
+  // The blink only closes the eyelids, without lowering the hand during the greeting.
   if (expression === "greeting") return { column: 2, row: 0 };
   if (expression === "yawning") return { column: 2, row: 1 };
   if (Math.max(lid0, lid1) > 0.85) return EYES_CLOSED;
   return (expression === undefined ? undefined : CELLS.get(expression)) ?? NEUTRAL;
 }
 
-/** Poses A/B do mesmo braço: a troca discreta mantém o desenho inteiro intacto. */
+/** A/B poses of the same arm: the discrete swap keeps the whole drawing intact. */
 export const AVATAR_WAVE = [
   { transform: "translate(-33.333333%, 0)", offset: 0 },
   { transform: "translate(-66.666667%, 0)", offset: 0.2 },
