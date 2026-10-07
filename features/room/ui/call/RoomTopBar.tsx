@@ -42,7 +42,7 @@ function RoomCodeButton({ code }: { code: string }) {
         <span className="font-sans tabular-nums">{code}</span>
       </span>
       {copied ? (
-        <span className="text-success flex shrink-0 items-center gap-1 text-sm font-medium">
+        <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-success">
           <Check className="size-4" aria-hidden="true" />
           <span className="max-sm:sr-only">Copiado</span>
         </span>
