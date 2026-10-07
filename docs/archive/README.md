@@ -1,9 +1,9 @@
-# Planos históricos
+# Historical plans
 
-Estes documentos registram as fases anteriores do projeto, incluindo a arquitetura com Next e os caminhos de arquivo existentes naquela época. A implementação atual está descrita no [guia da arquitetura](../README.md) e no [ADR 0005](../adr/0005-react-router-framework.md).
+These documents record earlier phases of the project, including the Next-based architecture and the file paths that existed at the time. The current implementation is described in the [architecture guide](../README.md) and in [ADR 0005](../adr/0005-react-router-framework.md).
 
-- [Plano original do painel administrativo](admin-plan.md).
-- [Diagnóstico e plano de refatoração por feature](refactor/00-executive-summary.md).
-- [Registro da execução daquela refatoração](refactor/06-execution.md).
+- [Original admin panel plan](admin-plan.md).
+- [Diagnosis and feature-based refactoring plan](refactor/00-executive-summary.md).
+- [Execution log of that refactoring](refactor/06-execution.md).
 
-Os caminhos, versões, medições e pendências nesses documentos representam o estado registrado em cada fase.
+The paths, versions, measurements and pending items in these documents reflect the state recorded at each phase.

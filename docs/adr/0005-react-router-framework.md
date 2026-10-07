@@ -1,32 +1,32 @@
-# ADR 0005 — React Router Framework Mode no lugar do Next
+# ADR 0005 — React Router Framework Mode instead of Next
 
-- **Status:** aceita (2026-10-06)
-- **Contexto:** manter React, as salas do LiveKit e as contas existentes, removendo a dependência do Next. O caminho atual do Remix para aplicações React é o React Router em Framework Mode.
+- **Status:** accepted (2026-10-06)
+- **Context:** keep React, the LiveKit rooms and the existing accounts while removing the dependency on Next. Remix's current path for React applications is React Router in Framework Mode.
 
-## Decisão
+## Decision
 
-- React Router 8.4, Vite 8.3, React 19.3 e React Compiler, com SSR em Node 26.9 e adaptador Express 5.
-- Rotas explícitas em `app/routes.ts`, com módulos em `app/routes/`: páginas públicas, `access/`, `admin/access/`, `admin/panel/` e `api/`. Arquivos têm nomes em inglês; URLs existentes continuam em português. Cada endpoint mantém sua implementação privada em um arquivo `.server.ts` ao lado do módulo de rota.
-- Loaders fazem leitura e autorização no servidor. Cada loader protegido autoriza seus próprios dados porque loaders de layout e de página podem executar em paralelo.
-- Módulos `.server.ts` guardam banco, autenticação, configuração e mutações. O build recusa imports desses módulos pelo navegador.
-- A UI recebe DTOs com apenas os campos necessários. A senha de acesso à sala fica no servidor; o loader envia somente `passwordRequired`.
-- Operações usam `useFetcher`, Zod e políticas explícitas de sessão, 2FA, permissão, login recente e auditoria. GET é reservado à busca; mutações exigem POST e origem confiável. Aceite de convite e exclusão de conta redirecionam no servidor.
-- `AsyncLocalStorage` e o contexto do roteador limitam a memorização de sessão à mesma requisição. Não há cache global de usuários.
-- Better Auth, hashes Argon2id, cookies, tabelas e migrações existentes são mantidos. A migração de framework não altera o schema.
-- LiveKit e GSAP Flip entram em um chunk carregado depois da pré-entrada. A fonte Manrope é hospedada pelo app.
-- Sentry usa o SDK de React Router, com captura nos entries e coleta de dados pessoais desativada. DSNs são opcionais e lidos em runtime.
-- SIGTERM/SIGINT encerram requisições, manutenção, pool do Postgres e transporte de observabilidade antes da saída.
+- React Router 8.4, Vite 8.3, React 19.3 and React Compiler, with SSR on Node 26.9 and the Express 5 adapter.
+- Explicit routes in `app/routes.ts`, with modules in `app/routes/`: public pages, `access/`, `admin/access/`, `admin/panel/` and `api/`. Files have English names; existing URLs stay in Portuguese. Each endpoint keeps its private implementation in a `.server.ts` file next to the route module.
+- Loaders do reading and authorization on the server. Each protected loader authorizes its own data because layout and page loaders may run in parallel.
+- `.server.ts` modules hold database, authentication, configuration and mutations. The build rejects imports of these modules from the browser.
+- The UI receives DTOs with only the fields it needs. The room access password stays on the server; the loader sends only `passwordRequired`.
+- Operations use `useFetcher`, Zod and explicit policies for session, 2FA, permission, recent login and audit. GET is reserved for search; mutations require POST and a trusted origin. Invitation acceptance and account deletion redirect on the server.
+- `AsyncLocalStorage` and the router context limit session memoization to the same request. There is no global user cache.
+- Better Auth, Argon2id hashes, cookies, tables and existing migrations are kept. The framework migration doesn't change the schema.
+- LiveKit and GSAP Flip go into a chunk loaded after the pre-join screen. The Manrope font is hosted by the app.
+- Sentry uses the React Router SDK, with capture in the entries and personal data collection disabled. DSNs are optional and read at runtime.
+- SIGTERM/SIGINT drain requests, maintenance, the Postgres pool and the observability transport before exiting.
 
-## Dependências e compatibilidade
+## Dependencies and compatibility
 
-As dependências diretas foram conferidas no registro. Babel permanece na versão 7.29.7 porque o SDK Sentry 11.4 exige Babel 7; atualizar para Babel 8 agora quebraria esse contrato. O lockfile fixa as versões resolvidas, a instalação não acrescenta peers opcionais como Next, e os peers obrigatórios são declarados no projeto.
+The direct dependencies were checked against the registry. Babel stays on 7.29.7 because the Sentry 11.4 SDK requires Babel 7; upgrading to Babel 8 now would break that contract. The lockfile pins the resolved versions, installation doesn't add optional peers such as Next, and required peers are declared in the project.
 
-## Consequências
+## Consequences
 
-- Não há `next`, `next-safe-action`, APIs de cache do Next nem adapter Next do Nuqs no runtime.
-- `pnpm dev` e `pnpm start` executam `server.mjs`. O Docker inclui o build SSR e as dependências de produção, sem servidor de desenvolvimento.
-- Deploys existentes precisam renomear `NEXT_PUBLIC_LIVEKIT_URL` para `LIVEKIT_URL` e, se usado, `NEXT_PUBLIC_SENTRY_DSN` para `PUBLIC_SENTRY_DSN`. Os segredos de autenticação e o banco permanecem os mesmos.
-- Este ADR substitui as decisões específicas de Next/RSC/next-safe-action do ADR 0001 e dos planos anteriores em `docs/archive/refactor/`. As fronteiras por feature e as regras de domínio continuam válidas.
-- Os testes de integração continuam usando bancos descartáveis. Os E2E executam o build de produção por padrão; `E2E_DEV=true` permite verificar o servidor Vite.
+- There is no `next`, `next-safe-action`, Next cache APIs or Nuqs's Next adapter in the runtime.
+- `pnpm dev` and `pnpm start` run `server.mjs`. The Docker image includes the SSR build and production dependencies, without a development server.
+- Existing deployments need to rename `NEXT_PUBLIC_LIVEKIT_URL` to `LIVEKIT_URL` and, if used, `NEXT_PUBLIC_SENTRY_DSN` to `PUBLIC_SENTRY_DSN`. The authentication secrets and the database stay the same.
+- This ADR supersedes the Next/RSC/next-safe-action-specific decisions of ADR 0001 and of the earlier plans in `docs/archive/refactor/`. The feature boundaries and the domain rules remain valid.
+- Integration tests keep using disposable databases. E2E tests run the production build by default; `E2E_DEV=true` allows checking the Vite server.
 
-Referências: [Framework Mode](https://reactrouter.com/start/framework/installation), [loaders](https://reactrouter.com/start/framework/data-loading), [actions](https://reactrouter.com/start/framework/actions), [relato de erros](https://reactrouter.com/how-to/error-reporting).
+References: [Framework Mode](https://reactrouter.com/start/framework/installation), [loaders](https://reactrouter.com/start/framework/data-loading), [actions](https://reactrouter.com/start/framework/actions), [error reporting](https://reactrouter.com/how-to/error-reporting).

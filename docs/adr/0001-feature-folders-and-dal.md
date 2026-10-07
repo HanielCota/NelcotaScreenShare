@@ -1,41 +1,41 @@
-# ADR 0001 — Pastas por feature, DAL do Next e domínio puro só onde há regra
+# ADR 0001 — Feature folders, Next's DAL and pure domain only where there are rules
 
-- **Status:** aceita (2026-10-06); as decisões específicas do Next foram substituídas pelo [ADR 0005](0005-react-router-framework.md).
-- **Contexto:** o código estava organizado por tipo técnico (`components/`, `lib/`, `hooks/`, `server/`), mas `features/` existia só para o painel. `components/` importava actions de `app/`, havia três pastas de auth e `lib/` guardava regras de domínio. Nenhuma regra automática conseguia dizer o que podia depender de quê.
+- **Status:** accepted (2026-10-06); the Next-specific decisions were superseded by [ADR 0005](0005-react-router-framework.md).
+- **Context:** the code was organized by technical type (`components/`, `lib/`, `hooks/`, `server/`), but `features/` existed only for the panel. `components/` imported actions from `app/`, there were three auth folders and `lib/` held domain rules. No automated rule could say what was allowed to depend on what.
 
-## Decisão
+## Decision
 
-- Cada domínio fica em `features/<nome>/` (`room`, `mascot`, `auth`, `account`, `admin/*`, `participants`, `home`, `maintenance`), com subpastas conforme a necessidade:
-  - `ui/` e `hooks/` (React);
-  - `actions.ts` (borda: Zod e autorização pelo next-safe-action);
-  - `server/` (`server-only`: consultas e mutações com Drizzle direto, que é o DAL recomendado pelo Next 16);
-  - `domain/` (TypeScript puro).
-- `components/` e `lib/` guardam só o que é genérico; `server/` guarda só a infra.
-- `domain/` existe **apenas** onde há regra de verdade: a decisão do token, as regras do mascote, o protocolo da sala, a presença, o cadastro e as ações do participante. Listagens do painel vão direto da página para `queries.ts`.
+- Each domain lives in `features/<name>/` (`room`, `mascot`, `auth`, `account`, `admin/*`, `participants`, `home`, `maintenance`), with subfolders as needed:
+  - `ui/` and `hooks/` (React);
+  - `actions.ts` (the edge: Zod and authorization through next-safe-action);
+  - `server/` (`server-only`: queries and mutations with Drizzle directly, which is the DAL recommended by Next 16);
+  - `domain/` (pure TypeScript).
+- `components/` and `lib/` hold only what is generic; `server/` holds only infrastructure.
+- `domain/` exists **only** where there are real rules: the token decision, the mascot rules, the room protocol, presence, sign-up and participant actions. Panel listings go straight from the page to `queries.ts`.
 
-## Alternativas descartadas
+## Rejected alternatives
 
-- **Clean Architecture completa** (repositório e interface para tudo): dobraria os arquivos sem ganho. O Drizzle já é a abstração de dados, e os testes de integração com Postgres real verificam SQL, constraints e triggers melhor que fakes.
-- **Manter a organização por tipo** e só quebrar arquivos grandes: não resolve as dependências invertidas nem permite regras de fronteira.
+- **Full Clean Architecture** (a repository and an interface for everything): would double the files with no gain. Drizzle is already the data abstraction, and integration tests against a real Postgres verify SQL, constraints and triggers better than fakes.
+- **Keep the by-type organization** and just split large files: doesn't fix the inverted dependencies nor allow boundary rules.
 
-## Consequências
+## Consequences
 
-- "Onde fica X?" tem uma resposta.
-- As fronteiras ficam impostas pelo lint (ADR 0003).
-- Os caminhos mudaram em massa: os commits de movimentação ficaram separados dos de extração, para facilitar a revisão e o revert.
+- "Where does X live?" has one answer.
+- Boundaries are enforced by the linter (ADR 0003).
+- Paths changed en masse: the move commits were kept separate from the extraction commits, to make review and revert easier.
 
-## Revisão (2026-10-07): padrão único e restos do Next
+## Revision (2026-10-07): one pattern and leftovers from Next
 
-A organização tinha se desviado da decisão acima:
+The organization had drifted from the decision above:
 
-- os endpoints em `app/routes/api/` tinham pares `x.ts` + `x.server.ts`, com a lógica (validação, rate limit, LiveKit) dentro de `app/`;
-- o mecanismo das operações estava em seis lugares, metade em `features/auth`, e `features/participants/server/operations.server.ts` usava o mesmo nome para outra coisa;
-- cada feature tinha um esquema próprio (`engine/` e `dom/` no mascote, arquivos soltos no painel);
-- havia pastas de um arquivo só (`features/maintenance`, `features/participants`, `server/actions`, `server/audit`) e regra de negócio em `server/` (`settings.server.ts`).
+- the endpoints in `app/routes/api/` had `x.ts` + `x.server.ts` pairs, with the logic (validation, rate limit, LiveKit) inside `app/`;
+- the operations mechanism was spread over six places, half of them in `features/auth`, and `features/participants/server/operations.server.ts` used the same name for something else;
+- each feature had its own scheme (`engine/` and `dom/` in the mascot, loose files in the panel);
+- there were single-file folders (`features/maintenance`, `features/participants`, `server/actions`, `server/audit`) and business rules in `server/` (`settings.server.ts`).
 
-Decidido:
+Decided:
 
-- **Mesmo padrão em todas as features**, inclusive nas do painel: `domain/`, `server/`, `client/`, `hooks/`, `ui/` e `actions.ts`/`actions.server.ts`, só as que forem necessárias. `engine/` e `dom/` deixam de existir.
-- **Rotas finas:** o handler de cada endpoint fica na feature dona (`features/room/server/token-route.server.ts`) e a rota só o liga à URL com `apiLoader`/`apiAction` (`server/api-route.server.ts`). As pastas de `app/routes/api/` espelham a URL.
-- **Operações com um lugar por papel:** `lib/operations/` (descritor e hook), `server/operations/` (validação, erros, despacho HTTP), `features/auth/server/operation-policies.server.ts` (quem pode chamar) e `app/operations.server.ts` (registro). O `origin-guard` é infra e foi para `server/`.
-- **Peças comuns ganham pasta própria:** `features/security` (sessões e 2FA, usados pela conta e pelo painel), `features/runtime` (inicialização e manutenção), `components/shell` (cabeçalho, navbar, tema), `lib/animation`.
+- **The same pattern in every feature**, including the panel ones: `domain/`, `server/`, `client/`, `hooks/`, `ui/` and `actions.ts`/`actions.server.ts`, only those that are needed. `engine/` and `dom/` are gone.
+- **Thin routes:** each endpoint's handler lives in the owning feature (`features/room/server/token-route.server.ts`) and the route only wires it to the URL with `apiLoader`/`apiAction` (`server/api-route.server.ts`). The folders in `app/routes/api/` mirror the URL.
+- **Operations with one place per role:** `lib/operations/` (descriptor and hook), `server/operations/` (validation, errors, HTTP dispatch), `features/auth/server/operation-policies.server.ts` (who may call) and `app/operations.server.ts` (registry). The `origin-guard` is infrastructure and moved to `server/`.
+- **Shared pieces get their own folder:** `features/security` (sessions and 2FA, used by the account and the panel), `features/runtime` (startup and maintenance), `components/shell` (header, navbar, theme), `lib/animation`.
