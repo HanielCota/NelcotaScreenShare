@@ -1,7 +1,7 @@
 /** Limites de senha (admins e participantes), iguais no navegador e no servidor. */
 export const PASSWORD_LIMITS = {
   admin: { min: 12, max: 128 },
-  user: { min: 10, max: 128 },
+  user: { min: 8, max: 128 },
 } as const;
 
 const STRENGTHS = [0, 1, 2, 3] as const;

@@ -35,7 +35,7 @@ export function NavBrand({
   const content = (
     <>
       <img
-        src="/icon.svg"
+        src="/icon.png"
         alt={href ? "" : "Nelcota"}
         width={28}
         height={28}
