@@ -136,7 +136,7 @@ test.describe("na sala", () => {
       .getByRole("button", { name: "Sair", exact: true })
       .click();
     await expect(caio.page.getByText("Você saiu da sala")).toBeVisible();
-    await caio.page.getByRole("button", { name: "Entrar de novo" }).click();
+    await caio.page.getByRole("button", { name: "Voltar para a sala" }).click();
     await expect(caio.page.getByLabel("Senha da sala (quem te convidou sabe)")).toBeVisible();
     await caio.context.close();
   });
