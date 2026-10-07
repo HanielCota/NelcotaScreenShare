@@ -12,10 +12,12 @@ import { DockButton } from "./DockButton";
 import { MicMenu } from "./MicMenu";
 import { ReactionsMenu } from "./Reactions";
 import { ShareMenu } from "./ShareMenu";
-import { useScreenShare } from "./use-screen-share";
+import { MIC_ERROR_TOAST } from "./toast-ids";
+import type { ScreenShareControl } from "./use-screen-share";
 
 interface ControlDockProps {
   chat: ChatState;
+  share: ScreenShareControl;
   onLeave: () => void;
 }
 
@@ -24,10 +26,9 @@ interface ControlDockProps {
  * embaixo. "Compartilhar" em verde por ser a ação principal; "Sair" separado
  * e vermelho. O link da sala fica na barra do topo.
  */
-export function ControlDock({ chat, onLeave }: ControlDockProps) {
+export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
   const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const [micBusy, setMicBusy] = useState(false);
-  const share = useScreenShare();
   const shareSupported = canShareScreen();
 
   async function toggleMic() {
@@ -39,6 +40,7 @@ export function ControlDock({ chat, onLeave }: ControlDockProps) {
         MediaDeviceFailure.getFailure(error) === MediaDeviceFailure.PermissionDenied
           ? "Permissão do microfone negada. Libere o acesso nas configurações do navegador."
           : "Não foi possível alterar o microfone. Confira o dispositivo e tente novamente.",
+        { id: MIC_ERROR_TOAST },
       );
     } finally {
       setMicBusy(false);

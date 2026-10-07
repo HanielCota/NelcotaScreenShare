@@ -1,4 +1,4 @@
-import { ArrowLeft, Radio } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -42,15 +42,6 @@ export default async function RoomPage({ params }: PageProps<"/admin/salas/[id]"
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="font-mono text-2xl font-bold tracking-tight">{room.code}</h1>
           <RoomStatus status={room.status} deleted={room.deletedAt !== null} />
-          {live && can(role, { live: ["read"] }) ? (
-            <Link
-              href={`/admin/ao-vivo/${room.code}`}
-              className="flex items-center gap-1 text-sm font-semibold text-brand-soft hover:underline"
-            >
-              <Radio className="size-4" aria-hidden="true" />
-              Acompanhar ao vivo
-            </Link>
-          ) : null}
         </div>
       </div>
 

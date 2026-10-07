@@ -129,4 +129,17 @@ describe("dados do titular", () => {
     assert.equal(row?.ip, "203.0.113.20");
     assert.equal(row?.userId, leo.id);
   });
+
+  test("senha errada ao excluir tem limite de tentativas por conta", async () => {
+    const ana = await verifiedParticipant(db, handler);
+    requestHeaders.current = new Headers({ cookie: ana.jar.header() });
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const wrong = await deleteMyAccount({ password: "senha-errada-123" });
+      assert.equal(wrong.serverError, "Senha incorreta.");
+    }
+    const blocked = await deleteMyAccount({ password: ana.password });
+    assert.match(String(blocked.serverError), /Muitas tentativas/);
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, ana.id));
+    assert.equal(user?.deletedAt, null, "a conta continua ativa");
+  });
 });

@@ -5,12 +5,12 @@ import { requireUser } from "@/server/auth/user-session";
 import { getDb } from "@/server/db";
 import { getEnv } from "@/server/env";
 import { roomPresence } from "@/server/rooms/presence";
-import { roomCodeSchema, roomLink } from "@/lib/livekit";
+import { decodeRoomParam, roomCodeSchema, roomLink } from "@/lib/livekit";
 import { INVITE_TOKEN_PATTERN } from "@/lib/invite";
 
 export async function generateMetadata({ params }: PageProps<"/sala/[codigo]">): Promise<Metadata> {
   const { codigo } = await params;
-  const code = roomCodeSchema.safeParse(decodeURIComponent(codigo));
+  const code = roomCodeSchema.safeParse(decodeRoomParam(codigo));
   return { title: code.success ? `Sala ${code.data}` : "Sala" };
 }
 
@@ -21,12 +21,8 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/sal
   const invite =
     typeof convite === "string" && INVITE_TOKEN_PATTERN.test(convite) ? convite : undefined;
 
-  let raw: string;
-  try {
-    raw = decodeURIComponent(codigo);
-  } catch {
-    redirect("/?erro=codigo");
-  }
+  const raw = decodeRoomParam(codigo);
+  if (raw === undefined) redirect("/?erro=codigo");
   const code = roomCodeSchema.safeParse(raw);
   if (!code.success) redirect("/?erro=codigo");
   // Um só endereço por sala: "/sala/ABC-..." vira "/sala/abc-...", igual ao link copiado.

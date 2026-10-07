@@ -16,18 +16,28 @@ const LOGGED_EVENTS = new Set([
 
 let receiver: WebhookReceiver | undefined;
 
+/** Eventos do LiveKit têm poucos KB; acima disso nem lê o corpo. */
+const MAX_BODY_BYTES = 64 * 1024;
+
+function tooLarge() {
+  return NextResponse.json({ error: "payload_too_large" }, { status: 413 });
+}
+
 /**
  * Webhook do LiveKit. A assinatura usa as mesmas chaves do token, então só o
  * servidor LiveKit consegue chamar. Cada evento é gravado em `livekit_events`
  * e projetado em salas, participações e compartilhamentos
- * (server/livekit/webhook-projector.ts). Sem banco, responde 503 para o
- * LiveKit tentar de novo.
+ * (server/livekit/webhook-projector.ts). Se a gravação falhar, responde 503
+ * para o LiveKit tentar de novo; se só a projeção falhar, o evento já está
+ * salvo e a manutenção (server/maintenance.ts) reprojeta depois.
  */
 export async function POST(request: NextRequest) {
   const env = getEnv();
   receiver ??= new WebhookReceiver(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET);
 
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) return tooLarge();
   const body = await request.text();
+  if (body.length > MAX_BODY_BYTES) return tooLarge();
   let event;
   try {
     event = await receiver.receive(body, request.headers.get("authorization") ?? undefined);

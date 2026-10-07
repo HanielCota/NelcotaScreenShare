@@ -5,6 +5,7 @@ import { Track, type Participant } from "livekit-client";
 import { MicOff, MonitorUp } from "lucide-react";
 import { useRef } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { initials, participantName } from "@/lib/participant-label";
 
 interface ParticipantTileProps {
   participant: Participant;
@@ -12,19 +13,12 @@ interface ParticipantTileProps {
   compact: boolean;
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  const first = parts[0]?.[0] ?? "?";
-  const last = parts.length > 1 ? (parts.at(-1)?.[0] ?? "") : "";
-  return `${first}${last}`.toUpperCase();
-}
-
 export function ParticipantTile({ participant, isSharing, compact }: ParticipantTileProps) {
   const scope = useRef<HTMLDivElement>(null);
   const pulse = useRef<gsap.core.Tween | null>(null);
   const isSpeaking = useIsSpeaking(participant);
   const isMuted = useIsMuted({ participant, source: Track.Source.Microphone });
-  const name = participant.name || participant.identity;
+  const name = participantName(participant);
 
   // Pulso suave na borda de quem está falando.
   useGSAP(

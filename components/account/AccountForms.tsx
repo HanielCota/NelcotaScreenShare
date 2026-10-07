@@ -114,8 +114,9 @@ export function ChangeEmailForm({ email }: { email: string }) {
       callbackURL: "/conta?aviso=email",
     });
     setPending(false);
-    if (failure && failure.status === 429) return setError(authErrorMessage(failure));
-    // Mesma resposta exista ou não outra conta com esse e-mail.
+    // E-mail já usado por outra conta também volta 200 (o servidor não revela);
+    // qualquer erro aqui é real (sessão expirada, limite, falha do servidor).
+    if (failure) return setError(authErrorMessage(failure));
     setSentTo(newEmail);
   }
 

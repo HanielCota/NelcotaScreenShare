@@ -69,6 +69,21 @@ FROM pg_sequences WHERE schemaname = 'drizzle'
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nelcota_app;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nelcota_app;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO nelcota_readonly;
+-- O GRANT acima devolveria UPDATE/DELETE às tabelas só de inserção numa nova
+-- rodada: refaz os REVOKE das migrações 0003 e 0004 (se as tabelas já existem).
+DO $$
+BEGIN
+  IF to_regclass('public.audit_logs') IS NOT NULL THEN
+    REVOKE UPDATE, DELETE, TRUNCATE ON audit_logs FROM nelcota_app;
+  END IF;
+  IF to_regclass('public.token_requests') IS NOT NULL THEN
+    REVOKE UPDATE, TRUNCATE ON token_requests FROM nelcota_app;
+  END IF;
+  IF to_regclass('public.livekit_events') IS NOT NULL THEN
+    REVOKE UPDATE, TRUNCATE ON livekit_events FROM nelcota_app;
+    GRANT UPDATE (processed_at, error) ON livekit_events TO nelcota_app;
+  END IF;
+END $$;
 -- pg_stat_statements não é extensão "trusted": só o superusuário cria.
 -- (Exige shared_preload_libraries = 'pg_stat_statements' no postgresql.conf.)
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;

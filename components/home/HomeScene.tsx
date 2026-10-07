@@ -103,7 +103,7 @@ export function HomeScene({
               <Link href="/entrar" className={navItemClass}>
                 Entrar
               </Link>
-              <Button asChild className="h-9 rounded-xl px-3.5 max-sm:hidden">
+              <Button asChild className="max-sm:hidden">
                 <Link href="/cadastro">Criar conta</Link>
               </Button>
             </>

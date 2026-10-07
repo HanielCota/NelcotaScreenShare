@@ -128,6 +128,9 @@ export function Mascot({
       </div>
       <button
         type="button"
+        // Brincadeira de mouse e toque: fora da ordem do Tab, para não ficar
+        // entre a pessoa e o campo principal da página.
+        tabIndex={-1}
         disabled={activity !== "idle" && activity !== "walking"}
         data-mascot-action="pet"
         aria-label="Fazer carinho no Nelcota"
@@ -136,6 +139,9 @@ export function Mascot({
       />
       <button
         type="button"
+        // Brincadeira de mouse e toque: fora da ordem do Tab, para não ficar
+        // entre a pessoa e o campo principal da página.
+        tabIndex={-1}
         disabled={activity !== "idle" && activity !== "walking"}
         data-mascot-action="high-five"
         aria-label="Toca aqui com o Nelcota"

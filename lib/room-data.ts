@@ -44,6 +44,23 @@ export function decodeMessage<T>(payload: Uint8Array, schema: z.ZodType<T>): T |
   }
 }
 
+/**
+ * Limite no RECEPTOR: o remetente já espaça os envios, mas um cliente
+ * modificado poderia inundar os outros. Aceita no máximo uma mensagem por
+ * remetente a cada `minGapMs` (metade do intervalo de envio, folga para o
+ * jitter da rede juntar duas mensagens legítimas).
+ */
+export function createReceiveThrottle(minGapMs: number, now: () => number = Date.now) {
+  const last = new Map<string, number>();
+  return function accept(sender: string): boolean {
+    const time = now();
+    const previous = last.get(sender);
+    if (previous !== undefined && time - previous < minGapMs) return false;
+    last.set(sender, time);
+    return true;
+  };
+}
+
 /** Área ocupada pela imagem dentro do elemento (`object-contain`), relativa a ele. */
 export function contentBox(
   box: { width: number; height: number },

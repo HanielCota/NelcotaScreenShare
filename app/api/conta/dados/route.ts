@@ -1,4 +1,4 @@
-import { count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 import { getUserAuth } from "@/server/auth/user";
 import { getDb } from "@/server/db";
 import {
@@ -20,7 +20,8 @@ const limiter = createRateLimiter({ limit: 5, windowMs: 60 * 60 * 1000 });
 export async function GET(request: Request) {
   const auth = await getUserAuth().api.getSession({ headers: request.headers });
   const db = getDb();
-  if (!auth || !db || auth.user.deletedAt) {
+  // Conta bloqueada ou excluída não tem sessão, como em getUserSession.
+  if (!auth || !db || auth.user.deletedAt || auth.user.blockedAt) {
     return Response.json(
       { message: "Entre na sua conta para baixar seus dados." },
       { status: 401 },
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
       userAgent: userSessions.userAgent,
     })
     .from(userSessions)
-    .where(eq(userSessions.userId, auth.user.id))
+    .where(and(eq(userSessions.userId, auth.user.id), gt(userSessions.expiresAt, new Date())))
     .orderBy(desc(userSessions.createdAt));
 
   const participations = await db

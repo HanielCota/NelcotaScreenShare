@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getDb } from "@/server/db";
 import { users } from "@/server/db/schema";
+import { safeReturnPath } from "@/lib/return-path";
 import { getEnv } from "@/server/env";
 import { getUserAuth } from "./user";
 
@@ -17,14 +18,6 @@ export interface UserSession {
     twoFactorEnabled: boolean;
   };
   session: { id: string; createdAt: Date };
-}
-
-/** Só aceita destinos internos (evita open redirect em `?voltar=`). */
-export function safeReturnPath(value: unknown, fallback = "/"): string {
-  if (typeof value !== "string") return fallback;
-  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return fallback;
-  if (value.startsWith("/api/") || value.startsWith("/admin")) return fallback;
-  return value;
 }
 
 /**

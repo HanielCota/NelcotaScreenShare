@@ -9,6 +9,10 @@ import { getDb } from "@/server/db";
 import { userAccounts, userSessions } from "@/server/db/schema";
 import { logger } from "@/server/logger";
 import { anonymizeParticipant } from "@/server/participants/operations";
+import { createRateLimiter } from "@/server/rate-limit";
+
+/** Senha errada ao excluir a conta: poucas chances por conta, contra adivinhação. */
+const deletePasswordFailures = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
 
 function database() {
   const db = getDb();
@@ -65,6 +69,9 @@ export const deleteMyAccount = userAction
   .action(async ({ parsedInput, ctx }) => {
     const db = database();
     const userId = ctx.current.user.id;
+    if (!deletePasswordFailures.peek(userId).ok) {
+      throw new ActionError("Muitas tentativas com a senha errada. Aguarde alguns minutos.");
+    }
     const [credential] = await db
       .select({ password: userAccounts.password })
       .from(userAccounts)
@@ -73,8 +80,10 @@ export const deleteMyAccount = userAction
       !credential?.password ||
       !(await verifyPassword({ hash: credential.password, password: parsedInput.password }))
     ) {
+      deletePasswordFailures.hit(userId);
       throw new ActionError("Senha incorreta.");
     }
+    deletePasswordFailures.reset(userId);
     await db.transaction(async (tx) => {
       await anonymizeParticipant(tx, userId);
       // LGPD: registro da exclusão pedida pelo próprio titular (sem dados pessoais).

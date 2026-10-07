@@ -9,10 +9,7 @@ import {
 } from "livekit-client";
 import { useEffect } from "react";
 import { toast } from "sonner";
-
-function displayName(participant: RemoteParticipant): string {
-  return participant.name || participant.identity;
-}
+import { participantName } from "@/lib/participant-label";
 
 /**
  * Avisos curtos do que acontece na sala: quem entrou, quem saiu e quem
@@ -23,12 +20,12 @@ export function useRoomNotices() {
 
   useEffect(() => {
     const joined = (participant: RemoteParticipant) =>
-      toast(`${displayName(participant)} entrou na sala`, { duration: 3000 });
+      toast(`${participantName(participant)} entrou na sala`, { duration: 3000 });
     const left = (participant: RemoteParticipant) =>
-      toast(`${displayName(participant)} saiu da sala`, { duration: 3000 });
+      toast(`${participantName(participant)} saiu da sala`, { duration: 3000 });
     const published = (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
       if (publication.source !== Track.Source.ScreenShare) return;
-      toast(`${displayName(participant)} começou a mostrar a tela`, { duration: 3000 });
+      toast(`${participantName(participant)} começou a mostrar a tela`, { duration: 3000 });
     };
 
     room

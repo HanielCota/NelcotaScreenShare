@@ -1,7 +1,6 @@
 "use client";
 
 import { useDataChannel, VideoTrack, type TrackReference } from "@livekit/components-react";
-import type { Participant } from "livekit-client";
 import { Maximize2, Minimize2, MonitorUp, MousePointerClick } from "lucide-react";
 import {
   useEffect,
@@ -13,8 +12,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useShortcut } from "@/hooks/useShortcut";
+import { participantName } from "@/lib/participant-label";
 import {
   contentBox,
+  createReceiveThrottle,
   decodeMessage,
   encodeMessage,
   pointerSchema,
@@ -39,11 +40,7 @@ const PING_MS = 2500;
 const SEND_INTERVAL_MS = 150;
 
 function sharerName(ref: TrackReference): string {
-  return ref.participant.isLocal ? "Você" : ref.participant.name || ref.participant.identity;
-}
-
-function displayName(participant: Participant | undefined): string {
-  return participant?.name || participant?.identity || "Alguém";
+  return ref.participant.isLocal ? "Você" : participantName(ref.participant);
 }
 
 function subscribeFullscreen(onChange: () => void) {
@@ -63,9 +60,12 @@ function usePointers() {
     setTimeout(() => setPings((list) => list.filter((ping) => ping.id !== id)), PING_MS);
   }
 
+  const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));
+
   const { send } = useDataChannel(TOPICS.pointer, (message) => {
+    if (!acceptFrom(message.from?.identity ?? "")) return;
     const received = decodeMessage(message.payload, pointerSchema);
-    if (received) add(received, displayName(message.from));
+    if (received) add(received, participantName(message.from));
   });
 
   function pointAt(message: PointerMessage) {
@@ -165,7 +165,8 @@ function PointerLayer({
 export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [pointing, setPointing] = useState(false);
+  // O modo de apontar vale para a tela em que foi ligado: trocar de tela desliga.
+  const [pointingAt, setPointingAt] = useState<string>();
   const { pings, pointAt } = usePointers();
   const isFullscreen = useSyncExternalStore(
     subscribeFullscreen,
@@ -177,6 +178,8 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
   const canFullscreen = document.fullscreenEnabled;
   const isOwnScreen = focused.participant.isLocal;
   const trackSid = focused.publication.trackSid;
+  const pointing = !isOwnScreen && pointingAt === trackSid;
+  const togglePointing = () => setPointingAt(pointing ? undefined : trackSid);
 
   async function toggleFullscreen() {
     const el = stageRef.current;
@@ -193,7 +196,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
   }
 
   useShortcut("f", () => void toggleFullscreen(), canFullscreen);
-  useShortcut("p", () => setPointing((value) => !value), !isOwnScreen);
+  useShortcut("p", togglePointing, !isOwnScreen);
 
   return (
     <section
@@ -262,7 +265,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
           {isOwnScreen ? null : (
             <button
               type="button"
-              onClick={() => setPointing((value) => !value)}
+              onClick={togglePointing}
               aria-pressed={pointing}
               aria-keyshortcuts="P"
               title="Apontar na tela (P)"

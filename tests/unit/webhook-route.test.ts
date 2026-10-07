@@ -76,3 +76,8 @@ await test("recusa corpo alterado depois de assinado", async () => {
   const tampered = body.replace("Ana", "Eva");
   assert.equal((await post(tampered, signed)).status, 401);
 });
+
+await test("recusa corpo grande demais sem ler a assinatura", async () => {
+  const huge = JSON.stringify({ event: "room_started", padding: "x".repeat(70 * 1024) });
+  assert.equal((await post(huge, await signature(huge))).status, 413);
+});

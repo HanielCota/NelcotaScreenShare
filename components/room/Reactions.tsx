@@ -14,8 +14,11 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useShortcut } from "@/hooks/useShortcut";
+import { setHandRaised } from "@/lib/livekit";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/gsap";
+import { participantName } from "@/lib/participant-label";
 import {
+  createReceiveThrottle,
   decodeMessage,
   encodeMessage,
   HAND_ATTRIBUTE,
@@ -42,10 +45,6 @@ const SEND_INTERVAL_MS = 250;
 
 const ReactionsContext = createContext<((emoji: Reaction) => void) | null>(null);
 
-function displayName(participant: Participant | undefined): string {
-  return participant?.name || participant?.identity || "Alguém";
-}
-
 /** Recebe e mostra as reações da sala; `useReact()` envia. */
 export function ReactionsProvider({ children }: { children: ReactNode }) {
   const room = useRoomContext();
@@ -60,9 +59,12 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setItems((list) => list.filter((item) => item.id !== id)), VISIBLE_MS);
   }
 
+  const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));
+
   const { send } = useDataChannel(TOPICS.reaction, (message) => {
+    if (!acceptFrom(message.from?.identity ?? "")) return;
     const data = decodeMessage(message.payload, reactionSchema);
-    if (data) show(data.emoji, displayName(message.from));
+    if (data) show(data.emoji, participantName(message.from));
   });
 
   function react(emoji: Reaction) {
@@ -79,7 +81,7 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onAttributes = (changed: Record<string, string>, participant: Participant) => {
       if (participant.isLocal || !(HAND_ATTRIBUTE in changed)) return;
-      if (changed[HAND_ATTRIBUTE]) toast(`✋ ${displayName(participant)} levantou a mão`);
+      if (changed[HAND_ATTRIBUTE]) toast(`✋ ${participantName(participant)} levantou a mão`);
     };
     room.on(RoomEvent.ParticipantAttributesChanged, onAttributes);
     return () => {
@@ -152,16 +154,17 @@ export function ReactionsMenu() {
   const react = useReact();
   const [open, setOpen] = useState(false);
   const handId = useId();
+  const room = useRoomContext();
   const { localParticipant } = useLocalParticipant();
   const handRaised =
     useParticipantAttribute(HAND_ATTRIBUTE, { participant: localParticipant }) === "1";
 
   function toggleHand() {
     const next = !handRaised;
-    localParticipant.setAttributes({ [HAND_ATTRIBUTE]: next ? "1" : "" }).then(
-      () => toast(next ? "✋ Você levantou a mão" : "Você baixou a mão"),
-      () => toast.error("Não foi possível levantar a mão. Tente de novo."),
-    );
+    void setHandRaised(room.name, next).then((ok) => {
+      if (ok) toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
+      else toast.error("Não foi possível levantar a mão. Tente de novo.");
+    });
   }
 
   useShortcut("h", toggleHand);

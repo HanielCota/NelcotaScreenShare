@@ -108,6 +108,30 @@ export async function requestToken(input: TokenRequest): Promise<TokenResult> {
   };
 }
 
+/** Levanta ou baixa a mão (o servidor grava o atributo; ver /api/sala/mao). */
+export async function setHandRaised(room: string, raised: boolean): Promise<boolean> {
+  try {
+    const response = await fetch("/api/sala/mao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ room, raised }),
+      cache: "no-store",
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Segmento da URL decodificado; `undefined` se a codificação for inválida (ex.: "%E0"). */
+export function decodeRoomParam(segment: string): string | undefined {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return undefined;
+  }
+}
+
 export function roomPath(code: string): string {
   return `/sala/${encodeURIComponent(code)}`;
 }

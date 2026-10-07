@@ -24,6 +24,25 @@ import { authHooks, SIGN_IN_PATH } from "./shared";
 
 export const ADMIN_AUTH_BASE_PATH = "/api/admin/auth";
 
+/**
+ * O plugin `admin` dá ao Better Auth o papel e o bloqueio da conta. As rotas
+ * HTTP dele (criar, mudar papel, trocar e-mail ou senha de outro admin…) ficam
+ * fechadas: não exigem 2FA nem sessão recente e não gravam auditoria. O painel
+ * faz essas operações pelas próprias actions.
+ */
+const adminPlugin = admin({
+  ac,
+  roles,
+  defaultRole: "viewer",
+  adminRoles: ["owner"],
+  allowImpersonatingAdmins: false,
+  bannedUserMessage: "Esta conta está desativada. Fale com o dono do painel.",
+});
+
+export const DISABLED_ADMIN_PLUGIN_PATHS = Object.values(adminPlugin.endpoints).map(
+  (endpoint) => endpoint.path,
+);
+
 function createAdminAuth(db: Database, secret: string) {
   const production = process.env.NODE_ENV === "production";
 
@@ -34,6 +53,7 @@ function createAdminAuth(db: Database, secret: string) {
     secret,
     trustedOrigins: [appUrl()],
     telemetry: { enabled: false },
+    disabledPaths: DISABLED_ADMIN_PLUGIN_PATHS,
     database: drizzleAdapter(db, {
       provider: "pg",
       schema: {
@@ -150,14 +170,7 @@ function createAdminAuth(db: Database, secret: string) {
         schema: { twoFactor: { modelName: "adminTwoFactors" } },
         backupCodeOptions: { amount: 10, length: 10 },
       }),
-      admin({
-        ac,
-        roles,
-        defaultRole: "viewer",
-        adminRoles: ["owner"],
-        allowImpersonatingAdmins: false,
-        bannedUserMessage: "Esta conta está desativada. Fale com o dono do painel.",
-      }),
+      adminPlugin,
       // Precisa ser o último: grava os cookies quando a chamada vem de uma Server Action.
       nextCookies(),
     ],

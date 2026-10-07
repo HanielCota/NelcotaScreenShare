@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import type { ShareChoice } from "./ShareMenu";
 
 /**
- * Começar e parar o compartilhamento de tela, usado pela dock e pelo
- * "Compartilhar minha tela" de quem está sozinho na sala.
+ * Começar e parar o compartilhamento de tela. Uma instância por sala
+ * (RoomLayout), repassada à dock e ao "Compartilhar minha tela" de quem está
+ * sozinho: assim o `busy` é um só e não dá para abrir dois seletores.
  */
 export function useScreenShare() {
   const { localParticipant, isScreenShareEnabled } = useLocalParticipant();
@@ -71,3 +72,5 @@ export function useScreenShare() {
 
   return { isSharing: isScreenShareEnabled, busy, start, stop };
 }
+
+export type ScreenShareControl = ReturnType<typeof useScreenShare>;

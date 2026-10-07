@@ -1,11 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import {
-  AccessToken,
-  RoomConfiguration,
-  RoomServiceClient,
-  ServerError,
-  TrackSource,
-} from "livekit-server-sdk";
+import { AccessToken, RoomConfiguration, ServerError, TrackSource } from "livekit-server-sdk";
 import { NextResponse, type NextRequest } from "next/server";
 import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/auth/origin-guard";
 import { getUserAuth } from "@/server/auth/user";
@@ -14,6 +8,7 @@ import { getEnv } from "@/server/env";
 import { requestLogger } from "@/server/request-log";
 import { tokenRequestSchema, type TokenErrorCode, type TokenResponse } from "@/lib/livekit";
 import { getDb } from "@/server/db";
+import { roomService } from "@/server/livekit/room-service";
 import { recordTokenRequest, type TokenResult } from "@/server/livekit/token-log";
 import { redeemRoomInvite } from "@/server/rooms/invites";
 import { createRateLimiter } from "@/server/rate-limit";
@@ -48,21 +43,9 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(hashA, hashB);
 }
 
-function httpUrlFrom(wsUrl: string): string {
-  const url = new URL(wsUrl);
-  url.protocol = url.protocol === "wss:" ? "https:" : "http:";
-  return url.origin;
-}
-
 async function countParticipants(room: string): Promise<number> {
-  const env = getEnv();
-  const client = new RoomServiceClient(
-    httpUrlFrom(env.NEXT_PUBLIC_LIVEKIT_URL),
-    env.LIVEKIT_API_KEY,
-    env.LIVEKIT_API_SECRET,
-  );
   try {
-    const participants = await client.listParticipants(room);
+    const participants = await roomService().listParticipants(room);
     return participants.length;
   } catch (error) {
     // Sala ainda não existe: ninguém dentro.
@@ -223,8 +206,8 @@ export async function POST(request: NextRequest) {
       canSubscribe: true,
       // Chat, reações e apontador usam o canal de dados.
       canPublishData: true,
-      // "Levantar a mão" fica nos atributos do participante.
-      canUpdateOwnMetadata: true,
+      // Sem canUpdateOwnMetadata: ele deixaria trocar o próprio nome na sala.
+      // "Levantar a mão" passa pelo servidor (/api/sala/mao).
     });
     // Rede de segurança: o próprio LiveKit recusa entradas acima do limite.
     token.roomConfig = new RoomConfiguration({ maxParticipants: env.MAX_PARTICIPANTS });

@@ -158,7 +158,8 @@ describe("token", () => {
     assert.equal(video.room, "sala-teste");
     assert.deepEqual(video.canPublishSources, ["microphone", "screen_share", "screen_share_audio"]);
     assert.equal(video.canPublishData, true);
-    assert.equal(video.canUpdateOwnMetadata, true);
+    // Sem trocar o próprio nome na sala: a mão levantada passa pelo servidor.
+    assert.equal(video.canUpdateOwnMetadata, undefined);
   });
 
   test("sala nova, sala cheia e LiveKit com erro", async () => {
