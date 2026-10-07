@@ -6,6 +6,7 @@ import { upsetMascot } from "@/features/mascot/client/events";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { requestToken } from "@/features/room/client/api";
 import { joinFailure, type JoinChoices } from "@/features/room/domain/join";
+import type { RoomPresence } from "@/features/room/domain/presence";
 import { roomLink } from "@/features/room/domain/room-code";
 import { useMicSetup } from "@/features/room/hooks/use-mic-setup";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
@@ -25,7 +26,7 @@ interface PreJoinProps {
   /** Dashboard invite: replaces the access password. */
   invite?: string;
   /** People in the room now (null: unknown). */
-  presence: { online: number } | null;
+  presence: RoomPresence | null;
   maxParticipants: number;
   onJoin: (choices: JoinChoices) => void;
 }
