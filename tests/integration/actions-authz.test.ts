@@ -18,12 +18,6 @@ const anonymous = new Headers({ "x-client-ip": "203.0.113.200", "user-agent": "v
 vi.mock("@/server/request-context.server", () => ({
   requestMemo: (load: () => unknown) => load,
   requestHeaders: () => anonymous,
-  cookies: async () => ({
-    get: () => undefined,
-    getAll: () => [],
-    set: () => {},
-    delete: () => {},
-  }),
 }));
 const root = fileURLToPath(new URL("../../", import.meta.url));
 // Actions ficam nas features (e, se um dia houver, em app/); as duas pastas entram.
