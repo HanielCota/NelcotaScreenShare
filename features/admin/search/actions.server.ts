@@ -28,7 +28,10 @@ export const searchPanelAction = defineAdminOperation(
                 sql`${rooms.code} like ${`%${likeEscape(q.toLowerCase())}%`}`,
               ),
             )
-            .orderBy(desc(rooms.lastActivityAt))
+            .orderBy(
+              sql`${desc(rooms.lastActivityAt)} nulls last`,
+              sql`${desc(rooms.id)} nulls last`,
+            )
             .limit(5)
         : [],
       can(role, { participant: ["read"] })
@@ -41,7 +44,7 @@ export const searchPanelAction = defineAdminOperation(
                 unaccentLike(sql`${users.name} || ' ' || ${users.email}`, q),
               ),
             )
-            .orderBy(desc(users.lastSeenAt))
+            .orderBy(sql`${desc(users.lastSeenAt)} nulls last`, sql`${desc(users.id)} nulls last`)
             .limit(5)
         : [],
     ]);
