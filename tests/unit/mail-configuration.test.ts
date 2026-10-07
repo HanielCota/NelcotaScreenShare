@@ -2,17 +2,24 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mail = vi.hoisted(() => ({
   warn: vi.fn(),
+  info: vi.fn(),
+  error: vi.fn(),
+  sleep: vi.fn(),
   send: vi.fn(),
   createTransport: vi.fn(),
   fetch: vi.fn(),
 }));
 
-vi.mock("@/server/logger.server", () => ({ logger: { warn: mail.warn } }));
+vi.mock("@/server/logger.server", () => ({
+  logger: { warn: mail.warn, info: mail.info, error: mail.error },
+}));
 vi.mock("nodemailer", () => ({ createTransport: mail.createTransport }));
+vi.mock("node:timers/promises", () => ({ setTimeout: mail.sleep }));
 
 beforeEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
+  mail.sleep.mockResolvedValue(undefined);
   vi.stubEnv("NODE_ENV", "production");
   vi.stubEnv("DATABASE_URL", "postgres://app:password@localhost/nelcota");
   vi.stubEnv("LIVEKIT_API_KEY", "test-key");
@@ -99,14 +106,11 @@ describe("mail delivery", () => {
     text: "https://app.example.com/reset?token=private-token",
   };
 
-  test("skips production delivery without exposing recipients or recovery links", async () => {
+  test("rejects unconfigured production delivery without exposing recipients or links", async () => {
     const { sendMail } = await import("@/server/mail.server");
-    await sendMail(message);
+    await expect(sendMail(message)).rejects.toThrow("E-mail delivery is not configured");
     expect(mail.createTransport).not.toHaveBeenCalled();
-    expect(mail.warn).toHaveBeenCalledExactlyOnceWith(
-      { subject: message.subject },
-      "e-mail not sent: delivery is disabled",
-    );
+    expect(mail.warn).not.toHaveBeenCalled();
   });
 
   test("keeps development links in the log", async () => {
@@ -137,33 +141,102 @@ describe("mail delivery", () => {
     await sendMail(htmlMessage);
     expect(mail.fetch).toHaveBeenCalledExactlyOnceWith("https://api.resend.com/emails", {
       method: "POST",
-      headers: { Authorization: "Bearer re_test_key", "Content-Type": "application/json" },
+      headers: {
+        Authorization: "Bearer re_test_key",
+        "Content-Type": "application/json",
+        "Idempotency-Key": expect.any(String) as string,
+      },
       body: JSON.stringify({ from: "Nelcota <mail@example.com>", ...htmlMessage }),
       signal: expect.any(AbortSignal) as AbortSignal,
     });
     expect(mail.createTransport).not.toHaveBeenCalled();
     expect(mail.warn).not.toHaveBeenCalled();
+    expect(mail.info).toHaveBeenCalledExactlyOnceWith(
+      { event: "mail.accepted", provider: "resend", messageId: "email-id", attempt: 1 },
+      "e-mail accepted by provider",
+    );
   });
 
-  test("reports provider failures without exposing the response body", async () => {
+  test("does not retry permanent provider errors or expose the response body", async () => {
     vi.stubEnv("RESEND_API_KEY", "re_test_key");
     vi.stubEnv("MAIL_FROM", "Nelcota <mail@example.com>");
     mail.fetch.mockResolvedValue(
-      new Response("recipient@example.com private-token", { status: 429 }),
+      new Response("recipient@example.com private-token", { status: 403 }),
     );
     const { sendMail } = await import("@/server/mail.server");
-    await expect(sendMail(message)).rejects.toThrow("Resend rejected e-mail delivery (HTTP 429)");
+    await expect(sendMail(message)).rejects.toThrow("Resend rejected e-mail delivery (HTTP 403)");
+    expect(mail.fetch).toHaveBeenCalledTimes(1);
+    expect(mail.sleep).not.toHaveBeenCalled();
     expect(mail.send).not.toHaveBeenCalled();
     expect(mail.warn).not.toHaveBeenCalled();
+    expect(JSON.stringify(mail.error.mock.calls)).not.toMatch(
+      /recipient|private-token|re_test_key/,
+    );
   });
 
-  test("propagates network failures without sending again", async () => {
+  test.each([429, 503])(
+    "retries HTTP %s with the same payload and idempotency key",
+    async (status) => {
+      vi.stubEnv("RESEND_API_KEY", "re_test_key");
+      vi.stubEnv("MAIL_FROM", "Nelcota <mail@example.com>");
+      mail.fetch
+        .mockResolvedValueOnce(new Response("private-token", { status }))
+        .mockResolvedValueOnce(new Response('{"id":"email-id"}', { status: 200 }));
+      const { sendMail } = await import("@/server/mail.server");
+      await sendMail(message);
+      expect(mail.fetch).toHaveBeenCalledTimes(2);
+      const first = mail.fetch.mock.calls[0]?.[1] as RequestInit;
+      const second = mail.fetch.mock.calls[1]?.[1] as RequestInit;
+      expect(second.headers).toEqual(first.headers);
+      expect(second.body).toBe(first.body);
+      expect(mail.sleep).toHaveBeenCalledExactlyOnceWith(500);
+      expect(mail.info).toHaveBeenCalledWith(
+        expect.objectContaining({ event: "mail.accepted", attempt: 2 }),
+        "e-mail accepted by provider",
+      );
+      expect(mail.send).not.toHaveBeenCalled();
+    },
+  );
+
+  test("recovers from an ambiguous network failure without changing the request key", async () => {
     vi.stubEnv("RESEND_API_KEY", "re_test_key");
     vi.stubEnv("MAIL_FROM", "Nelcota <mail@example.com>");
-    mail.fetch.mockRejectedValue(new TypeError("fetch failed"));
+    mail.fetch
+      .mockRejectedValueOnce(new TypeError("private-token"))
+      .mockResolvedValueOnce(new Response('{"id":"email-id"}', { status: 200 }));
     const { sendMail } = await import("@/server/mail.server");
-    await expect(sendMail(message)).rejects.toThrow("fetch failed");
-    expect(mail.fetch).toHaveBeenCalledTimes(1);
+    await sendMail(message);
+    const first = mail.fetch.mock.calls[0]?.[1] as RequestInit;
+    const second = mail.fetch.mock.calls[1]?.[1] as RequestInit;
+    expect(second.headers).toEqual(first.headers);
+    expect(JSON.stringify(mail.warn.mock.calls)).not.toContain("private-token");
+  });
+
+  test("bounds network retries and reports a sanitized failure", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test_key");
+    vi.stubEnv("MAIL_FROM", "Nelcota <mail@example.com>");
+    mail.fetch.mockRejectedValue(new TypeError("recipient@example.com private-token"));
+    const { sendMail } = await import("@/server/mail.server");
+    await expect(sendMail(message)).rejects.toThrow("Resend request failed or timed out");
+    expect(mail.fetch).toHaveBeenCalledTimes(3);
+    expect(mail.sleep.mock.calls).toEqual([[500], [1000]]);
+    expect(JSON.stringify(mail.error.mock.calls)).not.toMatch(
+      /recipient|private-token|re_test_key/,
+    );
     expect(mail.send).not.toHaveBeenCalled();
+  });
+
+  test("assigns different keys to independent requests for the same message", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test_key");
+    vi.stubEnv("MAIL_FROM", "Nelcota <mail@example.com>");
+    mail.fetch.mockImplementation(() => Promise.resolve(new Response('{"id":"email-id"}')));
+    const { sendMail } = await import("@/server/mail.server");
+    await sendMail(message);
+    await sendMail(message);
+    const first = mail.fetch.mock.calls[0]?.[1] as RequestInit;
+    const second = mail.fetch.mock.calls[1]?.[1] as RequestInit;
+    expect(new Headers(first.headers).get("Idempotency-Key")).not.toBe(
+      new Headers(second.headers).get("Idempotency-Key"),
+    );
   });
 });
