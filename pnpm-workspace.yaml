@@ -1,7 +1,5 @@
 allowBuilds:
   esbuild: false
-  sharp: false
-  unrs-resolver: false
 autoInstallPeers: false
 minimumReleaseAgeExclude:
   - knip@6.40.0
