@@ -82,9 +82,11 @@ To test: `curl https://lk.yourdomain.com` should respond `OK`.
 
 ### 4. App resource (GHCR image)
 
-The image is built on **GitHub Actions** (not on the VPS, so it doesn't compete with the app for CPU and memory) and published to GHCR with two tags: `:<sha>` (immutable) and `:main`.
+The image is built on **GitHub Actions** (not on the VPS, so it doesn't compete with the app for CPU and memory) and published to `ghcr.io/hanielcota/nelcota` with three tags: `:<sha>` (immutable), `:main` and `:latest`.
 
-1. In Coolify: New Resource → **Docker Image** → `ghcr.io/<org>/<repo>:main` (with a GHCR read credential). Ports Exposes: `3000`. Domains: `https://app.yourdomain.com`.
+The package keeps its original lowercase `nelcota` name after the repository was renamed to `NelcotaScreenShare`, so existing Coolify resources using `:latest` continue to receive updates. The separate `ghcr.io/hanielcota/nelcota-server` package belongs to the Nelcota server/CLI project.
+
+1. In Coolify: New Resource → **Docker Image** → `ghcr.io/hanielcota/nelcota:latest` (with a GHCR read credential). Ports Exposes: `3000`. Domains: `https://app.yourdomain.com`.
 2. Environment Variables (runtime):
 
    ```
@@ -116,7 +118,7 @@ GitHub secrets (`production` environment): `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS
 >
 > The IP used for rate limiting is taken from `X-Forwarded-For` counting from the end, according to `TRUSTED_PROXY_HOPS` (Traefik = 1). If `app.` also goes through the Cloudflare proxy, use `TRUSTED_PROXY_HOPS=2`. The same count tells Express which proxies to trust for `X-Forwarded-Proto`: the app must see `https` requests, or React Router refuses every browser action (400) because its `Origin` is `https://`.
 >
-> **Rollback:** the `:main` tag changes on every deploy. To go back a version, point the resource to `ghcr.io/<org>/<repo>:<previous-sha>` (immutable tag) and redeploy; migrations are always additive (expand/contract), so the previous code works with the new schema.
+> **Rollback:** the `:main` and `:latest` tags change on every deploy. To go back a version, point the resource to `ghcr.io/hanielcota/nelcota:<previous-sha>` (immutable tag) and redeploy; migrations are always additive (expand/contract), so the previous code works with the new schema.
 
 ### 4.1. PostgreSQL
 

@@ -17,7 +17,8 @@ permissions:
   packages: write
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}
+  # Keep the existing ScreenShare package after the repository rename.
+  IMAGE: ghcr.io/hanielcota/nelcota
 
 jobs:
   image:
@@ -54,6 +55,7 @@ jobs:
           tags: |
             ${{ env.IMAGE }}:${{ steps.vars.outputs.sha }}
             ${{ env.IMAGE }}:main
+            ${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -88,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Coolify webhook (pulls :main)
+      - name: Coolify webhook (pulls the configured :main or :latest tag)
         run: |
           curl --fail --silent --show-error -X POST "${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}" \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
