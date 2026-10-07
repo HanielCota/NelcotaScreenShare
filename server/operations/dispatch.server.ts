@@ -53,7 +53,7 @@ export function operationDispatcher({ operations, readOperations, successRedirec
           { serverError: "Solicitação grande demais." },
           {
             status: 413,
-            headers: { Connection: "close", "Cache-Control": "no-store" },
+            headers: { "Cache-Control": "no-store" },
           },
         );
       return Response.json({ serverError: "Solicitação inválida." }, { status: 400 });
