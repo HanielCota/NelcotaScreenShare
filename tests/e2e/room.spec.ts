@@ -66,6 +66,7 @@ test.describe("pre-join", () => {
     const ana = await newParticipant(browser, "Ana Teste");
     const response = await ana.page.goto(`/sala/${newRoomCode()}`);
     expect(await response?.text()).not.toContain(E2E_ACCESS_PASSWORD);
+    await expect(ana.page.getByText(/Captando áudio|Microfone testado/)).toBeVisible();
     await ana.page.getByLabel("Senha da sala (quem te convidou sabe)").fill("errada");
     await ana.page.getByRole("button", { name: /Entrar na sala|Entrar só ouvindo/ }).click();
     await expect(ana.page.getByText("Essa senha não confere")).toBeVisible();

@@ -1,4 +1,8 @@
-import { createAudioAnalyser, createLocalAudioTrack, MediaDeviceFailure } from "livekit-client";
+import {
+  captureMicrophone,
+  createMicrophoneAnalyser,
+} from "@/features/room/client/microphone-preview";
+import { microphonePermissionDenied } from "@/features/room/client/microphone-errors";
 import { useEffect, useEffectEvent, useRef, type RefObject } from "react";
 import {
   createMicrophoneCheck,
@@ -8,6 +12,8 @@ import {
 interface MicLevelEvents {
   /** Available microphones (after permission, with names). */
   onDevices: (devices: MediaDeviceInfo[]) => void;
+  /** The device actually opened, which can differ from the requested preference. */
+  onDevice: (capturedId: string | undefined, requestedId: string | undefined) => void;
   /** The chosen microphone disappeared (disconnected): fall back to the default. */
   onMissingDevice: () => void;
   onPermissionDenied: () => void;
@@ -28,6 +34,7 @@ export function useMicLevel(
 ): RefObject<number> {
   const levelRef = useRef(0);
   const onDevices = useEffectEvent(events.onDevices);
+  const onDevice = useEffectEvent(events.onDevice);
   const onMissingDevice = useEffectEvent(events.onMissingDevice);
   const onPermissionDenied = useEffectEvent(events.onPermissionDenied);
   const onError = useEffectEvent(events.onError);
@@ -36,69 +43,126 @@ export function useMicLevel(
   useEffect(() => {
     const meter = meterRef.current;
     if (!active || !meter) return;
+    const meterStyle = meter.style;
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices) {
+      onError(new Error("MediaDevices is unavailable."));
+      return;
+    }
     let cancelled = false;
     let frame = 0;
     let cleanup: (() => void) | undefined;
+    let captureRevision = 0;
+    let devicesRevision = 0;
+    let capturedId = deviceId;
 
-    const start = async () => {
+    function stopCapture() {
+      cancelAnimationFrame(frame);
+      const release = cleanup;
+      cleanup = undefined;
+      release?.();
+      meterStyle.transform = "scaleX(0)";
+      levelRef.current = 0;
+    }
+
+    function fail(error: unknown, revision: number) {
+      if (cancelled || revision !== captureRevision) return;
+      captureRevision += 1;
+      stopCapture();
+      onCheck("starting", capturedId);
+      if (microphonePermissionDenied(error)) {
+        onPermissionDenied();
+        return;
+      }
+      onError(error);
+    }
+
+    async function refreshDevices(revision: number) {
+      const refreshRevision = ++devicesRevision;
       try {
-        const track = await createLocalAudioTrack({
+        const list = await mediaDevices.enumerateDevices();
+        if (cancelled || revision !== captureRevision || refreshRevision !== devicesRevision)
+          return;
+        const inputs = list.filter((device) => device.kind === "audioinput" && device.deviceId);
+        onDevices(inputs);
+        if (deviceId && !inputs.some((device) => device.deviceId === deviceId)) onMissingDevice();
+      } catch (error) {
+        if (refreshRevision !== devicesRevision) return;
+        fail(error, revision);
+      }
+    }
+
+    async function start() {
+      const revision = ++captureRevision;
+      stopCapture();
+      try {
+        const track = await captureMicrophone({
           deviceId,
           echoCancellation: true,
           noiseSuppression: true,
+          autoGainControl: true,
         });
-        if (cancelled) {
+        if (cancelled || revision !== captureRevision) {
           track.stop();
           return;
         }
-        const analyser = createAudioAnalyser(track, { cloneTrack: false });
-        cleanup = () => {
-          void analyser.cleanup();
-          track.stop();
+        let analyser: ReturnType<typeof createMicrophoneAnalyser> | undefined;
+        const handleEnded = () => {
+          if (cancelled || revision !== captureRevision) return;
+          onCheck("starting", capturedId);
+          void start();
         };
-
-        const list = await navigator.mediaDevices.enumerateDevices();
-        // Cancelled during the await: cleanup already ran, so do not start the meter.
-        if (cancelled) return;
-        const inputs = list.filter((d) => d.kind === "audioinput" && d.deviceId);
-        onDevices(inputs);
-        if (deviceId && !inputs.some((d) => d.deviceId === deviceId)) onMissingDevice();
+        // Register release before anything that can fail after opening the microphone.
+        cleanup = () => {
+          track.removeEventListener("ended", handleEnded);
+          track.stop();
+          void analyser?.cleanup().catch(() => {
+            // The capture is already stopped, even if closing its AudioContext fails.
+          });
+        };
+        track.addEventListener("ended", handleEnded);
+        analyser = createMicrophoneAnalyser(track);
+        const audioAnalyser = analyser;
+        capturedId = track.getSettings().deviceId ?? deviceId;
+        onDevice(capturedId, deviceId);
+        await refreshDevices(revision);
+        if (cancelled || revision !== captureRevision) return;
 
         const check = createMicrophoneCheck();
         let checkState: MicrophoneCheck = "waiting";
-        onCheck(checkState, deviceId);
+        onCheck(checkState, capturedId);
 
         const tick = () => {
-          const volume = Math.min(1, analyser.calculateVolume() * 2.5);
-          levelRef.current = volume;
-          // Perceptual curve: normal speech fills a good part of the meter, not just the tip.
-          meter.style.transform = `scaleX(${Math.sqrt(volume).toFixed(3)})`;
-          const next = check(volume, performance.now());
-          if (next !== checkState) {
-            checkState = next;
-            onCheck(next, deviceId);
+          if (cancelled || revision !== captureRevision) return;
+          try {
+            const volume = Math.min(1, audioAnalyser.calculateVolume() * 2.5);
+            levelRef.current = volume;
+            // Perceptual curve: normal speech fills a good part of the meter, not just the tip.
+            meterStyle.transform = `scaleX(${Math.sqrt(volume).toFixed(3)})`;
+            const next = check(volume, performance.now());
+            if (next !== checkState) {
+              checkState = next;
+              onCheck(next, capturedId);
+            }
+            frame = requestAnimationFrame(tick);
+          } catch (error) {
+            fail(error, revision);
           }
-          frame = requestAnimationFrame(tick);
         };
         tick();
       } catch (error) {
-        if (cancelled) return;
-        if (MediaDeviceFailure.getFailure(error) === MediaDeviceFailure.PermissionDenied) {
-          onPermissionDenied();
-          return;
-        }
-        onError(error);
+        fail(error, revision);
       }
-    };
+    }
 
+    const handleDeviceChange = () => void refreshDevices(captureRevision);
+    mediaDevices.addEventListener("devicechange", handleDeviceChange);
     void start();
 
     return () => {
       cancelled = true;
-      cancelAnimationFrame(frame);
-      cleanup?.();
-      meter.style.transform = "scaleX(0)";
-      levelRef.current = 0;
+      mediaDevices.removeEventListener("devicechange", handleDeviceChange);
+      stopCapture();
     };
   }, [active, deviceId, meterRef]);
 
