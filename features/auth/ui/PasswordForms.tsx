@@ -39,6 +39,20 @@ function BackToLogin({ scope }: { scope: Scope }) {
   );
 }
 
+function OtherAccountRecovery({ scope }: { scope: Scope }) {
+  const otherScope = scope === "admin" ? "user" : "admin";
+  return (
+    <p className="text-sm text-ink-subtle">
+      {scope === "admin"
+        ? "Contas de participante e do painel são separadas. "
+        : "Sua conta é do painel administrativo? "}
+      <Link to={PATHS[otherScope].forgot} className="font-medium text-brand-soft hover:underline">
+        {scope === "admin" ? "Recuperar conta de participante" : "Recuperar conta do painel"}
+      </Link>
+    </p>
+  );
+}
+
 /** Requests the link. The response is always the same: it does not reveal which e-mails have an account. */
 export function ForgotPasswordForm({ scope }: { scope: Scope }) {
   const client = scope === "admin" ? adminAuthClient : authClient;
@@ -69,12 +83,17 @@ export function ForgotPasswordForm({ scope }: { scope: Scope }) {
       <AuthCard
         icon={MailCheck}
         title="Confira seu e-mail"
-        description="Se o e-mail tiver uma conta, enviamos um link para definir uma nova senha. Ele vale por 30 minutos."
+        description={
+          scope === "admin"
+            ? "Se o e-mail tiver uma conta do painel, o link para definir uma nova senha será enviado. Ele vale por 30 minutos."
+            : "Se o e-mail tiver uma conta de participante, o link para definir uma nova senha será enviado. Ele vale por 30 minutos."
+        }
         footer={<BackToLogin scope={scope} />}
       >
         <p className="text-sm text-ink-subtle">
           Não chegou? Veja a caixa de spam ou peça de novo em um minuto.
         </p>
+        <OtherAccountRecovery scope={scope} />
       </AuthCard>
     );
   }
@@ -96,6 +115,7 @@ export function ForgotPasswordForm({ scope }: { scope: Scope }) {
         noValidate
         className="flex flex-col gap-4"
       >
+        <OtherAccountRecovery scope={scope} />
         <div className="flex flex-col gap-2">
           <Label htmlFor={emailId}>E-mail</Label>
           <Input
