@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { AccessToken } from "livekit-server-sdk";
 import { Pool } from "pg";
@@ -9,6 +9,7 @@ import { receiveLivekitWebhook } from "@/features/room/server/webhook/route.serv
 import * as schema from "@/server/db/schema";
 import { reprocessPendingEvents } from "@/features/room/server/webhook/projector.server";
 import { anonymizeParticipant } from "@/features/account/server/participant-accounts.server";
+import { reconcileShareAudio } from "@/features/room/server/webhook/share-audio.server";
 
 /**
  * LiveKit webhook end to end: events signed the way LiveKit sends them
@@ -52,6 +53,48 @@ interface EventInput {
   track?: { sid: string; source: string };
   id?: string;
 }
+
+type TrackDelivery = { event: string; at: number; sid: string; source: string };
+
+test("audio reconciliation does not rewrite unchanged shares", async () => {
+  const code = newRoom();
+  const participant = { identity: `audio-write-${code}`, joinedAt: T };
+  const trackSid = `TR_write_${code}`;
+  await send({
+    event: "track_published",
+    room: code,
+    at: T + 5,
+    participant,
+    track: { sid: trackSid, source: "SCREEN_SHARE" },
+  });
+  const room = await roomByCode(code);
+  const readVersion = async () => {
+    const [share] = await db
+      .select({
+        version: sql<string>`xmin::text`,
+        withAudio: schema.shareSessions.withAudio,
+      })
+      .from(schema.shareSessions)
+      .where(eq(schema.shareSessions.trackSid, trackSid));
+    assert.ok(share);
+    return share;
+  };
+  const withoutAudio = await readVersion();
+  await reconcileShareAudio(db, room.id, code);
+  assert.deepEqual(await readVersion(), withoutAudio);
+  await send({
+    event: "track_published",
+    room: code,
+    at: T + 6,
+    participant,
+    track: { sid: `TR_audio_${code}`, source: "SCREEN_SHARE_AUDIO" },
+  });
+  const withAudio = await readVersion();
+  assert.equal(withAudio.withAudio, true);
+  assert.notEqual(withAudio.version, withoutAudio.version);
+  await reconcileShareAudio(db, room.id, code);
+  assert.deepEqual(await readVersion(), withAudio);
+});
 
 function payload({ event, room, at, participant, track, id }: EventInput) {
   eventCounter += 1;
@@ -113,6 +156,173 @@ function participationsOf(roomId: string) {
 }
 
 describe("event projection", () => {
+  test("a late room_started corrects the provisional start without moving activity backwards", async () => {
+    const code = newRoom();
+    await send({
+      event: "participant_joined",
+      room: code,
+      at: T + 10,
+      participant: { identity: `late-start-${code}`, joinedAt: T + 10 },
+    });
+    await send({ event: "room_started", room: code, at: T });
+    const room = await roomByCode(code);
+    assert.equal(room.startedAt.getTime(), T * 1000);
+    assert.equal(room.lastActivityAt.getTime(), (T + 10) * 1000);
+  });
+
+  test("a late join preserves the peak of participants whose intervals overlap", async () => {
+    const code = newRoom();
+    const first = { identity: `peak-a-${code}`, joinedAt: T + 1 };
+    const second = { identity: `peak-b-${code}`, joinedAt: T + 5 };
+    await send({ event: "participant_joined", room: code, at: T + 1, participant: first });
+    await send({ event: "participant_left", room: code, at: T + 10, participant: first });
+    await send({ event: "participant_left", room: code, at: T + 15, participant: second });
+    await send({ event: "participant_joined", room: code, at: T + 5, participant: second });
+    assert.equal((await roomByCode(code)).peakParticipants, 2);
+  });
+
+  test("a late leave corrects an inflated peak and simultaneous leave/join do not overlap", async () => {
+    const code = newRoom();
+    const first = { identity: `boundary-a-${code}`, joinedAt: T + 1 };
+    const second = { identity: `boundary-b-${code}`, joinedAt: T + 10 };
+    await send({ event: "participant_joined", room: code, at: T + 1, participant: first });
+    await send({ event: "participant_joined", room: code, at: T + 10, participant: second });
+    assert.equal((await roomByCode(code)).peakParticipants, 2);
+    await send({ event: "participant_left", room: code, at: T + 10, participant: first });
+    assert.equal((await roomByCode(code)).peakParticipants, 1);
+  });
+
+  const audioCases: {
+    name: string;
+    deliveries: TrackDelivery[];
+    expected: Record<string, boolean>;
+  }[] = [
+    {
+      name: "does not carry audio into the next share without audio",
+      deliveries: [
+        { event: "track_published", at: 1, sid: "audio", source: "SCREEN_SHARE_AUDIO" },
+        { event: "track_published", at: 2, sid: "first", source: "SCREEN_SHARE" },
+        { event: "track_unpublished", at: 3, sid: "audio", source: "SCREEN_SHARE_AUDIO" },
+        { event: "track_unpublished", at: 4, sid: "first", source: "SCREEN_SHARE" },
+        { event: "track_published", at: 10, sid: "second", source: "SCREEN_SHARE" },
+      ],
+      expected: { first: true, second: false },
+    },
+    {
+      name: "marks an ended share when its audio publication arrives after the next share",
+      deliveries: [
+        { event: "track_published", at: 10, sid: "first", source: "SCREEN_SHARE" },
+        { event: "track_unpublished", at: 20, sid: "first", source: "SCREEN_SHARE" },
+        { event: "track_published", at: 30, sid: "second", source: "SCREEN_SHARE" },
+        { event: "track_published", at: 11, sid: "audio", source: "SCREEN_SHARE_AUDIO" },
+      ],
+      expected: { first: true, second: false },
+    },
+    {
+      name: "reassigns audio when the earlier video arrives last",
+      deliveries: [
+        { event: "track_published", at: 20, sid: "second", source: "SCREEN_SHARE" },
+        { event: "track_published", at: 10, sid: "audio", source: "SCREEN_SHARE_AUDIO" },
+        { event: "track_unpublished", at: 15, sid: "first", source: "SCREEN_SHARE" },
+        { event: "track_published", at: 10, sid: "first", source: "SCREEN_SHARE" },
+      ],
+      expected: { first: true, second: false },
+    },
+    {
+      name: "does not attach audio that already ended before the video began",
+      deliveries: [
+        { event: "track_published", at: 1, sid: "audio", source: "SCREEN_SHARE_AUDIO" },
+        { event: "track_published", at: 3, sid: "first", source: "SCREEN_SHARE" },
+        { event: "track_unpublished", at: 2, sid: "audio", source: "SCREEN_SHARE_AUDIO" },
+      ],
+      expected: { first: false },
+    },
+    {
+      name: "accepts audio started well after the video began",
+      deliveries: [
+        { event: "track_published", at: 1, sid: "first", source: "SCREEN_SHARE" },
+        { event: "track_published", at: 80, sid: "audio", source: "SCREEN_SHARE_AUDIO" },
+      ],
+      expected: { first: true },
+    },
+  ];
+  for (const scenario of audioCases) {
+    test(scenario.name, async () => {
+      const code = newRoom();
+      const participant = { identity: `audio-${code}`, joinedAt: T };
+      for (const delivery of scenario.deliveries) {
+        await send({
+          event: delivery.event,
+          room: code,
+          at: T + delivery.at,
+          participant,
+          track: { sid: `TR_${delivery.sid}_${code}`, source: delivery.source },
+        });
+      }
+      const room = await roomByCode(code);
+      const shares = await db
+        .select()
+        .from(schema.shareSessions)
+        .where(eq(schema.shareSessions.roomId, room.id));
+      assert.equal(shares.length, Object.keys(scenario.expected).length);
+      for (const [sid, withAudio] of Object.entries(scenario.expected)) {
+        assert.equal(
+          shares.find((share) => share.trackSid === `TR_${sid}_${code}`)?.withAudio,
+          withAudio,
+          sid,
+        );
+      }
+    });
+  }
+
+  test("expiry of source audio events does not erase audio from older history", async () => {
+    const code = newRoom();
+    const participant = { identity: `retained-${code}`, joinedAt: T };
+    await send({
+      event: "track_published",
+      room: code,
+      at: T + 1,
+      participant,
+      track: { sid: `TR_audio_${code}`, source: "SCREEN_SHARE_AUDIO" },
+    });
+    await send({
+      event: "track_published",
+      room: code,
+      at: T + 2,
+      participant,
+      track: { sid: `TR_old_${code}`, source: "SCREEN_SHARE" },
+    });
+    await send({
+      event: "track_unpublished",
+      room: code,
+      at: T + 4,
+      participant,
+      track: { sid: `TR_old_${code}`, source: "SCREEN_SHARE" },
+    });
+    await db
+      .delete(schema.livekitEvents)
+      .where(
+        and(
+          eq(schema.livekitEvents.roomName, code),
+          eq(schema.livekitEvents.event, "track_published"),
+          sql`${schema.livekitEvents.payload}->'track'->>'source' = 'SCREEN_SHARE_AUDIO'`,
+        ),
+      );
+    await send({
+      event: "track_published",
+      room: code,
+      at: T + 100,
+      participant,
+      track: { sid: `TR_new_${code}`, source: "SCREEN_SHARE" },
+    });
+    const shares = await db
+      .select()
+      .from(schema.shareSessions)
+      .where(eq(schema.shareSessions.roomId, (await roomByCode(code)).id));
+    assert.equal(shares.find((share) => share.trackSid === `TR_old_${code}`)?.withAudio, true);
+    assert.equal(shares.find((share) => share.trackSid === `TR_new_${code}`)?.withAudio, false);
+  });
+
   test("simultaneous joins of the same account in different rooms are projected", async () => {
     const id = await newUser("Simultanea");
     const codes = [newRoom(), newRoom()];
