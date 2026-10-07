@@ -1,0 +1,4 @@
+CREATE INDEX "livekit_events_track_idx" ON "livekit_events" USING btree ("room_name","event",("payload"->'participant'->>'sid'),("payload"->'track'->>'sid'),"occurred_at");--> statement-breakpoint
+CREATE INDEX "rooms_activity_all_idx" ON "rooms" USING btree ("last_activity_at" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "rooms"."deleted_at" is null;--> statement-breakpoint
+CREATE INDEX "rooms_started_idx" ON "rooms" USING btree ("started_at" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "rooms"."deleted_at" is null;--> statement-breakpoint
+CREATE INDEX "rooms_peak_idx" ON "rooms" USING btree ("peak_participants" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "rooms"."deleted_at" is null;

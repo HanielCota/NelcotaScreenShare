@@ -65,6 +65,15 @@ export const rooms = pgTable(
     index("rooms_activity_idx")
       .on(t.status, t.lastActivityAt.desc(), t.id.desc())
       .where(sql`${t.deletedAt} is null`),
+    index("rooms_activity_all_idx")
+      .on(t.lastActivityAt.desc(), t.id.desc())
+      .where(sql`${t.deletedAt} is null`),
+    index("rooms_started_idx")
+      .on(t.startedAt.desc(), t.id.desc())
+      .where(sql`${t.deletedAt} is null`),
+    index("rooms_peak_idx")
+      .on(t.peakParticipants.desc(), t.id.desc())
+      .where(sql`${t.deletedAt} is null`),
     index("rooms_code_search_idx")
       .using("gin", sql`${t.code} gin_trgm_ops`)
       .where(sql`${t.deletedAt} is null`),
@@ -253,5 +262,13 @@ export const livekitEvents = pgTable(
       .on(t.occurredAt)
       .where(sql`${t.processedAt} is null`),
     index("livekit_events_received_idx").on(t.receivedAt.desc()),
+    // Publications and their ending lookups must not scan every room's raw history.
+    index("livekit_events_track_idx").on(
+      t.roomName,
+      t.event,
+      sql`(${t.payload}->'participant'->>'sid')`,
+      sql`(${t.payload}->'track'->>'sid')`,
+      t.occurredAt,
+    ),
   ],
 );
