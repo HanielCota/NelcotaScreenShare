@@ -1,5 +1,6 @@
 import express from "express";
 import { createServer as createHttpServer } from "node:http";
+import compression from "compression";
 import { z } from "zod";
 
 /** @type {import("vite").ViteDevServer | undefined} */
@@ -17,6 +18,7 @@ const port = Number(portIndex >= 0 ? process.argv[portIndex + 1] : (process.env.
 const app = express();
 const server = createHttpServer(app);
 app.disable("x-powered-by");
+if (production) app.use(compression());
 // Overwrites the internal header: the no-proxy fallback comes from the socket, never the client.
 app.use((request, _response, next) => {
   request.headers["x-nelcota-peer-ip"] = request.socket.remoteAddress;
