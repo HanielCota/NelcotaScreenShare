@@ -9,6 +9,8 @@ const FEATURES = readdirSync("features", { withFileTypes: true })
 export default defineConfig({
   $schema: "./node_modules/oxlint/configuration_schema.json",
   plugins: ["typescript", "react", "import", "jsx-a11y", "oxc", "unicorn"],
+  // Project rules oxlint does not ship (tools/oxlint-plugin.ts).
+  jsPlugins: ["./tools/oxlint-plugin.ts"],
   options: {
     typeAware: true,
     // The official compiler runs in `pnpm typecheck`; avoids duplicating the experimental type-check.
@@ -68,6 +70,8 @@ export default defineConfig({
     // Redundant with TypeScript; conflicts with the "optional cleanup" pattern of effects.
     "typescript/consistent-return": "off",
     "jsx-a11y/no-autofocus": "error",
+    // AGENTS.md §1.1: no `else` / `else if`; early returns and guard clauses instead.
+    "nelcota/no-else": "error",
 
     // Size and complexity (docs/archive/refactor/03-target-architecture.md §4).
     "eslint/max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
@@ -210,6 +214,11 @@ export default defineConfig({
       // Vendor (shadcn) and tests are exempt from the size limits.
       files: ["components/ui/**", "tests/**"],
       rules: { "eslint/max-lines": "off", "eslint/complexity": "off" },
+    },
+    {
+      // Vendored shadcn code stays as upstream ships it.
+      files: ["components/ui/**"],
+      rules: { "nelcota/no-else": "off" },
     },
     {
       // Test fixtures build partial objects (DOM, HTTP responses, Better Auth

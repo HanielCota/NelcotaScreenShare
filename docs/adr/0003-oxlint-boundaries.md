@@ -18,6 +18,7 @@ The protection is completed by:
 
 - `import/no-cycle` prevents cycles;
 - `max-lines` (300) and `complexity` (15) limit size and complexity, with no exception list;
+- `nelcota/no-else` (local JS plugin in `tools/oxlint-plugin.ts`) bans `else` and `else if`, as AGENTS.md §1.1 requires; vendored `components/ui` is exempt;
 - `knip` flags dead code;
 - `jscpd` fails on duplication above 2%.
 
