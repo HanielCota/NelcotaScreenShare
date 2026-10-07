@@ -13,11 +13,25 @@ export interface MailMessage {
 let transporter: Transporter | undefined;
 
 /**
- * Transactional e-mail. Without SMTP_URL, production skips delivery without
+ * Transactional e-mail. Without a provider, production skips delivery without
  * logging links or recipients. Development logs the content for local testing.
  */
 export async function sendMail(message: MailMessage): Promise<void> {
-  const { SMTP_URL, MAIL_FROM } = getEnv();
+  const { RESEND_API_KEY, SMTP_URL, MAIL_FROM } = getEnv();
+  if (RESEND_API_KEY) {
+    if (!MAIL_FROM) throw new Error("MAIL_FROM is required for Resend delivery");
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: MAIL_FROM, ...message }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error(`Resend rejected e-mail delivery (HTTP ${response.status})`);
+    return;
+  }
   if (!SMTP_URL) {
     if (process.env.NODE_ENV === "production") {
       logger.warn({ subject: message.subject }, "e-mail not sent: delivery is disabled");
@@ -25,7 +39,7 @@ export async function sendMail(message: MailMessage): Promise<void> {
     }
     logger.warn(
       { mail: { to: message.to, subject: message.subject }, body: message.text },
-      "e-mail not sent (no SMTP_URL): content in the log",
+      "e-mail not sent (no provider): content in the log",
     );
     return;
   }

@@ -98,11 +98,13 @@ The image is built on **GitHub Actions** (not on the VPS, so it doesn't compete 
    AUTH_SECRET=<openssl rand -base64 48>
    ADMIN_AUTH_SECRET=<another openssl rand -base64 48; enables /admin>
    APP_URL=https://app.yourdomain.com
-   SMTP_URL=smtps://user:password@smtp.yourdomain.com:465
+   RESEND_API_KEY=<sending-only key scoped to your verified domain>
    MAIL_FROM=Nelcota <no-reply@yourdomain.com>
    ```
 
-   `APP_URL` is required in production. E-mail delivery is optional: leave both `SMTP_URL` and `MAIL_FROM` unset to run without SMTP and keep `REQUIRE_EMAIL_VERIFICATION=false`. Password recovery and account e-mails cannot be delivered in this mode; message contents and recovery links are not logged in production. Configure both mail variables before enabling delivery or requiring e-mail verification (`server/env.server.ts`).
+   `APP_URL` is required in production. For Resend, verify the sender's domain with the DNS records supplied by Resend, create a sending-only API key scoped to that domain, and set `RESEND_API_KEY` and `MAIL_FROM` as runtime secrets. The server calls the [Resend Email API](https://resend.com/docs/api-reference/emails/send-email) over HTTPS; keep `SMTP_URL` unset. For SMTP instead, set `SMTP_URL` and `MAIL_FROM` and leave `RESEND_API_KEY` unset. Configuring both providers fails validation. Enabling delivery does not change `REQUIRE_EMAIL_VERIFICATION`.
+
+   E-mail delivery is optional: leave `RESEND_API_KEY`, `SMTP_URL`, and `MAIL_FROM` unset and keep `REQUIRE_EMAIL_VERIFICATION=false` to run without delivery. Password recovery and account e-mails cannot be delivered in this mode; message contents and recovery links are not logged in production. A provider and sender are required before enabling e-mail verification (`server/env.server.ts`).
 
 3. Keep rolling updates on (no host port mapping and no fixed container name). The Dockerfile's `HEALTHCHECK` queries `/api/health`; the container runs as a non-root user (`nelcota`).
 
