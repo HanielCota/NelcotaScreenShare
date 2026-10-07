@@ -222,8 +222,8 @@ export function DataTable<TData extends RowData & { id: string }>({
   const [allFor, setAllFor] = useState<string | null>(null);
   const allMatching = allFor === filterKey && selected.length === data.length;
   const selection: BulkSelection = allMatching
-    ? { tipo: "filtro", busca: filterKey }
-    : { tipo: "ids", ids: selected };
+    ? { kind: "filter", query: filterKey }
+    : { kind: "ids", ids: selected };
   const count = allMatching ? page.total : selected.length;
   const clear = () => {
     setRowSelection({});

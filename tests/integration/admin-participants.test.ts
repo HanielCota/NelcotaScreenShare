@@ -65,13 +65,13 @@ describe("block and unblock", () => {
     const ana = await verifiedParticipant(db, handler);
     requestHeaders.current = admin.headers;
     const noReason = await actions.blockParticipantsAction({
-      selection: { tipo: "ids", ids: [ana.id] },
+      selection: { kind: "ids", ids: [ana.id] },
       reason: " ",
     });
     assert.ok(noReason.validationErrors, "no reason is rejected");
 
     const result = await actions.blockParticipantsAction({
-      selection: { tipo: "ids", ids: [ana.id] },
+      selection: { kind: "ids", ids: [ana.id] },
       reason: "Spam no chat",
     });
     assert.deepEqual(result.data, { count: 1 });
@@ -89,7 +89,7 @@ describe("block and unblock", () => {
 
     // Blocking again changes nothing: a clear error, no repeated audit.
     const again = await actions.blockParticipantsAction({
-      selection: { tipo: "ids", ids: [ana.id] },
+      selection: { kind: "ids", ids: [ana.id] },
       reason: "De novo",
     });
     assert.equal(again.serverError, "Nenhuma conta para bloquear na seleção.");
@@ -100,7 +100,7 @@ describe("block and unblock", () => {
     const [id = ""] = await people("Leitor", 1);
     requestHeaders.current = viewer.headers;
     const result = await actions.blockParticipantsAction({
-      selection: { tipo: "ids", ids: [id] },
+      selection: { kind: "ids", ids: [id] },
       reason: "Tentativa",
     });
     assert.equal(result.serverError, "Você não tem permissão para fazer isso.");
@@ -112,7 +112,7 @@ describe("block and unblock", () => {
     const outsider = await people(`Fora${Date.now()}`, 1);
     requestHeaders.current = admin.headers;
     const blocked = await actions.blockParticipantsAction({
-      selection: { tipo: "filtro", busca: `q=${tag}&cursor=ignorado` },
+      selection: { kind: "filter", query: `q=${tag}&cursor=ignorado` },
       reason: "Lote de teste",
     });
     assert.deepEqual(blocked.data, { count: 3 });
@@ -124,7 +124,7 @@ describe("block and unblock", () => {
     assert.equal(other?.blockedAt, null);
 
     const unblocked = await actions.unblockParticipantsAction({
-      selection: { tipo: "filtro", busca: `q=${tag}&status=bloqueado` },
+      selection: { kind: "filter", query: `q=${tag}&status=bloqueado` },
     });
     assert.deepEqual(unblocked.data, { count: 3 });
   });
@@ -138,7 +138,7 @@ describe("block and unblock", () => {
     );
     requestHeaders.current = admin.headers;
     const result = await actions.blockParticipantsAction({
-      selection: { tipo: "filtro", busca: `q=${tag}` },
+      selection: { kind: "filter", query: `q=${tag}` },
       reason: "Grande demais",
     });
     assert.equal(result.serverError, "Mais de 10.000 resultados. Refine o filtro e tente de novo.");
@@ -155,7 +155,7 @@ describe("delete and undo", () => {
     const bia = await verifiedParticipant(db, handler);
     requestHeaders.current = admin.headers;
     const removed = await actions.deleteParticipantsAction({
-      selection: { tipo: "ids", ids: [bia.id] },
+      selection: { kind: "ids", ids: [bia.id] },
     });
     assert.deepEqual(removed.data, { ids: [bia.id] });
     const list = await listParticipants(

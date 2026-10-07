@@ -49,7 +49,7 @@ describe("delete and restore", () => {
   test("a live room cannot be deleted", async () => {
     const live = await room("active");
     requestHeaders.current = admin.headers;
-    const result = await actions.deleteRoomsAction({ selection: { tipo: "ids", ids: [live.id] } });
+    const result = await actions.deleteRoomsAction({ selection: { kind: "ids", ids: [live.id] } });
     assert.equal(
       result.serverError,
       `A sala ${live.code} está ao vivo. Encerre a sala antes de excluir.`,
@@ -59,7 +59,7 @@ describe("delete and restore", () => {
   test("deletes, undoes and audits", async () => {
     const done = await room();
     requestHeaders.current = admin.headers;
-    const removed = await actions.deleteRoomsAction({ selection: { tipo: "ids", ids: [done.id] } });
+    const removed = await actions.deleteRoomsAction({ selection: { kind: "ids", ids: [done.id] } });
     assert.deepEqual(removed.data, { ids: [done.id] });
     const restored = await actions.restoreRoomsAction({ ids: [done.id] });
     assert.deepEqual(restored.data, { count: 1 });
@@ -73,7 +73,7 @@ describe("delete and restore", () => {
   test("restoring does not create two live rooms with the same code", async () => {
     const old = await room();
     requestHeaders.current = admin.headers;
-    await actions.deleteRoomsAction({ selection: { tipo: "ids", ids: [old.id] } });
+    await actions.deleteRoomsAction({ selection: { kind: "ids", ids: [old.id] } });
     // The code is used again by a new room.
     await db.insert(schema.rooms).values({ code: old.code });
     const result = await actions.restoreRoomsAction({ ids: [old.id] });
@@ -86,7 +86,7 @@ describe("delete and restore", () => {
   test("viewer cannot delete", async () => {
     const done = await room();
     requestHeaders.current = viewer.headers;
-    const result = await actions.deleteRoomsAction({ selection: { tipo: "ids", ids: [done.id] } });
+    const result = await actions.deleteRoomsAction({ selection: { kind: "ids", ids: [done.id] } });
     assert.equal(result.serverError, "Você não tem permissão para fazer isso.");
   });
 });

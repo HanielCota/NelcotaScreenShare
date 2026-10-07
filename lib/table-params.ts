@@ -23,10 +23,10 @@ export const PAGE_SIZE = 50;
 
 /**
  * Target of a bulk action: IDs checked on the page (up to 500) or every
- * result of the current filter (`busca` = URL query string, without the page),
+ * result of the current filter (`query` = URL query string, without the page),
  * which the server reapplies with a limit of 10,000.
  */
-export type BulkSelection = { tipo: "ids"; ids: string[] } | { tipo: "filtro"; busca: string };
+export type BulkSelection = { kind: "ids"; ids: string[] } | { kind: "filter"; query: string };
 
 export const BULK_IDS_LIMIT = 500;
 export const BULK_FILTER_LIMIT = 10_000;
