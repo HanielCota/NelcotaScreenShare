@@ -240,3 +240,32 @@ describe("mail delivery", () => {
     );
   });
 });
+
+describe("transactional mail layout", () => {
+  test("escapes dynamic HTML while preserving the complete plain-text link and expiration", async () => {
+    const { mailLayout } = await import("@/server/mail.server");
+    const url = 'https://app.example.com/reset?token=private-token&next="quoted"';
+    const content = mailLayout({
+      title: "Reset <account>",
+      intro: 'Hello <script>alert("name")</script>',
+      action: { label: 'Continue "safely"', url },
+      notice: "Valid for 30 minutes <once>",
+      outro: "Ignore <unrequested> changes.",
+    });
+    expect(content.html).not.toContain("<script>");
+    expect(content.html).toContain("&lt;script&gt;");
+    expect(content.html).toContain("Valid for 30 minutes &lt;once&gt;");
+    expect(content.html).toContain("private-token&amp;next=&quot;quoted&quot;");
+    expect(content.text).toContain(url);
+    expect(content.text).toContain("Valid for 30 minutes <once>");
+  });
+
+  test("renders notifications without an action or expiration without empty controls", async () => {
+    const { mailLayout } = await import("@/server/mail.server");
+    const content = mailLayout({ title: "Account notice", intro: "Your account was updated." });
+    expect(content.html).toContain("Your account was updated.");
+    expect(content.html).not.toContain("<a ");
+    expect(content.html).not.toMatch(/undefined|null/);
+    expect(content.text).toContain("Account notice");
+  });
+});
