@@ -43,6 +43,7 @@ export async function ensureRoom(
       target: rooms.code,
       targetWhere: sql`${rooms.deletedAt} is null`,
       set: {
+        startedAt: sql`least(${rooms.startedAt}, excluded.started_at)`,
         lastActivityAt: sql`greatest(${rooms.lastActivityAt}, excluded.last_activity_at)`,
         livekitSid: sid ? sql`excluded.livekit_sid` : sql`${rooms.livekitSid}`,
         status: sql`case when ${reopens} then 'active'::room_status else ${rooms.status} end`,
@@ -153,9 +154,20 @@ export async function updatePeak(tx: DbExecutor, roomId: string) {
   await tx
     .update(rooms)
     .set({
-      peakParticipants: sql`greatest(${rooms.peakParticipants}, (
-        select count(*) from ${roomParticipations}
-        where ${roomParticipations.roomId} = ${roomId} and ${roomParticipations.leftAt} is null))`,
+      // Aggregate simultaneous arrivals/departures before summing: intervals are [join, leave).
+      // Recompute instead of only increasing, since a late leave can correct an inflated peak.
+      peakParticipants: sql`(select coalesce(max(online), 0) from (
+        select sum(delta) over (order by at) as online from (
+          select at, sum(delta) as delta from (
+            select joined_at as at, 1 as delta from ${roomParticipations}
+              where room_id = ${roomId}
+                and (left_at is null or left_at > joined_at)
+            union all
+            select left_at as at, -1 as delta from ${roomParticipations}
+              where room_id = ${roomId} and left_at > joined_at
+          ) as boundaries group by at
+        ) as changes
+      ) as counts)`,
     })
     .where(eq(rooms.id, roomId));
 }
