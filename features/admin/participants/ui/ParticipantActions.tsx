@@ -44,7 +44,7 @@ export function ParticipantActions({
   can: { update: boolean; delete: boolean; anonymize: boolean };
 }) {
   const [dialog, setDialog] = useState<Dialog>(null);
-  const selection = { tipo: "ids" as const, ids: [id] };
+  const selection = { kind: "ids" as const, ids: [id] };
   const block = useOperation(blockParticipantsAction, {
     onSuccess: () => {
       setDialog(null);
