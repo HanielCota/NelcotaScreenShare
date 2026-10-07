@@ -122,7 +122,9 @@ export default function PrivacyPage() {
             >
               <PrivacyList>
                 <PrivacyItem icon={UserRound} title="Conta">
-                  Nome de exibição, e-mail e senha (guardada só como hash argon2id).
+                  Nome de exibição, e-mail, senha (guardada só como hash argon2id) e, se você
+                  escolher, a foto de perfil, sem os metadados da imagem. Nome e foto aparecem para
+                  quem está nas mesmas salas; a foto pode ser trocada ou removida em Minha conta.
                 </PrivacyItem>
                 <PrivacyItem icon={KeyRound} title="Segurança">
                   Sessões ativas (IP e navegador) e, se você ativar, o segredo da verificação em
