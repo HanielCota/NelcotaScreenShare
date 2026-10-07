@@ -2,7 +2,7 @@ import { Hint } from "@/components/Hint";
 
 import { useId, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { cn } from "@/lib/utils";
-const atlas = "/mascot/nelcota-mint-atlas.png";
+const atlas = "/mascot/nelcota-mint-atlas.webp";
 import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
 import type { Expression } from "@/features/mascot/domain/face";
 import { useMascot } from "../hooks/use-mascot";
