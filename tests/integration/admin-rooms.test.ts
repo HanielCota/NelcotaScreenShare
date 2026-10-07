@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, test, vi } from "vitest";
@@ -88,6 +88,49 @@ describe("delete and restore", () => {
     requestHeaders.current = viewer.headers;
     const result = await actions.deleteRoomsAction({ selection: { kind: "ids", ids: [done.id] } });
     assert.equal(result.serverError, "Você não tem permissão para fazer isso.");
+  });
+
+  test("restores one selected generation per code and restores unrelated rooms in the same batch", async () => {
+    const old = await room();
+    const other = await room();
+    await db
+      .update(schema.rooms)
+      .set({ deletedAt: new Date(1_000) })
+      .where(eq(schema.rooms.id, old.id));
+    await db
+      .update(schema.rooms)
+      .set({ deletedAt: new Date(1_000) })
+      .where(eq(schema.rooms.id, other.id));
+    const [newer] = await db
+      .insert(schema.rooms)
+      .values({
+        code: old.code,
+        status: "finished",
+        deletedAt: new Date(2_000),
+      })
+      .returning();
+    assert.ok(newer);
+    requestHeaders.current = admin.headers;
+    const result = await actions.restoreRoomsAction({ ids: [old.id, newer.id, other.id] });
+    assert.deepEqual(result.data, { count: 2 });
+    const restored = await db
+      .select({ id: schema.rooms.id, deletedAt: schema.rooms.deletedAt })
+      .from(schema.rooms)
+      .where(inArray(schema.rooms.id, [old.id, newer.id, other.id]));
+    assert.ok(restored.find((row) => row.id === old.id)?.deletedAt);
+    assert.equal(restored.find((row) => row.id === newer.id)?.deletedAt, null);
+    assert.equal(restored.find((row) => row.id === other.id)?.deletedAt, null);
+    const audits = await db
+      .select({ id: schema.auditLogs.resourceId })
+      .from(schema.auditLogs)
+      .where(
+        and(
+          eq(schema.auditLogs.action, "room.restore"),
+          inArray(schema.auditLogs.resourceId, [old.id, newer.id, other.id]),
+        ),
+      );
+    assert.equal(audits.length, 2);
+    assert.deepEqual(new Set(audits.map((row) => row.id)), new Set([newer.id, other.id]));
   });
 });
 
