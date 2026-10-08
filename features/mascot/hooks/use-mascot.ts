@@ -8,7 +8,7 @@ type Controller = ReturnType<typeof createMascotController>;
 
 /**
  * Connects the mascot to React. All the behavior lives in the controller
- * (dom/mascot-controller.ts); here it is only mounted, unmounted and given the props.
+ * (client/mascot-controller.ts); here it is only mounted, unmounted and given the props.
  * Props are passed by reference: changing the activity or the resting expression does not
  * tear anything down (sleep, error, gaze), it only requests a recompute.
  */

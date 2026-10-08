@@ -41,9 +41,9 @@ export interface MascotInputs {
  * The mascot's behavior: combines what happens on screen (mouse, focus,
  * typing, system signals) into an expression and a gaze, and animates the face.
  *
- * - Expression: reasons with deadline and priority (engine/reasons.ts).
- * - Per-expression rules: engine/rules.ts.
- * - Gaze: screen geometry (dom/gaze.ts). Drawing: dom/face-animator.ts.
+ * - Expression: reasons with deadline and priority (domain/reasons.ts).
+ * - Per-expression rules: domain/rules.ts.
+ * - Gaze: screen geometry (client/gaze.ts). Drawing: client/face-animator.ts.
  */
 export function createMascotController(
   root: HTMLElement,
@@ -112,8 +112,6 @@ export function createMascotController(
     stopBody: () => bodyAnimation?.cancel(),
     update,
   });
-
-  // ---------- Expression and gaze ----------
 
   function setReason(reason: Reason, expression: Expression, durationMs?: number) {
     reasons.set(reason, expression, durationMs);
@@ -216,8 +214,6 @@ export function createMascotController(
     return bodyAnimation;
   }
 
-  // ---------- Sleep ----------
-
   const sleep = createSleepClock({
     personality,
     canSleep: () =>
@@ -231,8 +227,6 @@ export function createMascotController(
   function onActivity() {
     sleep.activity();
   }
-
-  // ---------- Events ----------
 
   const touch = attachTouch({
     root,

@@ -14,7 +14,7 @@ interface SleepClockContext {
 }
 
 /**
- * Inactivity sleep: sleepy at 30 s, asleep at 45 s (engine/sleep.ts).
+ * Inactivity sleep: sleepy at 30 s, asleep at 45 s (domain/sleep.ts).
  * Any activity wakes it up, with a stretch.
  */
 export function createSleepClock(ctx: SleepClockContext) {

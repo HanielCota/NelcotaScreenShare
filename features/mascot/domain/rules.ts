@@ -3,9 +3,8 @@ import type { Expression, FaceState } from "./face";
 import type { Reason } from "./reasons";
 
 /**
- * Mascot rules that depend only on the current expression. They used to be
- * `current === "…"` comparisons scattered across the hook; here each one has a name
- * and a test (tests/unit/mascot-rules.test.ts).
+ * Mascot rules that depend only on the current expression, each named and
+ * covered by tests/unit/mascot-rules.test.ts.
  */
 
 const SLEEPING: ReadonlySet<Expression> = new Set(["sleepy", "asleep"]);
