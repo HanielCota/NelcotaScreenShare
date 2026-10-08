@@ -30,11 +30,11 @@ export function HomeScene({
     <HomeEntrance className="flex flex-col items-center pb-8">
       <AppHeader account={account} data-anim="nav" className="fixed inset-x-0 top-0 z-30" />
 
-      {/* Almost a full screen: the dark stage peeks in below, inviting the scroll. As the story
-          starts, the hero steps back (see useHeroRecede). */}
+      {/* A full screen, with a scroll cue at its foot. As the story starts, the hero steps back
+          (see useHeroRecede). */}
       <div
         ref={hero}
-        className="flex min-h-svh w-full max-w-6xl flex-col items-center justify-center px-4 pt-28 pb-12 sm:px-8"
+        className="relative flex min-h-svh w-full max-w-6xl flex-col items-center justify-center px-4 pt-28 pb-12 sm:px-8"
       >
         {notice ? (
           <output className="mb-8 block w-full rounded-2xl bg-surface-2 px-4 py-3 text-center text-sm">
@@ -75,6 +75,13 @@ export function HomeScene({
             </li>
           ))}
         </ul>
+        <span
+          aria-hidden="true"
+          data-anim="subtitle"
+          className="absolute bottom-6 left-1/2 flex h-9 w-5.5 -translate-x-1/2 justify-center rounded-full border-[1.5px] border-ink-subtle/50 pt-1.5 max-sm:hidden [@media(max-height:44rem)]:hidden"
+        >
+          <span className="size-1 rounded-full bg-ink-muted motion-safe:animate-[scroll-cue_1.8s_cubic-bezier(0.65,0,0.35,1)_infinite]" />
+        </span>
       </div>
 
       <HomeSections maxParticipants={maxParticipants} signedIn={account !== null} />
