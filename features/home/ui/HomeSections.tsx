@@ -9,7 +9,7 @@ import { FaqSection } from "./FaqSection";
 import { FeaturesSection } from "./FeaturesSection";
 import { FinalCta } from "./FinalCta";
 import { PricingSection } from "./PricingSection";
-import { ManifestoScene } from "./scenes/ManifestoScene";
+import { StatementScene } from "./scenes/StatementScene";
 import { PrivacyScene } from "./scenes/PrivacyScene";
 import { ProductScene } from "./scenes/ProductScene";
 import { StepsScene } from "./scenes/StepsScene";
@@ -74,7 +74,7 @@ export function HomeSections({
     // following scenes would then scroll over the pinned one.
     <div ref={scope} className="w-full">
       <ProductScene />
-      <ManifestoScene />
+      <StatementScene />
       <UseCasesScene />
       <StepsScene />
       <PrivacyScene />
