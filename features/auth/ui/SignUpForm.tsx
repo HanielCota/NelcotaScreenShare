@@ -72,6 +72,12 @@ function PasswordGuide({
   );
 }
 
+function signUpDescription(toRoom: boolean, verificationRequired: boolean): string {
+  if (!toRoom) return "Para criar salas, entrar nas salas do time e compartilhar a tela.";
+  if (verificationRequired) return "Depois de confirmar o e-mail, você entra direto na sala.";
+  return "Assim que criar a conta, você entra direto na sala.";
+}
+
 export function SignUpForm({
   returnTo,
   context,
@@ -158,13 +164,7 @@ export function SignUpForm({
     <AuthCard
       icon={UserPlus}
       title="Crie sua conta"
-      description={
-        context.kind === "room"
-          ? verificationRequired
-            ? "Depois de confirmar o e-mail, você entra direto na sala."
-            : "Assim que criar a conta, você entra direto na sala."
-          : "Para criar salas, entrar nas salas do time e compartilhar a tela."
-      }
+      description={signUpDescription(context.kind === "room", verificationRequired)}
       top={<AccessTabs current="cadastro" returnTo={returnTo} />}
     >
       <form

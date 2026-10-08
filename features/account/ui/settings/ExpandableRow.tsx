@@ -22,6 +22,12 @@ export function useCloseRow(): (() => void) | null {
  * like the backup codes, is not lost. Focus goes to the first field on open
  * and back to the button on close.
  */
+function triggerVariant(open: boolean, danger: boolean | undefined) {
+  if (open) return "ghost";
+  if (danger) return "destructive";
+  return "outline";
+}
+
 export function ExpandableRow({
   id,
   title,
@@ -123,7 +129,7 @@ export function ExpandableRow({
         <Button
           ref={trigger}
           type="button"
-          variant={open ? "ghost" : danger ? "destructive" : "outline"}
+          variant={triggerVariant(open, danger)}
           aria-expanded={open}
           aria-controls={contentId}
           onClick={() => setOpen(!open)}

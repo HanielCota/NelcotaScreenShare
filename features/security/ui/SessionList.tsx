@@ -7,6 +7,12 @@ import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
 
+function revokedMessage(count: number): string {
+  if (count === 0) return "Não havia outras sessões.";
+  if (count === 1) return "1 sessão encerrada.";
+  return `${count} sessões encerradas.`;
+}
+
 interface SessionRow {
   id: string;
   ipAddress: string | null;
@@ -39,14 +45,7 @@ export function SessionList({
     onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
   });
   const revokeOthers = useOperation(revokeOtherSessions, {
-    onSuccess: ({ data }) =>
-      toast.success(
-        data.revoked === 0
-          ? "Não havia outras sessões."
-          : data.revoked === 1
-            ? "1 sessão encerrada."
-            : `${data.revoked} sessões encerradas.`,
-      ),
+    onSuccess: ({ data }) => toast.success(revokedMessage(data.revoked)),
     onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível encerrar."),
   });
   const others = sessions.filter((session) => session.id !== currentId).length;
