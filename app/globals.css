@@ -534,6 +534,22 @@ body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"][da
   }
 }
 
+/* The hero's scroll cue: a dot slides down the pill and fades, then starts over. */
+@keyframes scroll-cue {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: translateY(0.875rem);
+  }
+}
+
 /*
  * One bar of a voice: syllables (two peaks), then a short breath near the floor. Each bar
  * gets its own duration and delay, so together they never move in step.
