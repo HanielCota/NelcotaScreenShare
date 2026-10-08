@@ -46,8 +46,10 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
     tl.set(chapters, { opacity: 0, y: 28 })
       .set(chapters[0] ?? [], { opacity: 1, y: 0 })
       .set(screen, { opacity: 0, scale: 0.96 })
-      .set(part("line"), { opacity: 0, x: -12 })
       .set(part("terminal"), { opacity: 0, y: 12 })
+      .set(part("iris"), { opacity: 0, x: 24, scale: 0.92 })
+      .set(part("count-before"), { opacity: 1 })
+      .set(part("count-after"), { opacity: 0 })
       .set([part("badge"), part("hand"), part("chat"), part("guest")], { opacity: 0, y: 8 })
       // The pointer rests on the bug in the markup; it starts far below and to the right.
       .set(pointer, { xPercent: 900, yPercent: 700, opacity: 0 })
@@ -70,16 +72,21 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
       );
     };
 
-    // 1. The editor arrives, line by line, and the error shows up in the terminal.
+    // 1. Bruno's editor arrives whole, then the error lands in the terminal with a flash.
     chapter(0, 0);
     tl.to(screen, { opacity: 1, scale: 1 }, 0.05)
-      .to(part("line"), { opacity: 1, x: 0, duration: 0.3, stagger: 0.05 }, 0.15)
-      .to(part("terminal"), { opacity: 1, y: 0 }, 0.6);
+      .to(part("terminal"), { opacity: 1, y: 0 }, 0.45)
+      .fromTo(
+        part("terminal"),
+        { backgroundColor: "rgb(255 107 107 / 0.28)" },
+        { backgroundColor: "rgb(20 20 23 / 1)", duration: 0.35, immediateRender: false },
+        0.6,
+      );
 
     // 2. The computer's sound comes along.
     chapter(1, 1);
     tl.to(part("badge"), { opacity: 1, y: 0 }, 1.15).to(
-      part("level"),
+      [...part("level"), ...part("tile-level")],
       {
         scaleY: 0.35,
         duration: 0.12,
@@ -110,7 +117,10 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
 
     // 4. Everyone takes part, and a guest joins through the link.
     chapter(3, 3);
-    tl.to(part("guest"), { opacity: 1, y: 0 }, 3.1)
+    tl.to(part("iris"), { opacity: 1, x: 0, scale: 1 }, 3.05)
+      .to(part("count-before"), { opacity: 0, duration: 0.2 }, 3.1)
+      .to(part("count-after"), { opacity: 1, duration: 0.2 }, 3.15)
+      .to(part("guest"), { opacity: 1, y: 0 }, 3.1)
       .to(part("hand"), { opacity: 1, y: 0 }, 3.25)
       .to(part("reaction"), { opacity: 1, y: 0, scale: 1, ease: "back.out(2)" }, 3.4)
       .to(part("chat"), { opacity: 1, y: 0 }, 3.55)
