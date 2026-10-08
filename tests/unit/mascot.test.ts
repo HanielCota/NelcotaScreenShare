@@ -86,14 +86,18 @@ test("the avatar closes its eyes during password entry, even while celebrating",
   assert.deepEqual(avatarFrame(undefined), { column: 0, row: 0 });
 });
 
-test("an error can replace the celebration, and typing clears the previous reaction", () => {
-  let time = 0;
-  const reasons = createReasons(() => time);
+test("an error replaces an active celebration, which returns when the error ends", () => {
+  const reasons = createReasons(() => 0);
   reasons.set("celebrate", "celebrate", 1600);
-  reasons.delete("celebrate");
   reasons.set("error", "grumpy", 4000);
   assert.equal(reasons.current("neutral"), "grumpy");
   reasons.delete("error");
+  assert.equal(reasons.current("neutral"), "celebrate");
+});
+
+test("the typing reaction lasts until its deadline", () => {
+  let time = 0;
+  const reasons = createReasons(() => time);
   reasons.set("typing", "happy", 2000);
   assert.equal(reasons.current("neutral"), "happy");
   time = 2000;
