@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { newParticipant, newRoomCode, newVisitor, joinRoom } from "./support/session";
+import {
+  expectNoHorizontalScroll,
+  joinRoom,
+  newParticipant,
+  newRoomCode,
+  newVisitor,
+} from "./support/session";
 
 test("general and auth pages have a single navbar, including on mobile", async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
@@ -18,9 +24,7 @@ test("general and auth pages have a single navbar, including on mobile", async (
       exact: true,
     }),
   ).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
+  await expectNoHorizontalScroll(page);
   await context.close();
 });
 
@@ -49,16 +53,12 @@ test("pre-join keeps the return from the account page and the call uses only the
     "page",
   );
   await page.setViewportSize({ width: 768, height: 1024 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
+  await expectNoHorizontalScroll(page);
   await page.getByRole("link", { name: "Voltar para a sala", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/sala/${code}$`));
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(account).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
+  await expectNoHorizontalScroll(page);
   await page.screenshot({ path: test.info().outputPath("prejoin-mobile.png"), fullPage: true });
   await joinRoom(page, code, { micOn: false });
   await expect(navbar).toHaveCount(0);

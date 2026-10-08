@@ -42,6 +42,13 @@ export async function newParticipant(browser: Browser, name: string): Promise<Pa
   return { context, page, name, email };
 }
 
+/** The page fits the viewport width (no sideways scrolling on small screens). */
+export async function expectNoHorizontalScroll(page: Page) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+}
+
 let roomSequence = 0;
 
 /** A new, valid room code for each test. */

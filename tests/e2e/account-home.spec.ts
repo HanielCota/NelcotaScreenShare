@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { E2E_URL } from "./support/env";
-import { newParticipant, newVisitor, PASSWORD } from "./support/session";
+import { expectNoHorizontalScroll, newParticipant, newVisitor, PASSWORD } from "./support/session";
 
 const PNG_PIXEL = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -107,9 +107,7 @@ test("profile photo: preview, persistence on the account and avatar on the home 
   await expect(
     page.getByRole("button", { name: "Excluir minha conta para sempre", exact: true }),
   ).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
+  await expectNoHorizontalScroll(page);
   await context.close();
 });
 
