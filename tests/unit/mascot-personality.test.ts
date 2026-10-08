@@ -142,7 +142,7 @@ describe("Nelcota's personality", () => {
     expect(f.pending.size).toBe(0);
   });
 
-  test("a yawn goes through the stretch and restores the sleepy expression", () => {
+  test("a yawn goes through the stretch and then clears the expression", () => {
     const f = fixture();
     f.controller.yawn();
     expect(f.expression).toBe("yawning");
@@ -150,6 +150,9 @@ describe("Nelcota's personality", () => {
     expect(f.expression).toBe("stretching");
     f.advance(1000);
     expect(f.expression).toBeUndefined();
+  });
+
+  test("the sleepy expression comes back once the yawn ends", () => {
     const reasons = createReasons(() => 0);
     reasons.set("sleep", "sleepy");
     reasons.set("interaction", "yawning");
