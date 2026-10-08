@@ -154,6 +154,8 @@ export function RoomLayout({
       <main
         className={cn(
           "relative z-10 flex min-h-0 flex-1 gap-4 px-3 pt-4 pb-32 sm:px-6",
+          // Stage in fullscreen: its stacking context has to rise above the top bar and dock.
+          "has-data-fullscreen:z-45",
           hasStage ? "flex-col lg:flex-row" : "flex-col items-center justify-center",
           // Chat open on a wide screen: the content makes room instead of sitting underneath.
           chat.open && "lg:pr-[26.5rem]",

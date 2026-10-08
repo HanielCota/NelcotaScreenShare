@@ -1,10 +1,10 @@
 import { VideoTrack, type TrackReference } from "@livekit/components-react";
 import { Maximize2, Minimize2, MonitorUp, MousePointerClick } from "lucide-react";
-import { useRef, useState, useSyncExternalStore } from "react";
-import { toast } from "sonner";
+import { useRef, useState } from "react";
 import { Hint } from "@/components/Hint";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { participantName } from "@/features/room/domain/participant-label";
+import { usePageFullscreen } from "@/features/room/hooks/use-page-fullscreen";
 import { cn } from "@/lib/utils";
 import { PointerLayer, usePointers } from "./PointerLayer";
 
@@ -18,57 +18,56 @@ function sharerName(ref: TrackReference): string {
   return ref.participant.isLocal ? "Você" : participantName(ref.participant);
 }
 
-function subscribeFullscreen(onChange: () => void) {
-  document.addEventListener("fullscreenchange", onChange);
-  return () => document.removeEventListener("fullscreenchange", onChange);
+function FullscreenButton({
+  isFullscreen,
+  onToggle,
+}: {
+  isFullscreen: boolean;
+  onToggle: () => void;
+}) {
+  const label = isFullscreen ? "Sair da tela cheia" : "Tela cheia";
+  const Icon = isFullscreen ? Minimize2 : Maximize2;
+  return (
+    <Hint text={`${label} (F)`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-keyshortcuts="F"
+        aria-label={label}
+        className="glass pointer-events-auto grid size-9 place-items-center rounded-xl text-ink-muted transition-colors hover:text-ink"
+      >
+        <Icon className="size-4" aria-hidden="true" />
+      </button>
+    </Hint>
+  );
 }
 
 /** Points marked on the shared screen (data channel, no delivery guarantee). */
 export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
-  const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   // Pointing mode applies to the screen it was turned on for: switching screens turns it off.
   const [pointingAt, setPointingAt] = useState<string>();
   const { pings, pointAt } = usePointers();
-  const isFullscreen = useSyncExternalStore(
-    subscribeFullscreen,
-    () => document.fullscreenElement !== null && document.fullscreenElement === stageRef.current,
-    () => false,
-  );
-
-  // iPhone Safari has no fullscreen for regular elements: no API, no button.
-  const canFullscreen = document.fullscreenEnabled;
-  const tooltipContainer = isFullscreen ? document.fullscreenElement : undefined;
-  const fullscreenLabel = isFullscreen ? "Sair da tela cheia" : "Tela cheia";
+  const { isFullscreen, canFullscreen, toggle: toggleFullscreen } = usePageFullscreen();
   const isOwnScreen = focused.participant.isLocal;
   const trackSid = focused.publication.trackSid;
   const pointing = !isOwnScreen && pointingAt === trackSid;
   const togglePointing = () => setPointingAt(pointing ? undefined : trackSid);
-
-  async function toggleFullscreen() {
-    const el = stageRef.current;
-    if (!el) return;
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-        return;
-      }
-      await el.requestFullscreen();
-    } catch {
-      toast.error("Não foi possível alternar a tela cheia.");
-    }
-  }
 
   useShortcut("f", () => void toggleFullscreen(), canFullscreen);
   useShortcut("p", togglePointing, !isOwnScreen);
 
   return (
     <section
-      ref={stageRef}
       data-flip-id="stage"
       data-mascot-stage=""
+      data-fullscreen={isFullscreen || undefined}
       aria-label={`Tela compartilhada por ${sharerName(focused)}`}
-      className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-black shadow-soft"
+      className={cn(
+        "relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-black shadow-soft",
+        // Above the top bar, chat and dock; below tooltips (z-50) and notices.
+        isFullscreen && "fixed inset-0 z-45 rounded-none border-0",
+      )}
     >
       {isOwnScreen ? (
         // Your own screen at large size creates the mirror effect (screen within a screen).
@@ -127,10 +126,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
 
         <span className="flex gap-2">
           {isOwnScreen ? null : (
-            <Hint
-              container={tooltipContainer}
-              text={pointing ? "Parar de apontar (P)" : "Apontar na tela (P)"}
-            >
+            <Hint text={pointing ? "Parar de apontar (P)" : "Apontar na tela (P)"}>
               <button
                 type="button"
                 onClick={togglePointing}
@@ -147,21 +143,10 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
             </Hint>
           )}
           {canFullscreen ? (
-            <Hint container={tooltipContainer} text={`${fullscreenLabel} (F)`}>
-              <button
-                type="button"
-                onClick={() => void toggleFullscreen()}
-                aria-keyshortcuts="F"
-                aria-label={fullscreenLabel}
-                className="glass pointer-events-auto grid size-9 place-items-center rounded-xl text-ink-muted transition-colors hover:text-ink"
-              >
-                {isFullscreen ? (
-                  <Minimize2 className="size-4" aria-hidden="true" />
-                ) : (
-                  <Maximize2 className="size-4" aria-hidden="true" />
-                )}
-              </button>
-            </Hint>
+            <FullscreenButton
+              isFullscreen={isFullscreen}
+              onToggle={() => void toggleFullscreen()}
+            />
           ) : null}
         </span>
       </div>
