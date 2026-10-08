@@ -82,9 +82,9 @@ export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
                 onClick={() => void toggleMic()}
               >
                 {isMicrophoneEnabled ? (
-                  <Mic className="size-5" aria-hidden="true" />
+                  <Mic className="icon-pop size-5" aria-hidden="true" />
                 ) : (
-                  <MicOff className="size-5" aria-hidden="true" />
+                  <MicOff className="icon-pop size-5" aria-hidden="true" />
                 )}
               </DockButton>
               <MicMenu disabled={micBusy} />

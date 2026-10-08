@@ -54,7 +54,7 @@ export function InviteCard({ code }: { code: string }) {
             className="shrink-0"
           >
             {copied ? (
-              <Check className="text-success" aria-hidden="true" />
+              <Check className="icon-pop text-success" aria-hidden="true" />
             ) : (
               <Copy aria-hidden="true" />
             )}

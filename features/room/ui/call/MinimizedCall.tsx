@@ -23,7 +23,7 @@ export function MinimizedCall({ code }: { code: string }) {
         aria-hidden="true"
         className={cn(
           "size-2.5 shrink-0 rounded-full",
-          connected ? "bg-success" : "animate-pulse bg-warning",
+          connected ? "live-dot bg-success" : "animate-pulse bg-warning",
         )}
       />
       <span className="flex min-w-0 flex-col">
