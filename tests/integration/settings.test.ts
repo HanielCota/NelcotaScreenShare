@@ -21,6 +21,10 @@ test("migrations already applied: running again does nothing", async () => {
 });
 
 describe("mascot in Postgres", () => {
+  beforeEach(async () => {
+    await db.delete(schema.appSettings);
+  });
+
   test("no row: defaults", async () => {
     assert.deepEqual(await getSetting(mascotSettings, db), mascotSettings.defaults);
   });
@@ -43,6 +47,7 @@ describe("mascot in Postgres", () => {
   });
 
   test("out of range is rejected and nothing changes", async () => {
+    await saveSetting(mascotSettings, { saturationDark: 2, saturationLight: 0 }, db);
     await assert.rejects(
       saveSetting(mascotSettings, { saturationDark: 2.5, saturationLight: 1 }, db),
     );
@@ -54,9 +59,11 @@ describe("mascot in Postgres", () => {
   });
 
   test("invalid JSON written from outside: defaults", async () => {
+    await saveSetting(mascotSettings, { saturationDark: 2, saturationLight: 0 }, db);
     await pool.query(
       `update app_settings set value = '{"saturationDark":"muito"}' where key = 'mascot'`,
     );
+    clearSettingsCache();
     assert.deepEqual(await getSetting(mascotSettings, db), mascotSettings.defaults);
   });
 });
