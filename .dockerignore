@@ -1,4 +1,6 @@
 .git
+.github
+AGENTS.md
 .react-router
 build
 node_modules

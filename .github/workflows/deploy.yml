@@ -55,8 +55,8 @@ jobs:
             ${{ env.IMAGE }}:${{ steps.vars.outputs.sha }}
             ${{ env.IMAGE }}:main
             ${{ env.IMAGE }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=nelcota-image
+          cache-to: type=gha,scope=nelcota-image,mode=max
 
   migrate:
     name: Migrations (migration user)
