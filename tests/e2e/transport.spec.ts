@@ -9,7 +9,7 @@ test("production compresses HTML and JavaScript and varies by accepted encoding"
   expect(page.headers()["content-encoding"]).toBe("gzip");
   expect(page.headers().vary).toContain("Accept-Encoding");
   const html = await page.text();
-  expect(html).toContain("Compartilhe sua tela");
+  expect(html).toContain("som e ponteiro");
   const entry = html.match(/\/assets\/entry\.client-[\w-]+\.js/);
   if (!entry) throw new Error("The page did not advertise its entry module.");
   const script = await request.get(entry[0], { headers });

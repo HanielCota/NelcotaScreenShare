@@ -1,14 +1,7 @@
-import { Keyboard } from "lucide-react";
 import { Link } from "react-router";
 import type { ReactNode } from "react";
 import { HowItWorks } from "@/components/shell/HowItWorks";
-import {
-  NavBar,
-  NavBrand,
-  NavDivider,
-  NavPopover,
-  ShortcutsPanel,
-} from "@/components/shell/NavBar";
+import { NavBar, NavBrand, NavDivider } from "@/components/shell/NavBar";
 import { navItemClass } from "@/components/shell/nav-item-class";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -81,20 +74,11 @@ export function AppHeader({
         <NavBrand href="/" />
         <NavDivider className="max-md:hidden" />
         <HowItWorks className="max-md:hidden" />
-        <NavPopover
-          trigger={
-            <>
-              <Keyboard className="size-4" aria-hidden="true" />
-              Atalhos
-            </>
-          }
-          label="Atalhos"
-          className="max-md:hidden"
-        >
-          <ShortcutsPanel />
-        </NavPopover>
-        <Link viewTransition to="/privacidade" className={cn(navItemClass, "max-lg:hidden")}>
-          Privacidade
+        <Link viewTransition to="/#precos" className={cn(navItemClass, "max-md:hidden")}>
+          Preços
+        </Link>
+        <Link viewTransition to="/novidades" className={cn(navItemClass, "max-lg:hidden")}>
+          Novidades
         </Link>
         <ThemeToggle className="ml-auto" />
         <AccountLinks

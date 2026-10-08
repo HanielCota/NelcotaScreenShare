@@ -9,3 +9,5 @@ export const proInterestSchema = z.object({
     .max(254, "Esse e-mail é longo demais.")
     .pipe(z.email("Confira o e-mail: algo como nome@empresa.com.")),
 });
+
+export const proInterestResultSchema = z.object({ message: z.string() });

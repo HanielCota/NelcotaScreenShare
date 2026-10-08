@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { Link } from "react-router";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
@@ -6,6 +7,8 @@ import { HomeSections } from "./HomeSections";
 import { HomeStart } from "./HomeStart";
 
 const FOOTER_LINK = "transition-colors hover:text-ink";
+
+const HERO_FACTS = ["Grátis para começar", "Sem instalar nada", "Nada é gravado"];
 
 /** Home page: the hero with the entry bar and the mascots, then the sections that sell it. */
 export function HomeScene({
@@ -25,8 +28,8 @@ export function HomeScene({
     <HomeEntrance className="flex flex-col items-center px-4 pb-8 sm:px-8">
       <AppHeader account={account} data-anim="nav" className="fixed inset-x-0 top-0 z-30" />
 
-      {/* Slightly shorter than the viewport: the demo peeks in and invites the scroll. */}
-      <div className="flex min-h-[92svh] w-full max-w-2xl flex-col items-center justify-center pt-28 pb-16">
+      {/* Only as tall as its content: the product demo starts right below the fold line. */}
+      <div className="flex w-full max-w-2xl flex-col items-center pt-32 pb-16 sm:pt-40 sm:pb-20">
         {notice ? (
           <output className="mb-8 block w-full rounded-2xl bg-surface-2 px-4 py-3 text-center text-sm">
             {notice}
@@ -36,22 +39,34 @@ export function HomeScene({
           data-anim="title"
           className="text-center text-4xl leading-tight font-medium tracking-[-0.03em] text-balance sm:text-5xl"
         >
-          Compartilhe sua tela em segundos.
+          Mostre a tela com <span className="text-brand-soft">som e ponteiro</span>.
         </h1>
         <p
           data-anim="subtitle"
           className="mt-4 max-w-lg text-center text-base leading-relaxed text-pretty text-ink-muted sm:text-lg"
         >
-          Direto do navegador, com o som do computador junto. Quem recebe o link entra e já vê o que
-          você está mostrando.
+          Para times de tecnologia mostrarem um bug, revisarem uma tela ou parearem num problema.
+          Direto do navegador, e quem recebe o link entra sem criar conta.
         </p>
 
         <div data-anim="card" className="mt-8 w-full will-change-transform sm:mt-10">
-          <HomeStart invalidCode={invalidCode} />
+          <HomeStart invalidCode={invalidCode} signedIn={account !== null} />
         </div>
+        <ul
+          data-anim="subtitle"
+          aria-label="Destaques"
+          className="mt-2 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-ink-muted"
+        >
+          {HERO_FACTS.map((fact) => (
+            <li key={fact} className="inline-flex items-center gap-1.5">
+              <Check className="size-4 text-brand-soft" aria-hidden="true" />
+              {fact}
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <HomeSections maxParticipants={maxParticipants} />
+      <HomeSections maxParticipants={maxParticipants} signedIn={account !== null} />
 
       <footer className="mt-24 flex w-full max-w-5xl flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
         <ShareSupportNote variant="badge" />

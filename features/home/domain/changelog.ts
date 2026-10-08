@@ -25,8 +25,16 @@ export const CHANGE_LABELS: Record<ChangeKind, string> = {
 export const RELEASES: Release[] = [
   {
     date: "2026-10-08",
-    title: "Mais recursos na sala e uma página inicial mais direta",
+    title: "Convidados sem conta e mais recursos na sala",
     changes: [
+      {
+        kind: "new",
+        text: "Quem recebe o link entra na sala só com o nome, sem precisar criar conta.",
+      },
+      {
+        kind: "new",
+        text: "Links do Nelcota aparecem com prévia no WhatsApp, no Slack e no Discord.",
+      },
       {
         kind: "new",
         text: "Acompanhe a tela de alguém numa janela flutuante, por cima dos seus apps.",
@@ -49,7 +57,8 @@ export const RELEASES: Release[] = [
       { kind: "fix", text: "A tela compartilhada mais recente é a que aparece em destaque." },
       { kind: "improvement", text: "Mais espaço para a tela compartilhada em telas baixas." },
       { kind: "improvement", text: "Transições mais suaves entre páginas, menus e painéis." },
-      { kind: "improvement", text: "Página inicial mais curta e direta, com menos animação." },
+      { kind: "improvement", text: "Página inicial nova, com preços e casos de uso." },
+      { kind: "improvement", text: "Cadastro mais curto: a foto de perfil fica para depois." },
     ],
   },
   {
