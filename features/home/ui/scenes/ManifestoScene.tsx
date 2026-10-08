@@ -39,14 +39,14 @@ export function ManifestoScene() {
 
   return (
     <section ref={scope} aria-label="Por que o Nelcota existe" className="stage w-full">
-      <div className="mx-auto flex min-h-svh max-w-5xl items-center px-4 py-24 sm:px-8">
+      <div className="page-column flex min-h-svh items-center py-24">
         <p
           data-manifesto
           className="text-[clamp(1.75rem,4.4vw,3.75rem)] leading-[1.12] font-semibold tracking-[-0.035em] text-balance"
         >
           Explicar algo no computador não devia começar com “tá vendo minha tela?”. Abra a sala,
-          mande o link e mostre. <span className="text-brand">O som vai junto</span>, o ponteiro
-          mostra onde clicar e ninguém precisa instalar nada.
+          mande o link e mostre. <span className="text-brand">O&nbsp;som vai junto</span>, o
+          ponteiro mostra onde clicar e ninguém precisa instalar nada.
         </p>
       </div>
     </section>

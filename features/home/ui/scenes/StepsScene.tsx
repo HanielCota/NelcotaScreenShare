@@ -58,7 +58,7 @@ export function StepsScene() {
     >
       <div
         data-steps-frame
-        className="mx-auto flex min-h-svh max-w-6xl flex-col justify-center gap-10 px-4 py-24 sm:px-8"
+        className="page-column flex flex-col justify-center gap-10 py-24 group-data-[scene=live]/scene:min-h-svh"
       >
         <h2
           id="steps-title"
@@ -74,7 +74,7 @@ export function StepsScene() {
           aria-hidden="true"
           className="hidden items-center gap-12 group-data-[scene=live]/scene:flex"
         >
-          <div className="h-[1em] overflow-hidden text-[clamp(7rem,22vw,18rem)] leading-none font-semibold tracking-[-0.06em] text-brand-soft tabular-nums">
+          <div className="-ml-[0.06em] h-[1em] overflow-hidden text-[clamp(7rem,22vw,18rem)] leading-none font-semibold tracking-[-0.06em] text-brand-soft tabular-nums">
             <div data-step-digits className="flex flex-col">
               {STEPS.map((step, index) => (
                 <span key={step.title} className="h-[1em]">

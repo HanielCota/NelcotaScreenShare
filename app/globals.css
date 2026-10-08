@@ -59,6 +59,19 @@
   box-shadow: var(--shadow-soft);
 }
 
+/*
+ * The page's content column: the same edges as the fixed navigation (a 1rem gutter on
+ * phones, 1.5rem from 640px, at most 64rem wide), so every section lines up under it.
+ */
+@utility page-column {
+  width: min(100% - 2rem, 64rem);
+  margin-inline: auto;
+
+  @media (width >= 40rem) {
+    width: min(100% - 3rem, 64rem);
+  }
+}
+
 /* Bridge to the variables shadcn components expect. */
 @theme inline {
   --font-sans: var(--font-manrope), "Manrope", sans-serif;

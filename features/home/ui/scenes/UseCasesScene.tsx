@@ -70,7 +70,7 @@ export function UseCasesScene() {
       <div className="flex min-h-svh flex-col justify-center gap-12 py-24">
         <h2
           id="use-cases-title"
-          className="mx-auto w-full max-w-5xl px-4 text-[clamp(2.25rem,6vw,5rem)] leading-[1] font-semibold tracking-[-0.045em] group-data-[scene=live]/scene:max-w-none group-data-[scene=live]/scene:pl-[max(2rem,calc((100vw-72rem)/2))] sm:px-8"
+          className="page-column text-[clamp(2.25rem,6vw,5rem)] leading-[1] font-semibold tracking-[-0.045em]"
         >
           Feito para o dia a dia
           <br />
@@ -78,7 +78,7 @@ export function UseCasesScene() {
         </h2>
         <ol
           data-cases-track
-          className="mx-auto flex max-w-5xl flex-col gap-16 px-4 group-data-[scene=live]/scene:mx-0 group-data-[scene=live]/scene:w-max group-data-[scene=live]/scene:max-w-none group-data-[scene=live]/scene:flex-row group-data-[scene=live]/scene:gap-8 group-data-[scene=live]/scene:pr-[max(2rem,calc((100vw-72rem)/2))] group-data-[scene=live]/scene:pl-[max(2rem,calc((100vw-72rem)/2))] sm:px-8"
+          className="page-column flex flex-col gap-16 group-data-[scene=live]/scene:mx-0 group-data-[scene=live]/scene:w-max group-data-[scene=live]/scene:flex-row group-data-[scene=live]/scene:gap-8 group-data-[scene=live]/scene:px-[max(1.5rem,calc((100%-64rem)/2))]"
         >
           {CASES.map(({ title, text, uses, art }, index) => (
             <li
