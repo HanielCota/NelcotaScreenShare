@@ -3,9 +3,9 @@
  * running it again duplicates nothing.
  *
  *   pnpm db:seed                      → "dev" profile
- *   pnpm db:seed --perfil=carga --linhas=300000
+ *   pnpm db:seed --profile=load --rows=300000
  *
- * Refuses production and databases outside the local machine (use --forcar for a
+ * Refuses production and databases outside the local machine (use --force for a
  * disposable remote test database).
  */
 import { fakerPT_BR as faker } from "@faker-js/faker";
@@ -21,16 +21,17 @@ const args = new Map(
     return [key, value] as const;
   }),
 );
-const profile = args.get("perfil") ?? "dev";
-const rows = Number(args.get("linhas") ?? 300_000);
+const profile = args.get("profile") ?? "dev";
+const rows = Number(args.get("rows") ?? 300_000);
+const started = Date.now();
 /** Password of every seeded participant (dev only). */
 const SEED_PASSWORD = "dev-password-1234";
 
 const url = process.env.DATABASE_URL ?? "";
 const local = /@(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//.test(url);
-if (process.env.NODE_ENV === "production" || (!local && !args.has("forcar"))) {
+if (process.env.NODE_ENV === "production" || (!local && !args.has("force"))) {
   console.error(
-    "Seed refused: it only runs on a local database (or with --forcar on a disposable one).",
+    "Seed refused: it only runs on a local database (or with --force on a disposable one).",
   );
   process.exit(1);
 }
@@ -228,7 +229,7 @@ async function seedRooms(count: number, prefix: string, userPattern: string) {
   return (after.rows[0]?.total ?? 0) - (before.rows[0]?.total ?? 0);
 }
 
-async function seedLoadProfile(started: number) {
+async function seedLoadProfile() {
   const result = await seedLoad(rows);
   const loadRooms = await seedRooms(Math.ceil(rows / 15), "carga-", "carga%@exemplo.dev");
   await db.execute(sql`analyze rooms; analyze room_participations; analyze share_sessions;`);
@@ -238,7 +239,7 @@ async function seedLoadProfile(started: number) {
   );
 }
 
-async function seedDevProfile(started: number) {
+async function seedDevProfile() {
   const participants = await seedParticipants(300);
   const audit = await seedAudit(2_000);
   const devRooms = await seedRooms(60, "seed-", "participante%@exemplo.dev");
@@ -248,14 +249,5 @@ async function seedDevProfile(started: number) {
   );
 }
 
-async function seedProfile(started: number) {
-  if (profile === "carga") {
-    await seedLoadProfile(started);
-    return;
-  }
-  await seedDevProfile(started);
-}
-
-const started = Date.now();
-await seedProfile(started);
+await (profile === "load" ? seedLoadProfile() : seedDevProfile());
 process.exit(0);
