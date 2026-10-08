@@ -13,7 +13,7 @@ const NOT_KEPT: { icon: LucideIcon; label: string }[] = [
 ];
 
 /**
- * Privacy as one picture: a record button, struck through. Pinned, the button starts lit, a
+ * Privacy as one picture: a record button (a microphone, recording), struck through. Pinned, the button starts lit, a
  * line crosses it out and it goes dark, then the promise and what it covers come in. Without
  * motion the button is already struck and everything is there.
  */
@@ -56,7 +56,12 @@ export function PrivacyScene() {
             data-rec
             className="inline-flex items-center gap-4 rounded-full border border-white/15 bg-white/[0.04] px-8 py-5 opacity-40 grayscale sm:gap-5 sm:px-10 sm:py-6"
           >
-            <span data-rec-dot className="size-6 rounded-full bg-[#ff453a] sm:size-8" />
+            <span
+              data-rec-dot
+              className="grid size-10 place-items-center rounded-full bg-[#ff453a] text-white sm:size-12"
+            >
+              <Mic className="size-5 sm:size-6" strokeWidth={2.4} />
+            </span>
             <span className="text-3xl font-semibold tracking-[0.12em] sm:text-4xl">REC</span>
             <span className="text-xl text-(--stage-muted) tabular-nums sm:text-2xl">00:00</span>
           </span>
