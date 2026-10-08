@@ -338,10 +338,9 @@
 @layer components {
   /* "Glass" surface for bars and overlays that float over moving content (video, scroll). */
   .glass {
-    @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl backdrop-saturate-150;
+    @apply border border-line bg-surface/80 shadow-soft backdrop-blur-xl backdrop-saturate-150;
   }
 
-  /* Opaque card for surfaces that sit on the plain canvas: a blur there has nothing to blur. */
   /*
    * Icon feedback on hover, driven by the link or button that holds the icon: an arrow
    * steps toward where the link goes, a plus or a reload mark turns. Short, eased, and off
@@ -402,6 +401,7 @@
     }
   }
 
+  /* Opaque card for surfaces that sit on the plain canvas: a blur there has nothing to blur. */
   .panel {
     @apply border border-line bg-surface shadow-soft;
   }
