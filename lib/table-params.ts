@@ -19,6 +19,13 @@ export const periodParsers = {
 /** Changing a filter or the sort goes back to the first page. */
 export const resetPage = { cursor: null, dir: null } as const;
 
+/** A table's filters: any value set makes them active, and "Limpar" sets them all to null. */
+export function filterState<K extends string>(keys: readonly K[], params: Record<K, unknown>) {
+  const cleared: Partial<Record<K, null>> = {};
+  for (const key of keys) cleared[key] = null;
+  return { active: keys.some((key) => Boolean(params[key])), cleared };
+}
+
 export const PAGE_SIZE = 50;
 
 /**

@@ -9,15 +9,8 @@ import {
   users,
   userSessions,
 } from "@/server/db/schema";
-import {
-  approximateCount,
-  decodeCursor,
-  keysetClauses,
-  keysetPage,
-  sortableColumn,
-  type KeysetQuery,
-} from "@/server/table/keyset.server";
-import { iterateAll } from "@/server/table/iterate.server";
+import { keysetList, sortableColumn } from "@/server/table/keyset.server";
+import { exportRows } from "@/server/table/iterate.server";
 import { periodFilters } from "@/server/table/period-filter.server";
 import { unaccentLike } from "@/server/table/search.server";
 import {
@@ -84,7 +77,7 @@ const SORTS = {
   participacoes: sortableColumn<Raw>(users.participationsCount, "int"),
 };
 
-export async function listParticipants(
+export function listParticipants(
   db: DbExecutor,
   params: ParticipantParams,
   limit: number,
@@ -92,55 +85,39 @@ export async function listParticipants(
 ) {
   const where = filtersFrom(params);
   const sort = SORTS[params.por];
-  const query: KeysetQuery<Raw> = {
+  return keysetList(db, {
     sort,
     idColumn: users.id,
-    direction: params.ordem,
-    cursor: decodeCursor(params.cursor),
-    page: params.dir,
+    params,
     limit,
-  };
-  const clauses = keysetClauses(query);
-  const rowsQuery = db
-    .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      emailVerified: users.emailVerified,
-      status: statusExpression,
-      createdAt: users.createdAt,
-      lastSeenAt: users.lastSeenAt,
-      participations: users.participationsCount,
-      sortKey: sort.key,
-    })
-    .from(users)
-    .where(and(...where, clauses.where))
-    .orderBy(...clauses.orderBy)
-    .limit(clauses.limit);
-
-  const totalQuery = count
-    ? approximateCount(db, sql`select 1 from ${users} where ${and(...where)}`)
-    : { total: 0, capped: false };
-  const [rows, total] = await Promise.all([rowsQuery, totalQuery]);
-  const page = keysetPage(rows, query);
-  return {
-    items: page.items.map(({ sortKey: _, ...row }): ParticipantRow => ({
+    count,
+    rows: (clauses) =>
+      db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          emailVerified: users.emailVerified,
+          status: statusExpression,
+          createdAt: users.createdAt,
+          lastSeenAt: users.lastSeenAt,
+          participations: users.participationsCount,
+          sortKey: sort.key,
+        })
+        .from(users)
+        .where(and(...where, clauses.where))
+        .orderBy(...clauses.orderBy)
+        .limit(clauses.limit),
+    countQuery: sql`select 1 from ${users} where ${and(...where)}`,
+    toItem: ({ sortKey: _, ...row }): ParticipantRow => ({
       ...row,
       createdAt: row.createdAt.toISOString(),
       lastSeenAt: row.lastSeenAt?.toISOString() ?? null,
-    })),
-    nextCursor: page.nextCursor,
-    prevCursor: page.prevCursor,
-    ...total,
-  };
+    }),
+  });
 }
 
-/** Every row of the filter in batches (CSV). */
-export function iterateParticipants(db: DbExecutor, params: ParticipantParams) {
-  return iterateAll((cursor) =>
-    listParticipants(db, { ...params, cursor, dir: "next" }, 1000, { count: false }),
-  );
-}
+export const iterateParticipants = exportRows(listParticipants);
 
 /** IDs matching the filter ("all results" bulk actions). */
 export async function participantIdsForFilter(

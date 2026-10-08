@@ -56,7 +56,7 @@ Open two tabs (or a private window), join the same room and share your screen.
 | `pnpm db:generate`                         | Generates the SQL migration in `drizzle/` from `server/db/schema/`                   |
 | `pnpm db:migrate`                          | Applies the migrations with `MIGRATOR_DATABASE_URL`                                  |
 | `pnpm db:studio`                           | Opens Drizzle Studio                                                                 |
-| `pnpm db:seed`                             | Sample data (local database only). `--perfil=carga --linhas=300000` for load testing |
+| `pnpm db:seed`                             | Sample data (local database only). `--profile=load --rows=300000` to test under load |
 | `pnpm build:migrate`                       | Bundles the migrator into `dist/migrate.mjs` (used in the Docker image)              |
 | `pnpm build:scripts`                       | Migrator, `create-owner.mjs` (runs in the image) and seed                            |
 

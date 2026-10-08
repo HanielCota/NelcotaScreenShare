@@ -7,7 +7,7 @@ import type { DbExecutor } from "@/server/db/index.server";
  * instead of OFFSET, stable with hundreds of thousands of rows and with ties
  * in the sort column (the id breaks ties). Previous/next with cursors.
  */
-export type Direction = "asc" | "desc";
+type Direction = "asc" | "desc";
 type PageDirection = "next" | "prev";
 
 const cursorSchema = z.object({
@@ -22,7 +22,7 @@ function encodeCursor(cursor: Cursor): string {
 }
 
 /** An invalid (hand-edited) cursor becomes "first page", without an error. */
-export function decodeCursor(raw: string | null | undefined): Cursor | undefined {
+function decodeCursor(raw: string | null | undefined): Cursor | undefined {
   if (!raw || raw.length > 500) return undefined;
   try {
     const parsed = cursorSchema.safeParse(JSON.parse(Buffer.from(raw, "base64url").toString()));
@@ -73,7 +73,7 @@ function afterCursor(
   );
 }
 
-export interface KeysetQuery<TRow> {
+interface KeysetQuery<TRow> {
   sort: SortColumn<TRow>;
   idColumn: AnyColumn;
   direction: Direction;
@@ -83,7 +83,7 @@ export interface KeysetQuery<TRow> {
 }
 
 /** WHERE and ORDER BY of the requested page (the "previous" one queries in reverse order). */
-export function keysetClauses<TRow>(query: KeysetQuery<TRow>) {
+function keysetClauses<TRow>(query: KeysetQuery<TRow>) {
   const order = query.page === "prev" ? flip(query.direction) : query.direction;
   const by = order === "desc" ? desc : asc;
   // Drizzle indexes use DESC NULLS LAST; their reverse order is ASC NULLS FIRST.
@@ -106,14 +106,14 @@ export function keysetClauses<TRow>(query: KeysetQuery<TRow>) {
   };
 }
 
-export interface Page<TRow> {
+interface Page<TRow> {
   items: TRow[];
   nextCursor: string | null;
   prevCursor: string | null;
 }
 
 /** Builds the page from the `limit + 1` rows read. */
-export function keysetPage<TRow extends { id: string }>(
+function keysetPage<TRow extends { id: string }>(
   rows: TRow[],
   query: KeysetQuery<TRow>,
 ): Page<TRow> {
@@ -147,23 +147,10 @@ export async function approximateCount(
 }
 
 /**
- * Timestamps in the cursor: Postgres's exact text (microseconds). A JS `Date`
- * only keeps milliseconds and would make the boundary row repeat or disappear.
- * Select the column with `timestampKey(col)` and compare with `parse`.
- */
-export function timestampKey(column: AnyColumn) {
-  return sql<string>`${column}::text`;
-}
-
-export const timestampCursor = {
-  parse: (value: string | number | null) =>
-    typeof value === "string" ? sql`${value}::timestamptz` : value,
-};
-
-/**
  * Generic sortable column: the cursor stores the value as Postgres text
- * (exact, including microseconds) and casts it back to the column type.
- * Select `key` as `sortKey` in the query.
+ * (exact, including microseconds: a JS `Date` only keeps milliseconds and would
+ * make the boundary row repeat or disappear) and casts it back to the column
+ * type. Select `key` as `sortKey` in the query.
  */
 export function sortableColumn<TRow extends { sortKey: string | null }>(
   column: AnyColumn,
@@ -174,5 +161,52 @@ export function sortableColumn<TRow extends { sortKey: string | null }>(
     key: sql<string | null>`${column}::text`,
     valueOf: (row) => row.sortKey,
     parse: (value) => (typeof value === "string" ? sql`${value}::${sql.raw(pgType)}` : value),
+  };
+}
+
+/** URL state every admin listing shares (see `pageParsers`). */
+interface ListingParams {
+  ordem: Direction;
+  cursor: string | null;
+  dir: PageDirection;
+}
+
+interface KeysetList<TRaw, TItem> {
+  sort: SortColumn<TRaw>;
+  idColumn: AnyColumn;
+  params: ListingParams;
+  limit: number;
+  /** The export reads in batches and does not need the total for each one. */
+  count: boolean;
+  /** The listing's own query, narrowed by the page clauses. */
+  rows: (clauses: ReturnType<typeof keysetClauses<TRaw>>) => PromiseLike<TRaw[]>;
+  /** `select 1 from ... where <filters>`, counted up to `COUNT_CAP`. */
+  countQuery: SQL;
+  toItem: (raw: TRaw) => TItem;
+}
+
+/** One page of an admin listing, with the approximate total of its filter. */
+export async function keysetList<TRaw extends { id: string }, TItem>(
+  db: DbExecutor,
+  spec: KeysetList<TRaw, TItem>,
+) {
+  const query: KeysetQuery<TRaw> = {
+    sort: spec.sort,
+    idColumn: spec.idColumn,
+    direction: spec.params.ordem,
+    cursor: decodeCursor(spec.params.cursor),
+    page: spec.params.dir,
+    limit: spec.limit,
+  };
+  const [rows, total] = await Promise.all([
+    spec.rows(keysetClauses(query)),
+    spec.count ? approximateCount(db, spec.countQuery) : { total: 0, capped: false },
+  ]);
+  const page = keysetPage(rows, query);
+  return {
+    items: page.items.map(spec.toItem),
+    nextCursor: page.nextCursor,
+    prevCursor: page.prevCursor,
+    ...total,
   };
 }

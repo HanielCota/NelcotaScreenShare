@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Facts, Section } from "@/components/Section";
-import { LEAVE_REASON_LABELS } from "@/features/admin/audit/domain/labels";
+import { LEAVE_REASON_LABELS } from "@/features/admin/rooms/domain/labels";
 import type { getParticipantDetail } from "@/features/admin/participants/server/queries.server";
 import { formatDateTime, formatNumber, formatSpan } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
@@ -22,10 +22,13 @@ export function ParticipantAccount({ account }: { account: ParticipantDetail["ac
             ? ([
                 ["Bloqueada em", formatDateTime(account.blockedAt)],
                 ["Motivo", account.blockReason ?? "—"],
-              ] as [string, string][])
+              ] satisfies [string, string][])
             : []),
           ...(account.anonymizedAt
-            ? ([["Anonimizada em", formatDateTime(account.anonymizedAt)]] as [string, string][])
+            ? ([["Anonimizada em", formatDateTime(account.anonymizedAt)]] satisfies [
+                string,
+                string,
+              ][])
             : []),
         ]}
       />
@@ -57,19 +60,17 @@ export function ParticipantSessions({ sessions }: { sessions: ParticipantDetail[
   );
 }
 
+function timelineNote(count: number): string | undefined {
+  if (count === 0) return "Ainda não entrou em nenhuma sala.";
+  // The query stops at 100 participations.
+  if (count === 100) return "As 100 mais recentes.";
+  return undefined;
+}
+
 /** Rooms the person joined (the 100 most recent). */
 export function ParticipantTimeline({ timeline }: { timeline: ParticipantDetail["timeline"] }) {
   return (
-    <Section
-      title="Participações"
-      description={
-        timeline.length === 0
-          ? "Ainda não entrou em nenhuma sala."
-          : timeline.length === 100
-            ? "As 100 mais recentes."
-            : undefined
-      }
-    >
+    <Section title="Participações" description={timelineNote(timeline.length)}>
       {timeline.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">

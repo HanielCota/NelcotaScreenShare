@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Facts, Section } from "@/components/Section";
-import { LEAVE_REASON_LABELS } from "@/features/admin/audit/domain/labels";
+import { LEAVE_REASON_LABELS } from "@/features/admin/rooms/domain/labels";
 import type { getRoomDetail } from "@/features/admin/rooms/server/queries.server";
 import { formatDateTime, formatSpan } from "@/lib/format";
 
@@ -25,7 +25,9 @@ export function RoomSummary({
           ["Fim", room.finishedAt ? formatDateTime(room.finishedAt) : "—"],
           ["Duração", formatSpan(room.startedAt, room.finishedAt)],
           ["Pico de pessoas", String(room.peak)],
-          ...(online === null ? [] : ([["Na sala agora", String(online)]] as [string, string][])),
+          ...(online === null
+            ? []
+            : ([["Na sala agora", String(online)]] satisfies [string, string][])),
           ["Compartilhamentos", String(shareCount)],
           [
             "Criada por",
@@ -43,7 +45,7 @@ export function RoomSummary({
             ),
           ],
           ...(room.deletedAt
-            ? ([["Excluída em", formatDateTime(room.deletedAt)]] as [string, string][])
+            ? ([["Excluída em", formatDateTime(room.deletedAt)]] satisfies [string, string][])
             : []),
         ]}
       />

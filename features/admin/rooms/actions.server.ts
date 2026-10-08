@@ -10,7 +10,8 @@ import { getDb } from "@/server/db/index.server";
 import { rooms } from "@/server/db/schema";
 import { appUrl } from "@/server/env.server";
 import { createRoomInvite, revokeRoomInvite } from "@/features/room/server/invites.server";
-import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection.server";
+import { bulkChange, bulkSelectionSchema, resolveSelection } from "@/server/table/selection.server";
+import { INVITE_VALIDITY, inviteMaxUsesSchema } from "./domain/invites";
 import { roomIdsForFilter } from "./server/queries.server";
 
 /** Reversible deletion. A live room cannot be deleted: end it first. */
@@ -22,35 +23,36 @@ export const deleteRoomsAction = defineAdminOperation(
     const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
       roomIdsForFilter(db, search, limit),
     );
-    const changed = await db.transaction(async (tx) => {
-      const live = await tx
-        .select({ code: rooms.code })
-        .from(rooms)
-        .where(and(inArray(rooms.id, ids), eq(rooms.status, "active"), isNull(rooms.deletedAt)));
-      if (live.length > 0) {
-        throw new ActionError(
-          live.length === 1
-            ? `A sala ${live[0]?.code} está ao vivo. Encerre a sala antes de excluir.`
-            : `${live.length} salas estão ao vivo. Encerre as salas antes de excluir.`,
-        );
-      }
-      const done = await tx
-        .update(rooms)
-        .set({ deletedAt: sql`now()` })
-        .where(and(inArray(rooms.id, ids), isNull(rooms.deletedAt)))
-        .returning({ id: rooms.id, code: rooms.code });
-      if (done.length === 0) throw new ActionError("Nenhuma sala para excluir na seleção.");
-      await ctx.audit.recordMany(
-        tx,
-        done.map((room) => ({
+    const changed = await bulkChange(
+      ctx.audit,
+      async (tx) => {
+        const live = await tx
+          .select({ code: rooms.code })
+          .from(rooms)
+          .where(and(inArray(rooms.id, ids), eq(rooms.status, "active"), isNull(rooms.deletedAt)));
+        if (live.length > 0) {
+          throw new ActionError(
+            live.length === 1
+              ? `A sala ${live[0]?.code} está ao vivo. Encerre a sala antes de excluir.`
+              : `${live.length} salas estão ao vivo. Encerre as salas antes de excluir.`,
+          );
+        }
+        return tx
+          .update(rooms)
+          .set({ deletedAt: sql`now()` })
+          .where(and(inArray(rooms.id, ids), isNull(rooms.deletedAt)))
+          .returning({ id: rooms.id, code: rooms.code });
+      },
+      {
+        empty: "Nenhuma sala para excluir na seleção.",
+        entry: (room) => ({
           action: "room.delete",
           resourceType: "room",
           resourceId: room.id,
           metadata: { codigo: room.code },
-        })),
-      );
-      return done;
-    });
+        }),
+      },
+    );
     return { ids: changed.map((room) => room.id) };
   },
 );
@@ -63,38 +65,34 @@ export const restoreRoomsAction = defineAdminOperation(
   { name: "room.restore", permission: { room: ["delete"] }, audit: "required" },
   z.object({ ids: z.array(z.uuid()).min(1).max(BULK_FILTER_LIMIT) }),
   async ({ parsedInput, ctx }) => {
-    const db = getDb();
-    const changed = await db.transaction(async (tx) => {
-      const candidates = alias(rooms, "candidates");
-      // Multiple deleted generations can share a code. Restore only the newest selected one.
-      const restorable = tx
-        .selectDistinctOn([candidates.code], { id: candidates.id })
-        .from(candidates)
-        .where(
-          and(
-            inArray(candidates.id, parsedInput.ids),
-            isNotNull(candidates.deletedAt),
-            sql`not exists (select 1 from rooms as live
-              where live.code = ${candidates.code} and live.deleted_at is null)`,
-          ),
-        )
-        .orderBy(asc(candidates.code), desc(candidates.deletedAt), asc(candidates.id));
-      const done = await tx
-        .update(rooms)
-        .set({ deletedAt: null })
-        .where(inArray(rooms.id, restorable))
-        .returning({ id: rooms.id });
-      if (done.length === 0) {
-        throw new ActionError(
-          "Nada para restaurar (o código pode já estar em uso por outra sala).",
-        );
-      }
-      await ctx.audit.recordMany(
-        tx,
-        done.map((room) => ({ action: "room.restore", resourceType: "room", resourceId: room.id })),
-      );
-      return done;
-    });
+    const changed = await bulkChange(
+      ctx.audit,
+      async (tx) => {
+        const candidates = alias(rooms, "candidates");
+        // Multiple deleted generations can share a code. Restore only the newest selected one.
+        const restorable = tx
+          .selectDistinctOn([candidates.code], { id: candidates.id })
+          .from(candidates)
+          .where(
+            and(
+              inArray(candidates.id, parsedInput.ids),
+              isNotNull(candidates.deletedAt),
+              sql`not exists (select 1 from rooms as live
+                where live.code = ${candidates.code} and live.deleted_at is null)`,
+            ),
+          )
+          .orderBy(asc(candidates.code), desc(candidates.deletedAt), asc(candidates.id));
+        return tx
+          .update(rooms)
+          .set({ deletedAt: null })
+          .where(inArray(rooms.id, restorable))
+          .returning({ id: rooms.id });
+      },
+      {
+        empty: "Nada para restaurar (o código pode já estar em uso por outra sala).",
+        entry: (room) => ({ action: "room.restore", resourceType: "room", resourceId: room.id }),
+      },
+    );
     return { count: changed.length };
   },
 );
@@ -130,8 +128,6 @@ export const updateRoomNoteAction = defineAdminOperation(
   },
 );
 
-const VALIDITY_HOURS = [1, 24, 24 * 7, 24 * 30] as const;
-
 /** Invite with an expiry and/or a people limit. The link is only shown now. */
 export const createInviteAction = defineAdminOperation(
   {
@@ -142,10 +138,10 @@ export const createInviteAction = defineAdminOperation(
   z.object({
     roomId: z.uuid(),
     label: z.string().trim().max(80, "O nome pode ter até 80 caracteres."),
-    maxUses: z.number().int().min(1).max(1000).nullable(),
+    maxUses: inviteMaxUsesSchema,
     validityHours: z
       .number()
-      .refine((hours) => VALIDITY_HOURS.some((option) => option === hours))
+      .refine((hours) => INVITE_VALIDITY.some((option) => option.hours === hours))
       .nullable(),
   }),
   async ({ parsedInput, ctx }) => {

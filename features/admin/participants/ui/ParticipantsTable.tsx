@@ -1,5 +1,4 @@
 import { Hint } from "@/components/Hint";
-
 import { Ban, LockOpen, Trash2 } from "lucide-react";
 import { useOperation } from "@/lib/operations/use-operation";
 import { Link } from "react-router";
@@ -24,7 +23,7 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatNumber, formatRelative } from "@/lib/format";
-import { resetPage, type BulkSelection } from "@/lib/table-params";
+import { filterState, resetPage, type BulkSelection } from "@/lib/table-params";
 import {
   blockParticipantsAction,
   deleteParticipantsAction,
@@ -32,12 +31,17 @@ import {
   unblockParticipantsAction,
 } from "@/features/admin/participants/actions";
 import {
+  BLOCK_DESCRIPTION,
   SORT_OPTIONS,
   STATUS_LABELS,
   STATUS_OPTIONS,
 } from "@/features/admin/participants/domain/labels";
 import type { ParticipantRow } from "@/features/admin/participants/server/queries.server";
-import { participantParsers } from "@/features/admin/participants/domain/search-params";
+import {
+  PARTICIPANT_FILTERS,
+  participantParsers,
+} from "@/features/admin/participants/domain/search-params";
+import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 export interface ParticipantPermissions {
   update: boolean;
@@ -50,7 +54,7 @@ function Filters({ exportHref }: { exportHref: string | null }) {
     shallow: false,
     startTransition,
   });
-  const active = Boolean(params.q || params.status || params.de || params.ate);
+  const filters = filterState(PARTICIPANT_FILTERS, params);
   return (
     <>
       <FilterSearch
@@ -89,9 +93,9 @@ function Filters({ exportHref }: { exportHref: string | null }) {
         onChange={(ordem) => void setParams({ ordem, ...resetPage })}
       />
       <FilterActions
-        active={active}
+        active={filters.active}
         exportHref={exportHref}
-        onClear={() => void setParams({ q: null, status: null, de: null, ate: null, ...resetPage })}
+        onClear={() => void setParams({ ...filters.cleared, ...resetPage })}
       />
     </>
   );
@@ -190,14 +194,14 @@ function BulkActions({
       setDialog(null);
       clear();
     },
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível bloquear."),
+    onError: toastError("Não foi possível bloquear."),
   });
   const unblock = useOperation(unblockParticipantsAction, {
     onSuccess: ({ data }) => {
       toast.success(`${plural(data.count, "conta desbloqueada", "contas desbloqueadas")}.`);
       clear();
     },
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível desbloquear."),
+    onError: toastError("Não foi possível desbloquear."),
   });
   const remove = useOperation(deleteParticipantsAction, {
     onSuccess: ({ data }) => {
@@ -211,7 +215,7 @@ function BulkActions({
         `${plural(data.ids.length, "conta restaurada", "contas restauradas")}.`,
       );
     },
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível excluir."),
+    onError: toastError("Não foi possível excluir."),
   });
   const target = plural(count, "conta", "contas");
 
@@ -244,7 +248,7 @@ function BulkActions({
         open={dialog === "block"}
         onOpenChange={(open) => setDialog(open ? "block" : null)}
         title={`Bloquear ${target}?`}
-        description="As sessões são encerradas e a pessoa não consegue entrar nem participar de salas até ser desbloqueada."
+        description={BLOCK_DESCRIPTION}
         confirmLabel="Bloquear"
         danger
         pending={block.isPending}

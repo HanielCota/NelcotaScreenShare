@@ -1,7 +1,6 @@
 import { LogOut, SunMoon, User, Video } from "lucide-react";
 import { useOperation } from "@/lib/operations/use-operation";
 import { useNavigate } from "react-router";
-
 import { useEffect, useState } from "react";
 import {
   Command,

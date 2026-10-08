@@ -15,7 +15,7 @@ import { createdAt, id, timestamptz, updatedAt } from "./columns";
 /**
  * Participant accounts: second Better Auth instance (`/api/auth`),
  * isolated from the admin accounts. TypeScript keys = Better Auth field
- * names; columns in snake_case. See `server/auth/user.ts`.
+ * names; columns in snake_case. See `features/auth/server/participant-auth.server.ts`.
  */
 export const users = pgTable(
   "users",

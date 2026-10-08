@@ -43,7 +43,7 @@ export function diffChanges(
 }
 
 /** IP, browser and request_id of the current request (empty outside a request). */
-async function requestInfo() {
+function requestInfo() {
   try {
     const h = requestHeaders();
     const ip = clientIpFrom(h);
@@ -57,25 +57,13 @@ async function requestInfo() {
   }
 }
 
-/** Writes an audit row (use the change's transaction as `executor`). */
-export async function recordAudit(executor: DbExecutor, actor: AuditActor, entry: AuditEntry) {
-  const info = await requestInfo();
-  await executor.insert(auditLogs).values({
-    actorAdminId: typeof actor === "object" && "adminId" in actor ? actor.adminId : null,
-    actorUserId: typeof actor === "object" && "userId" in actor ? actor.userId : null,
-    action: entry.action,
-    resourceType: entry.resourceType,
-    resourceId: entry.resourceId ?? null,
-    changes: entry.changes ?? null,
-    metadata: entry.metadata ?? {},
-    ...info,
-  });
-}
+/** Rows per insert statement, well below Postgres's bind parameter limit. */
+export const AUDIT_INSERT_BATCH = 1000;
 
 /** Several rows at once (bulk actions: one row per affected item). */
 async function recordAuditMany(executor: DbExecutor, actor: AuditActor, entries: AuditEntry[]) {
   if (entries.length === 0) return;
-  const info = await requestInfo();
+  const info = requestInfo();
   const rows = entries.map((entry) => ({
     actorAdminId: typeof actor === "object" && "adminId" in actor ? actor.adminId : null,
     actorUserId: typeof actor === "object" && "userId" in actor ? actor.userId : null,
@@ -86,9 +74,14 @@ async function recordAuditMany(executor: DbExecutor, actor: AuditActor, entries:
     metadata: entry.metadata ?? {},
     ...info,
   }));
-  for (let i = 0; i < rows.length; i += 1000) {
-    await executor.insert(auditLogs).values(rows.slice(i, i + 1000));
+  for (let i = 0; i < rows.length; i += AUDIT_INSERT_BATCH) {
+    await executor.insert(auditLogs).values(rows.slice(i, i + AUDIT_INSERT_BATCH));
   }
+}
+
+/** Writes an audit row (use the change's transaction as `executor`). */
+export async function recordAudit(executor: DbExecutor, actor: AuditActor, entry: AuditEntry) {
+  await recordAuditMany(executor, actor, [entry]);
 }
 
 /**

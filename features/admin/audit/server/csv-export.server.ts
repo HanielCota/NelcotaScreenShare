@@ -1,7 +1,7 @@
 import { csvExportRoute } from "@/features/admin/shell/server/csv-export-route.server";
 import { iterateAuditLogs } from "@/features/admin/audit/server/queries.server";
 import { loadAuditParams } from "@/features/admin/audit/domain/search-params";
-import { actionLabel, resourceLabel } from "@/features/admin/audit/domain/labels";
+import { actionLabel, actorText, resourceLabel } from "@/features/admin/audit/domain/labels";
 
 /**
  * Audit log CSV with the screen filters, streamed (keyset batches of 1,000).
@@ -29,7 +29,7 @@ export const exportCsv = csvExportRoute({
     row.createdAt,
     row.action,
     actionLabel(row.action),
-    row.actor.kind === "system" ? "Sistema" : row.actor.name,
+    actorText(row.actor),
     row.actor.kind === "admin" ? row.actor.email : "",
     resourceLabel(row.resourceType),
     row.resourceId,

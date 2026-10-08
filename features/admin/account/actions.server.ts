@@ -17,7 +17,8 @@ export const revokeOwnSession = defineAdminOperation(
   async ({ parsedInput, ctx }) => {
     const db = getDb();
     const auth = getAdminAuth();
-    if (!auth) throw new ActionError("O painel admin está desligado.");
+    // Unreachable: authorizing the admin already required a configured admin auth.
+    if (!auth) throw new Error("Admin auth is not configured.");
     if (parsedInput.sessionId === ctx.admin.session.id) {
       throw new ActionError("Para sair deste dispositivo, use o botão Sair.");
     }

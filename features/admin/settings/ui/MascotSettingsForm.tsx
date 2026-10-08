@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import type { MascotSettings } from "@/features/admin/settings/server/settings.server";
 import { cn } from "@/lib/utils";
+import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 interface Limits {
   min: number;
@@ -35,10 +36,13 @@ function percent(value: number): string {
 
 export function MascotSettingsForm({
   initial,
+  defaults,
   limits,
   canEdit,
 }: {
   initial: MascotSettings;
+  /** Original art, restored by the reset button. */
+  defaults: MascotSettings;
   limits: Limits;
   /** Without `settings.update`, the screen shows the preview but does not save. */
   canEdit: boolean;
@@ -47,7 +51,7 @@ export function MascotSettingsForm({
   const baseId = useId();
   const save = useOperation(saveMascotSettings, {
     onSuccess: () => toast.success("Salvo. Novas páginas já abrem com a saturação nova."),
-    onError: ({ error }) => toast.error(error.serverError ?? "Confira os valores e tente de novo."),
+    onError: toastError("Confira os valores e tente de novo."),
   });
   const pending = save.isPending;
 
@@ -125,7 +129,7 @@ export function MascotSettingsForm({
           type="button"
           variant="outline"
           disabled={!canEdit}
-          onClick={() => setValues({ saturationDark: 1, saturationLight: 1 })}
+          onClick={() => setValues(defaults)}
         >
           <RotateCcw aria-hidden="true" />
           Restaurar original

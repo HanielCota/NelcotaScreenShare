@@ -18,3 +18,7 @@ export const SORT_OPTIONS = [
   { value: "acesso", label: "Último acesso" },
   { value: "participacoes", label: "Participações" },
 ] as const;
+
+/** What blocking does, shown before confirming one or many accounts. */
+export const BLOCK_DESCRIPTION =
+  "As sessões são encerradas e a pessoa não consegue entrar nem participar de salas até ser desbloqueada.";

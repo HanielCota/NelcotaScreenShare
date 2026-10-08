@@ -2,17 +2,15 @@ import { can, type PermissionRequest } from "@/features/auth/server/permissions.
 import type { AdminRole } from "@/features/auth/domain/roles";
 
 /**
- * Admin panel navigation. Each phase adds the screens that become ready; the
- * server filters by role and sends the client only what the person can open.
+ * Admin panel navigation. The server filters by role and sends the client only
+ * what the person can open.
  */
 export type NavIcon =
   | "home"
-  | "live"
   | "rooms"
   | "users"
   | "shares"
   | "audit"
-  | "admins"
   | "settings"
   | "security"
   | "sessions";

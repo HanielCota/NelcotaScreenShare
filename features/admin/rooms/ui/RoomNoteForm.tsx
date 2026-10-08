@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { updateRoomNoteAction } from "@/features/admin/rooms/actions";
+import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 /** Internal room note: only the admin panel sees it. */
 export function RoomNoteForm({
@@ -20,8 +21,7 @@ export function RoomNoteForm({
   const fieldId = useId();
   const save = useOperation(updateRoomNoteAction, {
     onSuccess: () => toast.success("Nota salva."),
-    onError: ({ error }) =>
-      toast.error(error.serverError ?? "Não foi possível salvar (até 500 caracteres)."),
+    onError: toastError("Não foi possível salvar (até 500 caracteres)."),
   });
   if (!canEdit) {
     return <p className="text-sm whitespace-pre-wrap text-ink-muted">{note || "Sem nota."}</p>;

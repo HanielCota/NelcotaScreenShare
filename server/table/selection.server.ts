@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { AuditEntry, AuditRecorder } from "@/server/audit.server";
+import { getDb, type DbExecutor } from "@/server/db/index.server";
 import { ActionError } from "@/server/operations/action-error";
 import { BULK_FILTER_LIMIT, BULK_IDS_LIMIT, filterQuery } from "@/lib/table-params";
 
@@ -26,4 +28,21 @@ export async function resolveSelection(
     throw new ActionError("Mais de 10.000 resultados. Refine o filtro e tente de novo.");
   }
   return ids;
+}
+
+/**
+ * Applies a bulk change in one transaction with one audit row per changed item.
+ * Nothing changed is refused with `empty`, which the admin sees.
+ */
+export function bulkChange<T>(
+  audit: AuditRecorder,
+  change: (tx: DbExecutor) => Promise<T[]>,
+  { empty, entry }: { empty: string; entry: (item: T) => AuditEntry },
+): Promise<T[]> {
+  return getDb().transaction(async (tx) => {
+    const done = await change(tx);
+    if (done.length === 0) throw new ActionError(empty);
+    await audit.recordMany(tx, done.map(entry));
+    return done;
+  });
 }

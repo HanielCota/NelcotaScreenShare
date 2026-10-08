@@ -1,7 +1,8 @@
 import { createLoader, parseAsString, parseAsStringLiteral } from "nuqs/server";
 import { pageParsers, periodParsers } from "@/lib/table-params";
 
-const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
+export const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
+export type RoomStatus = (typeof ROOM_STATUSES)[number];
 
 const ROOM_SORTS = ["atividade", "inicio", "pico"] as const;
 
@@ -14,6 +15,9 @@ export const roomParsers = {
   por: parseAsStringLiteral(ROOM_SORTS).withDefault("atividade"),
   ...periodParsers,
 };
+
+/** Filters cleared together (the sort stays). */
+export const ROOM_FILTERS = ["q", "status", "de", "ate"] as const;
 
 export const loadRoomParams = createLoader(roomParsers);
 export type RoomParams = Awaited<ReturnType<typeof loadRoomParams>>;

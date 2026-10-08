@@ -17,7 +17,6 @@ permissions:
   packages: write
 
 env:
-  # Keep the existing ScreenShare package after the repository rename.
   IMAGE: ghcr.io/hanielcota/nelcota
 
 jobs:
