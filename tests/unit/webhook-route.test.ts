@@ -78,7 +78,8 @@ test("rejects a body changed after signing", async () => {
 
 test("rejects an oversized body without reading the signature", async () => {
   const huge = JSON.stringify({ event: "room_started", padding: "x".repeat(70 * 1024) });
-  assert.equal((await post(huge, await signature(huge))).status, 413);
+  // No signature: checking it first would answer 401.
+  assert.equal((await post(huge)).status, 413);
 });
 
 test("webhook limit counts UTF-8 bytes, even without Content-Length", async () => {
