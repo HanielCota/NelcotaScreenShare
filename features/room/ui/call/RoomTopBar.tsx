@@ -17,6 +17,13 @@ import { roomPath } from "@/features/room/domain/room-code";
 import { participantName } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
+import type { Connection } from "./RoomLayout";
+
+const CONNECTION_LABELS: Record<Connection, string> = {
+  connected: "Conectado",
+  connecting: "Conectando",
+  reconnecting: "Reconectando",
+};
 
 /** "Sala abc-defg-hij" that copies the link; the confirmation appears on the button itself. */
 function RoomCodeButton({ code }: { code: string }) {
@@ -122,14 +129,14 @@ export function RoomTopBar({
   maxParticipants: number;
   /** Admins open the panel without leaving: the call goes on minimized. */
   isAdmin: boolean;
-  connection: "connected" | "connecting" | "reconnecting";
+  connection: Connection;
 }) {
   return (
     <NavBar aria-label="Sala" className="mx-auto max-w-5xl">
       <NavBrand showName={false} className="max-sm:hidden" />
       <NavDivider className="max-sm:hidden" />
       <RoomCodeButton code={code} />
-      {/* Just a dot: green when connected, pulsing yellow while reconnecting (the
+      {/* Just a dot: green when connected, pulsing yellow while (re)connecting (the
           written notice appears in the middle of the screen). */}
       <span className="flex shrink-0 items-center">
         <span
@@ -139,7 +146,7 @@ export function RoomTopBar({
             connection === "connected" ? "bg-success" : "animate-pulse bg-warning",
           )}
         />
-        <span className="sr-only">{connection === "connected" ? "Conectado" : "Reconectando"}</span>
+        <span className="sr-only">{CONNECTION_LABELS[connection]}</span>
       </span>
 
       <span className="ml-auto" />
