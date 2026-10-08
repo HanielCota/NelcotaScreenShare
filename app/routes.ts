@@ -4,6 +4,7 @@ export default [
   index("routes/home.tsx"),
   route("conta", "routes/account.tsx"),
   route("privacidade", "routes/privacy.tsx"),
+  route("novidades", "routes/changelog.tsx"),
   route("sala/:codigo", "routes/room.tsx", { id: "room" }),
   layout("routes/access/layout.tsx", [
     route("entrar", "routes/access/sign-in.tsx"),

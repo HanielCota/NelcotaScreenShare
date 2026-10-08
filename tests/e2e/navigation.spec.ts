@@ -9,7 +9,14 @@ import {
 
 test("general and auth pages have a single navbar, including on mobile", async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
-  for (const path of ["/", "/entrar", "/cadastro", "/privacidade", "/pagina-inexistente"]) {
+  for (const path of [
+    "/",
+    "/entrar",
+    "/cadastro",
+    "/privacidade",
+    "/novidades",
+    "/pagina-inexistente",
+  ]) {
     await page.goto(path);
     const navbar = page.getByRole("navigation", { name: "Principal", exact: true });
     await expect(navbar).toHaveCount(1);
