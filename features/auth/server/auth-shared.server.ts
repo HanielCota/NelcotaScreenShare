@@ -59,7 +59,6 @@ function validateProfilePhoto(body: unknown) {
   }
 }
 
-
 async function validatePasswordReset(
   db: Database,
   token: string | undefined,

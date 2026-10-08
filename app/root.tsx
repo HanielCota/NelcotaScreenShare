@@ -122,7 +122,7 @@ export function ErrorBoundary() {
         {missing ? "Página não encontrada" : "Não foi possível abrir esta página"}
       </h1>
       <p className="mt-3 text-ink-muted">
-        {missing ? "Confira o endereço e tente novamente." : "Tente novamente em instantes."}
+        {missing ? "Confira o endereço e tente de novo." : "Tente de novo em instantes."}
       </p>
       <a href="/" className="mt-6 inline-block text-brand-soft underline">
         Voltar ao início

@@ -32,7 +32,7 @@ export default function AcceptInvitationPage() {
       >
         <Button asChild variant="outline" size="lg" className="w-full">
           <Link viewTransition to="/admin/entrar">
-            Ir para o login
+            Entrar no painel
           </Link>
         </Button>
       </AuthCard>

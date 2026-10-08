@@ -65,7 +65,7 @@ export function ProfilePhotoForm({
       // The draft is not cleared: it stays as the preview until the new image arrives.
       void revalidator.revalidate();
     } catch {
-      setError("Não foi possível salvar a foto. Tente novamente.");
+      setError("Não foi possível salvar a foto. Tente de novo.");
     } finally {
       setPending(false);
     }

@@ -158,7 +158,7 @@ export default function AccountPage() {
             <ExpandableRow
               id="duas-etapas"
               title="Verificação em duas etapas"
-              description="Pede um código do app autenticador no login."
+              description="Pede um código do app autenticador ao entrar."
               summary={
                 user.twoFactorEnabled ? (
                   <span className="inline-flex items-center gap-1.5 text-brand-soft">

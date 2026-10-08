@@ -46,7 +46,8 @@ export const loader = routeLoader(async ({ params }) => {
 });
 
 export default function ParticipantPage() {
-  const { account, sessions, timeline, history, status, permissions } = useLoaderData<typeof loader>();
+  const { account, sessions, timeline, history, status, permissions } =
+    useLoaderData<typeof loader>();
   return (
     <>
       <div className="flex flex-col gap-3">

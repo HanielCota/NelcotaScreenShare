@@ -198,7 +198,7 @@ export function TwoFactorSettings({
               className="flex flex-col gap-3"
             >
               <h3 className="font-medium">Desativar</h3>
-              <p className="text-sm text-ink-muted">O login volta a pedir só a senha.</p>
+              <p className="text-sm text-ink-muted">Depois disso, basta a senha para entrar.</p>
               <PasswordField
                 id={`${passwordId}-off`}
                 invalid={invalidField === `${passwordId}-off`}
