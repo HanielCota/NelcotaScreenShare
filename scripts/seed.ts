@@ -12,8 +12,8 @@ import { fakerPT_BR as faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 import { hashPassword } from "@/features/auth/server/password.server";
 import { AUDIT_INSERT_BATCH } from "@/server/audit.server";
-import { getDb } from "@/server/db/index.server";
 import { auditLogs, userAccounts, users } from "@/server/db/schema";
+import { openDb } from "./open-db";
 
 const args = new Map(
   process.argv.slice(2).map((arg) => {
@@ -33,14 +33,6 @@ if (process.env.NODE_ENV === "production" || (!local && !args.has("forcar"))) {
     "Seed refused: it only runs on a local database (or with --forcar on a disposable one).",
   );
   process.exit(1);
-}
-function openDb() {
-  try {
-    return getDb();
-  } catch {
-    console.error("Set DATABASE_URL.");
-    process.exit(1);
-  }
 }
 const db = openDb();
 

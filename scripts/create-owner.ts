@@ -14,8 +14,8 @@ import {
   createAdminInvitation,
   OWNER_BOOTSTRAP_TTL_MS,
 } from "@/features/auth/server/admin-invitations.server";
-import { getDb } from "@/server/db/index.server";
 import { adminUsers } from "@/server/db/schema";
+import { openDb } from "./open-db";
 
 const args = process.argv.slice(2);
 const force = args.includes("--force");
@@ -26,14 +26,6 @@ if (!email.success) {
   process.exit(1);
 }
 
-function openDb() {
-  try {
-    return getDb();
-  } catch {
-    console.error("Set DATABASE_URL (the admin panel needs the database).");
-    process.exit(1);
-  }
-}
 const db = openDb();
 
 const owners = await db
