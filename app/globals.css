@@ -373,70 +373,6 @@ body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"][da
   color: var(--color-brand-soft);
 }
 
-/*
- * "Apple-style" buttons (access screens): pill shape, borderless fill,
- * medium weight and a slight "press" on click. Outside @layer on purpose:
- * it beats the Button component classes without changing the button elsewhere in the app.
- */
-.apple-buttons [data-slot="button"] {
-  border-radius: 9999px;
-  border-color: transparent;
-  letter-spacing: -0.01em;
-  transition:
-    transform var(--motion-feedback) var(--ease-out-smooth),
-    background-color var(--motion-feedback) ease,
-    opacity var(--motion-feedback) ease;
-}
-
-/* Default button: comfortable touch target and 16 px text (easy to read). */
-.apple-buttons [data-slot="button"][data-size="default"] {
-  height: 2.5rem;
-  padding-inline: 1rem;
-  font-size: 1rem;
-}
-
-.apple-buttons [data-slot="button"][data-size="lg"] {
-  height: 3rem;
-  padding-inline: 1.5rem;
-  font-size: 1rem;
-}
-
-.apple-buttons [data-slot="button"]:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.apple-buttons [data-slot="button"]:disabled {
-  opacity: 0.4;
-}
-
-.apple-buttons [data-slot="button"]:focus-visible {
-  outline: 3px solid color-mix(in oklch, var(--color-brand) 55%, transparent);
-  outline-offset: 2px;
-}
-
-/* Secondary: translucent gray, like iOS "gray" buttons. */
-.apple-buttons [data-slot="button"][data-variant="outline"],
-.apple-buttons [data-slot="button"][data-variant="secondary"] {
-  background-color: color-mix(in oklch, var(--color-ink) 9%, transparent);
-  color: var(--color-ink);
-}
-
-.apple-buttons [data-slot="button"][data-variant="outline"]:hover:not(:disabled),
-.apple-buttons [data-slot="button"][data-variant="secondary"]:hover:not(:disabled) {
-  background-color: color-mix(in oklch, var(--color-ink) 14%, transparent);
-}
-
-/* Subtle: just the text in the brand color. */
-.apple-buttons [data-slot="button"][data-variant="ghost"] {
-  color: var(--color-brand-soft);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .apple-buttons [data-slot="button"]:active:not(:disabled) {
-    transform: none;
-  }
-}
-
 /* One reversible path for both shadcn surfaces and the room's Radix menus. */
 :where(
   [data-slot="popover-content"],
@@ -571,7 +507,6 @@ body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"][da
   }
 
   .room-topbar,
-  .apple-buttons [data-slot="button"],
   [data-slot="sidebar-gap"],
   [data-slot="sidebar-container"],
   [data-slot="sidebar-group-label"],

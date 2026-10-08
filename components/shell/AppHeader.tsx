@@ -76,7 +76,7 @@ export function AppHeader({
   "data-anim": animation,
 }: AppHeaderProps) {
   return (
-    <header data-anim={animation} className={cn("apple-buttons px-4 pt-4 sm:px-6", className)}>
+    <header data-anim={animation} className={cn("px-4 pt-4 sm:px-6", className)}>
       <NavBar aria-label="Principal" className="mx-auto max-w-5xl">
         <NavBrand href="/" />
         <NavDivider className="max-md:hidden" />

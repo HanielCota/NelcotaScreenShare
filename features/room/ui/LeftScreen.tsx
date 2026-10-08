@@ -113,7 +113,7 @@ export function LeftScreen({
       ref={scope}
       aria-labelledby="left-title"
       role={reason === "self" ? undefined : "alert"}
-      className="apple-buttons flex w-full max-w-md flex-col items-center gap-6 text-center"
+      className="flex w-full max-w-md flex-col items-center gap-6 text-center"
     >
       <div data-anim="left">
         <Mascot

@@ -12,7 +12,6 @@ export function UserSignOutButton() {
   return (
     <Button
       variant="ghost"
-      className="h-9 rounded-xl px-3"
       disabled={pending}
       onClick={() => {
         setPending(true);

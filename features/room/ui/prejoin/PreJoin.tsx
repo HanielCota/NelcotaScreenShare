@@ -158,7 +158,7 @@ export function PreJoin({
       method="post"
       onSubmit={(event) => void handleSubmit(event)}
       noValidate
-      className="apple-buttons flex w-full max-w-lg flex-col items-center gap-5"
+      className="flex w-full max-w-lg flex-col items-center gap-5"
     >
       <header data-anim="row" className="flex w-full flex-col items-center gap-2 text-center">
         <Mascot

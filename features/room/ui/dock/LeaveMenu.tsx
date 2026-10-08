@@ -44,7 +44,7 @@ export function LeaveMenu({ onLeave }: { onLeave: () => void }) {
         <p className="mt-1 text-xs text-ink-subtle">
           Seu microfone e o compartilhamento de tela serão encerrados.
         </p>
-        <div className="apple-buttons mt-4 flex justify-end gap-2">
+        <div className="mt-4 flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>

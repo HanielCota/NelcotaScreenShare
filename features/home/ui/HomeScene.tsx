@@ -22,7 +22,7 @@ export function HomeScene({
   maxParticipants: number;
 }) {
   return (
-    <HomeEntrance className="apple-buttons flex flex-col items-center px-4 pb-8 sm:px-8">
+    <HomeEntrance className="flex flex-col items-center px-4 pb-8 sm:px-8">
       <AppHeader account={account} data-anim="nav" className="fixed inset-x-0 top-0 z-30" />
 
       {/* Slightly shorter than the viewport: the demo peeks in and invites the scroll. */}
