@@ -15,7 +15,7 @@ import { reconcileShareAudio } from "@/features/room/server/webhook/share-audio.
  * LiveKit webhook end to end: events signed the way LiveKit sends them
  * (protobuf JSON), stored and projected into Postgres.
  */
-const { LIVEKIT_API_KEY: KEY = "", LIVEKIT_API_SECRET: SECRET = "" } = process.env;
+const { LIVEKIT_API_KEY: KEY, LIVEKIT_API_SECRET: SECRET } = process.env;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
 afterAll(() => pool.end());
@@ -56,46 +56,6 @@ interface EventInput {
 
 type TrackDelivery = { event: string; at: number; sid: string; source: string };
 
-test("audio reconciliation does not rewrite unchanged shares", async () => {
-  const code = newRoom();
-  const participant = { identity: `audio-write-${code}`, joinedAt: T };
-  const trackSid = `TR_write_${code}`;
-  await send({
-    event: "track_published",
-    room: code,
-    at: T + 5,
-    participant,
-    track: { sid: trackSid, source: "SCREEN_SHARE" },
-  });
-  const room = await roomByCode(code);
-  const readVersion = async () => {
-    const [share] = await db
-      .select({
-        version: sql<string>`xmin::text`,
-        withAudio: schema.shareSessions.withAudio,
-      })
-      .from(schema.shareSessions)
-      .where(eq(schema.shareSessions.trackSid, trackSid));
-    assert.ok(share);
-    return share;
-  };
-  const withoutAudio = await readVersion();
-  await reconcileShareAudio(db, room.id, code);
-  assert.deepEqual(await readVersion(), withoutAudio);
-  await send({
-    event: "track_published",
-    room: code,
-    at: T + 6,
-    participant,
-    track: { sid: `TR_audio_${code}`, source: "SCREEN_SHARE_AUDIO" },
-  });
-  const withAudio = await readVersion();
-  assert.equal(withAudio.withAudio, true);
-  assert.notEqual(withAudio.version, withoutAudio.version);
-  await reconcileShareAudio(db, room.id, code);
-  assert.deepEqual(await readVersion(), withAudio);
-});
-
 function payload({ event, room, at, participant, track, id }: EventInput) {
   eventCounter += 1;
   return JSON.stringify({
@@ -126,6 +86,7 @@ function payload({ event, room, at, participant, track, id }: EventInput) {
 
 async function send(input: EventInput | string) {
   const body = typeof input === "string" ? input : payload(input);
+  assert.ok(KEY && SECRET, "file-setup sets the LiveKit keys");
   const token = new AccessToken(KEY, SECRET);
   token.sha256 = createHash("sha256").update(body).digest("base64");
   const response = await receiveLivekitWebhook(
@@ -156,6 +117,46 @@ function participationsOf(roomId: string) {
 }
 
 describe("event projection", () => {
+  test("audio reconciliation does not rewrite unchanged shares", async () => {
+    const code = newRoom();
+    const participant = { identity: `audio-write-${code}`, joinedAt: T };
+    const trackSid = `TR_write_${code}`;
+    await send({
+      event: "track_published",
+      room: code,
+      at: T + 5,
+      participant,
+      track: { sid: trackSid, source: "SCREEN_SHARE" },
+    });
+    const room = await roomByCode(code);
+    const readVersion = async () => {
+      const [share] = await db
+        .select({
+          version: sql<string>`xmin::text`,
+          withAudio: schema.shareSessions.withAudio,
+        })
+        .from(schema.shareSessions)
+        .where(eq(schema.shareSessions.trackSid, trackSid));
+      assert.ok(share);
+      return share;
+    };
+    const withoutAudio = await readVersion();
+    await reconcileShareAudio(db, room.id, code);
+    assert.deepEqual(await readVersion(), withoutAudio);
+    await send({
+      event: "track_published",
+      room: code,
+      at: T + 6,
+      participant,
+      track: { sid: `TR_audio_${code}`, source: "SCREEN_SHARE_AUDIO" },
+    });
+    const withAudio = await readVersion();
+    assert.equal(withAudio.withAudio, true);
+    assert.notEqual(withAudio.version, withoutAudio.version);
+    await reconcileShareAudio(db, room.id, code);
+    assert.deepEqual(await readVersion(), withAudio);
+  });
+
   test("a late room_started corrects the provisional start without moving activity backwards", async () => {
     const code = newRoom();
     await send({
@@ -675,7 +676,7 @@ describe("event projection", () => {
     const [event] = await db
       .select()
       .from(schema.livekitEvents)
-      .where(and(eq(schema.livekitEvents.roomName, code)));
+      .where(eq(schema.livekitEvents.roomName, code));
     assert.ok(event?.processedAt);
   });
 });

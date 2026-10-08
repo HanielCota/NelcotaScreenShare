@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -74,7 +74,7 @@ const EXPECTED = {
     filename: /^attachment; filename="participantes-/,
   },
   compartilhamentos: {
-    header: undefined,
+    header: "id;sala;pessoa;inicio;fim;duracao_segundos;com_audio",
     action: "share_session.export",
     filename: /^attachment; filename="compartilhamentos-/,
   },
@@ -105,20 +105,28 @@ describe("CSV export", () => {
       expect(response.headers.get("content-type")).toBe("text/csv; charset=utf-8");
       expect(response.headers.get("content-disposition")).toMatch(EXPECTED[name].filename);
       const text = await csvText(response);
-      expect(text.startsWith("﻿")).toBe(true);
-      const [header, ...lines] = text.slice(1).split("\r\n").filter(Boolean);
-      if (EXPECTED[name].header) expect(header).toBe(EXPECTED[name].header);
-      expect(header).toContain(";");
-      if (name === "salas") expect(lines.some((line) => line.includes(roomCode))).toBe(true);
+      expect(text.startsWith("\uFEFF")).toBe(true);
+      const [header] = text.slice(1).split("\r\n");
+      expect(header).toBe(EXPECTED[name].header);
 
       const audits = await db
         .select()
         .from(schema.auditLogs)
-        .where(eq(schema.auditLogs.action, EXPECTED[name].action));
-      expect(audits.length).toBeGreaterThanOrEqual(1);
-      expect(audits.at(-1)?.actorAdminId).toBe(owner.id);
+        .where(
+          and(
+            eq(schema.auditLogs.action, EXPECTED[name].action),
+            eq(schema.auditLogs.actorAdminId, owner.id),
+          ),
+        );
+      expect(audits).toHaveLength(1);
     });
   }
+
+  it("salas: lists the seeded room", async () => {
+    requestHeaders.current = owner.headers;
+    const text = await csvText(await call("salas"));
+    expect(text).toContain(roomCode);
+  });
 
   it("the page filter applies to the export (search by code)", async () => {
     requestHeaders.current = owner.headers;

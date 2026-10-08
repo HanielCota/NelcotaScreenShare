@@ -135,15 +135,15 @@ describe("data subject data", () => {
     assert.equal(response.status, 200);
     const data = exportSchema.parse(await response.json());
     assert.equal(data.conta.id, lia.id);
-    assert.deepEqual(data.participacoes_em_salas, [
-      {
-        ...data.participacoes_em_salas[0],
-        sala: code,
-        nomeNaSala: "Nome Na Sala",
-        ip: "203.0.113.20",
-        compartilhamentos: 1,
-      },
-    ]);
+    assert.deepEqual(
+      data.participacoes_em_salas.map(({ sala, nomeNaSala, ip, compartilhamentos }) => ({
+        sala,
+        nomeNaSala,
+        ip,
+        compartilhamentos,
+      })),
+      [{ sala: code, nomeNaSala: "Nome Na Sala", ip: "203.0.113.20", compartilhamentos: 1 }],
+    );
     assert.deepEqual(
       data.pedidos_de_entrada.map((row) => [row.sala, row.resultado]),
       [[code, "granted"]],

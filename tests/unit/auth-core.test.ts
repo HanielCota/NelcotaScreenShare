@@ -3,7 +3,7 @@ import { describe, test } from "vitest";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
-import { emailHash, LOCKOUT, lockDurationMs } from "@/features/auth/server/lockout.server";
+import { emailHash, lockDurationMs } from "@/features/auth/server/lockout.server";
 import { hashPassword, verifyPassword } from "@/features/auth/server/password.server";
 import { can, statements, type PermissionRequest } from "@/features/auth/server/permissions.server";
 import { ADMIN_ROLES, type AdminRole } from "@/features/auth/domain/roles";
@@ -25,10 +25,10 @@ describe("password", () => {
 describe("lockout after failed attempts", () => {
   test("starts at 15 min on the 5th failure, doubles every 5 and caps at 24 h", () => {
     assert.equal(lockDurationMs(4), 0);
-    assert.equal(lockDurationMs(5), LOCKOUT.baseLockMs);
-    assert.equal(lockDurationMs(10), LOCKOUT.baseLockMs * 2);
-    assert.equal(lockDurationMs(15), LOCKOUT.baseLockMs * 4);
-    assert.equal(lockDurationMs(500), LOCKOUT.maxLockMs);
+    assert.equal(lockDurationMs(5), 15 * 60_000);
+    assert.equal(lockDurationMs(10), 30 * 60_000);
+    assert.equal(lockDurationMs(15), 60 * 60_000);
+    assert.equal(lockDurationMs(500), 24 * 60 * 60_000);
   });
 
   test("e-mail hash ignores case/whitespace and separates admin from participant", () => {

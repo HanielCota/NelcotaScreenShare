@@ -109,7 +109,8 @@ describe("block and unblock", () => {
   test("all filter results: the server reapplies the search", async () => {
     const tag = `Filtro${Date.now()}`;
     const ids = await people(tag, 3);
-    const outsider = await people(`Fora${Date.now()}`, 1);
+    const [outsider] = await people(`Fora${Date.now()}`, 1);
+    assert.ok(outsider);
     requestHeaders.current = admin.headers;
     const blocked = await actions.blockParticipantsAction({
       selection: { kind: "filter", query: `q=${tag}&cursor=ignorado` },
@@ -117,10 +118,7 @@ describe("block and unblock", () => {
     });
     assert.deepEqual(blocked.data, { count: 3 });
     assert.equal((await auditsOf("user.block", ids)).length, 3);
-    const [other] = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.id, outsider[0] ?? ""));
+    const [other] = await db.select().from(schema.users).where(eq(schema.users.id, outsider));
     assert.equal(other?.blockedAt, null);
 
     const unblocked = await actions.unblockParticipantsAction({
@@ -189,8 +187,9 @@ describe("anonymize (LGPD)", () => {
       .insert(schema.rooms)
       .values({ code: `sala-anon-${Date.now().toString(36)}` })
       .returning();
+    assert.ok(room);
     await db.insert(schema.roomParticipations).values({
-      roomId: room?.id ?? "",
+      roomId: room.id,
       userId: caio.id,
       livekitIdentity: caio.id,
       livekitSid: `PA_${crypto.randomUUID()}`,
@@ -278,14 +277,16 @@ describe("list", () => {
   });
 
   test("the participations counter tracks the joins", async () => {
-    const [id = ""] = await people("Contador", 1);
+    const [id] = await people("Contador", 1);
+    assert.ok(id);
     const [room] = await db
       .insert(schema.rooms)
       .values({ code: `sala-cont-${Date.now().toString(36)}` })
       .returning();
+    assert.ok(room);
     await db.insert(schema.roomParticipations).values(
       [1, 2].map((n) => ({
-        roomId: room?.id ?? "",
+        roomId: room.id,
         userId: id,
         livekitIdentity: id,
         livekitSid: `PA_${crypto.randomUUID()}`,

@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-
-const { createRateLimiter } = await import("../../server/rate-limit.server");
-const { getClientIp } = await import("../../server/client-ip.server");
-const { buildCsp } = await import("../../server/csp.server");
-const { generateRoomCode, roomCodeSchema, roomPath } =
-  await import("../../features/room/domain/room-code");
+import { generateRoomCode, roomCodeSchema, roomPath } from "@/features/room/domain/room-code";
+import { getClientIp } from "@/server/client-ip.server";
+import { buildCsp } from "@/server/csp.server";
+import { createRateLimiter } from "@/server/rate-limit.server";
 
 test("rate limit: counts, blocks and releases when the window rolls over", () => {
   let now = 1_000;

@@ -4,7 +4,6 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, test, vi } from "vitest";
 import * as schema from "@/server/db/schema";
-import { CookieJar, makeCaller } from "./support/http-auth";
 
 /**
  * Admin panel operations called with a real admin session (cookie in the
@@ -16,53 +15,19 @@ vi.mock("@/server/request-context.server", () => ({
   requestHeaders: () => requestHeaders.current,
 }));
 process.env.ADMIN_AUTH_SECRET = "segredo-admin-de-teste-0123456789abcdef0123456789";
-const { getAdminAuth, ADMIN_AUTH_BASE_PATH } =
-  await import("@/features/auth/server/admin-auth.server");
-const { acceptAdminInvitation, createAdminInvitation } =
-  await import("@/features/auth/server/admin-invitations.server");
+const { adminSession } = await import("./support/admin-session");
 const { saveMascotSettings } = await import("@/features/admin/settings/actions.server");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
 afterAll(() => pool.end());
-const PASSWORD = "senha-forte-do-admin-123";
-
-async function adminSession(email: string, role: "owner" | "admin" | "viewer") {
-  const auth = getAdminAuth();
-  assert.ok(auth);
-  const { token } = await createAdminInvitation(db, { email, role, invitedBy: null });
-  const accepted = await acceptAdminInvitation(db, auth, {
-    token,
-    name: "Teste",
-    password: PASSWORD,
-  });
-  assert.ok(accepted.ok);
-  const jar = new CookieJar();
-  const call = makeCaller(auth.handler, ADMIN_AUTH_BASE_PATH, `192.0.2.${role.length * 10}`);
-  const res = await call("/sign-in/email", { body: { email, password: PASSWORD }, jar });
-  assert.equal(res.status, 200);
-  // After sign-in (before it, Better Auth would ask for 2FA). The DAL only checks the flag;
-  // the real 2FA flow is tested in admin-auth.
-  await db
-    .update(schema.adminUsers)
-    .set({ twoFactorEnabled: true })
-    .where(eq(schema.adminUsers.email, email));
-  return {
-    id: accepted.userId,
-    headers: new Headers({
-      cookie: jar.header(),
-      "x-client-ip": "192.0.2.50",
-      "x-request-id": "req-teste-123",
-    }),
-  };
-}
 
 describe("settings (settings.update)", () => {
-  let owner: { id: string; headers: Headers };
-  let viewer: { id: string; headers: Headers };
+  let owner: Awaited<ReturnType<typeof adminSession>>;
+  let viewer: Awaited<ReturnType<typeof adminSession>>;
   beforeAll(async () => {
-    owner = await adminSession("dono@exemplo.com", "owner");
-    viewer = await adminSession("leitor@exemplo.com", "viewer");
+    owner = await adminSession(db, "owner");
+    viewer = await adminSession(db, "viewer");
   });
 
   test("owner saves: 1 audit record with diff, author, IP and request_id", async () => {
@@ -83,7 +48,7 @@ describe("settings (settings.update)", () => {
       saturationLight: { antes: 1, depois: 0.8 },
     });
     assert.equal(row?.ip, "192.0.2.50");
-    assert.equal(row?.requestId, "req-teste-123");
+    assert.equal(row?.requestId, owner.headers.get("x-request-id"));
     const [setting] = await db
       .select()
       .from(schema.appSettings)
@@ -108,14 +73,18 @@ describe("settings (settings.update)", () => {
 
   test("an invalid value is neither written nor audited", async () => {
     requestHeaders.current = owner.headers;
+    const before = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(eq(schema.auditLogs.action, "settings.update"));
     const result = await saveMascotSettings({ saturationDark: 9, saturationLight: 1 });
     assert.deepEqual(result.validationErrors?.fieldErrors, {
       saturationDark: ["A saturação precisa ficar entre 0% e 200%."],
     });
-    const rows = await db
+    const after = await db
       .select()
       .from(schema.auditLogs)
       .where(eq(schema.auditLogs.action, "settings.update"));
-    assert.equal(rows.length, 1);
+    assert.equal(after.length, before.length);
   });
 });

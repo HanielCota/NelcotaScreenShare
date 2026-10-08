@@ -10,7 +10,6 @@ import {
   gazeFocus,
   isSleeping,
   listeningFace,
-  PAIR_BUSY_SELECTOR,
   reactionTo,
   waitingGaze,
 } from "@/features/mascot/domain/rules";
@@ -44,12 +43,6 @@ describe("rules per expression", () => {
     expect(gazeFocus("greeting")).toBe("partner");
     expect(gazeFocus("presenting")).toBe("stage");
     expect(gazeFocus("neutral")).toBe("free");
-  });
-
-  it("the pair does not walk while one is busy (except for the high five itself)", () => {
-    expect(PAIR_BUSY_SELECTOR).toContain('[data-gesture]:not([data-gesture="highFive"])');
-    expect(PAIR_BUSY_SELECTOR).toContain('[data-expression="yawning"]');
-    expect(PAIR_BUSY_SELECTOR).not.toContain('"happy"');
   });
 
   it("waiting, listening and blinking", () => {

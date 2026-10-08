@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
@@ -58,11 +58,8 @@ describe("authenticated e-mail delivery", () => {
   test("waits for provider acceptance before confirming an authenticated send", async () => {
     const participant = await verifiedParticipant(db, handler);
     await db.update(users).set({ emailVerified: false }).where(eq(users.id, participant.id));
-    let accept: (() => void) | undefined;
-    const delivery = new Promise<void>((resolve) => {
-      accept = resolve;
-    });
-    mail.send.mockClear().mockReturnValueOnce(delivery);
+    const delivery = Promise.withResolvers<void>();
+    mail.send.mockReturnValueOnce(delivery.promise);
     let completed = false;
     const response = call("/send-verification-email", {
       body: { email: participant.email },
@@ -73,15 +70,17 @@ describe("authenticated e-mail delivery", () => {
     });
     await vi.waitFor(() => expect(mail.send).toHaveBeenCalledOnce());
     expect(completed).toBe(false);
-    expect(accept).toBeDefined();
-    accept?.();
+    delivery.resolve();
     expect((await response).status).toBe(200);
   });
 
   test("keeps a failed request from changing another concurrent request's outcome", async () => {
     const first = await verifiedParticipant(db, handler);
     const second = await verifiedParticipant(db, handler);
-    await db.update(users).set({ emailVerified: false });
+    await db
+      .update(users)
+      .set({ emailVerified: false })
+      .where(inArray(users.id, [first.id, second.id]));
     mail.send.mockImplementation(async (message: { to: string }) => {
       if (message.to === first.email) throw new Error("Provider unavailable");
     });

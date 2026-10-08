@@ -279,12 +279,14 @@ async function inviteFor(
     .returning({ id: schema.adminUsers.id });
   let [room] = await db.select().from(schema.rooms).where(eq(schema.rooms.code, code));
   if (!room) [room] = await db.insert(schema.rooms).values({ code }).returning();
+  assert.ok(owner);
+  assert.ok(room);
   return createRoomInvite(db, {
-    roomId: room?.id ?? "",
+    roomId: room.id,
     label: null,
     maxUses,
     expiresAt,
-    createdBy: owner?.id ?? "",
+    createdBy: owner.id,
   });
 }
 

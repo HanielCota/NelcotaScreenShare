@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { E2E_URL } from "./support/env";
 
 test("production compresses HTML and JavaScript and varies by accepted encoding", async ({
   request,
@@ -10,7 +11,6 @@ test("production compresses HTML and JavaScript and varies by accepted encoding"
   const html = await page.text();
   expect(html).toContain("Compartilhe sua tela");
   const entry = html.match(/\/assets\/entry\.client-[\w-]+\.js/);
-  expect(entry).not.toBeNull();
   if (!entry) throw new Error("The page did not advertise its entry module.");
   const script = await request.get(entry[0], { headers });
   expect(script.ok()).toBe(true);
@@ -18,7 +18,6 @@ test("production compresses HTML and JavaScript and varies by accepted encoding"
   expect(script.headers().vary).toContain("Accept-Encoding");
   expect((await script.body()).byteLength).toBeGreaterThan(1000);
 });
-import { E2E_URL } from "./support/env";
 
 test("an oversized body gets 413 without destroying the connection before the response", async ({
   request,

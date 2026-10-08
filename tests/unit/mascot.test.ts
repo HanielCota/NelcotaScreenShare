@@ -1,14 +1,19 @@
 import assert from "node:assert/strict";
-import { test } from "vitest";
-
-const { createReasons } = await import("../../features/mascot/domain/reasons");
-const { EXPRESSIONS, toFaceState } = await import("../../features/mascot/domain/face");
-const { springStep } = await import("../../features/mascot/domain/spring");
-const { createHandMotions } = await import("../../features/mascot/client/hand-motions");
-const { avatarFrame } = await import("../../features/mascot/domain/avatar-frames");
-const { idleSleep } = await import("../../features/mascot/domain/sleep");
-const { gazeAt, pupilOffset, eyelidOffset, EYE_SHAPES, POSE_EYES, IDLE } =
-  await import("../../features/mascot/domain/eye-tracking");
+import { test, vi } from "vitest";
+import { createHandMotions } from "@/features/mascot/client/hand-motions";
+import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
+import {
+  EYE_SHAPES,
+  eyelidOffset,
+  gazeAt,
+  IDLE,
+  POSE_EYES,
+  pupilOffset,
+} from "@/features/mascot/domain/eye-tracking";
+import { EXPRESSIONS, toFaceState } from "@/features/mascot/domain/face";
+import { createReasons } from "@/features/mascot/domain/reasons";
+import { idleSleep } from "@/features/mascot/domain/sleep";
+import { springStep } from "@/features/mascot/domain/spring";
 
 test("the eyelid curve and stroke stay completely outside the open eye", () => {
   for (const { ry } of EYE_SHAPES) {
@@ -41,10 +46,11 @@ test("both eyes converge on the cursor near the face and keep responding at a di
   assert.ok(Math.hypot(farther.leftX, farther.leftY) < 1);
 });
 
-test("the pupils stay inside the eyes in any direction, tilt and expression", () => {
-  for (const eye of EYE_SHAPES) {
-    for (const scale of [0.68, 1, 1.05]) {
-      for (const tilt of [-7, 0, 5]) {
+test.for([-15, -9, -7, 0, 5, 9, 15])(
+  "the pupils stay inside the eyes in any direction and expression at a %i° tilt",
+  (tilt) => {
+    for (const eye of EYE_SHAPES) {
+      for (const scale of [0.68, 1, 1.05]) {
         for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 12) {
           const offset = pupilOffset({ x: Math.cos(angle), y: Math.sin(angle) }, eye, scale, tilt);
           for (let edge = 0; edge < Math.PI * 2; edge += Math.PI / 12) {
@@ -58,8 +64,8 @@ test("the pupils stay inside the eyes in any direction, tilt and expression", ()
         }
       }
     }
-  }
-});
+  },
+);
 
 test("a fast gaze stays continuous through reversals even at 30 frames per second", () => {
   const gaze = { ...IDLE };
@@ -80,14 +86,18 @@ test("the avatar closes its eyes during password entry, even while celebrating",
   assert.deepEqual(avatarFrame(undefined), { column: 0, row: 0 });
 });
 
-test("an error can replace the celebration, and typing clears the previous reaction", () => {
-  let time = 0;
-  const reasons = createReasons(() => time);
+test("an error replaces an active celebration, which returns when the error ends", () => {
+  const reasons = createReasons(() => 0);
   reasons.set("celebrate", "celebrate", 1600);
-  reasons.delete("celebrate");
   reasons.set("error", "grumpy", 4000);
   assert.equal(reasons.current("neutral"), "grumpy");
   reasons.delete("error");
+  assert.equal(reasons.current("neutral"), "celebrate");
+});
+
+test("the typing reaction lasts until its deadline", () => {
+  let time = 0;
+  const reasons = createReasons(() => time);
   reasons.set("typing", "happy", 2000);
   assert.equal(reasons.current("neutral"), "happy");
   time = 2000;
@@ -171,62 +181,41 @@ test("a password closes both eyes and showing the password allows peeking", () =
   assert.equal(peeking.lid1, 0);
 });
 
-/** Puts the original `window` back, or removes the fake one when there was none. */
-function restoreWindow(previous: PropertyDescriptor | undefined) {
-  if (previous) {
-    Object.defineProperty(globalThis, "window", previous);
-    return;
-  }
-  Reflect.deleteProperty(globalThis, "window");
-}
-
 test("repeated waves replace the previous ones and cleanup stops the animation", () => {
-  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   let reduced = false;
-  Object.defineProperty(globalThis, "window", {
-    configurable: true,
-    value: { matchMedia: () => ({ matches: reduced }) },
-  });
-  const elements = Array.from({ length: 1 }, () => {
-    const active = new Set<Animation>();
-    const calls: { keyframes: Keyframe[]; options: KeyframeAnimationOptions }[] = [];
-    return {
-      active,
-      calls,
-      getAnimations: () => [...active],
-      animate(keyframes: Keyframe[], options: KeyframeAnimationOptions) {
-        const listeners = new Map<string, () => void>();
-        const animation = {
-          addEventListener: (name: string, callback: () => void) => listeners.set(name, callback),
-          cancel() {
-            active.delete(animation);
-            listeners.get("cancel")?.();
-          },
-        } as unknown as Animation;
-        calls.push({ keyframes, options });
-        active.add(animation);
-        return animation;
-      },
-    };
-  });
+  vi.stubGlobal("window", { matchMedia: () => ({ matches: reduced }) });
+  const active = new Set<Animation>();
+  const calls: { keyframes: Keyframe[]; options: KeyframeAnimationOptions }[] = [];
+  const sprite = {
+    getAnimations: () => [...active],
+    animate(keyframes: Keyframe[], options: KeyframeAnimationOptions) {
+      const listeners = new Map<string, () => void>();
+      const animation = {
+        addEventListener: (name: string, callback: () => void) => listeners.set(name, callback),
+        cancel() {
+          active.delete(animation);
+          listeners.get("cancel")?.();
+        },
+      } as unknown as Animation;
+      calls.push({ keyframes, options });
+      active.add(animation);
+      return animation;
+    },
+  };
   try {
     const avatarHands = createHandMotions({
-      querySelector: (selector: string) =>
-        selector === "[data-mascot-sprite]" ? elements[0] : null,
+      querySelector: (selector: string) => (selector === "[data-mascot-sprite]" ? sprite : null),
     } as unknown as HTMLElement);
-    reduced = false;
     for (let tap = 0; tap < 20; tap++) avatarHands.wave();
-    assert.equal(elements[0]?.active.size, 1);
-    assert.equal(elements[0]?.calls.at(-1)?.options.easing, "linear");
-    assert.ok(
-      elements[0]?.calls.at(-1)?.keyframes.every((frame) => frame.easing === "steps(1, end)"),
-    );
+    assert.equal(active.size, 1);
+    assert.equal(calls.at(-1)?.options.easing, "linear");
+    assert.ok(calls.at(-1)?.keyframes.every((frame) => frame.easing === "steps(1, end)"));
     avatarHands.cancel();
-    assert.equal(elements[0]?.active.size, 0);
+    assert.equal(active.size, 0);
     reduced = true;
     avatarHands.wave();
-    assert.equal(elements[0]?.active.size, 0);
+    assert.equal(active.size, 0);
   } finally {
-    restoreWindow(previousWindow);
+    vi.unstubAllGlobals();
   }
 });

@@ -4,13 +4,17 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, describe, test, vi } from "vitest";
 import {
+  ADMIN_AUTH_BASE_PATH,
+  createAdminAuthForTests,
+} from "@/features/auth/server/admin-auth.server";
+import {
   createUserAuthForTests,
   USER_AUTH_BASE_PATH,
 } from "@/features/auth/server/participant-auth.server";
 import * as schema from "@/server/db/schema";
 import { logger } from "@/server/logger.server";
 import { verifiedParticipant } from "./support/accounts";
-import { CookieJar, makeCaller } from "./support/http-auth";
+import { CookieJar, errorCode, makeCaller } from "./support/http-auth";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -53,9 +57,8 @@ describe("sign-up", () => {
       Object.keys(again.body as object).toSorted(),
       Object.keys(first.body as object).toSorted(),
     );
-    await new Promise((resolve) => setTimeout(resolve, 50));
     // The email owner gets the verification and then the attempt notice.
-    assert.equal(mail.count("lia@exemplo.com"), 2);
+    await vi.waitFor(() => assert.equal(mail.count("lia@exemplo.com"), 2));
     const rows = await db
       .select()
       .from(schema.users)
@@ -74,10 +77,12 @@ describe("sign-up", () => {
       body: { email: "mel@exemplo.com", password: PASSWORD },
     });
     assert.equal(blocked.status, 403);
-    await new Promise((resolve) => setTimeout(resolve, 50));
 
-    const link = mail.linkFor("mel@exemplo.com");
-    assert.ok(link, "verification link in the email");
+    const link = await vi.waitFor(() => {
+      const found = mail.linkFor("mel@exemplo.com");
+      assert.ok(found, "verification link in the email");
+      return found;
+    });
     const url = new URL(link);
     const jar = new CookieJar();
     const verify = await auth.handler(
@@ -101,7 +106,8 @@ describe("sign-up", () => {
     const res = await newCaller()("/sign-up/email", {
       body: { name: "Nina", email: "nina@exemplo.com", password: "curta" },
     });
-    assert.notEqual(res.status, 200);
+    assert.equal(res.status, 400);
+    assert.equal(errorCode(res.body), "PASSWORD_TOO_SHORT");
   });
 });
 
@@ -112,7 +118,8 @@ describe("login", () => {
     const res = await newCaller()("/sign-in/email", {
       body: { email: ana.email, password: ana.password },
     });
-    assert.notEqual(res.status, 200);
+    assert.equal(res.status, 401);
+    assert.equal(errorCode(res.body), "FAILED_TO_CREATE_SESSION");
   });
 
   test("attempt lockout applies to participants, separate from admin", async () => {
@@ -142,25 +149,36 @@ describe("login", () => {
   test("account cookie does not work in the admin panel", async () => {
     const caio = await verifiedParticipant(db, handler);
     assert.ok(caio.jar.has("nelcota."));
-    assert.equal(caio.jar.has("nelcota-admin"), false);
+    const adminAuth = createAdminAuthForTests(
+      db,
+      "segredo-admin-de-teste-0123456789abcdef0123456789",
+    );
+    const adminCall = makeCaller(adminAuth.handler, ADMIN_AUTH_BASE_PATH, "198.18.1.1");
+    const session = await adminCall("/get-session", { method: "GET", jar: caio.jar });
+    assert.equal(session.status, 200);
+    assert.equal(session.body, null);
   });
 });
 
-/** The 1 px WebP below with an EXIF chunk (metadata such as location). */
+/** 1 px WebP: the endpoint receives the format produced by the editor. */
+const WEBP_IMAGE =
+  "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
+
+/** The same 1 px WebP with an EXIF chunk (metadata such as location). */
 const WEBP_WITH_EXIF =
   "data:image/webp;base64,UklGRkAAAABXRUJQVlA4WAoAAAAIAAAAAAAAAAAARVhJRgQAAABHUFMhVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
 
+const INVALID_IMAGES = [
+  "https://example.com/photo.png",
+  "data:image/svg+xml;base64,PHN2Zz4=",
+  "data:image/webp;base64," + "A".repeat(180_001),
+  "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
+  WEBP_WITH_EXIF,
+];
+
 describe("profile photo", () => {
   test("sign-up validates the photo with the same rules as the update", async () => {
-    const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
-    const invalidImages = [
-      "https://example.com/photo.png",
-      "data:image/svg+xml;base64,PHN2Zz4=",
-      "data:image/webp;base64," + "A".repeat(180_001),
-      "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
-      WEBP_WITH_EXIF,
-    ];
-    for (const invalid of invalidImages) {
+    for (const invalid of INVALID_IMAGES) {
       const email = `foto-invalida-${crypto.randomUUID()}@exemplo.com`;
       const rejected = await newCaller()("/sign-up/email", {
         body: { name: "Foto", email, password: PASSWORD, image: invalid },
@@ -173,34 +191,26 @@ describe("profile photo", () => {
     }
     const email = `foto-valida-${crypto.randomUUID()}@exemplo.com`;
     const saved = await newCaller()("/sign-up/email", {
-      body: { name: "Foto", email, password: PASSWORD, image },
+      body: { name: "Foto", email, password: PASSWORD, image: WEBP_IMAGE },
     });
     assert.equal(saved.status, 200);
     assert.equal(
       (await db.query.users.findFirst({ where: eq(schema.users.email, email) }))?.image,
-      image,
+      WEBP_IMAGE,
     );
   });
 
   test("saves and removes the account's own photo; rejects URLs, SVG and large images", async () => {
     const participant = await verifiedParticipant(db, handler);
     const call = newCaller();
-    // 1 px WebP: the endpoint receives the format produced by the editor.
-    const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
-    const saved = await call("/update-user", { body: { image }, jar: participant.jar });
+    const saved = await call("/update-user", { body: { image: WEBP_IMAGE }, jar: participant.jar });
     assert.equal(saved.status, 200);
     const [row] = await db
       .select({ image: schema.users.image })
       .from(schema.users)
       .where(eq(schema.users.id, participant.id));
-    assert.equal(row?.image, image);
-    for (const invalid of [
-      "https://example.com/photo.png",
-      "data:image/svg+xml;base64,PHN2Zz4=",
-      "data:image/webp;base64," + "A".repeat(180_001),
-      "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
-      WEBP_WITH_EXIF,
-    ]) {
+    assert.equal(row?.image, WEBP_IMAGE);
+    for (const invalid of INVALID_IMAGES) {
       const rejected = await call("/update-user", {
         body: { image: invalid },
         jar: participant.jar,

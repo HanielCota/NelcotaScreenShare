@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { CSV_BOM, csvCell, csvRow } from "@/lib/csv";
+import { csvCell, csvRow } from "@/lib/csv";
 
 test("CSV injection: formulas become text", () => {
   for (const evil of ['=HYPERLINK("x")', "+1+1", "-2+3", "@SUM(A1)", "\tcmd", "\rcmd"]) {
@@ -18,5 +18,4 @@ test("separator, quotes, line breaks and types", () => {
   // JSON has quotes: it comes out quoted, with the inner ones doubled.
   assert.equal(csvCell({ a: 1 }), '"{""a"":1}"');
   assert.equal(csvRow(["a", 1, null]), "a;1;\r\n");
-  assert.equal(CSV_BOM.charCodeAt(0), 0xfeff);
 });

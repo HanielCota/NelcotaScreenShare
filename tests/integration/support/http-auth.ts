@@ -1,10 +1,14 @@
 /** Minimal HTTP client for the Better Auth handler, as the browser would do it. */
 const ORIGIN = "http://localhost:3000";
 
-export interface AuthCallResult {
+interface AuthCallResult {
   status: number;
   body: unknown;
-  cookies: Map<string, string>;
+}
+
+/** Better Auth error code (`{ code, message }`), or undefined for any other body. */
+export function errorCode(body: unknown): string | undefined {
+  return typeof body === "object" && body && "code" in body ? String(body.code) : undefined;
 }
 
 export class CookieJar {
@@ -61,6 +65,6 @@ export function makeCaller(
     } catch {
       // non-JSON response (e.g. redirect)
     }
-    return { status: response.status, body: parsed, cookies: new Map() };
+    return { status: response.status, body: parsed };
   };
 }

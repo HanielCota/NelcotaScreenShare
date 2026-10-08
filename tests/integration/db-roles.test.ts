@@ -35,15 +35,16 @@ afterAll(async () => {
   await client.end();
 });
 
-async function fails(statement: string, values: unknown[] = []): Promise<string> {
-  await client.query("SAVEPOINT tentativa");
+/** The error message of the statement, or null when it succeeds. */
+async function errorOf(statement: string, values: unknown[] = []): Promise<string | null> {
+  await client.query("SAVEPOINT attempt");
   try {
     await client.query(statement, values);
-    return "passou";
+    return null;
   } catch (error) {
     return error instanceof Error ? error.message : String(error);
   } finally {
-    await client.query("ROLLBACK TO SAVEPOINT tentativa");
+    await client.query("ROLLBACK TO SAVEPOINT attempt");
   }
 }
 
@@ -71,11 +72,15 @@ describe("app role in Postgres", () => {
   it("cannot change audit logs, token requests or event bodies, and cannot run DDL", async () => {
     await client.query("BEGIN");
     try {
-      expect(await fails("update audit_logs set action = action")).toMatch(/permission denied/);
-      expect(await fails("delete from audit_logs")).toMatch(/permission denied/);
-      expect(await fails("update token_requests set result = result")).toMatch(/permission denied/);
-      expect(await fails("update livekit_events set payload = '{}'")).toMatch(/permission denied/);
-      expect(await fails("create table invasora (id int)")).toMatch(/permission denied/);
+      expect(await errorOf("update audit_logs set action = action")).toMatch(/permission denied/);
+      expect(await errorOf("delete from audit_logs")).toMatch(/permission denied/);
+      expect(await errorOf("update token_requests set result = result")).toMatch(
+        /permission denied/,
+      );
+      expect(await errorOf("update livekit_events set payload = '{}'")).toMatch(
+        /permission denied/,
+      );
+      expect(await errorOf("create table invasora (id int)")).toMatch(/permission denied/);
     } finally {
       await client.query("ROLLBACK");
     }

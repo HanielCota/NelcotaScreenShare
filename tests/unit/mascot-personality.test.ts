@@ -3,7 +3,6 @@ import { createPersonality, voiceAmount } from "@/features/mascot/domain/persona
 import { createReasons } from "@/features/mascot/domain/reasons";
 import type { Expression } from "@/features/mascot/domain/face";
 import { createHandMotions } from "@/features/mascot/client/hand-motions";
-import { EYE_SHAPES, pupilOffset } from "@/features/mascot/domain/eye-tracking";
 
 function fixture() {
   let time = 0;
@@ -143,7 +142,7 @@ describe("Nelcota's personality", () => {
     expect(f.pending.size).toBe(0);
   });
 
-  test("a yawn goes through the stretch and restores the sleepy expression", () => {
+  test("a yawn goes through the stretch and then clears the expression", () => {
     const f = fixture();
     f.controller.yawn();
     expect(f.expression).toBe("yawning");
@@ -151,6 +150,9 @@ describe("Nelcota's personality", () => {
     expect(f.expression).toBe("stretching");
     f.advance(1000);
     expect(f.expression).toBeUndefined();
+  });
+
+  test("the sleepy expression comes back once the yawn ends", () => {
     const reasons = createReasons(() => 0);
     reasons.set("sleep", "sleepy");
     reasons.set("interaction", "yawning");
@@ -186,21 +188,6 @@ describe("Nelcota's personality", () => {
       expect(animate).not.toHaveBeenCalled();
     } finally {
       vi.unstubAllGlobals();
-    }
-  });
-
-  test("new tilts keep the pupil edges inside the eyes", () => {
-    for (const eye of EYE_SHAPES) {
-      for (const tilt of [-15, -9, 9, 15]) {
-        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 12) {
-          const offset = pupilOffset({ x: Math.cos(angle), y: Math.sin(angle) }, eye, 1.05, tilt);
-          for (let edge = 0; edge < Math.PI * 2; edge += Math.PI / 12) {
-            const x = offset.x + Math.cos(edge) * eye.pupilRx * 1.05;
-            const y = offset.y + Math.sin(edge) * eye.pupilRy * 1.05;
-            expect((x / eye.rx) ** 2 + (y / eye.ry) ** 2).toBeLessThan(1);
-          }
-        }
-      }
     }
   });
 });

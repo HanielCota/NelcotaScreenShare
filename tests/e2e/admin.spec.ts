@@ -7,7 +7,9 @@ import { newVisitor } from "./support/session";
 const PASSWORD = "senha-forte-do-dono-e2e";
 
 function e2eDatabaseUrl(): string {
-  const url = new URL(process.env.TEST_DATABASE_URL ?? "");
+  const base = process.env.TEST_DATABASE_URL;
+  if (!base) throw new Error("Set TEST_DATABASE_URL to run the E2E tests.");
+  const url = new URL(base);
   url.pathname = "/nelcota_e2e";
   return url.toString();
 }

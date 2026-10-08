@@ -131,8 +131,7 @@ test.describe("in the room", () => {
   test("controls: microphone and picker on mobile, share and stop the screen", async ({
     browser,
   }) => {
-    const pessoa = await newParticipant(browser, "Aline Teste");
-    const { page, context } = pessoa;
+    const { page, context } = await newParticipant(browser, "Aline Teste");
     await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "dark" });
     await fakeScreenCapture(page);
     await joinRoom(page, newRoomCode(), { micOn: false });
@@ -192,16 +191,16 @@ test.describe("in the room", () => {
   });
 
   test("computer audio that would echo the room is left out of the share", async ({ browser }) => {
-    const pessoa = await newParticipant(browser, "Bia Teste");
-    await fakeScreenCapture(pessoa.page, { withSound: true });
-    await joinRoom(pessoa.page, newRoomCode(), { micOn: false });
+    const participant = await newParticipant(browser, "Bia Teste");
+    await fakeScreenCapture(participant.page, { withSound: true });
+    await joinRoom(participant.page, newRoomCode(), { micOn: false });
 
-    await pessoa.page.getByRole("button", { name: "Compartilhar minha tela" }).click();
-    await pessoa.page.getByRole("button", { name: /^Tela inteira/ }).click();
-    await expect(pessoa.page.getByLabel("Prévia da sua tela")).toBeVisible();
-    await expect(pessoa.page.getByText(/O som do computador ficou de fora/)).toBeVisible();
+    await participant.page.getByRole("button", { name: "Compartilhar minha tela" }).click();
+    await participant.page.getByRole("button", { name: /^Tela inteira/ }).click();
+    await expect(participant.page.getByLabel("Prévia da sua tela")).toBeVisible();
+    await expect(participant.page.getByText(/O som do computador ficou de fora/)).toBeVisible();
 
-    await pessoa.context.close();
+    await participant.context.close();
   });
 
   test("alone: welcome; leave and join again", async ({ browser }) => {
@@ -277,7 +276,7 @@ test.describe("in the room", () => {
       await route.fulfill({ response, json: { ...body, serverUrl: "ws://127.0.0.1:9" } });
     });
     await fia.page.goto(`/sala/${newRoomCode()}`);
-    await fia.page.getByLabel("Senha da sala (quem te convidou sabe)").fill("senha-de-acesso-e2e");
+    await fia.page.getByLabel("Senha da sala (quem te convidou sabe)").fill(E2E_ACCESS_PASSWORD);
     await fia.page.getByRole("button", { name: /Entrar na sala|Entrar só ouvindo/ }).click();
     await expect(fia.page.getByText("Não deu para conectar")).toBeVisible({ timeout: 30_000 });
     await expect(fia.page.getByRole("button", { name: "Tentar de novo" })).toBeVisible();

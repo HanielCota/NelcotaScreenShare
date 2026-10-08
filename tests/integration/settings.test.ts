@@ -16,11 +16,25 @@ const db = drizzle(pool, { schema });
 afterAll(() => pool.end());
 beforeEach(() => clearSettingsCache());
 
+async function appliedMigrations() {
+  const { rows } = await pool.query<{ count: string }>(
+    "select count(*) from drizzle.__drizzle_migrations",
+  );
+  return Number(rows[0]?.count);
+}
+
 test("migrations already applied: running again does nothing", async () => {
+  const before = await appliedMigrations();
+  assert.ok(before > 0);
   await runMigrations(process.env.DATABASE_URL ?? "");
+  assert.equal(await appliedMigrations(), before);
 });
 
 describe("mascot in Postgres", () => {
+  beforeEach(async () => {
+    await db.delete(schema.appSettings);
+  });
+
   test("no row: defaults", async () => {
     assert.deepEqual(await getSetting(mascotSettings, db), mascotSettings.defaults);
   });
@@ -43,6 +57,7 @@ describe("mascot in Postgres", () => {
   });
 
   test("out of range is rejected and nothing changes", async () => {
+    await saveSetting(mascotSettings, { saturationDark: 2, saturationLight: 0 }, db);
     await assert.rejects(
       saveSetting(mascotSettings, { saturationDark: 2.5, saturationLight: 1 }, db),
     );
@@ -54,9 +69,11 @@ describe("mascot in Postgres", () => {
   });
 
   test("invalid JSON written from outside: defaults", async () => {
+    await saveSetting(mascotSettings, { saturationDark: 2, saturationLight: 0 }, db);
     await pool.query(
       `update app_settings set value = '{"saturationDark":"muito"}' where key = 'mascot'`,
     );
+    clearSettingsCache();
     assert.deepEqual(await getSetting(mascotSettings, db), mascotSettings.defaults);
   });
 });
