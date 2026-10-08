@@ -1,4 +1,4 @@
-import { Loader2, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate, useRevalidator } from "react-router";
 
 import { useId, useState, type FormEvent } from "react";
@@ -13,16 +13,13 @@ import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { BackupCodes } from "./BackupCodes";
+import { TwoFactorHeader } from "./TwoFactorHeader";
 import { formText } from "@/lib/utils";
 
 type Step =
   | { name: "idle" }
-  | { name: "scan"; totpURI: string; backupCodes: string[] }
+  | { name: "scan"; totpURI: string; secret: string; backupCodes: string[] }
   | { name: "codes"; backupCodes: string[] };
-
-function secretFrom(uri: string): string {
-  return new URL(uri).searchParams.get("secret") ?? "";
-}
 
 export function TwoFactorSettings({
   scope,
@@ -81,10 +78,14 @@ export function TwoFactorSettings({
     const password = requiredPassword(event.currentTarget);
     if (password === null) return;
     const data = await run(() => client.twoFactor.enable({ password }));
-    // The panel only uses TOTP (authenticator app); "otp" would be a code by e-mail.
-    if (data?.method === "totp") {
-      setStep({ name: "scan", totpURI: data.totpURI, backupCodes: data.backupCodes });
+    // Only TOTP (authenticator app) is set up; "otp" would be a code by e-mail.
+    if (data?.method !== "totp") return;
+    const secret = new URL(data.totpURI).searchParams.get("secret");
+    if (!secret) {
+      setError("Não foi possível gerar a chave do app autenticador. Tente de novo.");
+      return;
     }
+    setStep({ name: "scan", totpURI: data.totpURI, secret, backupCodes: data.backupCodes });
   }
 
   async function handleVerify(event: FormEvent<HTMLFormElement>) {
@@ -127,62 +128,25 @@ export function TwoFactorSettings({
     void revalidator.revalidate();
   }
 
-  const passwordField = (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={passwordId}>Confirme sua senha</Label>
-      <PasswordInput
-        id={passwordId}
-        name="password"
-        autoComplete="current-password"
-        required
-        aria-invalid={invalidField === passwordId}
-        aria-describedby={errorId}
-      />
-    </div>
-  );
-
-  return (
-    <section
-      className={plain ? "flex flex-col gap-5" : "glass flex flex-col gap-5 rounded-2xl p-6 sm:p-8"}
-      aria-labelledby={plain ? undefined : `${codeId}-titulo`}
-      aria-label={plain ? "Verificação em duas etapas" : undefined}
-    >
-      {plain ? null : (
-        <TwoFactorHeader
-          titleId={`${codeId}-titulo`}
-          enabled={enabled}
-          required={required}
-          verified={step.name === "codes"}
-        />
-      )}
-
-      {step.name === "codes" ? (
+  function stepContent() {
+    if (step.name === "codes") {
+      return (
         <BackupCodes
           scope={scope}
           codes={step.backupCodes}
           onDone={enabled ? () => setStep({ name: "idle" }) : finish}
         />
-      ) : step.name === "scan" ? (
+      );
+    }
+    if (step.name === "scan") {
+      return (
         <form
           method="post"
           noValidate
           onSubmit={(event) => void handleVerify(event)}
           className="flex flex-col gap-4"
         >
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-            <QrCode value={step.totpURI} label="QR code para o app autenticador" />
-            <div className="flex flex-col gap-2 text-sm text-ink-muted">
-              <p>
-                1. Abra um app autenticador (Google Authenticator, Microsoft Authenticator,
-                1Password, Bitwarden…) e escaneie o QR code.
-              </p>
-              <p>2. Sem câmera? Digite a chave:</p>
-              <code className="rounded-lg bg-surface-2 px-2 py-1.5 font-sans text-xs break-all text-ink tabular-nums">
-                {secretFrom(step.totpURI)}
-              </code>
-              <p>3. Digite o código de 6 dígitos que aparecer no app.</p>
-            </div>
-          </div>
+          <ScanInstructions totpURI={step.totpURI} secret={step.secret} />
           <div className="flex flex-col gap-2 sm:max-w-xs">
             <Label htmlFor={codeId}>Código do app</Label>
             <Input
@@ -204,7 +168,10 @@ export function TwoFactorSettings({
             Confirmar e ativar
           </Button>
         </form>
-      ) : enabled ? (
+      );
+    }
+    if (enabled) {
+      return (
         <div className="grid gap-6 md:grid-cols-2">
           <form
             method="post"
@@ -214,7 +181,11 @@ export function TwoFactorSettings({
           >
             <h3 className="font-medium">Novos códigos de backup</h3>
             <p className="text-sm text-ink-muted">Os códigos antigos param de funcionar.</p>
-            {passwordField}
+            <PasswordField
+              id={passwordId}
+              invalid={invalidField === passwordId}
+              errorId={errorId}
+            />
             <Button type="submit" variant="outline" disabled={pending} className="self-start">
               Gerar novos códigos
             </Button>
@@ -228,17 +199,11 @@ export function TwoFactorSettings({
             >
               <h3 className="font-medium">Desativar</h3>
               <p className="text-sm text-ink-muted">O login volta a pedir só a senha.</p>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor={`${passwordId}-off`}>Confirme sua senha</Label>
-                <PasswordInput
-                  id={`${passwordId}-off`}
-                  name="password"
-                  aria-invalid={invalidField === `${passwordId}-off`}
-                  aria-describedby={errorId}
-                  autoComplete="current-password"
-                  required
-                />
-              </div>
+              <PasswordField
+                id={`${passwordId}-off`}
+                invalid={invalidField === `${passwordId}-off`}
+                errorId={errorId}
+              />
               <Button type="submit" variant="outline" disabled={pending} className="self-start">
                 Desativar verificação
               </Button>
@@ -248,56 +213,83 @@ export function TwoFactorSettings({
             <FormError id={errorId} message={error} />
           </div>
         </div>
-      ) : (
-        <form
-          method="post"
-          noValidate
-          onSubmit={(event) => void handleEnable(event)}
-          className="flex flex-col gap-4 sm:max-w-sm"
-        >
-          {passwordField}
-          <FormError id={errorId} message={error} />
-          <Button type="submit" disabled={pending} className="self-start">
-            {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
-            Ativar verificação
-          </Button>
-        </form>
+      );
+    }
+    return (
+      <form
+        method="post"
+        noValidate
+        onSubmit={(event) => void handleEnable(event)}
+        className="flex flex-col gap-4 sm:max-w-sm"
+      >
+        <PasswordField id={passwordId} invalid={invalidField === passwordId} errorId={errorId} />
+        <FormError id={errorId} message={error} />
+        <Button type="submit" disabled={pending} className="self-start">
+          {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
+          Ativar verificação
+        </Button>
+      </form>
+    );
+  }
+
+  return (
+    <section
+      className={plain ? "flex flex-col gap-5" : "glass flex flex-col gap-5 rounded-2xl p-6 sm:p-8"}
+      aria-labelledby={plain ? undefined : `${codeId}-titulo`}
+      aria-label={plain ? "Verificação em duas etapas" : undefined}
+    >
+      {plain ? null : (
+        <TwoFactorHeader
+          titleId={`${codeId}-titulo`}
+          enabled={enabled}
+          required={required}
+          verified={step.name === "codes"}
+        />
       )}
+
+      {stepContent()}
     </section>
   );
 }
 
-function TwoFactorHeader({
-  titleId,
-  enabled,
-  required,
-  verified,
+function PasswordField({
+  id,
+  invalid,
+  errorId,
 }: {
-  titleId: string;
-  enabled: boolean;
-  required: boolean;
-  verified: boolean;
+  id: string;
+  invalid: boolean;
+  errorId: string;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-surface-2">
-        {enabled || verified ? (
-          <ShieldCheck className="size-5 text-brand-soft" aria-hidden="true" />
-        ) : (
-          <ShieldAlert className="size-5 text-warning" aria-hidden="true" />
-        )}
-      </span>
-      <div>
-        <h2 id={titleId} className="text-lg font-medium tracking-tight">
-          Verificação em duas etapas
-        </h2>
-        <p className="text-sm text-ink-muted">
-          {enabled
-            ? "Ativa. Além da senha, o login pede um código do seu app autenticador."
-            : required
-              ? "Obrigatória para o seu papel. Ative para usar o painel."
-              : "Recomendada: protege a conta mesmo se a senha vazar."}
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={id}>Confirme sua senha</Label>
+      <PasswordInput
+        id={id}
+        name="password"
+        autoComplete="current-password"
+        required
+        aria-invalid={invalid}
+        aria-describedby={errorId}
+      />
+    </div>
+  );
+}
+
+function ScanInstructions({ totpURI, secret }: { totpURI: string; secret: string }) {
+  return (
+    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+      <QrCode value={totpURI} label="QR code para o app autenticador" />
+      <div className="flex flex-col gap-2 text-sm text-ink-muted">
+        <p>
+          1. Abra um app autenticador (Google Authenticator, Microsoft Authenticator, 1Password,
+          Bitwarden…) e escaneie o QR code.
         </p>
+        <p>2. Sem câmera? Digite a chave:</p>
+        <code className="rounded-lg bg-surface-2 px-2 py-1.5 font-sans text-xs break-all text-ink tabular-nums">
+          {secret}
+        </code>
+        <p>3. Digite o código de 6 dígitos que aparecer no app.</p>
       </div>
     </div>
   );
