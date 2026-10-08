@@ -109,7 +109,8 @@ export function ShareMenu({ isSharing, busy, onShare, onStop }: ShareMenuProps) 
     setOpen(next);
   }
 
-  useShortcut("s", () => handleOpenChange(!open), !busy);
+  // The key only opens the menu: one stray press must not take the screen off the air.
+  useShortcut("s", () => handleOpenChange(!open), !busy && !isSharing);
 
   return (
     <Popover.Root open={open} onOpenChange={handleOpenChange}>
@@ -121,7 +122,7 @@ export function ShareMenu({ isSharing, busy, onShare, onStop }: ShareMenuProps) 
           caption={busy ? "Aguarde…" : isSharing ? `Parar · ${elapsed}` : "Compartilhar"}
           shortCaption={busy ? "…" : isSharing ? elapsed : "Tela"}
           pressed={isSharing}
-          shortcut="S"
+          shortcut={isSharing ? undefined : "S"}
           aria-disabled={!supported || undefined}
           disabled={busy}
           busy={busy}
