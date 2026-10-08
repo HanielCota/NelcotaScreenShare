@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Facts, Section } from "@/components/Section";
-import { LEAVE_REASON_LABELS } from "@/features/admin/audit/domain/labels";
+import { LEAVE_REASON_LABELS } from "@/features/admin/rooms/domain/labels";
 import type { getRoomDetail } from "@/features/admin/rooms/server/queries.server";
 import { formatDateTime, formatSpan } from "@/lib/format";
 

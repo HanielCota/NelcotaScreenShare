@@ -51,15 +51,6 @@ export function resourceLabel(resourceType: string): string {
   return RESOURCE_LABELS[resourceType] ?? resourceType;
 }
 
-/** Leave reason of a participation. */
-export const LEAVE_REASON_LABELS: Record<string, string> = {
-  left: "Saiu",
-  disconnected: "Caiu a conexão",
-  removed_by_admin: "Removido pelo painel",
-  room_closed: "Sala encerrada",
-  unknown: "Desconhecido",
-};
-
 /** Who did it: admin by name, a flagged participant, or the system itself. */
 export function actorText(actor: AuditRow["actor"]): string {
   if (actor.kind === "admin") return actor.name;

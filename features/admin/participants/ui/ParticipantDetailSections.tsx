@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Facts, Section } from "@/components/Section";
-import { LEAVE_REASON_LABELS } from "@/features/admin/audit/domain/labels";
+import { LEAVE_REASON_LABELS } from "@/features/admin/rooms/domain/labels";
 import type { getParticipantDetail } from "@/features/admin/participants/server/queries.server";
 import { formatDateTime, formatNumber, formatSpan } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";

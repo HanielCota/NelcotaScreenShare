@@ -20,3 +20,12 @@ export function roomStatus(room: { status: "active" | "finished"; deleted: boole
   if (room.status === "active") return "ativa";
   return "encerrada";
 }
+
+/** Leave reason of a participation. */
+export const LEAVE_REASON_LABELS: Record<string, string> = {
+  left: "Saiu",
+  disconnected: "Caiu a conexão",
+  removed_by_admin: "Removido pelo painel",
+  room_closed: "Sala encerrada",
+  unknown: "Desconhecido",
+};
