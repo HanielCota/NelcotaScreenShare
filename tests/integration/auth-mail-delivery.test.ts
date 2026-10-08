@@ -58,11 +58,8 @@ describe("authenticated e-mail delivery", () => {
   test("waits for provider acceptance before confirming an authenticated send", async () => {
     const participant = await verifiedParticipant(db, handler);
     await db.update(users).set({ emailVerified: false }).where(eq(users.id, participant.id));
-    let accept: (() => void) | undefined;
-    const delivery = new Promise<void>((resolve) => {
-      accept = resolve;
-    });
-    mail.send.mockClear().mockReturnValueOnce(delivery);
+    const delivery = Promise.withResolvers<void>();
+    mail.send.mockReturnValueOnce(delivery.promise);
     let completed = false;
     const response = call("/send-verification-email", {
       body: { email: participant.email },
@@ -73,8 +70,7 @@ describe("authenticated e-mail delivery", () => {
     });
     await vi.waitFor(() => expect(mail.send).toHaveBeenCalledOnce());
     expect(completed).toBe(false);
-    expect(accept).toBeDefined();
-    accept?.();
+    delivery.resolve();
     expect((await response).status).toBe(200);
   });
 
