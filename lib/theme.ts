@@ -17,7 +17,7 @@ export function currentTheme(): Theme {
   return document.documentElement.dataset.theme === "light" ? "light" : "dark";
 }
 
-export function applyTheme(theme: Theme) {
+function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLOR[theme]);
   try {
