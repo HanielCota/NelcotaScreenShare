@@ -116,7 +116,7 @@ export function useScreenShare() {
       await localParticipant.setScreenShareEnabled(false);
     } catch {
       toast.error(
-        "Não foi possível parar o compartilhamento. Tente novamente ou use o botão Parar compartilhamento do navegador.",
+        "Não foi possível parar o compartilhamento. Tente de novo ou use o botão Parar compartilhamento do navegador.",
       );
     } finally {
       setBusy(false);

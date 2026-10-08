@@ -41,7 +41,7 @@ export function RoomView({
           onBack={() =>
             onLeave({
               reason: "failed",
-              message: "Não foi possível conectar. Tente entrar novamente.",
+              message: "Não foi possível conectar. Tente entrar de novo.",
             })
           }
         />
