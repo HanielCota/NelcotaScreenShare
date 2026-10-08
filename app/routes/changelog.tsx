@@ -1,5 +1,6 @@
-import { Link, type MetaFunction } from "react-router";
+import type { MetaFunction } from "react-router";
 import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
+import { SiteFooter } from "@/components/shell/SiteFooter";
 import { RELEASES } from "@/features/home/domain/changelog";
 import { ReleaseNotes } from "@/features/home/ui/ReleaseNotes";
 import { INDEXABLE, originFromMatches, pageMeta } from "@/lib/seo";
@@ -32,12 +33,7 @@ export default function ChangelogPage() {
           ))}
         </div>
       </main>
-      <footer className="mx-auto w-[min(100%-2rem,48rem)] border-t border-line py-6 text-center text-xs text-ink-subtle">
-        Nelcota
-        <Link viewTransition to="/" className="ml-3 underline-offset-4 hover:underline">
-          Início
-        </Link>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

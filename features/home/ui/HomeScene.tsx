@@ -1,13 +1,11 @@
 import { Check } from "lucide-react";
 import { useRef } from "react";
 import { useHeroRecede } from "@/features/home/hooks/use-hero-recede";
-import { Link } from "react-router";
 import { AppHeader } from "@/components/shell/AppHeader";
+import { SiteFooter } from "@/components/shell/SiteFooter";
 import { HomeEntrance } from "./HomeEntrance";
 import { HomeSections } from "./HomeSections";
 import { HomeStart } from "./HomeStart";
-
-const FOOTER_LINK = "transition-colors hover:text-ink";
 
 const HERO_FACTS = ["Grátis", "Sem instalar", "Sem gravação"];
 
@@ -81,30 +79,7 @@ export function HomeScene({
 
       <HomeSections maxParticipants={maxParticipants} signedIn={account !== null} />
 
-      <footer className="page-column mt-24 flex flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
-        <span className="inline-flex items-center gap-2 text-sm font-semibold">
-          <img src="/icon.png" alt="" width={24} height={24} className="size-6 rounded-md" />
-          Nelcota
-        </span>
-        <nav
-          aria-label="Rodapé"
-          className="flex items-center gap-5 text-xs font-medium text-ink-muted"
-        >
-          <a href="#como-funciona" className={FOOTER_LINK}>
-            Como funciona
-          </a>
-          <a href="#recursos" className={FOOTER_LINK}>
-            Recursos
-          </a>
-          <Link viewTransition to="/novidades" className={FOOTER_LINK}>
-            Novidades
-          </Link>
-          <Link viewTransition to="/privacidade" className={FOOTER_LINK}>
-            Privacidade
-          </Link>
-          <span className="text-ink-subtle">© 2026</span>
-        </nav>
-      </footer>
+      <SiteFooter className="mt-24" />
     </HomeEntrance>
   );
 }

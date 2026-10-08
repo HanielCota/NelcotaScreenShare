@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
+import { SiteFooter } from "@/components/shell/SiteFooter";
 import { PrivacyItem, PrivacyList, PrivacySection } from "@/features/privacy/ui/PrivacySection";
 import { PrivacyToc } from "@/features/privacy/ui/PrivacyToc";
 import { INDEXABLE, originFromMatches, pageMeta } from "@/lib/seo";
@@ -266,12 +267,7 @@ export default function PrivacyPage() {
           </div>
         </div>
       </main>
-      <footer className="mx-auto w-[min(100%-2rem,48rem)] border-t border-line py-6 text-center text-xs text-ink-subtle">
-        Nelcota
-        <Link viewTransition to="/" className="ml-3 underline-offset-4 hover:underline">
-          Início
-        </Link>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

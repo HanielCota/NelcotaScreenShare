@@ -18,6 +18,7 @@ import {
 } from "@/features/account/ui/settings/Settings";
 import { UserSignOutButton } from "@/features/account/ui/UserSignOutButton";
 import { AppHeader } from "@/components/shell/AppHeader";
+import { SiteFooter } from "@/components/shell/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { SessionList } from "@/features/security/ui/SessionList";
 import { TwoFactorSettings } from "@/features/security/ui/TwoFactorSettings";
@@ -226,12 +227,7 @@ export default function AccountPage() {
           </SettingsSection>
         </div>
       </main>
-      <footer className="mx-auto w-[min(100%-2rem,42rem)] border-t border-line py-6 text-center text-xs text-ink-subtle">
-        Nelcota
-        <Link viewTransition to="/privacidade" className="ml-3 underline-offset-4 hover:underline">
-          Privacidade
-        </Link>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
