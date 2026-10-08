@@ -31,10 +31,7 @@ export function PresenceLine({ presence, max }: { presence: RoomPresence | null;
         )}
       >
         {line.kind === "some" ? (
-          <span className="relative flex size-2 shrink-0" aria-hidden="true">
-            <span className="absolute inset-0 animate-ping rounded-full bg-success/60 motion-reduce:hidden" />
-            <span className="relative size-2 rounded-full bg-success" />
-          </span>
+          <span className="size-2 shrink-0 rounded-full bg-success" aria-hidden="true" />
         ) : null}
         {line.text}
       </p>
