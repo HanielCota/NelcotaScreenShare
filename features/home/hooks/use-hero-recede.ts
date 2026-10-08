@@ -21,14 +21,5 @@ export function useHeroRecede(hero: RefObject<HTMLElement | null>) {
         scrub: true,
       },
     });
-    // Parallax: the headline's lines drift apart, the first one faster.
-    const lines = gsap.utils.toArray<HTMLElement>("[data-hero-line]", element);
-    lines.forEach((line, index) => {
-      gsap.to(line, {
-        y: -90 + index * 55,
-        ease: "none",
-        scrollTrigger: { trigger: element, start: "top top", end: "bottom top", scrub: true },
-      });
-    });
   });
 }
