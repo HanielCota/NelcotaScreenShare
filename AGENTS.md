@@ -1,6 +1,4 @@
-# AGENTS.md — Engineering Guidelines and Best Practices
-
-This document sets the mandatory rules for code architecture, control flow and version management on Git/GitHub. Every agent or developer working in this repository must strictly follow these guidelines.
+# AGENTS.md — Repository rules
 
 ## Mandatory formatting for AI agents
 
@@ -31,29 +29,27 @@ This document sets the mandatory rules for code architecture, control flow and v
 
 ```typescript
 // Incorrect
-function processOrder(order: Order | null): OrderResult {
-  if (order !== null) {
-    if (order.isValid) {
-      return executePayment(order);
+export async function requireUser(returnTo: string): Promise<UserSession> {
+  const current = await getUserSession();
+  if (current) {
+    if (getEnv().REQUIRE_EMAIL_VERIFICATION && !current.user.emailVerified) {
+      redirect(`/verificar-email?voltar=${encodeURIComponent(returnTo)}`);
     } else {
-      throw new Error("Invalid order");
+      return current;
     }
   } else {
-    throw new Error("Order is null");
+    redirect(`/entrar?voltar=${encodeURIComponent(returnTo)}`);
   }
 }
 
-// Correct
-function processOrder(order: Order | null): OrderResult {
-  if (order === null) {
-    throw new Error("Order is null");
+// Correct (features/auth/server/participant-session.server.ts)
+export async function requireUser(returnTo: string): Promise<UserSession> {
+  const current = await getUserSession();
+  if (!current) redirect(`/entrar?voltar=${encodeURIComponent(returnTo)}`);
+  if (getEnv().REQUIRE_EMAIL_VERIFICATION && !current.user.emailVerified) {
+    redirect(`/verificar-email?voltar=${encodeURIComponent(returnTo)}`);
   }
-
-  if (!order.isValid) {
-    throw new Error("Invalid order");
-  }
-
-  return executePayment(order);
+  return current;
 }
 ```
 
@@ -83,7 +79,10 @@ function processOrder(order: Order | null): OrderResult {
 - `test`: adding or adjusting tests
 - `docs`: documentation-only changes
 - `chore`: maintenance of build, dependencies or auxiliary tooling
+- `perf`: performance improvement without behavior change
+- `ci`: CI and workflow changes
 
+- Scopes in use: `room`, `auth`, `account`, `admin`, `mascot`, `home`, `ui`, `server`, `db`, `deploy`, `ci`, `docs`.
 - The first line must be imperative and concise (72 characters max):
 
 ```bash
@@ -93,9 +92,8 @@ fix(checkout): add early return for expired coupons
 
 ### 2.3. Push and Continuous Integration Best Practices
 
-- Push frequently to keep the remote branch in sync and avoid long-running conflicts.
-- Never push directly to the production branch (`main`/`master`).
-- All work must be isolated in dedicated branches (`feature/`, `fix/`, `refactor/`).
+- `main` is protected: changes land only through a PR, the CI checks must pass and the branch must be up to date with `main`.
+- One branch per theme (`feature/`, `fix/`, `refactor/`, `docs/`), one PR per branch.
 - Before pushing changes, rebase locally onto the main branch to keep history linear and resolve divergences early:
 
 ```bash
@@ -105,6 +103,6 @@ git rebase origin/main
 
 ### 2.4. Pull Requests and Review
 
-- Open small, focused Pull Requests. PRs over 300–400 lines should be split whenever possible.
-- Make sure the test suite and linters pass locally before opening the merge request.
-- Do not commit temporary files, credentials, environment files (`.env`) or compiled dependencies. Keep `.gitignore` strict at all times.
+- PRs are merged with a merge commit, which keeps the atomic commits in `main`'s history.
+- Make sure the test suite and linters pass locally before opening the PR.
+- Do not commit temporary files, credentials, environment files (`.env`) or compiled dependencies.

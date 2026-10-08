@@ -5,5 +5,6 @@ These documents record earlier phases of the project, including the Next-based a
 - [Original admin panel plan](admin-plan.md).
 - [Diagnosis and feature-based refactoring plan](refactor/00-executive-summary.md).
 - [Execution log of that refactoring](refactor/06-execution.md).
+- [Performance review of 2026-10-07](performance-review.md).
 
 The paths, versions, measurements and pending items in these documents reflect the state recorded at each phase.

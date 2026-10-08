@@ -14,7 +14,7 @@ This review covers browser loading and rendering, SSR, authentication, room star
 | Audio track ending lookup               |       13.483 ms |      0.029 ms | Same SQL filter before/after the index                    |
 | Room page after 90,000 earlier rows     |        2.735 ms |      0.039 ms | OR cursor versus tuple cursor, both with the new index    |
 
-SQL measurements are medians of five executions after loading and analyzing an isolated, disposable database with 100,000 rooms and 300,000 webhook events. The first-page SQL measurement includes the ordering correction described below. Timings exclude network round trips and ORM processing. The transfer figures come from local browser captures; HTTP compression and the image account for most of the reduction. Absolute paint timings were not used to claim a production improvement.
+SQL measurements are medians of five executions after loading and analyzing an isolated, disposable database with 100,000 rooms and 300,000 webhook events. The first-page SQL measurement includes the ordering correction described below. Timings exclude network round trips and ORM processing. The transfer figures come from local browser captures; HTTP compression and the image account for most of the reduction.
 
 ## Changes
 
@@ -56,17 +56,6 @@ Maintenance runs outside request handling and prevents overlapping runs in one p
 
 ## Applying and validating
 
-The measurements were collected in disposable test databases. Migration `0008_performance_indexes` has also been applied to the local application database (`nelcota` on loopback PostgreSQL). All four indexes are valid and ready, table statistics were refreshed, and read access through the application role was verified. For other environments, apply it through the normal migration/deployment job with `MIGRATOR_DATABASE_URL`. The indexes consume additional disk and add work to writes; migration lock timeout is already bounded by the migrator.
-
-The application changes passed formatting, type checking, lint, the production build, 303 unit/integration tests, and 22 Chromium E2E tests.
-
-```sh
-pnpm db:migrate
-pnpm format:check
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm test:e2e
-```
+The measurements were collected in disposable test databases. Apply migration `0008_performance_indexes` through the normal migration/deployment job with `MIGRATOR_DATABASE_URL`. The indexes consume additional disk and add work to writes; migration lock timeout is already bounded by the migrator.
 
 For production diagnosis, capture TTFB and Resource Timing on the slow page and correlate the request with server logs and PostgreSQL query statistics. Compare `EXPLAIN (ANALYZE, BUFFERS)` for actual slow SELECT statements using the production data distribution. Do not run load seeding against the application database.

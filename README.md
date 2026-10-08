@@ -17,7 +17,7 @@ Self-hosted, with LiveKit and React Router.
 ![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL_18-1b1f24?style=flat-square&logo=postgresql&logoColor=6B9BF0)
 ![Tailwind CSS 4.3](https://img.shields.io/badge/Tailwind_CSS_4.3-1b1f24?style=flat-square&logo=tailwindcss&logoColor=06B6D4)
 
-[Quick start](#-quick-start) · [Features](#-features) · [Architecture](#-architecture) · [Documentation](#-documentation)
+[Quick start](#quick-start) · [Features](#features) · [Architecture](#architecture) · [Documentation](#documentation)
 
 <br />
 
@@ -28,18 +28,18 @@ Self-hosted, with LiveKit and React Router.
 
 </div>
 
-## ✨ Features
+## Features
 
-| Feature                     | What it does                                                                                              |
-| --------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 🖥️ **Screen with audio**    | Shares the screen with tab or system audio, when the browser allows it                                    |
-| 🎙️ **Microphone**           | Test before joining, device switching and an indicator of who is speaking                                 |
-| 💬 **In the room**          | Chat, reactions, raise your hand and point at someone else's screen (everyone sees the pointer)           |
-| 🔗 **Joining is simple**    | Create a room with `Enter` or paste the link you received; optional password and a limit of 2 to 8 people |
-| 👤 **Accounts**             | Sign-up, 2FA, profile picture, connected devices, data export and deletion (LGPD)                         |
-| 🛡️ **Admin panel**          | Rooms, participants, shares and an immutable audit log, with invitations, mandatory 2FA and permissions   |
-| 🌗 **Light and dark theme** | GSAP animations that respect `prefers-reduced-motion`                                                     |
-| 🌱 **Nelcota**              | A mascot that follows the form, celebrates, worries about errors and dozes off when you go away           |
+| Feature              | What it does                                                                                              |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| Screen with audio    | Shares the screen with tab or system audio, when the browser allows it                                    |
+| Microphone           | Test before joining, device switching and an indicator of who is speaking                                 |
+| In the room          | Chat, reactions, raise your hand and point at someone else's screen (everyone sees the pointer)           |
+| Joining is simple    | Create a room with `Enter` or paste the link you received; optional password and a limit of 2 to 8 people |
+| Accounts             | Sign-up, 2FA, profile picture, connected devices, data export and deletion (LGPD)                         |
+| Admin panel          | Rooms, participants, shares and an immutable audit log, with invitations, mandatory 2FA and permissions   |
+| Light and dark theme | GSAP animations that respect `prefers-reduced-motion`                                                     |
+| Nelcota              | A mascot that follows the form, celebrates, worries about errors and dozes off when you go away           |
 
 ### Room shortcuts
 
@@ -56,37 +56,19 @@ Self-hosted, with LiveKit and React Router.
 
 Shortcuts don't fire while you are typing in the chat or another field.
 
-## 🚀 Quick start
+## Quick start
 
-You need **Node 26.9+**, **pnpm 12.9.1** (`npm install -g pnpm@12.9.1`) and **Docker**.
+You need Node 26.9+, pnpm 12.9.1 and Docker. With the dev LiveKit container running and `.env.local` filled in:
 
 ```bash
-# 1. LiveKit in dev mode
-docker run -d --name lk-dev \
-  -p 7880:7880 -p 7881:7881 -p 7882:7882/udp \
-  livekit/livekit-server:v1.13.7 \
-  --dev --bind 0.0.0.0 --node-ip 127.0.0.1 \
-  --keys "devkey: devsecret-0123456789abcdef0123456789abcdef"
-
-# 2. Local Postgres, with the same roles as production
-pnpm db:bootstrap:dev
-
-# 3. Variables (the dev values are in the development guide)
-cp .env.example .env.local
-
-# 4. App
 pnpm install
-pnpm db:migrate
-pnpm db:seed        # optional: sample accounts (password dev-password-1234), rooms and audit entries
+pnpm db:bootstrap:dev && pnpm db:migrate
 pnpm dev            # http://localhost:3000
 ```
 
-Open two tabs (or a private window), join the same room and share your screen.
+The LiveKit command, the dev values for `.env.local`, every script and fixes for common problems are in [docs/development.md](docs/development.md#running-locally).
 
-> [!TIP]
-> The dev values for `.env.local`, every script and fixes for common problems are in [docs/development.md](docs/development.md).
-
-## 🧱 Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -117,9 +99,9 @@ lib/          isomorphic utilities
 server/       infrastructure only: env, database, logs, e-mail, security, routes and operations
 ```
 
-The boundaries between these folders are checked by the linter: UI doesn't import the server, `domain/` imports neither React nor the database, and `server/` knows nothing about features. Details in the [architecture guide](docs/README.md).
+The linter checks the boundaries between these folders ([ADR 0003](docs/adr/0003-oxlint-boundaries.md)); the layout is detailed in the [architecture guide](docs/README.md).
 
-## 🛠️ Stack
+## Stack
 
 | Area          | Tools                                                                                    |
 | ------------- | ---------------------------------------------------------------------------------------- |
@@ -134,7 +116,7 @@ The boundaries between these folders are checked by the linter: UI doesn't impor
 | Observability | Pino, Sentry                                                                             |
 | Production    | Node 26.9 on Docker, image on GHCR, deployed to Coolify via GitHub Actions               |
 
-## ✅ Quality
+## Quality
 
 ```bash
 pnpm format:check   # formatting (Oxfmt)
@@ -146,9 +128,9 @@ pnpm knip           # unused code and dependencies
 pnpm build
 ```
 
-CI runs all of this on every PR, plus `pnpm audit`. On `main`, the deploy builds the image, runs migrations in a separate job and only then publishes.
+CI runs all of this on every PR, plus `pnpm audit`. The Deploy workflow (image, migrations in a separate job, then publish) is disabled until the production secrets exist.
 
-## 📚 Documentation
+## Documentation
 
 | Guide                                                      | Contents                                                             |
 | ---------------------------------------------------------- | -------------------------------------------------------------------- |

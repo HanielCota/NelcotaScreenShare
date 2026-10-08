@@ -1,6 +1,6 @@
 # ADR 0005 — React Router Framework Mode instead of Next
 
-- **Status:** accepted (2026-10-06)
+- **Status:** accepted (2026-10-06); the API handler location was revised on 2026-10-07 (see the end).
 - **Context:** keep React, the LiveKit rooms and the existing accounts while removing the dependency on Next. Remix's current path for React applications is React Router in Framework Mode.
 
 ## Decision
@@ -30,3 +30,7 @@ The direct dependencies were checked against the registry. Babel stays on 7.29.7
 - Integration tests keep using disposable databases. E2E tests run the production build by default; `E2E_DEV=true` allows checking the Vite server.
 
 References: [Framework Mode](https://reactrouter.com/start/framework/installation), [loaders](https://reactrouter.com/start/framework/data-loading), [actions](https://reactrouter.com/start/framework/actions), [error reporting](https://reactrouter.com/how-to/error-reporting).
+
+## Revision (2026-10-07): API handlers live in the features
+
+The decision above said each endpoint keeps its private implementation in a `.server.ts` file next to the route module. That changed with the [ADR 0001 revision](0001-feature-folders-and-dal.md#revision-2026-10-07-one-pattern-and-leftovers-from-next): the handler lives in the owning feature's `server/` folder and the module in `app/routes/api/` only wires it to the URL with `apiLoader`/`apiAction` (`server/api-route.server.ts`).
