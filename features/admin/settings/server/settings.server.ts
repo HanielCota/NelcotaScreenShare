@@ -18,22 +18,23 @@ interface SettingGroup<T> {
 /** Mascot saturation per theme (CSS `saturate` filter): 0 = gray, 1 = original, 2 = vivid. */
 export const MASCOT_SATURATION = { min: 0, max: 2, step: 0.05 } as const;
 
+const SATURATION_RANGE = "A saturação precisa ficar entre 0% e 200%.";
+
 const saturation = z
   .number()
-  .min(MASCOT_SATURATION.min)
-  .max(MASCOT_SATURATION.max)
+  .min(MASCOT_SATURATION.min, SATURATION_RANGE)
+  .max(MASCOT_SATURATION.max, SATURATION_RANGE)
   .transform((value) => Math.round(value * 100) / 100);
 
-export const mascotSettings: SettingGroup<{
-  saturationDark: number;
-  saturationLight: number;
-}> = {
-  key: "mascot",
-  schema: z.object({ saturationDark: saturation, saturationLight: saturation }),
-  defaults: { saturationDark: 1, saturationLight: 1 },
-};
+const mascotSchema = z.object({ saturationDark: saturation, saturationLight: saturation });
 
-export type MascotSettings = z.infer<typeof mascotSettings.schema>;
+export type MascotSettings = z.infer<typeof mascotSchema>;
+
+export const mascotSettings = {
+  key: "mascot",
+  schema: mascotSchema,
+  defaults: { saturationDark: 1, saturationLight: 1 },
+} satisfies SettingGroup<MascotSettings>;
 
 /**
  * In-memory cache, per process: the layout reads the mascot on every page and the
