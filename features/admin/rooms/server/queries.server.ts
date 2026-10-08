@@ -9,15 +9,8 @@ import {
   shareSessions,
   users,
 } from "@/server/db/schema";
-import {
-  approximateCount,
-  decodeCursor,
-  keysetClauses,
-  keysetPage,
-  sortableColumn,
-  type KeysetQuery,
-} from "@/server/table/keyset.server";
-import { iterateAll } from "@/server/table/iterate.server";
+import { keysetList, sortableColumn } from "@/server/table/keyset.server";
+import { exportRows } from "@/server/table/iterate.server";
 import { periodFilters } from "@/server/table/period-filter.server";
 import { likeEscape } from "@/server/table/search.server";
 import { loadRoomParams, type RoomParams } from "../domain/search-params";
@@ -64,7 +57,7 @@ const SORTS = {
   pico: sortableColumn<Raw>(rooms.peakParticipants, "int"),
 };
 
-export async function listRooms(
+export function listRooms(
   db: DbExecutor,
   params: RoomParams,
   limit: number,
@@ -72,61 +65,46 @@ export async function listRooms(
 ) {
   const where = filtersFrom(params);
   const sort = SORTS[params.por];
-  const query: KeysetQuery<Raw> = {
+  return keysetList(db, {
     sort,
     idColumn: rooms.id,
-    direction: params.ordem,
-    cursor: decodeCursor(params.cursor),
-    page: params.dir,
+    params,
     limit,
-  };
-  const clauses = keysetClauses(query);
-  const rowsQuery = db
-    .select({
-      id: rooms.id,
-      code: rooms.code,
-      status: rooms.status,
-      deletedAt: rooms.deletedAt,
-      startedAt: rooms.startedAt,
-      finishedAt: rooms.finishedAt,
-      lastActivityAt: rooms.lastActivityAt,
-      peak: rooms.peakParticipants,
-      // Only for the rows on the page (index share_sessions_room_idx).
-      // Explicit "rooms"."id": without a join, Drizzle writes just "id" and the subquery
-      // would compare its own table (count always zero).
-      shares: sql<number>`(select count(*)::int from ${shareSessions}
-        where ${shareSessions.roomId} = ${sql.identifier("rooms")}.${sql.identifier("id")})`,
-      sortKey: sort.key,
-    })
-    .from(rooms)
-    .where(and(...where, clauses.where))
-    .orderBy(...clauses.orderBy)
-    .limit(clauses.limit);
-
-  const totalQuery = count
-    ? approximateCount(db, sql`select 1 from ${rooms} where ${and(...where)}`)
-    : { total: 0, capped: false };
-  const [rows, total] = await Promise.all([rowsQuery, totalQuery]);
-  const page = keysetPage(rows, query);
-  return {
-    items: page.items.map(({ sortKey: _, deletedAt, ...row }): RoomRow => ({
+    count,
+    rows: (clauses) =>
+      db
+        .select({
+          id: rooms.id,
+          code: rooms.code,
+          status: rooms.status,
+          deletedAt: rooms.deletedAt,
+          startedAt: rooms.startedAt,
+          finishedAt: rooms.finishedAt,
+          lastActivityAt: rooms.lastActivityAt,
+          peak: rooms.peakParticipants,
+          // Only for the rows on the page (index share_sessions_room_idx).
+          // Explicit "rooms"."id": without a join, Drizzle writes just "id" and the subquery
+          // would compare its own table (count always zero).
+          shares: sql<number>`(select count(*)::int from ${shareSessions}
+            where ${shareSessions.roomId} = ${sql.identifier("rooms")}.${sql.identifier("id")})`,
+          sortKey: sort.key,
+        })
+        .from(rooms)
+        .where(and(...where, clauses.where))
+        .orderBy(...clauses.orderBy)
+        .limit(clauses.limit),
+    countQuery: sql`select 1 from ${rooms} where ${and(...where)}`,
+    toItem: ({ sortKey: _, deletedAt, ...row }): RoomRow => ({
       ...row,
       deleted: deletedAt !== null,
       startedAt: row.startedAt.toISOString(),
       finishedAt: row.finishedAt?.toISOString() ?? null,
       lastActivityAt: row.lastActivityAt.toISOString(),
-    })),
-    nextCursor: page.nextCursor,
-    prevCursor: page.prevCursor,
-    ...total,
-  };
+    }),
+  });
 }
 
-export function iterateRooms(db: DbExecutor, params: RoomParams) {
-  return iterateAll((cursor) =>
-    listRooms(db, { ...params, cursor, dir: "next" }, 1000, { count: false }),
-  );
-}
+export const iterateRooms = exportRows(listRooms);
 
 export async function roomIdsForFilter(db: DbExecutor, search: URLSearchParams, limit: number) {
   const rows = await db

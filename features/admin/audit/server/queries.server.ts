@@ -2,16 +2,8 @@ import { and, desc, eq, or, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import type { DbExecutor } from "@/server/db/index.server";
 import { adminUsers, auditLogs, users } from "@/server/db/schema";
-import {
-  approximateCount,
-  decodeCursor,
-  keysetClauses,
-  keysetPage,
-  timestampCursor,
-  timestampKey,
-  type KeysetQuery,
-} from "@/server/table/keyset.server";
-import { iterateAll } from "@/server/table/iterate.server";
+import { keysetList, sortableColumn } from "@/server/table/keyset.server";
+import { exportRows } from "@/server/table/iterate.server";
 import { periodFilters } from "@/server/table/period-filter.server";
 import type { AuditParams } from "../domain/search-params";
 
@@ -57,7 +49,7 @@ interface RawRow {
   id: string;
   createdAt: Date;
   /** Exact created_at, for the cursor. */
-  sortKey: string;
+  sortKey: string | null;
   action: string;
   resourceType: string;
   resourceId: string | null;
@@ -98,10 +90,12 @@ function toRow(raw: RawRow): AuditRow {
   };
 }
 
+const SORT = sortableColumn<RawRow>(auditLogs.createdAt, "timestamptz");
+
 const selection = {
   id: auditLogs.id,
   createdAt: auditLogs.createdAt,
-  sortKey: timestampKey(auditLogs.createdAt),
+  sortKey: SORT.key,
   action: auditLogs.action,
   resourceType: auditLogs.resourceType,
   resourceId: auditLogs.resourceId,
@@ -118,58 +112,34 @@ const selection = {
 };
 
 /** One page of the audit log (keyset on created_at, id) with the actor names. */
-export async function listAuditLogs(
+export function listAuditLogs(
   db: DbExecutor,
   params: AuditParams,
   limit: number,
   { count = true }: { count?: boolean } = {},
 ) {
   const where = filtersFrom(params);
-  const query: KeysetQuery<RawRow> = {
-    sort: {
-      column: auditLogs.createdAt,
-      valueOf: (row) => row.sortKey,
-      parse: timestampCursor.parse,
-    },
+  return keysetList(db, {
+    sort: SORT,
     idColumn: auditLogs.id,
-    direction: params.ordem,
-    cursor: decodeCursor(params.cursor),
-    page: params.dir,
+    params,
     limit,
-  };
-  const clauses = keysetClauses(query);
-  const rowsQuery = db
-    .select(selection)
-    .from(auditLogs)
-    .leftJoin(adminUsers, eq(adminUsers.id, auditLogs.actorAdminId))
-    .leftJoin(users, eq(users.id, auditLogs.actorUserId))
-    .where(and(...where, clauses.where))
-    .orderBy(...clauses.orderBy)
-    .limit(clauses.limit);
-
-  // The export iterates in batches and does not need the total for each batch.
-  const totalQuery = count
-    ? approximateCount(
-        db,
-        sql`select 1 from ${auditLogs} ${where.length ? sql`where ${and(...where)}` : sql``}`,
-      )
-    : { total: 0, capped: false };
-  const [rows, total] = await Promise.all([rowsQuery, totalQuery]);
-  const page = keysetPage(rows, query);
-  return {
-    items: page.items.map(toRow),
-    nextCursor: page.nextCursor,
-    prevCursor: page.prevCursor,
-    ...total,
-  };
+    count,
+    rows: (clauses) =>
+      db
+        .select(selection)
+        .from(auditLogs)
+        .leftJoin(adminUsers, eq(adminUsers.id, auditLogs.actorAdminId))
+        .leftJoin(users, eq(users.id, auditLogs.actorUserId))
+        .where(and(...where, clauses.where))
+        .orderBy(...clauses.orderBy)
+        .limit(clauses.limit),
+    countQuery: sql`select 1 from ${auditLogs} ${where.length ? sql`where ${and(...where)}` : sql``}`,
+    toItem: toRow,
+  });
 }
 
-/** Every row of the filter, in keyset batches (streamed CSV export). */
-export function iterateAuditLogs(db: DbExecutor, params: AuditParams, batch = 1000) {
-  return iterateAll((cursor) =>
-    listAuditLogs(db, { ...params, cursor, dir: "next" }, batch, { count: false }),
-  );
-}
+export const iterateAuditLogs = exportRows(listAuditLogs);
 
 /** Filter options: the existing actions and resource types, and the admins. */
 export async function auditFilterOptions(db: DbExecutor) {

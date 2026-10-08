@@ -1,15 +1,8 @@
 import { and, eq, gte, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
 import type { DbExecutor } from "@/server/db/index.server";
 import { roomParticipations, rooms, shareSessions, users } from "@/server/db/schema";
-import {
-  approximateCount,
-  decodeCursor,
-  keysetClauses,
-  keysetPage,
-  sortableColumn,
-  type KeysetQuery,
-} from "@/server/table/keyset.server";
-import { iterateAll } from "@/server/table/iterate.server";
+import { keysetList, sortableColumn } from "@/server/table/keyset.server";
+import { exportRows } from "@/server/table/iterate.server";
 import { periodFilters } from "@/server/table/period-filter.server";
 import { likeEscape } from "@/server/table/search.server";
 import type { ShareParams } from "../domain/search-params";
@@ -68,51 +61,33 @@ function baseQuery(db: DbExecutor) {
     .leftJoin(users, eq(users.id, roomParticipations.userId));
 }
 
-export async function listShares(
+export function listShares(
   db: DbExecutor,
   params: ShareParams,
   limit: number,
   { count = true }: { count?: boolean } = {},
 ) {
   const where = filtersFrom(params);
-  const query: KeysetQuery<Raw> = {
+  return keysetList(db, {
     sort: SORT,
     idColumn: shareSessions.id,
-    direction: params.ordem,
-    cursor: decodeCursor(params.cursor),
-    page: params.dir,
+    params,
     limit,
-  };
-  const clauses = keysetClauses(query);
-  const rowsQuery = baseQuery(db)
-    .where(and(...where, clauses.where))
-    .orderBy(...clauses.orderBy)
-    .limit(clauses.limit);
-
-  const totalQuery = count
-    ? approximateCount(
-        db,
-        sql`select 1 from ${shareSessions}
-          inner join ${rooms} on ${rooms.id} = ${shareSessions.roomId}
-          ${where.length > 0 ? sql`where ${and(...where)}` : sql``}`,
-      )
-    : { total: 0, capped: false };
-  const [rows, total] = await Promise.all([rowsQuery, totalQuery]);
-  const page = keysetPage(rows, query);
-  return {
-    items: page.items.map(({ sortKey: _, ...row }): ShareRow => ({
+    count,
+    rows: (clauses) =>
+      baseQuery(db)
+        .where(and(...where, clauses.where))
+        .orderBy(...clauses.orderBy)
+        .limit(clauses.limit),
+    countQuery: sql`select 1 from ${shareSessions}
+      inner join ${rooms} on ${rooms.id} = ${shareSessions.roomId}
+      ${where.length > 0 ? sql`where ${and(...where)}` : sql``}`,
+    toItem: ({ sortKey: _, ...row }): ShareRow => ({
       ...row,
       startedAt: row.startedAt.toISOString(),
       endedAt: row.endedAt?.toISOString() ?? null,
-    })),
-    nextCursor: page.nextCursor,
-    prevCursor: page.prevCursor,
-    ...total,
-  };
+    }),
+  });
 }
 
-export function iterateShares(db: DbExecutor, params: ShareParams) {
-  return iterateAll((cursor) =>
-    listShares(db, { ...params, cursor, dir: "next" }, 1000, { count: false }),
-  );
-}
+export const iterateShares = exportRows(listShares);
