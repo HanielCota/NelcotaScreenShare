@@ -77,3 +77,27 @@ test("pre-join keeps the return from the account page and the call uses only the
   await expect(account).toBeVisible();
   await context.close();
 });
+
+test("public pages are indexable with a preview card; private pages stay out", async ({
+  browser,
+}) => {
+  const { page, context } = await newVisitor(browser);
+  const robots = page.locator('meta[name="robots"]');
+  for (const path of ["/", "/novidades", "/privacidade"]) {
+    await page.goto(path);
+    await expect(robots).toHaveCount(0);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      "content",
+      /\/og\.png$/,
+    );
+  }
+  for (const path of ["/entrar", "/cadastro"]) {
+    await page.goto(path);
+    await expect(robots).toHaveAttribute("content", "noindex, nofollow");
+  }
+  const robotsTxt = await page.request.get("/robots.txt");
+  expect(await robotsTxt.text()).toContain("Disallow: /");
+  expect((await page.request.get("/sitemap.xml")).ok()).toBe(true);
+  expect((await page.request.get("/og.png")).ok()).toBe(true);
+  await context.close();
+});

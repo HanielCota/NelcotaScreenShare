@@ -1,15 +1,18 @@
-import { Link } from "react-router";
+import { Link, type MetaFunction } from "react-router";
 import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 import { RELEASES } from "@/features/home/domain/changelog";
 import { ReleaseNotes } from "@/features/home/ui/ReleaseNotes";
+import { INDEXABLE, originFromMatches, pageMeta } from "@/lib/seo";
 
-export const meta = () => [
-  { title: "Novidades · Nelcota" },
-  {
-    name: "description",
-    content: "O que mudou no Nelcota: recursos novos, correções e melhorias.",
-  },
-];
+export const handle = INDEXABLE;
+
+export const meta: MetaFunction = ({ matches }) =>
+  pageMeta({
+    title: "Novidades · Nelcota",
+    description: "O que mudou no Nelcota: recursos novos, correções e melhorias.",
+    path: "/novidades",
+    origin: originFromMatches(matches),
+  });
 
 export default function ChangelogPage() {
   return (
