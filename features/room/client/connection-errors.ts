@@ -1,8 +1,5 @@
 import { ConnectionError, ConnectionErrorReason, DisconnectReason } from "livekit-client";
-export { micErrorMessage } from "./microphone-errors";
 import type { LeaveReason } from "@/features/room/domain/leave";
-
-/** LiveKit errors (connection, drop, microphone) as messages for the person. */
 
 /** Failure to open the connection to the room. */
 export function connectErrorMessage(error: unknown): string {
