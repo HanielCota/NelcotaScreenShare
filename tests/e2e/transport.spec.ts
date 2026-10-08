@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { E2E_URL } from "./support/env";
 
 test("production compresses HTML and JavaScript and varies by accepted encoding", async ({
   request,
@@ -18,7 +19,6 @@ test("production compresses HTML and JavaScript and varies by accepted encoding"
   expect(script.headers().vary).toContain("Accept-Encoding");
   expect((await script.body()).byteLength).toBeGreaterThan(1000);
 });
-import { E2E_URL } from "./support/env";
 
 test("an oversized body gets 413 without destroying the connection before the response", async ({
   request,

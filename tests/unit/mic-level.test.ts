@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:events";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { useMicLevel } from "@/features/room/hooks/use-mic-level";
 
@@ -227,4 +228,3 @@ test("a device enumeration failure also releases the analyser and microphone", a
   expect(frames.size).toBe(0);
   cleanup?.();
 });
-import { EventEmitter } from "node:events";

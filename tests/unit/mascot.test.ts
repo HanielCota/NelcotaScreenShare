@@ -1,14 +1,19 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-
-const { createReasons } = await import("../../features/mascot/domain/reasons");
-const { EXPRESSIONS, toFaceState } = await import("../../features/mascot/domain/face");
-const { springStep } = await import("../../features/mascot/domain/spring");
-const { createHandMotions } = await import("../../features/mascot/client/hand-motions");
-const { avatarFrame } = await import("../../features/mascot/domain/avatar-frames");
-const { idleSleep } = await import("../../features/mascot/domain/sleep");
-const { gazeAt, pupilOffset, eyelidOffset, EYE_SHAPES, POSE_EYES, IDLE } =
-  await import("../../features/mascot/domain/eye-tracking");
+import { createHandMotions } from "@/features/mascot/client/hand-motions";
+import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
+import {
+  EYE_SHAPES,
+  eyelidOffset,
+  gazeAt,
+  IDLE,
+  POSE_EYES,
+  pupilOffset,
+} from "@/features/mascot/domain/eye-tracking";
+import { EXPRESSIONS, toFaceState } from "@/features/mascot/domain/face";
+import { createReasons } from "@/features/mascot/domain/reasons";
+import { idleSleep } from "@/features/mascot/domain/sleep";
+import { springStep } from "@/features/mascot/domain/spring";
 
 test("the eyelid curve and stroke stay completely outside the open eye", () => {
   for (const { ry } of EYE_SHAPES) {
