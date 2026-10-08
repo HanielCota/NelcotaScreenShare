@@ -35,15 +35,22 @@ function lockedMessage(seconds: number): string {
   return `Muitas tentativas. Tente de novo em ${minutes} min.`;
 }
 
-function emailOf(body: unknown): string {
-  return body && typeof body === "object" && "email" in body && typeof body.email === "string"
-    ? body.email
-    : "";
+/** A field of an untyped Better Auth body or query. */
+function fieldOf(body: unknown, key: string): unknown {
+  if (!body || typeof body !== "object") return undefined;
+  const value: unknown = Reflect.get(body, key);
+  return value;
+}
+
+function stringField(body: unknown, key: string): string | undefined {
+  const value = fieldOf(body, key);
+  return typeof value === "string" ? value : undefined;
 }
 
 function validateProfilePhoto(body: unknown) {
-  if (!body || typeof body !== "object" || !("image" in body) || body.image === undefined) return;
-  const parsed = profilePhotoSchema.safeParse(body.image);
+  const image = fieldOf(body, "image");
+  if (image === undefined) return;
+  const parsed = profilePhotoSchema.safeParse(image);
   if (!parsed.success) throw new APIError("BAD_REQUEST", { message: "Foto de perfil inválida." });
   if (parsed.data === null) return;
   const bytes = Buffer.from(parsed.data.split(",")[1] ?? "", "base64");
@@ -52,11 +59,6 @@ function validateProfilePhoto(body: unknown) {
   }
 }
 
-function resetTokenOf(body: unknown): string | undefined {
-  return body && typeof body === "object" && "token" in body && typeof body.token === "string"
-    ? body.token
-    : undefined;
-}
 
 async function validatePasswordReset(
   db: Database,
@@ -105,13 +107,13 @@ export function authHooks(
         if (ctx.path === "/reset-password") {
           await validatePasswordReset(
             db,
-            resetTokenOf(ctx.body) || resetTokenOf(ctx.query),
+            stringField(ctx.body, "token") || stringField(ctx.query, "token"),
             (identifier) => ctx.context.internalAdapter.findVerificationValue(identifier),
           );
         }
       }
       if (ctx.path !== SIGN_IN_PATH) return;
-      const hash = emailHash(secret, scope, emailOf(ctx.body));
+      const hash = emailHash(secret, scope, stringField(ctx.body, "email") ?? "");
       const status = await checkLockout(db, {
         scope,
         hash,
@@ -157,7 +159,7 @@ export function authHooks(
       }
 
       if (ctx.path !== SIGN_IN_PATH) return;
-      const hash = emailHash(secret, scope, emailOf(ctx.body));
+      const hash = emailHash(secret, scope, stringField(ctx.body, "email") ?? "");
       if (failed) {
         if (returned.statusCode === 401) {
           await recordFailure(db, {
