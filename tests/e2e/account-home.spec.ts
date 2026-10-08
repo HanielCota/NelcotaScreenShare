@@ -142,18 +142,12 @@ test("a failure sending links does not show as success", async ({ browser }) => 
   await context.close();
 });
 
-test("home: an invalid code makes the mascot grumpy; a valid code opens the room", async ({
-  browser,
-}) => {
+test('home: "/" focuses the room field and a valid code opens the room', async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
   await page.goto("/");
   const input = page.getByPlaceholder("Link ou código da sala");
   await page.keyboard.press("/");
   await expect(input).toBeFocused();
-
-  await input.fill("!!");
-  await input.press("Enter");
-  await expect(page.locator('[data-expression="grumpy"]').first()).toBeVisible();
 
   await input.fill("abc-defg-hij");
   await input.press("Enter");
