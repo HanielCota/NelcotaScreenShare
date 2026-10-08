@@ -74,11 +74,7 @@ export function StepsSection() {
           <span data-steps-line className="block h-full origin-left bg-brand" />
         </span>
         {STEPS.map(({ icon, title, text }, index) => (
-          <li
-            key={title}
-            data-reveal
-            className="relative flex flex-col items-center gap-4 text-center"
-          >
+          <li key={title} className="relative flex flex-col items-center gap-4 text-center">
             <span className="bg-canvas px-3">
               <StepMark icon={icon} />
             </span>

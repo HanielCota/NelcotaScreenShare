@@ -50,7 +50,6 @@ export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
         {faqItems(maxParticipants).map(({ question, answer }) => (
           <details
             key={question}
-            data-reveal
             className="group rounded-2xl border border-line bg-surface/60 transition-colors open:border-brand/30"
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium [&::-webkit-details-marker]:hidden">

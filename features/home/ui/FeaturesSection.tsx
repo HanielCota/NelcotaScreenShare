@@ -4,7 +4,7 @@ import { SectionIntro } from "./SectionIntro";
 
 function Feature({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div data-reveal className="flex flex-col gap-2 border-t border-line pt-5">
+    <div className="flex flex-col gap-2 border-t border-line pt-5">
       <dt className="font-medium">{title}</dt>
       <dd className="text-sm leading-relaxed text-pretty text-ink-muted">{children}</dd>
     </div>
