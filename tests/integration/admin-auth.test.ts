@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { eq, like } from "drizzle-orm";
+import { and, eq, like } from "drizzle-orm";
 import { Pool } from "pg";
 import { afterAll, describe, test } from "vitest";
 import {
@@ -40,8 +40,25 @@ async function inviteAndAccept(email: string, role: "owner" | "admin" | "viewer"
     name: "Admin Teste",
     password: PASSWORD,
   });
-  assert.equal(result.ok, true);
-  return { token };
+  assert.ok(result.ok);
+  return { token, userId: result.userId };
+}
+
+/** The reset token Better Auth stored for this admin (the row's value is the user id). */
+async function resetTokenFor(userId: string) {
+  const rows = await db
+    .select()
+    .from(schema.adminVerifications)
+    .where(
+      and(
+        like(schema.adminVerifications.identifier, "reset-password:%"),
+        eq(schema.adminVerifications.value, userId),
+      ),
+    );
+  assert.equal(rows.length, 1);
+  const [row] = rows;
+  assert.ok(row);
+  return row.identifier.replace("reset-password:", "");
 }
 
 function errorMessage(body: unknown): string {
@@ -242,7 +259,7 @@ describe("2FA TOTP", () => {
 describe("password reset", () => {
   test("single-use token that ends all sessions", async () => {
     const call = newCaller();
-    await inviteAndAccept("reset@exemplo.com");
+    const { userId } = await inviteAndAccept("reset@exemplo.com");
     const jar = new CookieJar();
     await call("/sign-in/email", { body: { email: "reset@exemplo.com", password: PASSWORD }, jar });
 
@@ -255,12 +272,7 @@ describe("password reset", () => {
     });
     assert.deepEqual(missing.body, requested.body, "same response for an unknown e-mail");
 
-    const [row] = await db
-      .select()
-      .from(schema.adminVerifications)
-      .where(like(schema.adminVerifications.identifier, "reset-password:%"));
-    const token = row?.identifier.replace("reset-password:", "") ?? "";
-    assert.ok(token);
+    const token = await resetTokenFor(userId);
 
     const newPassword = "outra-senha-forte-456";
     const reset = await call("/reset-password", { body: { token, newPassword } });
@@ -281,6 +293,13 @@ describe("password reset", () => {
 
 async function auditFor(action: string) {
   return db.select().from(schema.auditLogs).where(eq(schema.auditLogs.action, action));
+}
+
+async function auditOf(action: string, adminId: string) {
+  return db
+    .select()
+    .from(schema.auditLogs)
+    .where(and(eq(schema.auditLogs.action, action), eq(schema.auditLogs.actorAdminId, adminId)));
 }
 
 describe("auditing of sign-in events", () => {
@@ -308,7 +327,7 @@ describe("auditing of sign-in events", () => {
 
   test("2FA enabled and password reset are recorded", async () => {
     const call = newCaller();
-    await inviteAndAccept("audit2@exemplo.com");
+    const { userId } = await inviteAndAccept("audit2@exemplo.com");
     const jar = new CookieJar();
     await call("/sign-in/email", {
       body: { email: "audit2@exemplo.com", password: PASSWORD },
@@ -317,18 +336,14 @@ describe("auditing of sign-in events", () => {
     const enabled = await call("/two-factor/enable", { body: { password: PASSWORD }, jar });
     const { totpURI } = enabled.body as { totpURI: string };
     await call("/two-factor/verify-totp", { body: { code: totpFromUri(totpURI) }, jar });
-    assert.ok((await auditFor("auth.two_factor_enabled")).length > 0);
+    assert.equal((await auditOf("auth.two_factor_enabled", userId)).length, 1);
 
     await call("/request-password-reset", {
       body: { email: "audit2@exemplo.com", redirectTo: "/admin/redefinir-senha" },
     });
-    const [row] = await db
-      .select()
-      .from(schema.adminVerifications)
-      .where(like(schema.adminVerifications.identifier, "reset-password:%"));
-    const token = row?.identifier.replace("reset-password:", "") ?? "";
+    const token = await resetTokenFor(userId);
     await call("/reset-password", { body: { token, newPassword: "nova-senha-auditada-1" } });
-    assert.ok((await auditFor("auth.password_reset")).length > 0);
+    assert.equal((await auditOf("auth.password_reset", userId)).length, 1);
   });
 
   test("audit log rejects UPDATE and recent DELETE (even for the superuser)", async () => {
