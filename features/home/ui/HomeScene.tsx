@@ -45,12 +45,8 @@ export function HomeScene({
           data-anim="title"
           className="text-center text-[clamp(3rem,8vw,6.5rem)] leading-[0.95] font-semibold tracking-[-0.05em] text-balance"
         >
-          <span data-hero-line className="block">
-            Mostre a tela.
-          </span>
-          <span data-hero-line className="block text-brand-soft">
-            Com som e ponteiro.
-          </span>
+          <span className="block">Mostre a tela.</span>
+          <span className="block text-brand-soft">Com som e ponteiro.</span>
         </h1>
         <p
           data-anim="subtitle"

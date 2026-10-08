@@ -27,7 +27,6 @@ function Plan({
 }) {
   return (
     <li
-      data-fx="card"
       className={cn(
         "flex flex-col gap-8 rounded-3xl border p-6 sm:p-10 md:row-span-3 md:grid md:grid-rows-subgrid",
         stage ? "stage over-stage border-white/10" : "border-line bg-surface",
@@ -80,7 +79,7 @@ export function PricingSection({
     <section id="precos" aria-labelledby="pricing-title" className="w-full max-w-5xl scroll-mt-28">
       <SectionIntro id="pricing-title" title="Preços." subtitle="Comece grátis, hoje." />
 
-      <ul className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-2 md:gap-y-8">
+      <ul data-fx className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-2 md:gap-y-8">
         <Plan
           name="Grátis"
           price="R$ 0"

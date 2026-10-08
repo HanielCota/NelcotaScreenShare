@@ -23,7 +23,10 @@ export function ChangelogSection() {
     >
       <SectionIntro id="changelog-title" title="Novidades." subtitle="O que mudou por aqui." />
 
-      <div className="mt-12 grid gap-8 sm:mt-16 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-16">
+      <div
+        data-fx
+        className="mt-12 grid gap-8 sm:mt-16 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-16"
+      >
         <div className="flex flex-col gap-3 md:sticky md:top-28 md:self-start">
           <time dateTime={latest.date} className="text-sm text-ink-subtle">
             {formatReleaseDate(latest.date)}

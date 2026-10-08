@@ -41,11 +41,7 @@ export function ReleaseNotes({
       ) : null}
       <ul className="flex flex-col divide-y divide-line border-y border-line">
         {changes.map((change) => (
-          <li
-            key={change.text}
-            data-fx="sweep"
-            className="flex items-start gap-4 py-4 text-base leading-relaxed"
-          >
+          <li key={change.text} className="flex items-start gap-4 py-4 text-base leading-relaxed">
             <span
               className={cn(
                 "mt-0.5 w-20 shrink-0 rounded-full py-0.5 text-center text-xs font-medium",
