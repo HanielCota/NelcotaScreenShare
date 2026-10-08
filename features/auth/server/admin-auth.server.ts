@@ -15,7 +15,8 @@ import {
 import { appUrl, getEnv } from "@/server/env.server";
 import { recordAudit } from "@/server/audit.server";
 import { logger } from "@/server/logger.server";
-import { mailLayout, sendMail } from "@/server/mail.server";
+import { mailLayout } from "@/server/mail.server";
+import { deliverAccountMail } from "./auth-mail.server";
 import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password.server";
 import { ac, roles } from "./permissions.server";
 import { AUTH_RATE_LIMIT_RULES, authHooks, FRESH_SESSION_SECONDS } from "./auth-shared.server";
@@ -94,9 +95,7 @@ function createAdminAuth(db: Database, secret: string) {
           action: { label: "Definir nova senha", url },
           outro: "Se não foi você, ignore este e-mail: sua senha continua a mesma.",
         });
-        void sendMail({ to: user.email, subject: "Redefinir senha do painel", ...mail }).catch(
-          (error: unknown) => logger.error({ err: error }, "failed to send reset e-mail"),
-        );
+        await deliverAccountMail({ to: user.email, subject: "Redefinir senha do painel", ...mail });
       },
     },
     rateLimit: {
