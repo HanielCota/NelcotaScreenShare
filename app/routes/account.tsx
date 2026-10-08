@@ -53,15 +53,10 @@ function StatusChip({ ok, children }: { ok: boolean; children: ReactNode }) {
   );
 }
 
-/**
- * Account home, in a single column: who you are (card with the photo), what is
- * left to secure the account (checklist with the action alongside) and the settings
- * in anchored sections (/conta#seguranca). Long forms open inline.
- */
 export const loader = routeLoader(async ({ searchParams }) => {
   const current = await requireUser("/conta", { requireVerified: false });
   const { voltar, aviso } = searchParams;
-  const back = typeof voltar === "string" ? safeReturnPath(voltar, "") : "";
+  const back = safeReturnPath(voltar, "");
   const sessions = await listActiveSessions(getDb(), userSessions, current.user.id);
   const notice = typeof aviso === "string" ? NOTICES[aviso] : undefined;
   const { name, email, image, emailVerified, twoFactorEnabled } = current.user;
@@ -75,6 +70,11 @@ export const loader = routeLoader(async ({ searchParams }) => {
   };
 });
 
+/**
+ * Account home, in a single column: who you are (card with the photo), what is
+ * left to secure the account (checklist with the action alongside) and the settings
+ * in anchored sections (/conta#seguranca). Long forms open inline.
+ */
 export default function AccountPage() {
   const { currentId, back, sessions, notice, user, requireEmailVerification } =
     useLoaderData<typeof loader>();
