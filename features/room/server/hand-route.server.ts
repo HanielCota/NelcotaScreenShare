@@ -2,6 +2,8 @@ import { ServerError } from "livekit-server-sdk";
 import { z } from "zod";
 import { roomCodeSchema } from "@/features/room/domain/room-code";
 import { HAND_ATTRIBUTE } from "@/features/room/domain/data-channel";
+import { GUEST_IDENTITY_PREFIX } from "@/features/room/domain/participant-label";
+import { readGuestId } from "@/features/room/server/guest-session.server";
 import { forbiddenCrossSite, isCrossSiteMutation } from "@/server/origin-guard.server";
 import { getUserAuth } from "@/features/auth/server/participant-auth.server";
 import { roomService } from "@/features/room/server/room-service.server";
@@ -18,22 +20,28 @@ function fail(message: string, status: number) {
 /**
  * Raising or lowering the hand. The attribute is written by the server, not by the
  * browser: the token lacks canUpdateOwnMetadata, which would also allow
- * changing one's own name in the room. The identity is always the signed-in account's.
+ * changing one's own name in the room. The identity is always the caller's own: the
+ * signed-in account, or the guest from the signed cookie.
  */
+async function callerIdentity(request: Request): Promise<string | undefined> {
+  const auth = await getUserAuth().api.getSession({ headers: request.headers });
+  if (auth) return auth.user.blockedAt || auth.user.deletedAt ? undefined : auth.user.id;
+  const guestId = readGuestId(request);
+  return guestId === undefined ? undefined : `${GUEST_IDENTITY_PREFIX}${guestId}`;
+}
+
 export async function setRaisedHand(request: Request) {
   if (isCrossSiteMutation(request)) return forbiddenCrossSite();
-  const auth = await getUserAuth().api.getSession({ headers: request.headers });
-  if (!auth || auth.user.blockedAt || auth.user.deletedAt) {
-    return fail("Entre na sua conta para continuar.", 401);
-  }
-  if (!limiter.hit(auth.user.id).ok) return fail("Muitas tentativas. Aguarde um pouco.", 429);
+  const identity = await callerIdentity(request);
+  if (!identity) return fail("Entre na sala de novo para continuar.", 401);
+  if (!limiter.hit(identity).ok) return fail("Muitas tentativas. Aguarde um pouco.", 429);
 
   const parsed = handSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail("Pedido inválido.", 400);
   const { room, raised } = parsed.data;
 
   try {
-    await roomService().updateParticipant(room, auth.user.id, {
+    await roomService().updateParticipant(room, identity, {
       attributes: { [HAND_ATTRIBUTE]: raised ? "1" : "" },
     });
   } catch (error) {

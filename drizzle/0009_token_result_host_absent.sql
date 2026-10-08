@@ -1,0 +1,1 @@
+ALTER TYPE "public"."token_result" ADD VALUE 'host_absent' BEFORE 'error';

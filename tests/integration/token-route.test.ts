@@ -33,6 +33,10 @@ const fakeLiveKit = createServer((request, response) => {
       response.end(JSON.stringify({ code: "internal", msg: "boom" }));
       return;
     }
+    if (room === "sala-so-convidados") {
+      response.end(JSON.stringify({ participants: [{ identity: "convidado-outro" }] }));
+      return;
+    }
     const count = room === "sala-cheia" ? 3 : 1;
     response.end(
       JSON.stringify({
@@ -99,10 +103,33 @@ function claims(token: string): Record<string, unknown> {
 }
 
 describe("access", () => {
-  test("no account: 401", async () => {
+  test("no account and no name: asked for a name, with a signed guest cookie", async () => {
     const response = await post({ room: "sala-ok", password: ACCESS });
-    assert.equal(response.status, 401);
-    assert.equal(await errorCode(response), "unauthenticated");
+    assert.equal(response.status, 400);
+    assert.equal(await errorCode(response), "invalid_request");
+    assert.match(response.headers.get("set-cookie") ?? "", /^nelcota_convidado=[^;]+; .*HttpOnly/);
+  });
+
+  test("a guest joins a room with a host and keeps the identity with the same cookie", async () => {
+    const first = await post({ room: "sala-ok", password: ACCESS, guestName: "Iris" });
+    assert.equal(first.status, 200);
+    const cookie = (first.headers.get("set-cookie") ?? "").split(";")[0] ?? "";
+    const { token } = tokenBody.parse(await first.json());
+    const identity = String(claims(token).sub);
+    assert.match(identity, /^convidado-/);
+    assert.equal(claims(token).name, "Iris");
+
+    const again = await post({ room: "sala-ok", password: ACCESS, guestName: "Iris" }, { cookie });
+    assert.equal(again.headers.get("set-cookie"), null);
+    assert.equal(claims(tokenBody.parse(await again.json()).token).sub, identity);
+  });
+
+  test("a guest waits until someone with an account is in the room", async () => {
+    for (const room of ["sala-nova", "sala-so-convidados"]) {
+      const response = await post({ room, password: ACCESS, guestName: "Iris" });
+      assert.equal(response.status, 409);
+      assert.equal(await errorCode(response), "host_absent");
+    }
   });
 
   test("foreign origin: 403", async () => {
@@ -234,7 +261,7 @@ describe("logging to token_requests", () => {
     const rows = await requestsOf(room);
     assert.deepEqual(
       rows.map((row) => row.result),
-      ["unauthenticated", "wrong_password", "granted"],
+      ["invalid", "wrong_password", "granted"],
     );
     assert.equal(rows[0]?.userId, null);
     assert.equal(rows[2]?.userId, ivo.id);
