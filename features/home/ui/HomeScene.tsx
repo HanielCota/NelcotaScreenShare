@@ -12,11 +12,14 @@ export function HomeScene({
   invalidCode,
   account,
   notice,
+  maxParticipants,
 }: {
   invalidCode: boolean;
   /** Signed-in participant (name and photo for the navbar), or null. */
   account: { name: string; image: string | null } | null;
   notice?: string | undefined;
+  /** Room size configured on the server, quoted by the sections. */
+  maxParticipants: number;
 }) {
   return (
     <HomeEntrance className="apple-buttons flex flex-col items-center px-4 pb-8 sm:px-8">
@@ -48,7 +51,7 @@ export function HomeScene({
         </div>
       </div>
 
-      <HomeSections />
+      <HomeSections maxParticipants={maxParticipants} />
 
       <footer className="mt-24 flex w-full max-w-5xl flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
         <ShareSupportNote variant="badge" />
@@ -58,6 +61,9 @@ export function HomeScene({
         >
           <a href="#como-funciona" className={FOOTER_LINK}>
             Como funciona
+          </a>
+          <a href="#recursos" className={FOOTER_LINK}>
+            Recursos
           </a>
           <Link viewTransition to="/privacidade" className={FOOTER_LINK}>
             Privacidade
