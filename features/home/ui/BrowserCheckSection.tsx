@@ -4,19 +4,27 @@ import { BROWSER_ROWS, visitorRow, type BrowserRow } from "@/features/home/domai
 import { useShareSupport } from "@/features/room/hooks/use-share-support";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { cn } from "@/lib/utils";
-import { BrowserLogo } from "./BrowserLogo";
 import { SectionIntro } from "./SectionIntro";
 
+/** A browser's own logo, in full color, from public/browsers (from the browser-logos set). */
+function Logo({ name }: { name: "chrome" | "edge" | "firefox" | "safari" }) {
+  return <img src={`/browsers/${name}.svg`} alt="" width={28} height={28} className="size-7" />;
+}
+
 /**
- * Each family's mark in its brand color (Simple Icons' hex); phones and tablets get a device
- * glyph in the text color instead. Every mark sits on the same neutral tile: a tint of each
- * brand turned muddy (brown, navy) on the dark canvas.
+ * Each family's logos in their own colors (the Chromium card shows Chrome and Edge); phones
+ * and tablets get a device glyph in the text color. All sit on the same neutral tile.
  */
-const MARKS: Record<BrowserRow["id"], { mark: ReactNode; color?: string }> = {
-  chromium: { mark: <BrowserLogo browser="chrome" className="size-6" />, color: "#4285f4" },
-  firefox: { mark: <BrowserLogo browser="firefox" className="size-6" />, color: "#ff7139" },
-  safari: { mark: <BrowserLogo browser="safari" className="size-6" />, color: "#006cff" },
-  mobile: { mark: <Smartphone className="size-6" aria-hidden="true" /> },
+const MARKS: Record<BrowserRow["id"], ReactNode> = {
+  chromium: (
+    <>
+      <Logo name="chrome" />
+      <Logo name="edge" />
+    </>
+  ),
+  firefox: <Logo name="firefox" />,
+  safari: <Logo name="safari" />,
+  mobile: <Smartphone className="size-6" aria-hidden="true" />,
 };
 
 function Capability({ on, label }: { on: boolean; label: string }) {
@@ -57,7 +65,6 @@ export function BrowserCheckSection() {
       >
         {BROWSER_ROWS.map((row) => {
           const here = row.id === current;
-          const { mark, color } = MARKS[row.id];
           return (
             <li
               key={row.id}
@@ -65,14 +72,11 @@ export function BrowserCheckSection() {
               className="flex flex-col gap-5 rounded-3xl border border-line p-6 transition-colors duration-(--motion-feedback) hover:border-line-strong aria-[current]:border-brand"
             >
               <span className="flex items-start justify-between gap-3">
-                <span
-                  style={color ? { color } : undefined}
-                  className="grid size-12 place-items-center rounded-2xl bg-surface-2 text-ink"
-                >
-                  {mark}
+                <span className="flex h-12 min-w-12 items-center justify-center gap-1.5 rounded-2xl bg-surface-2 px-2.5 text-ink">
+                  {MARKS[row.id]}
                 </span>
                 {here ? (
-                  <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-medium text-brand-ink">
+                  <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-medium whitespace-nowrap text-brand-ink">
                     Você está aqui
                   </span>
                 ) : null}
