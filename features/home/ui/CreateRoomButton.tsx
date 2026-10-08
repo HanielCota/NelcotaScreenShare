@@ -33,7 +33,7 @@ export function CreateRoomButton({
       {pending ? (
         <Loader2 className="animate-spin" aria-hidden="true" />
       ) : (
-        <Plus aria-hidden="true" />
+        <Plus className="icon-turn" aria-hidden="true" />
       )}
       {pending ? "Abrindo…" : "Criar sala grátis"}
     </Button>

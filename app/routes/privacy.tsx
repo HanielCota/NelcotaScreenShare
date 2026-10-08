@@ -92,10 +92,7 @@ function RightsLink({
         <span className="block text-sm font-medium">{title}</span>
         <span className="block text-xs text-ink-muted">{detail}</span>
       </span>
-      <ArrowRight
-        className="size-4 text-ink-subtle transition-transform group-hover:translate-x-0.5"
-        aria-hidden="true"
-      />
+      <ArrowRight className="icon-nudge size-4 text-ink-subtle" aria-hidden="true" />
     </Link>
   );
 }

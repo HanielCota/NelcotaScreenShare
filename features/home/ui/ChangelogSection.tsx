@@ -86,15 +86,15 @@ export function ChangelogSection() {
         >
           <span
             aria-hidden="true"
-            className="absolute inset-x-6 bottom-0 h-6 rounded-b-[1.2rem] border border-t-0 border-line bg-surface/50"
+            className="absolute inset-x-6 bottom-0 h-6 rounded-b-[1.2rem] border border-t-0 border-line bg-surface/50 transition-transform duration-(--motion-surface) ease-out-smooth group-hover:translate-y-1.5 motion-reduce:transition-none"
           />
           <span
             aria-hidden="true"
-            className="absolute inset-x-3 bottom-1.5 h-6 rounded-b-[1.3rem] border border-t-0 border-line bg-surface/70"
+            className="absolute inset-x-3 bottom-1.5 h-6 rounded-b-[1.3rem] border border-t-0 border-line bg-surface/70 transition-transform duration-(--motion-surface) ease-out-smooth group-hover:translate-y-0.5 motion-reduce:transition-none"
           />
           <span className="relative flex items-center justify-between gap-3 rounded-[1.4rem] border border-line bg-surface p-3.5 text-sm font-medium shadow-soft transition-colors group-hover:border-brand/50 group-focus-visible:ring-3 group-focus-visible:ring-ring/50">
             {hidden > 0 ? `Mais ${hidden} mudanças e o histórico` : "Ver o histórico"}
-            <ArrowRight className="size-4 text-brand-soft" aria-hidden="true" />
+            <ArrowRight className="icon-nudge size-4 text-brand-soft" aria-hidden="true" />
           </span>
         </Link>
       </div>

@@ -298,7 +298,7 @@ export function PreJoin({
         >
           {submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           {submitting ? "Entrando…" : mic.joinsMuted ? "Entrar só ouvindo" : "Entrar na sala"}
-          {submitting ? null : <ArrowRight aria-hidden="true" />}
+          {submitting ? null : <ArrowRight className="icon-nudge" aria-hidden="true" />}
         </Button>
         <Link
           viewTransition

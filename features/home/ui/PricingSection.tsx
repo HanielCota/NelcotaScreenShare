@@ -22,7 +22,7 @@ function Plan({
   children: ReactNode;
 }) {
   return (
-    <li className="flex flex-col gap-8 rounded-3xl border border-line p-6 sm:p-10 md:row-span-3 md:grid md:grid-rows-subgrid">
+    <li className="flex flex-col gap-8 rounded-3xl border border-line p-6 transition-colors duration-(--motion-feedback) hover:border-line-strong sm:p-10 md:row-span-3 md:grid md:grid-rows-subgrid">
       <div className="flex flex-col gap-4">
         <h3 className="flex items-center gap-2.5 text-xl font-semibold tracking-[-0.02em]">
           {name}

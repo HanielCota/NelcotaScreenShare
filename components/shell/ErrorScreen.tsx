@@ -51,7 +51,7 @@ export function ErrorScreen({
       <div className="flex flex-wrap justify-center gap-3">
         {missing ? null : (
           <Button size="lg" onClick={() => window.location.reload()}>
-            <RotateCw aria-hidden="true" />
+            <RotateCw className="icon-spin" aria-hidden="true" />
             Tentar de novo
           </Button>
         )}
