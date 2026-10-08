@@ -676,7 +676,7 @@ describe("event projection", () => {
     const [event] = await db
       .select()
       .from(schema.livekitEvents)
-      .where(and(eq(schema.livekitEvents.roomName, code)));
+      .where(eq(schema.livekitEvents.roomName, code));
     assert.ok(event?.processedAt);
   });
 });
