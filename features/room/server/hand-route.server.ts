@@ -26,7 +26,7 @@ function fail(message: string, status: number) {
 async function callerIdentity(request: Request): Promise<string | undefined> {
   const auth = await getUserAuth().api.getSession({ headers: request.headers });
   if (auth) return auth.user.blockedAt || auth.user.deletedAt ? undefined : auth.user.id;
-  const guestId = readGuestId(request);
+  const guestId = await readGuestId(request);
   return guestId === undefined ? undefined : `${GUEST_IDENTITY_PREFIX}${guestId}`;
 }
 
