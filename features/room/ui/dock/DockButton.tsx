@@ -119,7 +119,7 @@ export function DockButton({
             <span
               aria-hidden="true"
               className={cn(
-                "text-xs leading-4 font-medium whitespace-nowrap sm:text-[0.8125rem]",
+                "text-xs leading-4 font-medium whitespace-nowrap sm:text-[0.8125rem] [@media(max-height:32rem)]:hidden",
                 captionClasses[tone],
               )}
             >
