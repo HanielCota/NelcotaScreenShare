@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { E2E_URL } from "./support/env";
-import { newVisitor, PASSWORD } from "./support/session";
+import { newParticipant, newVisitor, PASSWORD } from "./support/session";
 
 const PNG_PIXEL = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -63,12 +63,7 @@ test("sign-up through the UI, account page and ending the other session", async 
 test("profile photo: preview, persistence on the account and avatar on the home page", async ({
   browser,
 }) => {
-  const { page, context } = await newVisitor(browser);
-  const response = await context.request.post("/api/auth/sign-up/email", {
-    data: { name: "Foto Teste", email: `foto.${Date.now()}@exemplo.dev`, password: PASSWORD },
-    headers: { origin: E2E_URL },
-  });
-  expect(response.ok()).toBe(true);
+  const { page, context } = await newParticipant(browser, "Foto Teste");
   await page.goto("/conta");
   const fileInput = page.locator("main input[type=file]");
   await fileInput.setInputFiles({
