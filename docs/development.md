@@ -40,7 +40,7 @@ Open two tabs (or a private window), join the same room and share your screen.
 | Script                                     | What it does                                                                         |
 | ------------------------------------------ | ------------------------------------------------------------------------------------ |
 | `pnpm dev` / `pnpm build` / `pnpm start`   | Development, production build and local production server                            |
-| `pnpm typecheck`                           | `tsc --noEmit` (native TypeScript 7)                                                 |
+| `pnpm typecheck`                           | `react-router typegen && tsc --noEmit` (route types, then native TypeScript 7)       |
 | `pnpm lint` / `pnpm lint:fix`              | Full Oxlint with type information, and safe fixes                                    |
 | `pnpm lint:fast` / `pnpm lint:fast:fix`    | Oxlint syntactic rules, without the type engine                                      |
 | `pnpm lint:config`                         | Shows the configuration actually loaded by Oxlint                                    |
@@ -62,27 +62,30 @@ Open two tabs (or a private window), join the same room and share your screen.
 
 ## Environment variables
 
-| Variable                     | Required   | Description                                                                                                                                                      |
-| ---------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LIVEKIT_API_KEY`            | yes        | LiveKit API key (same as the LiveKit server)                                                                                                                     |
-| `LIVEKIT_API_SECRET`         | yes        | Secret (32+ characters). **Never** sent to the browser                                                                                                           |
-| `LIVEKIT_URL`                | yes        | `wss://lk.yourdomain.com`                                                                                                                                        |
-| `ACCESS_PASSWORD`            | no         | If set, everyone needs it to join (constant-time comparison)                                                                                                     |
-| `MAX_PARTICIPANTS`           | no         | Per-room limit, from 2 to 8 (default 6)                                                                                                                          |
-| `REQUIRE_EMAIL_VERIFICATION` | no         | `true` requires confirming the e-mail before joining rooms (default `false`, off for now)                                                                        |
-| `DATABASE_URL`               | yes        | Postgres (`postgres://…`), `nelcota_app` role                                                                                                                    |
-| `AUTH_SECRET`                | yes        | Secret for participant accounts (32+ characters)                                                                                                                 |
-| `ADMIN_AUTH_SECRET`          | no         | Enables `/admin` (32+ characters, `openssl rand -base64 48`). Requires the database                                                                              |
-| `APP_URL`                    | production | Public origin of the app (e-mail links; required with the panel enabled)                                                                                         |
-| `RESEND_API_KEY`             | no         | Enables Resend delivery over HTTPS with `MAIL_FROM`. Use a sending-only key scoped to the verified sender domain; leave `SMTP_URL` unset                         |
-| `SMTP_URL`                   | no         | Alternative to Resend. Set with `MAIL_FROM` and leave `RESEND_API_KEY` unset                                                                                     |
-| `MAIL_FROM`                  | with mail  | Sender, e.g. `Nelcota <no-reply@yourdomain.com>`. Production requires a provider and sender when verification is enabled; without delivery, dev logs the content |
-| `SENTRY_DSN`                 | no         | Enables Sentry on the server (no personal data)                                                                                                                  |
-| `PUBLIC_SENTRY_DSN`          | no         | Enables browser error capture; loaded at runtime, no rebuild needed                                                                                              |
-| `LOG_LEVEL`                  | no         | Log level (default `info` in production, `debug` in dev)                                                                                                         |
-| `APP_VERSION`                | no         | Set by the image (commit SHA); shown in `/api/ready` and in Sentry                                                                                               |
+| Variable                     | Required   | Description                                                                                                                                                       |
+| ---------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LIVEKIT_API_KEY`            | yes        | LiveKit API key (same as the LiveKit server)                                                                                                                      |
+| `LIVEKIT_API_SECRET`         | yes        | Secret (32+ characters). **Never** sent to the browser                                                                                                            |
+| `LIVEKIT_URL`                | yes        | `wss://lk.yourdomain.com`                                                                                                                                         |
+| `ACCESS_PASSWORD`            | no         | If set (8+ characters), everyone needs it to join (constant-time comparison; 5 wrong attempts per IP every 15 min)                                                |
+| `MAX_PARTICIPANTS`           | no         | Per-room limit, from 2 to 8 (default 6)                                                                                                                           |
+| `REQUIRE_EMAIL_VERIFICATION` | no         | `true` requires confirming the e-mail before joining rooms (default `false`, off for now)                                                                         |
+| `TRUSTED_PROXY_HOPS`         | no         | Trusted proxies in front of the app, 1 to 5 (default 1, Coolify's Traefik; 2 behind the Cloudflare proxy). Decides which `X-Forwarded-For` IP the rate limit uses |
+| `DATABASE_URL`               | yes        | Postgres (`postgres://…`), `nelcota_app` role                                                                                                                     |
+| `MIGRATOR_DATABASE_URL`      | migrations | `nelcota_migrator` role, read by `pnpm db:migrate`. In production it lives only in the CI secrets, never in the app                                               |
+| `AUTH_SECRET`                | yes        | Secret for participant accounts (32+ characters)                                                                                                                  |
+| `ADMIN_AUTH_SECRET`          | no         | Enables `/admin` (32+ characters, `openssl rand -base64 48`). Requires the database                                                                               |
+| `APP_URL`                    | production | Public origin of the app (e-mail links; required with the panel enabled)                                                                                          |
+| `RESEND_API_KEY`             | no         | Enables Resend delivery over HTTPS with `MAIL_FROM`. Use a sending-only key scoped to the verified sender domain; leave `SMTP_URL` unset                          |
+| `SMTP_URL`                   | no         | Alternative to Resend. Set with `MAIL_FROM` and leave `RESEND_API_KEY` unset                                                                                      |
+| `MAIL_FROM`                  | with mail  | Sender, e.g. `Nelcota <no-reply@yourdomain.com>`. Production requires a provider and sender when verification is enabled; without delivery, dev logs the content  |
+| `SENTRY_DSN`                 | no         | Enables Sentry on the server (no personal data)                                                                                                                   |
+| `PUBLIC_SENTRY_DSN`          | no         | Enables browser error capture; loaded at runtime, no rebuild needed                                                                                               |
+| `LOG_LEVEL`                  | no         | Log level (default `info` in production, `debug` in dev)                                                                                                          |
+| `APP_VERSION`                | no         | Set by the image (commit SHA); shown in `/api/ready` and in Sentry                                                                                                |
+| `TEST_DATABASE_URL`          | tests      | **Disposable** database for integration tests; Vitest recreates databases from it. Not read by the app                                                            |
 
-Everything is validated with Zod in `server/env.server.ts`. If something is missing, the container exits with code 1 at boot and lists the problem in the logs.
+The app's variables are validated with Zod in `server/env.server.ts`. If something is missing, the container exits with code 1 at boot and lists the problem in the logs.
 
 `LIVEKIT_URL` is read at runtime by the server and returned to the browser along with the token. So changing the URL doesn't require a rebuild, and no variable needs to exist at build time.
 
@@ -128,9 +131,9 @@ to `additionalHooks`, which expects the signature with a dependency array.
 
 The exceptions are local: the initial focus of the microphone, reactions and
 share popovers allows keyboard navigation. In `SignUpForm`, the autocomplete rule
-has an exception because the [Oxlint 1.86 implementation](https://github.com/oxc-project/oxc/blob/oxlint_v1.86.0/crates/oxc_linter/src/rules/jsx_a11y/autocomplete_valid.rs)
-omits `nickname`, which is [valid in the HTML standard](https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill-detail-tokens).
-This exception should be revisited when Oxlint is updated.
+is off because [Oxlint's implementation](https://github.com/oxc-project/oxc/blob/main/crates/oxc_linter/src/rules/jsx_a11y/autocomplete_valid.rs)
+rejects `nickname`, which is [valid in the HTML standard](https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill-detail-tokens).
+Remove the exception once Oxlint accepts that token.
 
 `oxlint.fast.config.mjs` reuses the main configuration and turns off only the type
 engine and unused-suppression detection, since suppressions of type-aware rules
