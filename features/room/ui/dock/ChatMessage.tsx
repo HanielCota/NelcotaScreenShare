@@ -8,7 +8,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { chatParts } from "@/features/room/domain/chat-format";
-import { chatAuthor, type ChatEntry } from "@/features/room/hooks/use-chat-state";
+import { participantLabel } from "@/features/room/domain/participant-label";
+import type { ChatEntry } from "@/features/room/hooks/use-chat-state";
 import { initials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,7 @@ export function ChatMessage({
   onCopy: () => void;
 }) {
   const { mine } = message;
-  const name = chatAuthor(message.from);
+  const name = participantLabel(message.from);
   return (
     <li
       className={cn(

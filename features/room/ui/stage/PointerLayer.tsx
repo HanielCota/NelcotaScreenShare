@@ -17,7 +17,7 @@ import {
   TOPICS,
   type PointerMessage,
 } from "@/features/room/domain/data-channel";
-import { participantName } from "@/features/room/domain/participant-label";
+import { participantName, SELF_LABEL } from "@/features/room/domain/participant-label";
 import { moveCursor, type CursorPosition } from "@/features/room/domain/pointer-cursor";
 import { useTimeouts } from "@/lib/hooks/use-timeouts";
 
@@ -55,7 +55,7 @@ export function usePointers() {
     const now = Date.now();
     if (now - lastSent.current < SEND_INTERVAL_MS) return;
     lastSent.current = now;
-    add(message, "Você");
+    add(message, SELF_LABEL);
     send(encodeMessage(message), { reliable: false }).catch(() => {
       toast.error("Não foi possível marcar o ponto na tela.");
     });

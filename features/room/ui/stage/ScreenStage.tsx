@@ -10,7 +10,7 @@ import {
 import { useRef, useState, type RefObject } from "react";
 import { Hint } from "@/components/Hint";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
-import { participantName } from "@/features/room/domain/participant-label";
+import { participantLabel } from "@/features/room/domain/participant-label";
 import { usePageFullscreen } from "@/features/room/hooks/use-page-fullscreen";
 import { usePictureInPicture } from "@/features/room/hooks/use-picture-in-picture";
 import { cn } from "@/lib/utils";
@@ -20,10 +20,6 @@ interface ScreenStageProps {
   shares: TrackReference[];
   focused: TrackReference;
   onFocus: (sid: string) => void;
-}
-
-function sharerName(ref: TrackReference): string {
-  return ref.participant.isLocal ? "Você" : participantName(ref.participant);
 }
 
 function StageButton({
@@ -105,7 +101,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
       data-flip-id="stage"
       data-mascot-stage=""
       data-fullscreen={isFullscreen || undefined}
-      aria-label={`Tela compartilhada por ${sharerName(focused)}`}
+      aria-label={`Tela compartilhada por ${participantLabel(focused.participant)}`}
       className={cn(
         "relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-black shadow-soft",
         // Above the top bar, chat and dock; below tooltips (z-50) and notices.
@@ -144,7 +140,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
             ref={videoRef}
             trackRef={focused}
             className="size-full object-contain"
-            aria-label={`Tela de ${sharerName(focused)}`}
+            aria-label={`Tela de ${participantLabel(focused.participant)}`}
           />
           <PointerLayer
             // Another screen on stage: remount to measure the new video.
@@ -164,7 +160,9 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-soft opacity-60 motion-reduce:animate-none" />
             <span className="relative inline-flex size-2 rounded-full bg-brand-soft" />
           </span>
-          {isOwnScreen ? "Você está apresentando" : `Tela de ${sharerName(focused)}`}
+          {isOwnScreen
+            ? "Você está apresentando"
+            : `Tela de ${participantLabel(focused.participant)}`}
         </span>
 
         <span className="flex gap-2">
@@ -225,7 +223,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
                 )}
               >
                 <MonitorUp className="size-3.5" aria-hidden="true" />
-                {sharerName(share)}
+                {participantLabel(share.participant)}
               </button>
             );
           })}

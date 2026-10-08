@@ -15,7 +15,7 @@ import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { useTimeouts } from "@/lib/hooks/use-timeouts";
 import { setHandRaised } from "@/features/room/client/api";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
-import { participantName } from "@/features/room/domain/participant-label";
+import { participantName, SELF_LABEL } from "@/features/room/domain/participant-label";
 import {
   createReceiveThrottle,
   decodeMessage,
@@ -72,7 +72,7 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
     const now = Date.now();
     if (now - lastSent.current < SEND_INTERVAL_MS) return;
     lastSent.current = now;
-    show(emoji, "Você");
+    show(emoji, SELF_LABEL);
     send(encodeMessage({ emoji }), { reliable: true }).catch(() => {
       toast.error("Não foi possível enviar a reação.");
     });

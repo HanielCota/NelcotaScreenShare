@@ -13,3 +13,14 @@ export function participantName(
 ): string {
   return participant?.name || participant?.identity || "Alguém";
 }
+
+/** How the room refers to you. */
+export const SELF_LABEL = "Você";
+
+/** Name shown next to what someone did in the room: "Você" for yourself. */
+export function participantLabel(
+  participant: { isLocal?: boolean; name?: string | undefined; identity: string } | undefined,
+): string {
+  if (participant?.isLocal) return SELF_LABEL;
+  return participantName(participant);
+}
