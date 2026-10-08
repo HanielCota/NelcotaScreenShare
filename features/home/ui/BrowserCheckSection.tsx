@@ -1,16 +1,21 @@
-import { Check, Compass, Flame, Globe, Minus, Smartphone, type LucideIcon } from "lucide-react";
+import { Check, Minus, Smartphone } from "lucide-react";
+import type { ReactNode } from "react";
 import { BROWSER_ROWS, visitorRow, type BrowserRow } from "@/features/home/domain/browser-matrix";
 import { useShareSupport } from "@/features/room/hooks/use-share-support";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { cn } from "@/lib/utils";
+import { BrowserLogo } from "./BrowserLogo";
 import { SectionIntro } from "./SectionIntro";
 
-/** A plain glyph per family; no brand logos. */
-const ICONS: Record<BrowserRow["id"], LucideIcon> = {
-  chromium: Globe,
-  firefox: Flame,
-  safari: Compass,
-  mobile: Smartphone,
+/**
+ * Each family's mark in its brand color (Simple Icons' hex), on a faint tint of it; phones
+ * and tablets get a device glyph in the text color instead.
+ */
+const MARKS: Record<BrowserRow["id"], { mark: ReactNode; color?: string }> = {
+  chromium: { mark: <BrowserLogo browser="chrome" className="size-6" />, color: "#4285f4" },
+  firefox: { mark: <BrowserLogo browser="firefox" className="size-6" />, color: "#ff7139" },
+  safari: { mark: <BrowserLogo browser="safari" className="size-6" />, color: "#006cff" },
+  mobile: { mark: <Smartphone className="size-6" aria-hidden="true" /> },
 };
 
 function Capability({ on, label }: { on: boolean; label: string }) {
@@ -49,8 +54,8 @@ export function BrowserCheckSection() {
         className="mt-12 grid gap-4 sm:mt-16 sm:grid-cols-2 lg:grid-cols-4"
       >
         {BROWSER_ROWS.map((row) => {
-          const Icon = ICONS[row.id];
           const here = row.id === current;
+          const { mark, color } = MARKS[row.id];
           return (
             <li
               key={row.id}
@@ -58,8 +63,11 @@ export function BrowserCheckSection() {
               className="flex flex-col gap-5 rounded-3xl border border-line bg-surface p-6 transition-colors aria-[current]:border-brand/50 aria-[current]:bg-brand/8"
             >
               <span className="flex items-start justify-between gap-3">
-                <span className="grid size-12 place-items-center rounded-2xl bg-surface-2 text-ink-muted">
-                  <Icon className="size-6" aria-hidden="true" />
+                <span
+                  style={color ? { color, backgroundColor: `${color}1f` } : undefined}
+                  className="grid size-12 place-items-center rounded-2xl bg-surface-2 text-ink"
+                >
+                  {mark}
                 </span>
                 {here ? (
                   <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-medium text-brand-ink">
