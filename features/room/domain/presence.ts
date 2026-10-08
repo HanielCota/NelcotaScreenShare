@@ -9,10 +9,11 @@ export interface RoomPresence {
 }
 
 /**
- * Only how many are inside. With the access password on, names and photos stay
- * hidden from whoever has not given it yet (the call shows them once inside).
+ * Only how many are inside, for whoever has not proven access yet: names and photos stay
+ * hidden behind the access password and from visitors without an account (the call shows
+ * them once inside).
  */
-export function presenceForGuests(presence: RoomPresence, passwordRequired: boolean): RoomPresence {
-  if (!passwordRequired) return presence;
+export function presenceForGuests(presence: RoomPresence, hidePeople: boolean): RoomPresence {
+  if (!hidePeople) return presence;
   return { online: presence.online, participants: [] };
 }

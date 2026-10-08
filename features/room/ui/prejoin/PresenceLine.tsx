@@ -4,9 +4,17 @@ import { presenceText } from "@/features/room/domain/join";
 import type { RoomPresence } from "@/features/room/domain/presence";
 import { cn } from "@/lib/utils";
 
-export function PresenceLine({ presence, max }: { presence: RoomPresence | null; max: number }) {
+export function PresenceLine({
+  presence,
+  max,
+  guest,
+}: {
+  presence: RoomPresence | null;
+  max: number;
+  guest: boolean;
+}) {
   if (!presence) return null;
-  const line = presenceText(presence.online, max);
+  const line = presenceText(presence.online, max, guest);
   if (line.kind === "empty") return <p className="text-base text-ink-muted">{line.text}</p>;
   const shown = presence.participants.slice(0, 5);
   const remaining = presence.online - shown.length;

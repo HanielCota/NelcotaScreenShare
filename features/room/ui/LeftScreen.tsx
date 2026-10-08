@@ -65,11 +65,29 @@ function CopyRoomLink({ code }: { code: string }) {
  * After the call: why it ended, how long it lasted and the next step.
  * No card: the mascot says goodbye, just as it welcomed on the way in.
  */
+/** A guest who took part sees how to open their own rooms. */
+function GuestSignUp({ guest, joined }: { guest: boolean; joined: boolean }) {
+  if (!guest || !joined) return null;
+  return (
+    <div data-anim="left" className="panel flex w-full flex-col items-center gap-3 rounded-2xl p-5">
+      <p className="text-base text-pretty">
+        Quer abrir suas próprias salas? Crie uma conta grátis em poucos segundos.
+      </p>
+      <Button asChild variant="secondary">
+        <Link viewTransition to="/cadastro">
+          Criar conta grátis
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
 export function LeftScreen({
   code,
   reason,
   message,
   durationMs,
+  guest,
   onRejoin,
 }: {
   code: string;
@@ -77,6 +95,8 @@ export function LeftScreen({
   message?: string;
   /** Time in the call; absent when the person never got in. */
   durationMs?: number;
+  /** Joined without an account: the way to open their own rooms is to create one. */
+  guest: boolean;
   onRejoin: () => void;
 }) {
   const scope = useRef<HTMLElement>(null);
@@ -179,6 +199,8 @@ export function LeftScreen({
           </Link>
         ) : null}
       </div>
+
+      <GuestSignUp guest={guest} joined={joined} />
 
       {joined ? (
         <p

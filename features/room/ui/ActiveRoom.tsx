@@ -5,7 +5,8 @@ import { RoomSession } from "./RoomSession";
 /** What the room page loads (`/sala/:codigo`). */
 export interface RoomEntry {
   code: string;
-  user: { name: string; image: string | null };
+  /** Signed-in account, or null for a guest who joins through the link. */
+  user: { name: string; image: string | null } | null;
   passwordRequired: boolean;
   invite?: string;
   maxParticipants: number;
@@ -29,8 +30,8 @@ export function ActiveRoom({ room }: { room: RoomEntry | undefined }) {
       // Another room drops the current call.
       key={entry.code}
       code={entry.code}
-      userName={entry.user.name}
-      userImage={entry.user.image}
+      userName={entry.user?.name ?? null}
+      userImage={entry.user?.image ?? null}
       passwordRequired={entry.passwordRequired}
       invite={entry.invite}
       maxParticipants={entry.maxParticipants}

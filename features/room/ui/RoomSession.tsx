@@ -17,7 +17,8 @@ const prepareRoomView = () => {
 
 interface RoomSessionProps {
   code: string;
-  userName: string;
+  /** Null for a guest (no account). */
+  userName: string | null;
   userImage: string | null;
   passwordRequired: boolean;
   invite?: string;
@@ -60,7 +61,12 @@ export function RoomSession({
 
   // New attempt with a new token: the previous one may have expired (10 min TTL).
   async function retry(choices: JoinChoices, attempt: number, startedAt: number) {
-    const result = await requestToken({ room: code, password: choices.password, invite });
+    const result = await requestToken({
+      room: code,
+      password: choices.password,
+      invite,
+      guestName: choices.guestName,
+    });
     if (!result.ok) {
       setPhase({ kind: "left", reason: "failed", message: result.message });
       return;
@@ -112,7 +118,7 @@ export function RoomSession({
   return (
     <div className="flex min-h-dvh flex-col">
       <AppHeader
-        account={{ name: userName, image: userImage }}
+        account={userName === null ? null : { name: userName, image: userImage }}
         accountHref={`/conta?voltar=${encodeURIComponent(roomLink(code, invite))}`}
       />
       <main className="flex flex-1 items-center justify-center px-4 py-6 sm:px-8 sm:py-10">
@@ -135,6 +141,7 @@ export function RoomSession({
             reason={phase.reason}
             message={phase.message}
             durationMs={phase.durationMs}
+            guest={userName === null}
             onRejoin={() => setPhase({ kind: "prejoin" })}
           />
         )}
