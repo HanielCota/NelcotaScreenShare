@@ -60,19 +60,17 @@ export function ParticipantSessions({ sessions }: { sessions: ParticipantDetail[
   );
 }
 
+function timelineNote(count: number): string | undefined {
+  if (count === 0) return "Ainda não entrou em nenhuma sala.";
+  // The query stops at 100 participations.
+  if (count === 100) return "As 100 mais recentes.";
+  return undefined;
+}
+
 /** Rooms the person joined (the 100 most recent). */
 export function ParticipantTimeline({ timeline }: { timeline: ParticipantDetail["timeline"] }) {
   return (
-    <Section
-      title="Participações"
-      description={
-        timeline.length === 0
-          ? "Ainda não entrou em nenhuma sala."
-          : timeline.length === 100
-            ? "As 100 mais recentes."
-            : undefined
-      }
-    >
+    <Section title="Participações" description={timelineNote(timeline.length)}>
       {timeline.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">

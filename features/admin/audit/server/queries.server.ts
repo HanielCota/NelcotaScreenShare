@@ -65,6 +65,17 @@ interface RawRow {
   metadata: Record<string, unknown>;
 }
 
+/** The actor FKs are `restrict`: an actor id always has its joined row. */
+function actorOf(raw: RawRow): AuditRow["actor"] {
+  if (raw.actorAdminId && raw.adminName !== null && raw.adminEmail !== null) {
+    return { kind: "admin", id: raw.actorAdminId, name: raw.adminName, email: raw.adminEmail };
+  }
+  if (raw.actorUserId && raw.userName !== null) {
+    return { kind: "user", id: raw.actorUserId, name: raw.userName };
+  }
+  return { kind: "system" };
+}
+
 function toRow(raw: RawRow): AuditRow {
   return {
     id: raw.id,
@@ -72,16 +83,7 @@ function toRow(raw: RawRow): AuditRow {
     action: raw.action,
     resourceType: raw.resourceType,
     resourceId: raw.resourceId,
-    actor: raw.actorAdminId
-      ? {
-          kind: "admin",
-          id: raw.actorAdminId,
-          name: raw.adminName ?? "Admin",
-          email: raw.adminEmail ?? "",
-        }
-      : raw.actorUserId
-        ? { kind: "user", id: raw.actorUserId, name: raw.userName ?? "Participante" }
-        : { kind: "system" },
+    actor: actorOf(raw),
     ip: raw.ip,
     userAgent: raw.userAgent,
     requestId: raw.requestId,
