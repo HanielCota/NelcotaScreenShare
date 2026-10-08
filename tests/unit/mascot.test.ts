@@ -46,10 +46,11 @@ test("both eyes converge on the cursor near the face and keep responding at a di
   assert.ok(Math.hypot(farther.leftX, farther.leftY) < 1);
 });
 
-test("the pupils stay inside the eyes in any direction, tilt and expression", () => {
-  for (const eye of EYE_SHAPES) {
-    for (const scale of [0.68, 1, 1.05]) {
-      for (const tilt of [-7, 0, 5]) {
+test.for([-15, -9, -7, 0, 5, 9, 15])(
+  "the pupils stay inside the eyes in any direction and expression at a %i° tilt",
+  (tilt) => {
+    for (const eye of EYE_SHAPES) {
+      for (const scale of [0.68, 1, 1.05]) {
         for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 12) {
           const offset = pupilOffset({ x: Math.cos(angle), y: Math.sin(angle) }, eye, scale, tilt);
           for (let edge = 0; edge < Math.PI * 2; edge += Math.PI / 12) {
@@ -63,8 +64,8 @@ test("the pupils stay inside the eyes in any direction, tilt and expression", ()
         }
       }
     }
-  }
-});
+  },
+);
 
 test("a fast gaze stays continuous through reversals even at 30 frames per second", () => {
   const gaze = { ...IDLE };
