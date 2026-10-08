@@ -8,12 +8,11 @@ import { MOTION_QUERIES } from "@/lib/animation/motion";
 /** Keeps the position when pausing; React only receives phase changes. */
 export function createPairController(
   scene: HTMLElement,
-  initialPending: boolean,
   onPhase: (phase: PairPhase, suspended: boolean) => void,
 ) {
   const motion = createPairMotion();
   const preference = window.matchMedia(MOTION_QUERIES.reduced);
-  let pending = initialPending;
+  let pending = false;
   let visible = true;
   let idle = false;
   let disposed = false;

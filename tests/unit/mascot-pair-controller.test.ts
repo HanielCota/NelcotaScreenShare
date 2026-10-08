@@ -52,7 +52,7 @@ function fixture() {
     },
   );
   let phase: PairPhase = "rest";
-  const controller = createPairController(scene as unknown as HTMLElement, false, (next) => {
+  const controller = createPairController(scene as unknown as HTMLElement, (next) => {
     phase = next;
   });
   return {
