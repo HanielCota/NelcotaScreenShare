@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "vitest";
+import { test, vi } from "vitest";
 import { createHandMotions } from "@/features/mascot/client/hand-motions";
 import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
 import {
@@ -181,62 +181,41 @@ test("a password closes both eyes and showing the password allows peeking", () =
   assert.equal(peeking.lid1, 0);
 });
 
-/** Puts the original `window` back, or removes the fake one when there was none. */
-function restoreWindow(previous: PropertyDescriptor | undefined) {
-  if (previous) {
-    Object.defineProperty(globalThis, "window", previous);
-    return;
-  }
-  Reflect.deleteProperty(globalThis, "window");
-}
-
 test("repeated waves replace the previous ones and cleanup stops the animation", () => {
-  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   let reduced = false;
-  Object.defineProperty(globalThis, "window", {
-    configurable: true,
-    value: { matchMedia: () => ({ matches: reduced }) },
-  });
-  const elements = Array.from({ length: 1 }, () => {
-    const active = new Set<Animation>();
-    const calls: { keyframes: Keyframe[]; options: KeyframeAnimationOptions }[] = [];
-    return {
-      active,
-      calls,
-      getAnimations: () => [...active],
-      animate(keyframes: Keyframe[], options: KeyframeAnimationOptions) {
-        const listeners = new Map<string, () => void>();
-        const animation = {
-          addEventListener: (name: string, callback: () => void) => listeners.set(name, callback),
-          cancel() {
-            active.delete(animation);
-            listeners.get("cancel")?.();
-          },
-        } as unknown as Animation;
-        calls.push({ keyframes, options });
-        active.add(animation);
-        return animation;
-      },
-    };
-  });
+  vi.stubGlobal("window", { matchMedia: () => ({ matches: reduced }) });
+  const active = new Set<Animation>();
+  const calls: { keyframes: Keyframe[]; options: KeyframeAnimationOptions }[] = [];
+  const sprite = {
+    getAnimations: () => [...active],
+    animate(keyframes: Keyframe[], options: KeyframeAnimationOptions) {
+      const listeners = new Map<string, () => void>();
+      const animation = {
+        addEventListener: (name: string, callback: () => void) => listeners.set(name, callback),
+        cancel() {
+          active.delete(animation);
+          listeners.get("cancel")?.();
+        },
+      } as unknown as Animation;
+      calls.push({ keyframes, options });
+      active.add(animation);
+      return animation;
+    },
+  };
   try {
     const avatarHands = createHandMotions({
-      querySelector: (selector: string) =>
-        selector === "[data-mascot-sprite]" ? elements[0] : null,
+      querySelector: (selector: string) => (selector === "[data-mascot-sprite]" ? sprite : null),
     } as unknown as HTMLElement);
-    reduced = false;
     for (let tap = 0; tap < 20; tap++) avatarHands.wave();
-    assert.equal(elements[0]?.active.size, 1);
-    assert.equal(elements[0]?.calls.at(-1)?.options.easing, "linear");
-    assert.ok(
-      elements[0]?.calls.at(-1)?.keyframes.every((frame) => frame.easing === "steps(1, end)"),
-    );
+    assert.equal(active.size, 1);
+    assert.equal(calls.at(-1)?.options.easing, "linear");
+    assert.ok(calls.at(-1)?.keyframes.every((frame) => frame.easing === "steps(1, end)"));
     avatarHands.cancel();
-    assert.equal(elements[0]?.active.size, 0);
+    assert.equal(active.size, 0);
     reduced = true;
     avatarHands.wave();
-    assert.equal(elements[0]?.active.size, 0);
+    assert.equal(active.size, 0);
   } finally {
-    restoreWindow(previousWindow);
+    vi.unstubAllGlobals();
   }
 });
