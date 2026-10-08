@@ -1,3 +1,4 @@
+import { GUEST_IDENTITY_PREFIX } from "./participant-label";
 import { tokenRequestSchema, type TokenErrorCode } from "./token-contract";
 
 /**
@@ -17,6 +18,7 @@ export const TOKEN_LOG_RESULTS = [
   "unauthenticated",
   "invalid",
   "invite_invalid",
+  "host_absent",
   "error",
 ] as const;
 
@@ -27,6 +29,11 @@ export interface TokenAccount {
   name: string;
   blocked: boolean;
   emailVerified: boolean;
+}
+
+/** Someone without an account, known by the signed guest cookie (see guest-session.server). */
+export interface TokenGuest {
+  guestId: string;
 }
 
 export interface TokenPolicy {
@@ -50,6 +57,8 @@ export interface TokenDeps {
   passwordMatches: (given: string) => boolean;
   countParticipants: (room: string) => Promise<number>;
   redeemInvite: (invite: string, room: string, accountId: string) => Promise<boolean>;
+  /** Is someone with an account connected? Guests only join a room that has a host. */
+  hostPresent: (room: string) => Promise<boolean>;
 }
 
 export interface TokenGrant {
@@ -81,6 +90,7 @@ export const TOKEN_ERROR_STATUS: Record<TokenRefusal, number> = {
   invalid_password: 401,
   room_full: 409,
   invite_invalid: 403,
+  host_absent: 409,
   server_error: 502,
 };
 
@@ -171,20 +181,9 @@ function checkPassword(password: string | undefined, deps: TokenDeps): TokenDeci
   );
 }
 
-/**
- * Decides whether the account joins the room. `body` is the request JSON (`undefined` if
- * it could not be read). Throws only if LiveKit or the database fail (the caller
- * responds "room unavailable").
- */
-export async function decideTokenRequest(
-  account: TokenAccount | null,
-  body: { readable: true; value: unknown } | { readable: false },
-  policy: TokenPolicy,
-  deps: TokenDeps,
-): Promise<TokenDecision> {
-  const checked = checkAccount(account, policy, deps);
-  if ("ok" in checked) return checked;
+type ReadBody = { readable: true; value: unknown } | { readable: false };
 
+function parseRequest(body: ReadBody) {
   if (!body.readable) {
     return refuse(
       "invalid_request",
@@ -196,7 +195,86 @@ export async function decideTokenRequest(
   if (!parsed.success) {
     return refuse("invalid_request", "invalid", invalidMessage(parsed.error.issues[0]?.path[0]));
   }
-  const { room, password, invite } = parsed.data;
+  return parsed.data;
+}
+
+async function checkCapacity(room: string, policy: TokenPolicy, deps: TokenDeps) {
+  if ((await deps.countParticipants(room)) < policy.maxParticipants) return undefined;
+  return refuse(
+    "room_full",
+    "room_full",
+    `A sala está cheia (máximo de ${policy.maxParticipants} pessoas). Aguarde alguém sair e tente de novo.`,
+  );
+}
+
+/** A guest: a name, the room password (if any), space in the room and a host inside. */
+async function decideGuest(
+  guest: TokenGuest,
+  body: ReadBody,
+  policy: TokenPolicy,
+  deps: TokenDeps,
+): Promise<TokenDecision> {
+  const limit = deps.hitAccountLimit(`${GUEST_IDENTITY_PREFIX}${guest.guestId}`);
+  if (!limit.ok) {
+    return refuse(
+      "rate_limited",
+      "rate_limited",
+      "Muitas tentativas. Aguarde um pouco e tente de novo.",
+      limit.retryAfterSeconds,
+    );
+  }
+  const request = parseRequest(body);
+  if ("ok" in request) return request;
+  const { room, password, invite, guestName } = request;
+  if (guestName === undefined) {
+    return refuse("invalid_request", "invalid", "Digite seu nome para entrar na sala.");
+  }
+  // Panel invites count uses per account.
+  if (invite !== undefined) {
+    return refuse(
+      "invite_invalid",
+      "invite_invalid",
+      "Este convite é para quem tem conta. Entre na sua conta para usá-lo.",
+    );
+  }
+  if (policy.accessPassword) {
+    const wrong = checkPassword(password, deps);
+    if (wrong) return wrong;
+  }
+  const full = await checkCapacity(room, policy, deps);
+  if (full) return full;
+  if (!(await deps.hostPresent(room))) {
+    return refuse(
+      "host_absent",
+      "host_absent",
+      "A sala ainda não começou. Espere quem te convidou entrar e tente de novo.",
+    );
+  }
+  return {
+    ok: true,
+    grant: { identity: `${GUEST_IDENTITY_PREFIX}${guest.guestId}`, name: guestName, room },
+    log: "granted",
+  };
+}
+
+/**
+ * Decides whether the caller joins the room: an account, a guest, or nobody. `body` is the
+ * request JSON (`readable: false` if it could not be read). Throws only if LiveKit or the
+ * database fail (the caller responds "room unavailable").
+ */
+export async function decideTokenRequest(
+  caller: TokenAccount | TokenGuest | null,
+  body: ReadBody,
+  policy: TokenPolicy,
+  deps: TokenDeps,
+): Promise<TokenDecision> {
+  if (caller !== null && "guestId" in caller) return decideGuest(caller, body, policy, deps);
+  const checked = checkAccount(caller, policy, deps);
+  if ("ok" in checked) return checked;
+
+  const request = parseRequest(body);
+  if ("ok" in request) return request;
+  const { room, password, invite } = request;
 
   // A dashboard invite replaces the access password (it is validated further below).
   if (policy.accessPassword && invite === undefined) {
@@ -204,13 +282,8 @@ export async function decideTokenRequest(
     if (wrong) return wrong;
   }
 
-  if ((await deps.countParticipants(room)) >= policy.maxParticipants) {
-    return refuse(
-      "room_full",
-      "room_full",
-      `A sala está cheia (máximo de ${policy.maxParticipants} pessoas). Aguarde alguém sair e tente de novo.`,
-    );
-  }
+  const full = await checkCapacity(room, policy, deps);
+  if (full) return full;
   // After the capacity check: a full room does not consume an invite use.
   if (invite !== undefined && !(await deps.redeemInvite(invite, room, checked.id))) {
     return refuse(

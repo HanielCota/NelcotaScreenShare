@@ -1,5 +1,6 @@
 import { AccessToken, RoomConfiguration, ServerError, TrackSource } from "livekit-server-sdk";
 import type { TokenGrant } from "@/features/room/domain/issue-token";
+import { isGuestIdentity } from "@/features/room/domain/participant-label";
 import { getEnv } from "@/server/env.server";
 import { roomService } from "./room-service.server";
 
@@ -15,19 +16,29 @@ const PUBLISH_SOURCES = [
 /** What token issuing needs from LiveKit (an object literal in tests). */
 export interface LiveKitGateway {
   countParticipants: (room: string) => Promise<number>;
+  /** Is someone with an account connected? Read from LiveKit, so it has no webhook delay. */
+  hostPresent: (room: string) => Promise<boolean>;
   signToken: (grant: TokenGrant) => Promise<string>;
+}
+
+async function identitiesIn(room: string): Promise<string[]> {
+  try {
+    const participants = await roomService().listParticipants(room);
+    return participants.map((participant) => participant.identity);
+  } catch (error) {
+    // Room does not exist yet: nobody inside.
+    if (error instanceof ServerError && error.status === 404) return [];
+    throw error;
+  }
 }
 
 export const liveKitGateway: LiveKitGateway = {
   async countParticipants(room) {
-    try {
-      const participants = await roomService().listParticipants(room);
-      return participants.length;
-    } catch (error) {
-      // Room does not exist yet: nobody inside.
-      if (error instanceof ServerError && error.status === 404) return 0;
-      throw error;
-    }
+    return (await identitiesIn(room)).length;
+  },
+
+  async hostPresent(room) {
+    return (await identitiesIn(room)).some((identity) => !isGuestIdentity(identity));
   },
 
   async signToken({ identity, name, room }) {

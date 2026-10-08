@@ -4,6 +4,8 @@ import type { TokenErrorCode } from "./token-contract";
 export interface JoinChoices {
   /** In memory only: the room's "Tentar de novo" requests a new token with it. */
   password?: string;
+  /** A guest's name, for the same retry. */
+  guestName?: string;
   token: string;
   serverUrl: string;
   micEnabled: boolean;
@@ -37,12 +39,16 @@ export type Presence =
   | { kind: "empty"; text: string }
   | { kind: "some"; text: string };
 
-export function presenceText(online: number, max: number): Presence {
+export function presenceText(online: number, max: number, guest = false): Presence {
   if (online >= max) {
     return {
       kind: "full",
       text: `A sala está cheia (${online} de ${max} pessoas). Aguarde alguém sair.`,
     };
+  }
+  // A guest only gets in after the person who invited them.
+  if (online === 0 && guest) {
+    return { kind: "empty", text: "Quem te convidou ainda não entrou. Você entra logo depois." };
   }
   if (online === 0) {
     return { kind: "empty", text: "Ninguém na sala ainda: você será a primeira pessoa." };

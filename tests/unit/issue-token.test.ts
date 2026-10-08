@@ -21,6 +21,7 @@ function deps(overrides: Partial<TokenDeps> = {}): TokenDeps {
     passwordMatches: (given) => given === "certa",
     countParticipants: () => Promise.resolve(0),
     redeemInvite: () => Promise.resolve(true),
+    hostPresent: () => Promise.resolve(true),
     ...overrides,
   };
 }
@@ -161,5 +162,72 @@ describe("who joins the room", () => {
         deps({ countParticipants: () => Promise.reject(new Error("LiveKit fora")) }),
       ),
     ).rejects.toThrow("LiveKit fora");
+  });
+});
+
+describe("guests (no account)", () => {
+  const GUEST = { guestId: "4d1f0a3e-8a5b-4c39-9f0e-2b7c1d6e9a10" };
+
+  it("joins a room with a host, under a marked identity and the chosen name", async () => {
+    const decision = await decideTokenRequest(
+      GUEST,
+      body({ room: "sala", guestName: "  Bia  " }),
+      OPEN,
+      deps(),
+    );
+    expect(decision).toEqual({
+      ok: true,
+      log: "granted",
+      grant: { identity: `convidado-${GUEST.guestId}`, name: "Bia", room: "sala" },
+    });
+  });
+
+  it("needs a name, and an invite from the panel needs an account", async () => {
+    expect(await decideTokenRequest(GUEST, body({ room: "sala" }), OPEN, deps())).toMatchObject({
+      error: "invalid_request",
+    });
+    expect(
+      await decideTokenRequest(
+        GUEST,
+        body({ room: "sala", guestName: "Bia", invite: "abc" }),
+        OPEN,
+        deps(),
+      ),
+    ).toMatchObject({ error: "invite_invalid", log: "invite_invalid" });
+  });
+
+  it("waits for a host and respects the password and the room size", async () => {
+    const request = body({ room: "sala", guestName: "Bia" });
+    expect(
+      await decideTokenRequest(
+        GUEST,
+        request,
+        OPEN,
+        deps({ hostPresent: () => Promise.resolve(false) }),
+      ),
+    ).toMatchObject({ error: "host_absent", log: "host_absent" });
+    expect(
+      await decideTokenRequest(GUEST, request, { ...OPEN, accessPassword: "certa" }, deps()),
+    ).toMatchObject({ error: "invalid_password" });
+    expect(
+      await decideTokenRequest(
+        GUEST,
+        request,
+        OPEN,
+        deps({ countParticipants: () => Promise.resolve(3) }),
+      ),
+    ).toMatchObject({ error: "room_full" });
+  });
+
+  it("the attempt limit counts per guest", async () => {
+    const hitAccountLimit = vi.fn(() => ({ ok: false, retryAfterSeconds: 9 }));
+    const decision = await decideTokenRequest(
+      GUEST,
+      body({ room: "sala", guestName: "Bia" }),
+      OPEN,
+      deps({ hitAccountLimit }),
+    );
+    expect(decision).toMatchObject({ error: "rate_limited", retryAfterSeconds: 9 });
+    expect(hitAccountLimit).toHaveBeenCalledWith(`convidado-${GUEST.guestId}`);
   });
 });

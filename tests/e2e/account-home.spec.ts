@@ -149,7 +149,8 @@ test('home: "/" focuses the room field and a valid code opens the room', async (
 
   await input.fill("abc-defg-hij");
   await input.press("Enter");
-  // No account: the room asks for sign-in and returns to it afterwards.
-  await expect(page).toHaveURL(/\/entrar\?voltar=%2Fsala%2Fabc-defg-hij/);
+  // No account: the room opens as a guest, asking for a name.
+  await expect(page).toHaveURL(/\/sala\/abc-defg-hij$/);
+  await expect(page.getByLabel("Seu nome na sala")).toBeVisible();
   await context.close();
 });

@@ -1,14 +1,23 @@
 import { ArrowLeft, ArrowRight, Headphones, Loader2, Ticket } from "lucide-react";
 import { Link, useLocation, useViewTransitionState } from "react-router";
-import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+  type RefObject,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { subscribeNothing } from "@/lib/hooks/subscribe-nothing";
 import { upsetMascot } from "@/features/mascot/client/events";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { requestToken } from "@/features/room/client/api";
 import { joinFailure, type JoinChoices } from "@/features/room/domain/join";
+import { displayNameSchema } from "@/features/room/domain/participant-label";
 import type { RoomPresence } from "@/features/room/domain/presence";
 import { roomLink } from "@/features/room/domain/room-code";
+import { useGuestName } from "@/features/room/hooks/use-guest-name";
 import { useMicSetup } from "@/features/room/hooks/use-mic-setup";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import {
@@ -19,6 +28,7 @@ import {
   useGSAP,
 } from "@/lib/animation/gsap";
 import { formText } from "@/lib/utils";
+import { GuestNameRow } from "./GuestNameRow";
 import { InviteLinkButton } from "./InviteLinkButton";
 import { MicSetup } from "./MicSetup";
 import { NameRow } from "./NameRow";
@@ -27,8 +37,8 @@ import { PresenceLine } from "./PresenceLine";
 
 interface PreJoinProps {
   code: string;
-  /** Signed-in account name: how the person appears in the room. */
-  userName: string;
+  /** Signed-in account name: how the person appears in the room. Null for a guest. */
+  userName: string | null;
   passwordRequired: boolean;
   /** Dashboard invite: replaces the access password. */
   invite?: string;
@@ -38,6 +48,39 @@ interface PreJoinProps {
   onJoin: (choices: JoinChoices) => void;
   /** Download the call UI while the token request is in flight. */
   onPrepareJoin?: () => void;
+}
+
+/** Who joins: the account's name (editable), or a guest's name field. */
+function IdentityRow({
+  userName,
+  guestName,
+  guestNameRef,
+  error,
+  signInHref,
+  onGuestEdit,
+}: {
+  userName: string | null;
+  guestName: ReturnType<typeof useGuestName>;
+  guestNameRef: RefObject<HTMLInputElement | null>;
+  error: { message: string; field?: string } | undefined;
+  signInHref: string;
+  /** The guest typed: clears the error shown on the field. */
+  onGuestEdit: () => void;
+}) {
+  const [accountName, setAccountName] = useState(userName);
+  if (accountName !== null) return <NameRow name={accountName} onChange={setAccountName} />;
+  return (
+    <GuestNameRow
+      inputRef={guestNameRef}
+      name={guestName.name}
+      error={error?.field === "name" ? error.message : undefined}
+      signInHref={signInHref}
+      onChange={(value) => {
+        guestName.setName(value);
+        onGuestEdit();
+      }}
+    />
+  );
 }
 
 /** Native submission stays unavailable until the client handler is attached. */
@@ -64,8 +107,10 @@ export function PreJoin({
   const scope = useRef<HTMLFormElement>(null);
   const transitioning = useViewTransitionState(useLocation().pathname);
   const passwordRef = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState(userName);
-  const [formError, setFormError] = useState<{ message: string; field?: "password" }>();
+  const guestNameRef = useRef<HTMLInputElement>(null);
+  const guest = userName === null;
+  const guestName = useGuestName();
+  const [formError, setFormError] = useState<{ message: string; field?: "password" | "name" }>();
   const [submitting, setSubmitting] = useState(false);
   const joinDisabled = useJoinDisabled(submitting);
   const meterRef = useRef<HTMLDivElement>(null);
@@ -87,10 +132,14 @@ export function PreJoin({
     { scope },
   );
 
-  // With an access password, focus starts on the only missing field.
+  // Focus starts on the first missing field: the guest's name, else the access password.
   useEffect(() => {
+    if (guest && !guestNameRef.current?.value) {
+      guestNameRef.current?.focus();
+      return;
+    }
     passwordRef.current?.focus();
-  }, []);
+  }, [guest]);
 
   /** Shows the error and moves focus to the field that needs fixing. */
   function showFailure(message: string, failure: ReturnType<typeof joinFailure>) {
@@ -107,43 +156,61 @@ export function PreJoin({
     }
   }
 
+  /** Marks the field to fix, focuses it and lets the mascot react. */
+  function rejectField(field: "password" | "name", message: string) {
+    const ref = field === "name" ? guestNameRef : passwordRef;
+    setFormError({ message, field });
+    ref.current?.focus();
+    upsetMascot("grumpy", ref.current ?? undefined);
+  }
+
+  /** What the form adds to the token request, or undefined when a field needs fixing. */
+  function readFields(
+    form: HTMLFormElement,
+  ): { password?: string; guestName?: string } | undefined {
+    const parsedName = guest ? displayNameSchema.safeParse(guestName.name) : undefined;
+    if (parsedName && !parsedName.success) {
+      rejectField("name", parsedName.error.issues[0]?.message ?? "Digite seu nome.");
+      return undefined;
+    }
+    const password = passwordRequired ? formText(new FormData(form), "password") : undefined;
+    if (passwordRequired && !password) {
+      rejectField("password", "Digite a senha que recebeu de quem enviou o convite.");
+      return undefined;
+    }
+    return { password, guestName: parsedName?.data };
+  }
+
+  /** Session expired or e-mail not verified: that screen, then back to the room. */
+  function handleRefusal(error: Parameters<typeof joinFailure>[0], message: string) {
+    const failure = joinFailure(error);
+    if (failure.redirect) {
+      const page = failure.redirect === "login" ? "/entrar" : "/verificar-email";
+      window.location.assign(`${page}?voltar=${encodeURIComponent(roomLink(code, invite))}`);
+      return;
+    }
+    setSubmitting(false);
+    showFailure(message, failure);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
-    const password = passwordRequired
-      ? formText(new FormData(event.currentTarget), "password")
-      : undefined;
-
-    if (passwordRequired && !password) {
-      setFormError({
-        message: "Digite a senha que recebeu de quem enviou o convite.",
-        field: "password",
-      });
-      passwordRef.current?.focus();
-      upsetMascot("grumpy", passwordRef.current ?? undefined);
-      return;
-    }
+    const fields = readFields(event.currentTarget);
+    if (!fields) return;
 
     setFormError(undefined);
     setSubmitting(true);
     onPrepareJoin?.();
-    const result = await requestToken({ room: code, password, invite });
+    const result = await requestToken({ room: code, invite, ...fields });
     if (!result.ok) {
-      const failure = joinFailure(result.code);
-      // Session expired or email not verified yet: come back to the room afterwards.
-      if (failure.redirect) {
-        const back = encodeURIComponent(roomLink(code, invite));
-        const page = failure.redirect === "login" ? "/entrar" : "/verificar-email";
-        window.location.assign(`${page}?voltar=${back}`);
-        return;
-      }
-      setSubmitting(false);
-      showFailure(result.message, failure);
+      handleRefusal(result.code, result.message);
       return;
     }
 
+    if (fields.guestName) guestName.remember(fields.guestName);
     onJoin({
-      password,
+      ...fields,
       token: result.data.token,
       serverUrl: result.data.serverUrl,
       // Microphone blocked: join listen-only instead of failing inside.
@@ -179,7 +246,7 @@ export function PreJoin({
             </p>
             <InviteLinkButton code={code} />
           </div>
-          <PresenceLine presence={presence} max={maxParticipants} />
+          <PresenceLine presence={presence} max={maxParticipants} guest={guest} />
           {invite ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3.5 py-1.5 text-sm font-medium text-ink">
               <Ticket className="size-3.5 text-brand-soft" aria-hidden="true" />
@@ -193,7 +260,14 @@ export function PreJoin({
         data-anim="row"
         className="w-full divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface"
       >
-        <NameRow name={name} onChange={setName} />
+        <IdentityRow
+          userName={userName}
+          guestName={guestName}
+          guestNameRef={guestNameRef}
+          error={formError}
+          signInHref={`/entrar?voltar=${encodeURIComponent(roomLink(code, invite))}`}
+          onGuestEdit={() => setFormError(undefined)}
+        />
         <MicSetup mic={mic} meterRef={meterRef} />
       </div>
 

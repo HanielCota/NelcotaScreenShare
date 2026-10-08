@@ -1,7 +1,7 @@
 import { routeLoader } from "@/server/route-loader.server";
 
 import { redirect } from "@/server/http.server";
-import { requireUser } from "@/features/auth/server/participant-session.server";
+import { getUserSession, requireUser } from "@/features/auth/server/participant-session.server";
 import { getAdminSession } from "@/features/auth/server/admin-session.server";
 import { getDb } from "@/server/db/index.server";
 import { getEnv } from "@/server/env.server";
@@ -27,18 +27,20 @@ export const loader = routeLoader(async ({ params, searchParams }) => {
   // A single address per room: "/sala/ABC-..." becomes "/sala/abc-...", same as the copied link.
   if (code.data !== raw) redirect(roomLink(code.data, invite));
 
-  // Joining a room requires an account with a confirmed e-mail; after sign-in, it comes back here.
-  const { user } = await requireUser(roomLink(code.data, invite));
+  // Without an account the person joins as a guest. An account still needs a confirmed
+  // e-mail (when required); after confirming, it comes back here.
+  const current = await getUserSession();
+  const user = current ? (await requireUser(roomLink(code.data, invite))).user : null;
   const { ACCESS_PASSWORD, MAX_PARTICIPANTS } = getEnv();
   const passwordRequired = ACCESS_PASSWORD !== undefined;
   // Who is already inside, for the pre-join screen to show.
   const [roomNow, admin] = await Promise.all([roomPresence(getDb(), code.data), getAdminSession()]);
-  const presence = presenceForGuests(roomNow, passwordRequired);
+  const presence = presenceForGuests(roomNow, passwordRequired || user === null);
 
   return {
     invite,
     code: code.data,
-    user: { name: user.name, image: user.image },
+    user: user && { name: user.name, image: user.image },
     passwordRequired,
     maxParticipants: MAX_PARTICIPANTS,
     presence,

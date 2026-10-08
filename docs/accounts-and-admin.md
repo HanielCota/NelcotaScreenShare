@@ -9,8 +9,17 @@ The app uses **PostgreSQL 18** with **[Drizzle ORM](https://orm.drizzle.team)** 
 - The schema lives in `server/db/schema/` (one file per area). After changing the schema, run `pnpm db:generate`, review the SQL and commit it in `drizzle/`. CI fails if the schema and the migrations don't match.
 - **Migrations never run at app boot.** They are a separate job (`scripts/migrate.ts`), with its own Postgres user, an advisory lock and a 5 s `lock_timeout`. Changes follow _expand/contract_ (the old code keeps working with the new schema).
 - Editable settings live in `app_settings` (one row per group, a JSON value validated by Zod in `features/admin/settings/server/settings.server.ts`). A new settings group doesn't need a migration.
-- `DATABASE_URL` is required: joining a room requires an account.
+- `DATABASE_URL` is required: opening a room requires an account (guests, below, join one that is already open).
 - **Retention (LGPD) and reprocessing:** every 6 h the app process itself (`features/runtime/server/maintenance.server.ts`) deletes token requests older than 6 months, strips the IP from participations older than 6 months and the name from those older than 12, deletes LiveKit events and login failures older than 30 days and sessions expired for 7 days, and re-projects webhook events that failed.
+
+### Guests
+
+Whoever has the room link can join without an account. They type a name, receive a signed `nelcota_convidado` cookie (HMAC with `AUTH_SECRET`, 12 h, `HttpOnly`) and join as the LiveKit identity `convidado-<uuid>`, which the webhook records without a `user_id`. Rules (`features/room/domain/issue-token.ts`):
+
+- a guest only gets in while someone with an account is connected (asked to LiveKit, so there is no webhook delay); otherwise `/api/token` answers `host_absent`;
+- the room password and the room size still apply; panel invites (`?convite=`) still need an account;
+- the room shows a guest's name with "(convidado)", so nobody passes for an account holder;
+- before joining, a visitor without an account only sees how many people are inside.
 
 ### Postgres roles (least privilege)
 

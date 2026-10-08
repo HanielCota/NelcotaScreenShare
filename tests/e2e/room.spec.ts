@@ -34,11 +34,14 @@ async function fakeScreenCapture(page: Page, { withSound = false } = {}) {
 }
 
 test.describe("room access", () => {
-  test("without an account goes to sign-in and back to the room (normalized code)", async ({
+  test("without an account opens as a guest; signing in comes back to the room", async ({
     browser,
   }) => {
     const { page, context } = await newVisitor(browser);
     await page.goto("/sala/ABC-DEFG-HIJ");
+    await expect(page).toHaveURL(/\/sala\/abc-defg-hij$/);
+    await expect(page.getByLabel("Seu nome na sala")).toBeFocused();
+    await page.getByRole("link", { name: "Já tenho conta" }).click();
     await expect(page).toHaveURL(/\/entrar\?voltar=%2Fsala%2Fabc-defg-hij/);
     await context.close();
   });
@@ -266,6 +269,36 @@ test.describe("in the room", () => {
 
     await dani.context.close();
     await edu.context.close();
+  });
+
+  test("a guest joins through the link once someone with an account is inside", async ({
+    browser,
+  }) => {
+    const code = newRoomCode();
+    const gil = await newParticipant(browser, "Gil Anfitriao");
+    const { page: iris, context } = await newVisitor(browser);
+    const join = iris.getByRole("button", { name: /Entrar na sala|Entrar só ouvindo/ });
+
+    await iris.goto(`/sala/${code}`);
+    await iris.getByLabel("Seu nome na sala").fill("Iris Convidada");
+    await iris.getByLabel("Senha da sala (quem te convidou sabe)").fill(E2E_ACCESS_PASSWORD);
+    await join.click();
+    await expect(iris.getByText(/A sala ainda não começou/)).toBeVisible();
+
+    await joinRoom(gil.page, code);
+    await join.click();
+    await expect(iris.getByRole("button", { name: /Sair/ })).toBeVisible();
+    await expect(gil.page.getByText("Iris Convidada (convidado) entrou na sala")).toBeVisible();
+
+    // The guest's hand goes through the server too (signed guest cookie).
+    await iris.keyboard.press("h");
+    await expect(gil.page.getByText("✋ Iris Convidada (convidado) levantou a mão")).toBeVisible();
+
+    await iris.getByRole("button", { name: "Sair da sala" }).click();
+    await iris.getByRole("alertdialog").getByRole("button", { name: "Sair", exact: true }).click();
+    await expect(iris.getByRole("link", { name: "Criar conta grátis" })).toBeVisible();
+    await context.close();
+    await gil.context.close();
   });
 
   test("a connection failure offers to try again (B-01)", async ({ browser }) => {

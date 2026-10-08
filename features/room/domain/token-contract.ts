@@ -1,15 +1,18 @@
 import { z } from "zod";
+import { displayNameSchema } from "./participant-label";
 import { roomCodeSchema } from "./room-code";
 
 /**
- * Body of POST /api/token, the same in the browser and on the server. The name and
- * identity come from the signed-in account (server), never from the browser.
+ * Body of POST /api/token, the same in the browser and on the server. With an account,
+ * the name and identity come from it (server); a guest sends only the name to show.
  */
 export const tokenRequestSchema = z.object({
   room: roomCodeSchema,
   password: z.string().max(128).optional(),
   /** Dashboard invite token (?convite= in the room link). */
   invite: z.string().max(64).optional(),
+  /** Name of a guest (no account); ignored when the request comes with a session. */
+  guestName: displayNameSchema.optional(),
 });
 
 export type TokenRequest = z.infer<typeof tokenRequestSchema>;
@@ -31,6 +34,7 @@ export const tokenErrorSchema = z.object({
     "invalid_password",
     "invite_invalid",
     "room_full",
+    "host_absent",
     "rate_limited",
     "server_error",
   ]),

@@ -59,6 +59,7 @@ describe("token request failure in the pre-join screen", () => {
 describe("who is already in the room", () => {
   it("empty, with people and full", () => {
     expect(presenceText(0, 6).kind).toBe("empty");
+    expect(presenceText(0, 6, true).text).toContain("Quem te convidou ainda não entrou");
     expect(presenceText(1, 6).text).toBe("1 pessoa já está na sala");
     expect(presenceText(3, 6).text).toBe("3 pessoas já estão na sala");
     expect(presenceText(6, 6)).toEqual({
