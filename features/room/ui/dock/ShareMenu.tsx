@@ -6,15 +6,9 @@ import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { DockButton } from "./DockButton";
 import { DockPopoverContent } from "./DockPopover";
 import { SharePanel } from "./SharePanel";
-import { canShare, type ShareChoice } from "@/features/room/domain/share-support";
+import { canShare } from "@/features/room/domain/share-support";
+import type { ScreenShareControl } from "@/features/room/hooks/use-screen-share";
 import { useShareSupport } from "@/features/room/hooks/use-share-support";
-
-interface ShareMenuProps {
-  isSharing: boolean;
-  busy: boolean;
-  onShare: (choice: ShareChoice) => void;
-  onStop: () => void;
-}
 
 /** Seconds since `running` became true; resets to zero on stop. */
 function useElapsedSeconds(running: boolean): number {
@@ -42,12 +36,12 @@ function formatElapsed(total: number): string {
  * Our own menu before the native picker: the person chooses the surface type
  * and the browser picker opens on the matching tab (`displaySurface`).
  */
-export function ShareMenu({ isSharing, busy, onShare, onStop }: ShareMenuProps) {
+export function ShareMenu({ share }: { share: ScreenShareControl }) {
+  const { isSharing, busy } = share;
   const support = useShareSupport();
   // Same rule as the notes before joining: phones and tablets watch, they do not share.
   const supported = support !== null && canShare(support);
   const [open, setOpen] = useState(false);
-  const [audio, setAudio] = useState(true);
   // While sharing, the button shows for how long: makes it clear the screen is live.
   const elapsed = formatElapsed(useElapsedSeconds(isSharing));
 
@@ -64,7 +58,7 @@ export function ShareMenu({ isSharing, busy, onShare, onStop }: ShareMenuProps) 
     }
     // While sharing: the button stops immediately, without opening the menu.
     if (next && isSharing) {
-      onStop();
+      void share.stop();
       return;
     }
     setOpen(next);
@@ -102,11 +96,11 @@ export function ShareMenu({ isSharing, busy, onShare, onStop }: ShareMenuProps) 
         className="w-[min(22rem,calc(100vw-2rem))]"
       >
         <SharePanel
-          audio={audio}
-          onAudioChange={setAudio}
+          audio={share.audio}
+          onAudioChange={share.setAudio}
           onPick={(choice) => {
             setOpen(false);
-            onShare(choice);
+            void share.start(choice);
           }}
         />
       </DockPopoverContent>

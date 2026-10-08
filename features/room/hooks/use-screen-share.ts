@@ -12,6 +12,8 @@ import type { ShareChoice } from "@/features/room/domain/share-support";
 export function useScreenShare() {
   const { localParticipant, isScreenShareEnabled } = useLocalParticipant();
   const [busy, setBusy] = useState(false);
+  // Sound preference shared by the dock menu and the alone screen.
+  const [audioPreferred, setAudioPreferred] = useState(true);
 
   async function start({ surface, audio }: ShareChoice) {
     // Text (screen, window): 15fps leaves bandwidth for every frame to come out sharp.
@@ -77,7 +79,14 @@ export function useScreenShare() {
     }
   }
 
-  return { isSharing: isScreenShareEnabled, busy, start, stop };
+  return {
+    isSharing: isScreenShareEnabled,
+    busy,
+    audio: audioPreferred,
+    setAudio: setAudioPreferred,
+    start,
+    stop,
+  };
 }
 
 export type ScreenShareControl = ReturnType<typeof useScreenShare>;
