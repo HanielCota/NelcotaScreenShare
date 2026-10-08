@@ -3,13 +3,10 @@ import AdminNotFound from "./AdminNotFound";
 import { RotateCcw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-/** Unexpected error on an admin page: message without internal details + a code for support. */
+/** Unexpected error on an admin page: a message without internal details and a retry. */
 export function AdminErrorBoundary() {
   const error = useRouteError();
   const revalidator = useRevalidator();
-  const retry = () => {
-    void revalidator.revalidate();
-  };
   if (isRouteErrorResponse(error) && error.status === 404) return <AdminNotFound />;
   return (
     <div role="alert" className="glass mx-auto mt-8 w-full max-w-md rounded-2xl p-8 text-center">
@@ -20,7 +17,7 @@ export function AdminErrorBoundary() {
       <p className="mt-2 text-ink-muted">
         Não foi possível carregar esta tela. Tente de novo em instantes.
       </p>
-      <Button className="mt-6" onClick={() => retry()}>
+      <Button className="mt-6" onClick={() => void revalidator.revalidate()}>
         <RotateCcw aria-hidden="true" />
         Tentar de novo
       </Button>
