@@ -74,7 +74,11 @@ function PeopleArea({
     <div
       className={cn(
         hasStage
-          ? "flex shrink-0 gap-3 overflow-x-auto p-1 lg:w-48 lg:flex-col lg:gap-4 lg:overflow-x-visible lg:overflow-y-auto"
+          ? cn(
+              "flex shrink-0 gap-3 overflow-x-auto p-1 lg:w-48 lg:flex-col lg:gap-4 lg:overflow-x-visible lg:overflow-y-auto",
+              // Phone on its side: the strip would leave the stage a sliver; the top bar lists people.
+              "max-lg:[@media(max-height:32rem)]:hidden",
+            )
           : "grid w-full max-w-5xl content-center gap-4",
         !hasStage && participants.length <= 2 && "max-w-4xl grid-cols-1 sm:grid-cols-2",
         !hasStage && participants.length >= 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
@@ -154,6 +158,8 @@ export function RoomLayout({
       <main
         className={cn(
           "relative z-10 flex min-h-0 flex-1 gap-4 px-3 pt-4 pb-32 sm:px-6",
+          // Short screens: the dock drops its captions, so less room is reserved for it.
+          "[@media(max-height:32rem)]:pt-2 [@media(max-height:32rem)]:pb-20",
           // Stage in fullscreen: its stacking context has to rise above the top bar and dock.
           "has-data-fullscreen:z-45",
           hasStage ? "flex-col lg:flex-row" : "flex-col items-center justify-center",
