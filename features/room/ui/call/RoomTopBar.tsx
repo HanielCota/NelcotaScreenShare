@@ -1,7 +1,9 @@
 import type { Participant } from "livekit-client";
-import { Check, Copy, MoreHorizontal } from "lucide-react";
+import { Check, Copy, LayoutDashboard, MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 import { toast } from "sonner";
+import { Hint } from "@/components/Hint";
 import {
   NavBar,
   NavBrand,
@@ -9,6 +11,7 @@ import {
   NavPopover,
   ShortcutsPanel,
 } from "@/components/shell/NavBar";
+import { navItemClass } from "@/components/shell/nav-item-class";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { roomPath } from "@/features/room/domain/room-code";
 import { participantName } from "@/features/room/domain/participant-label";
@@ -111,11 +114,14 @@ export function RoomTopBar({
   code,
   participants,
   maxParticipants,
+  isAdmin,
   connection,
 }: {
   code: string;
   participants: Participant[];
   maxParticipants: number;
+  /** Admins open the panel without leaving: the call goes on minimized. */
+  isAdmin: boolean;
   connection: "connected" | "connecting" | "reconnecting";
 }) {
   return (
@@ -138,6 +144,18 @@ export function RoomTopBar({
 
       <span className="ml-auto" />
       <PeopleButton participants={participants} max={maxParticipants} />
+      {isAdmin ? (
+        <Hint text="Painel admin (a chamada continua)">
+          <Link
+            viewTransition
+            to="/admin"
+            aria-label="Abrir o painel admin"
+            className={navItemClass}
+          >
+            <LayoutDashboard className="size-5" aria-hidden="true" />
+          </Link>
+        </Hint>
+      ) : null}
       <NavPopover
         label="Mais opções"
         iconOnly

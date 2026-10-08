@@ -23,6 +23,8 @@ interface RoomSessionProps {
   maxParticipants: number;
   /** People in the room now (null: unknown). */
   presence: RoomPresence | null;
+  /** Shows the link to the admin panel inside the call. */
+  isAdmin: boolean;
   /** Another page is open: a call goes on hidden; anything else shows nothing. */
   minimized: boolean;
   /** Whether there is a call to keep while the person visits other pages. */
@@ -43,6 +45,7 @@ export function RoomSession({
   invite,
   maxParticipants,
   presence,
+  isAdmin,
   minimized,
   onCallChange,
 }: RoomSessionProps) {
@@ -94,6 +97,7 @@ export function RoomSession({
           code={code}
           choices={phase.choices}
           maxParticipants={maxParticipants}
+          isAdmin={isAdmin}
           minimized={minimized}
           onLeave={(notice) => leave(notice, phase.startedAt)}
           onRetry={() => retry(phase.choices, phase.attempt, phase.startedAt)}

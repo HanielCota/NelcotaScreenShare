@@ -2,6 +2,7 @@ import { routeLoader } from "@/server/route-loader.server";
 
 import { redirect } from "@/server/http.server";
 import { requireUser } from "@/features/auth/server/participant-session.server";
+import { getAdminSession } from "@/features/auth/server/admin-session.server";
 import { getDb } from "@/server/db/index.server";
 import { getEnv } from "@/server/env.server";
 import { presenceForGuests } from "@/features/room/domain/presence";
@@ -33,7 +34,8 @@ export const loader = routeLoader(async ({ params: routeParams, searchParams }) 
   const { ACCESS_PASSWORD, MAX_PARTICIPANTS } = getEnv();
   const passwordRequired = ACCESS_PASSWORD !== undefined;
   // Who is already inside, for the pre-join screen to show.
-  const presence = presenceForGuests(await roomPresence(getDb(), code.data), passwordRequired);
+  const [roomNow, admin] = await Promise.all([roomPresence(getDb(), code.data), getAdminSession()]);
+  const presence = presenceForGuests(roomNow, passwordRequired);
 
   return {
     invite,
@@ -42,6 +44,8 @@ export const loader = routeLoader(async ({ params: routeParams, searchParams }) 
     passwordRequired,
     maxParticipants: MAX_PARTICIPANTS,
     presence,
+    // Admin session in this browser: the call offers the panel without leaving the room.
+    isAdmin: admin !== null,
   } satisfies RoomEntry;
 });
 

@@ -10,6 +10,7 @@ export interface RoomEntry {
   invite?: string;
   maxParticipants: number;
   presence: RoomPresence | null;
+  isAdmin: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ export function ActiveRoom({ room }: { room: RoomEntry | undefined }) {
       invite={entry.invite}
       maxParticipants={entry.maxParticipants}
       presence={entry.presence}
+      isAdmin={entry.isAdmin}
       minimized={room === undefined}
       onCallChange={(inCall) => setCall(inCall ? entry : undefined)}
     />
