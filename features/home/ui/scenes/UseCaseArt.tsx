@@ -1,4 +1,4 @@
-import { Volume2 } from "lucide-react";
+import { Maximize2, Volume2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { PointerArrow, WindowDots } from "../demo/RoomChrome";
 
@@ -148,38 +148,92 @@ export function ReviewArt() {
   );
 }
 
-/** An editor, with the teammate's screen floating on top of it (picture in picture). */
-export function PairingArt() {
-  const lines = [
-    ["describe", "(", '"checkout"', ", () => {"],
-    ["  it", "(", '"soma o carrinho"', ", () => {"],
-    ["    expect", "(total(cart)).", "toBe", "(42);"],
-    ["  });"],
-    ["});"],
-  ];
+/** Code tokens: [text, color]; no color is the editor's plain text. */
+type Token = [string, string?];
+const KEYWORD = "text-[#c4a7ff]";
+const CALL = "text-[#8ab4ff]";
+const TEXT = "text-[#a2e1b2]";
+
+const TEST_FILE: Token[][] = [
+  [["describe", CALL], ["("], ['"checkout"', TEXT], [", () "], ["=>", KEYWORD], [" {"]],
+  [["  it", CALL], ["("], ['"soma o carrinho"', TEXT], [", () "], ["=>", KEYWORD], [" {"]],
+  [["    expect", CALL], ["(total(cart))."], ["toBe", CALL], ["(42);"]],
+  [["  });"]],
+  [["  it", CALL], ["("], ['"aplica o cupom"', TEXT], [", () "], ["=>", KEYWORD], [" {"]],
+];
+
+/** Level bars of who is speaking, moving like the other drawings' sound. */
+function Speaking() {
   return (
-    <Shot title="checkout.test.ts">
-      <div className="flex flex-col gap-[1.2cqi] px-[4cqi] py-[3.5cqi] font-mono text-[2.8cqi] leading-[1.5] whitespace-pre text-[#e6e6ea]">
-        {lines.map(([fn, ...rest], index) => (
-          <p key={index}>
-            <span className="text-[#8ab4ff]">{fn}</span>
-            {rest.map((part, partIndex) => (
-              <span key={partIndex} className={part.startsWith('"') ? "text-[#a2e1b2]" : undefined}>
-                {part}
-              </span>
-            ))}
-          </p>
-        ))}
+    <span className="ml-auto flex h-[2cqi] items-end gap-[0.4cqi]">
+      {["0.9s", "1.2s", "1s"].map((duration, index) => (
+        <span
+          key={duration}
+          style={{ height: `${[60, 100, 45][index]}%`, animationDuration: duration }}
+          className="w-[0.5cqi] origin-bottom rounded bg-[#a2e1b2] motion-safe:animate-[talk_1s_ease-in-out_infinite]"
+        />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * Pairing: you write the next test in your editor while Rafa's screen floats on top of it
+ * (picture in picture), his tests re-running as the file changes.
+ */
+export function PairingArt() {
+  return (
+    <Shot title="Pareando com Rafa">
+      <div className="flex border-b border-white/8 text-[2.4cqi]">
+        <span className="border-r border-white/8 bg-white/5 px-[3cqi] py-[1.4cqi] text-white/85">
+          checkout.test.ts
+        </span>
+        <span className="px-[3cqi] py-[1.4cqi] text-white/40">cart.ts</span>
       </div>
-      <div className="absolute right-[4cqi] bottom-[4cqi] w-[48%] overflow-hidden rounded-[2cqi] border border-white/15 bg-[#0d0d0f] shadow-[0_20px_40px_-12px_rgb(0_0_0/0.9)]">
-        <div className="flex items-center gap-[1.4cqi] border-b border-white/8 px-[2.4cqi] py-[1.4cqi] text-[2.4cqi] text-white/60">
+      <div className="py-[2.6cqi] font-mono text-[2.6cqi] leading-[1.75] whitespace-pre text-[#e6e6ea]">
+        {TEST_FILE.map((tokens, line) => {
+          const typing = line === TEST_FILE.length - 1;
+          return (
+            <p
+              key={line}
+              className={`relative flex gap-[3cqi] px-[3cqi] ${typing ? "bg-[#8b5cf6]/12" : ""}`}
+            >
+              <span className="w-[2.4cqi] text-right text-white/25 tabular-nums">{line + 1}</span>
+              <span>
+                {tokens.map(([text, tone], index) => (
+                  <span key={index} className={tone}>
+                    {text}
+                  </span>
+                ))}
+                {/* Where you are typing: a blinking caret and your tag. */}
+                {typing ? (
+                  <span className="ml-[0.3cqi] inline-block h-[3cqi] w-[0.4cqi] translate-y-[0.5cqi] bg-[#c4a7ff] motion-safe:animate-pulse" />
+                ) : null}
+              </span>
+              {typing ? (
+                <span className="absolute -top-[2.6cqi] left-[49%] rounded-[0.8cqi] bg-[#8b5cf6] px-[1.2cqi] font-sans text-[2cqi] font-semibold">
+                  Você
+                </span>
+              ) : null}
+            </p>
+          );
+        })}
+      </div>
+      <div className="absolute right-[4cqi] bottom-[4cqi] w-[50%] overflow-hidden rounded-[2cqi] border border-white/15 bg-[#0d0d0f] shadow-[0_20px_40px_-12px_rgb(0_0_0/0.9)]">
+        <div className="flex items-center gap-[1.4cqi] border-b border-white/8 px-[2.4cqi] py-[1.4cqi] text-[2.4cqi] text-white/70">
           <span className="size-[1.6cqi] rounded-full bg-[#4ade80]" />
           Tela de Rafa
+          <Speaking />
+          <Maximize2 className="size-[2.4cqi] text-white/40" />
         </div>
-        <div className="px-[2.4cqi] py-[2cqi] font-mono text-[2.4cqi] leading-[1.6]">
+        <div className="px-[2.4cqi] py-[2cqi] font-mono text-[2.3cqi] leading-[1.6]">
+          <p className="text-white/45">$ pnpm test --watch</p>
           <p className="text-[#4ade80]">✓ soma o carrinho</p>
           <p className="text-[#4ade80]">✓ aplica o cupom</p>
-          <p className="text-white/50">2 passed · 0.41s</p>
+          <p className="flex items-center gap-[1cqi] text-white/45">
+            <span className="size-[1.2cqi] rounded-full bg-[#fbbf24] motion-safe:animate-pulse" />
+            aguardando mudanças…
+          </p>
         </div>
       </div>
     </Shot>
