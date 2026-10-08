@@ -11,6 +11,7 @@
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 import { hashPassword } from "@/features/auth/server/password.server";
+import { AUDIT_INSERT_BATCH } from "@/server/audit.server";
 import { getDb } from "@/server/db/index.server";
 import { auditLogs, userAccounts, users } from "@/server/db/schema";
 
@@ -121,8 +122,8 @@ async function seedAudit(target: number) {
       createdAt: faker.date.recent({ days: 90 }),
     };
   });
-  for (let i = 0; i < batch.length; i += 1000) {
-    await db.insert(auditLogs).values(batch.slice(i, i + 1000));
+  for (let i = 0; i < batch.length; i += AUDIT_INSERT_BATCH) {
+    await db.insert(auditLogs).values(batch.slice(i, i + AUDIT_INSERT_BATCH));
   }
   return missing;
 }
