@@ -236,7 +236,7 @@ export default defineConfig({
       files: [
         "features/room/ui/dock/MicMenu.tsx",
         "features/room/ui/dock/Reactions.tsx",
-        "features/room/ui/dock/ShareMenu.tsx",
+        "features/room/ui/dock/SharePanel.tsx",
         "features/security/ui/TwoFactorSettings.tsx",
         "features/auth/ui/TwoFactorCodeForm.tsx",
       ],

@@ -1,18 +1,12 @@
-import { AppWindow, Globe, Monitor, MonitorOff, MonitorUp, Volume2 } from "lucide-react";
+import { MonitorOff, MonitorUp } from "lucide-react";
 import { Popover } from "radix-ui";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
-import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";
-import { DockPopoverContent, DockPopoverTitle } from "./DockPopover";
-import {
-  canShare,
-  type ShareChoice,
-  type ShareSurface,
-} from "@/features/room/domain/share-support";
+import { DockPopoverContent } from "./DockPopover";
+import { SharePanel } from "./SharePanel";
+import { canShare, type ShareChoice } from "@/features/room/domain/share-support";
 import { useShareSupport } from "@/features/room/hooks/use-share-support";
 
 interface ShareMenuProps {
@@ -21,38 +15,6 @@ interface ShareMenuProps {
   onShare: (choice: ShareChoice) => void;
   onStop: () => void;
 }
-
-const OPTIONS: {
-  surface: ShareSurface;
-  title: string;
-  description: string;
-  icon: typeof Monitor;
-}[] = [
-  {
-    surface: "monitor",
-    title: "Tela inteira",
-    description: "Tudo o que aparece no seu monitor",
-    icon: Monitor,
-  },
-  {
-    surface: "window",
-    title: "Janela",
-    description: "Um aplicativo específico, sem o resto da tela",
-    icon: AppWindow,
-  },
-  {
-    surface: "browser",
-    title: "Aba do navegador",
-    description: "Ideal para vídeos e slides, com o áudio da aba",
-    icon: Globe,
-  },
-];
-
-const AUDIO_HINT: Record<ShareSurface, string> = {
-  monitor: "Áudio do sistema (Windows e ChromeOS).",
-  window: "O navegador não captura áudio de janelas.",
-  browser: "Áudio só da aba escolhida.",
-};
 
 /** Seconds since `running` became true; resets to zero on stop. */
 function useElapsedSeconds(running: boolean): number {
@@ -86,7 +48,6 @@ export function ShareMenu({ isSharing, busy, onShare, onStop }: ShareMenuProps) 
   const supported = support !== null && canShare(support);
   const [open, setOpen] = useState(false);
   const [audio, setAudio] = useState(true);
-  const [hovered, setHovered] = useState<ShareSurface>("monitor");
   // While sharing, the button shows for how long: makes it clear the screen is live.
   const elapsed = formatElapsed(useElapsedSeconds(isSharing));
 
@@ -140,74 +101,15 @@ export function ShareMenu({ isSharing, busy, onShare, onStop }: ShareMenuProps) 
         aria-label="Opções de compartilhamento"
         className="w-[min(22rem,calc(100vw-2rem))]"
       >
-        <ShareMenuPanel
+        <SharePanel
           audio={audio}
-          hovered={hovered}
           onAudioChange={setAudio}
-          onHover={setHovered}
-          onPick={(surface) => {
+          onPick={(choice) => {
             setOpen(false);
-            onShare({ surface, audio: audio && surface !== "window" });
+            onShare(choice);
           }}
         />
       </DockPopoverContent>
     </Popover.Root>
-  );
-}
-
-interface PanelProps {
-  audio: boolean;
-  hovered: ShareSurface;
-  onAudioChange: (value: boolean) => void;
-  onHover: (surface: ShareSurface) => void;
-  onPick: (surface: ShareSurface) => void;
-}
-
-function ShareMenuPanel({ audio, hovered, onAudioChange, onHover, onPick }: PanelProps) {
-  const audioId = useId();
-
-  return (
-    <>
-      <DockPopoverTitle>O que você quer compartilhar?</DockPopoverTitle>
-
-      <ul className="flex flex-col gap-1">
-        {OPTIONS.map(({ surface, title, description, icon: Icon }, index) => (
-          <li key={surface}>
-            <button
-              type="button"
-              autoFocus={index === 0}
-              onClick={() => onPick(surface)}
-              onPointerEnter={() => onHover(surface)}
-              onFocus={() => onHover(surface)}
-              className="group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-surface-3 focus-visible:bg-surface-3 focus-visible:outline-none active:bg-surface-3/70"
-            >
-              <span
-                className={cn(
-                  "grid size-10 shrink-0 place-items-center rounded-xl transition-colors",
-                  hovered === surface ? "bg-brand text-brand-ink" : "bg-surface-2 text-brand-soft",
-                )}
-              >
-                <Icon className="size-5" aria-hidden="true" />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-medium">{title}</span>
-                <span className="block text-xs text-ink-subtle">{description}</span>
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface/60 px-3 py-2.5">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <Volume2 className="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />
-          <Label htmlFor={audioId} className="min-w-0 flex-col items-start gap-1">
-            <span className="text-sm font-medium">Incluir áudio</span>
-            <span className="text-xs font-normal text-ink-subtle">{AUDIO_HINT[hovered]}</span>
-          </Label>
-        </div>
-        <Switch id={audioId} checked={audio} onCheckedChange={onAudioChange} />
-      </div>
-    </>
   );
 }
