@@ -2,6 +2,7 @@ import { Check, Mic } from "lucide-react";
 import type { ReactNode } from "react";
 import { ROOM_SHORTCUTS } from "@/lib/shortcuts";
 import { cn } from "@/lib/utils";
+import { WindowDots } from "./demo/RoomChrome";
 import { SectionIntro } from "./SectionIntro";
 
 /** One tile: a two-tone headline over its own picture of the room. */
@@ -98,28 +99,70 @@ function MicDevice() {
   );
 }
 
+/** Your own editor, drawn as colored code lines: widths and token colors per line. */
+const YOUR_CODE: [string, string][][] = [
+  [
+    ["w-10", "bg-[#c4a7ff]/70"],
+    ["w-16", "bg-ink/25"],
+  ],
+  [
+    ["w-8", "bg-[#c4a7ff]/70"],
+    ["w-12", "bg-[#7dd3fc]/70"],
+    ["w-20", "bg-ink/20"],
+  ],
+  [
+    ["w-6", "bg-transparent"],
+    ["w-14", "bg-ink/20"],
+    ["w-10", "bg-[#a2e1b2]/70"],
+  ],
+  [
+    ["w-6", "bg-transparent"],
+    ["w-24", "bg-ink/15"],
+  ],
+  [
+    ["w-6", "bg-transparent"],
+    ["w-10", "bg-[#fbbf24]/60"],
+    ["w-14", "bg-ink/20"],
+  ],
+  [["w-4", "bg-ink/25"]],
+];
+
 function FloatingWindow() {
   return (
-    <div className="relative aspect-[4/3] rounded-2xl bg-surface-2 p-4">
-      <div className="flex flex-col gap-2">
-        <span className="h-2 w-1/3 rounded-full bg-ink/20" />
-        <span className="h-2 w-2/3 rounded-full bg-ink/10" />
-        <span className="h-2 w-1/2 rounded-full bg-ink/10" />
-        <span className="h-2 w-3/5 rounded-full bg-ink/10" />
+    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-surface-2">
+      <div className="flex items-center gap-2 border-b border-line px-3 py-2">
+        <WindowDots className="gap-1" dot="size-2" />
+        <span className="text-xs text-ink-subtle">checkout.tsx</span>
       </div>
-      <div className="absolute right-3 bottom-3 w-[58%] overflow-hidden rounded-xl border border-line-strong bg-[#161618] text-white shadow-soft">
-        <div className="flex items-center gap-1.5 border-b border-white/10 px-2.5 py-1.5 text-xs text-white/70">
+      <div className="flex flex-col gap-2 p-4">
+        {YOUR_CODE.map((tokens, line) => (
+          <span key={line} className="flex gap-1.5">
+            {tokens.map(([width, tone], index) => (
+              <span key={index} className={`h-1.5 rounded-full ${width} ${tone}`} />
+            ))}
+          </span>
+        ))}
+      </div>
+      {/* Bruno's screen, floating over your editor like the browser's picture-in-picture. */}
+      <div className="absolute right-3 bottom-3 w-[64%] overflow-hidden rounded-xl border border-white/12 bg-[#161618] text-white shadow-[0_24px_48px_-16px_rgb(0_0_0/0.6)]">
+        <div className="flex items-center gap-1.5 border-b border-white/10 px-2.5 py-1.5 text-xs text-white/75">
           <span className="size-1.5 rounded-full bg-[#4ade80]" />
           Tela de Bruno
+          <span className="ml-auto flex h-2.5 items-end gap-0.5">
+            {[60, 100, 45].map((height) => (
+              <span
+                key={height}
+                style={{ height: `${height}%` }}
+                className="w-0.5 rounded bg-[#a2e1b2]"
+              />
+            ))}
+          </span>
         </div>
-        <div className="flex aspect-video items-end gap-1 p-2.5">
-          {[40, 70, 55, 85, 65].map((height) => (
-            <span
-              key={height}
-              style={{ height: `${height}%` }}
-              className="flex-1 rounded-t bg-[#a2e1b2]/70"
-            />
-          ))}
+        <div className="flex flex-col gap-1 p-2.5 font-mono text-[0.625rem] leading-relaxed">
+          <span className="text-white/45">$ npm test</span>
+          <span className="text-[#ff6b6b]">✗ total() com carrinho vazio</span>
+          <span className="truncate text-white/60">TypeError: cart.items is undefined</span>
+          <span className="text-white/35">at total (cart.ts:4:15)</span>
         </div>
       </div>
     </div>
