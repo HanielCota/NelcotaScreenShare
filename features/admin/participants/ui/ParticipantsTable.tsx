@@ -1,5 +1,4 @@
 import { Hint } from "@/components/Hint";
-
 import { Ban, LockOpen, Trash2 } from "lucide-react";
 import { useOperation } from "@/lib/operations/use-operation";
 import { Link } from "react-router";

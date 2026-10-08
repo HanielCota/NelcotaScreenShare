@@ -1,6 +1,5 @@
 import { ArrowUpRight, ChevronsUpDown, LogOut, Search, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate, useRevalidator } from "react-router";
-
 import { Fragment, useState, type ReactNode } from "react";
 import { NavBar, NavBrand, NavDivider } from "@/components/shell/NavBar";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
