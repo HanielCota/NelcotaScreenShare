@@ -336,6 +336,8 @@
     --stage-ink: #f5f5f7;
     --stage-muted: rgb(245 245 247 / 0.62);
     --stage-dim: rgb(245 245 247 / 0.16);
+    /* The light theme's dark green would vanish on the stage (focus rings use it). */
+    --color-brand-soft: #cdf2d6;
     background: #0b0b0c;
     color: var(--stage-ink);
     color-scheme: dark;
