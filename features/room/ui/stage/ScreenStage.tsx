@@ -1,5 +1,5 @@
 import { VideoTrack, type TrackReference } from "@livekit/components-react";
-import { Maximize2, Minimize2, MonitorUp, MousePointerClick } from "lucide-react";
+import { Maximize2, Minimize2, MonitorUp, MousePointerClick, type LucideIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Hint } from "@/components/Hint";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
@@ -18,6 +18,32 @@ function sharerName(ref: TrackReference): string {
   return ref.participant.isLocal ? "Você" : participantName(ref.participant);
 }
 
+function StageButton({
+  label,
+  shortcut,
+  icon: Icon,
+  onPress,
+}: {
+  label: string;
+  shortcut: string;
+  icon: LucideIcon;
+  onPress: () => void;
+}) {
+  return (
+    <Hint text={`${label} (${shortcut})`}>
+      <button
+        type="button"
+        onClick={onPress}
+        aria-keyshortcuts={shortcut}
+        aria-label={label}
+        className="glass pointer-events-auto grid size-9 place-items-center rounded-xl text-ink-muted transition-colors hover:text-ink"
+      >
+        <Icon className="size-4" aria-hidden="true" />
+      </button>
+    </Hint>
+  );
+}
+
 function FullscreenButton({
   isFullscreen,
   onToggle,
@@ -25,20 +51,13 @@ function FullscreenButton({
   isFullscreen: boolean;
   onToggle: () => void;
 }) {
-  const label = isFullscreen ? "Sair da tela cheia" : "Tela cheia";
-  const Icon = isFullscreen ? Minimize2 : Maximize2;
   return (
-    <Hint text={`${label} (F)`}>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-keyshortcuts="F"
-        aria-label={label}
-        className="glass pointer-events-auto grid size-9 place-items-center rounded-xl text-ink-muted transition-colors hover:text-ink"
-      >
-        <Icon className="size-4" aria-hidden="true" />
-      </button>
-    </Hint>
+    <StageButton
+      label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+      shortcut="F"
+      icon={isFullscreen ? Minimize2 : Maximize2}
+      onPress={onToggle}
+    />
   );
 }
 
