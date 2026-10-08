@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { canShare, classifyShareSupport, sharesAudio } from "@/features/room/domain/share-support";
+import {
+  canShare,
+  classifyShareSupport,
+  sharesAudio,
+  showsCaptureBar,
+} from "@/features/room/domain/share-support";
 
 const UA = {
   chrome:
@@ -54,4 +59,16 @@ test("only desktop browsers share, and only Chromium sends the computer audio", 
   assert.equal(sharesAudio("full"), true);
   assert.equal(sharesAudio("screen-only"), false);
   assert.equal(sharesAudio("safari"), false);
+});
+
+test("Chromium floats its sharing bar for a screen or a window", () => {
+  assert.equal(showsCaptureBar("full", "monitor"), true);
+  assert.equal(showsCaptureBar("full", "window"), true);
+});
+
+test("a shared tab gets the bar inside the tab, and other browsers float none", () => {
+  assert.equal(showsCaptureBar("full", "browser"), false);
+  assert.equal(showsCaptureBar("full", undefined), false);
+  assert.equal(showsCaptureBar("screen-only", "monitor"), false);
+  assert.equal(showsCaptureBar("safari", "monitor"), false);
 });

@@ -53,6 +53,8 @@ export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
     <div
       className={cn(
         "pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-[max(1rem,env(safe-area-inset-bottom))]",
+        // Clears the browser's "sharing your screen" bar (about 2.5rem tall).
+        "group-data-capture-bar/room:pb-14",
         // Chat open on a wide screen: the dock centers in the remaining space, like the content.
         chat.open && "lg:pr-[26.5rem]",
       )}

@@ -1,8 +1,9 @@
 import { useLocalParticipant } from "@livekit/components-react";
-import { ScreenSharePresets } from "livekit-client";
+import { ScreenSharePresets, Track } from "livekit-client";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { ShareChoice } from "@/features/room/domain/share-support";
+import { showsCaptureBar, type ShareChoice } from "@/features/room/domain/share-support";
+import { useShareSupport } from "@/features/room/hooks/use-share-support";
 
 /**
  * Starting and stopping screen sharing. One instance per room
@@ -14,6 +15,12 @@ export function useScreenShare() {
   const [busy, setBusy] = useState(false);
   // Sound preference shared by the dock menu and the alone screen.
   const [audioPreferred, setAudioPreferred] = useState(true);
+  const support = useShareSupport();
+  const sharedSurface = isScreenShareEnabled
+    ? localParticipant
+        .getTrackPublication(Track.Source.ScreenShare)
+        ?.track?.mediaStreamTrack.getSettings().displaySurface
+    : undefined;
 
   async function start({ surface, audio }: ShareChoice) {
     // Text (screen, window): 15fps leaves bandwidth for every frame to come out sharp.
@@ -81,6 +88,8 @@ export function useScreenShare() {
 
   return {
     isSharing: isScreenShareEnabled,
+    /** The browser's own sharing bar covers the bottom of the page. */
+    captureBar: support !== null && showsCaptureBar(support, sharedSurface),
     busy,
     audio: audioPreferred,
     setAudio: setAudioPreferred,

@@ -142,7 +142,12 @@ export function RoomLayout({
   useRoomAnimations(scope, layoutKey);
 
   return (
-    <div ref={scope} className="relative flex h-dvh flex-col overflow-hidden bg-canvas">
+    <div
+      ref={scope}
+      // The browser's sharing bar sits over the bottom of the page: dock, chat and content rise.
+      data-capture-bar={share.captureBar || undefined}
+      className="group/room relative flex h-dvh flex-col overflow-hidden bg-canvas"
+    >
       <header
         data-anim="topbar"
         className={cn(
@@ -166,6 +171,7 @@ export function RoomLayout({
           "relative z-10 flex min-h-0 flex-1 gap-4 px-3 pt-4 pb-32 sm:px-6",
           // Short screens: the dock drops its captions, so less room is reserved for it.
           "[@media(max-height:32rem)]:pt-2 [@media(max-height:32rem)]:pb-20",
+          "group-data-capture-bar/room:pb-42 [@media(max-height:32rem)]:group-data-capture-bar/room:pb-30",
           // Stage in fullscreen: its stacking context has to rise above the top bar and dock.
           "has-data-fullscreen:z-45",
           hasStage ? "flex-col lg:flex-row" : "flex-col items-center justify-center",

@@ -61,6 +61,16 @@ export function canShare(support: ShareSupport): boolean {
   return support === "full" || support === "screen-only" || support === "safari";
 }
 
+/**
+ * Does the browser float its own "sharing your screen" bar at the bottom of the display?
+ * Chromium does for a screen or a window (tabs get a bar inside the tab instead); "Ocultar"
+ * only minimizes it, and Windows brings it back. The page cannot move it, so the dock rises.
+ */
+export function showsCaptureBar(support: ShareSupport, surface: string | undefined): boolean {
+  if (support !== "full") return false;
+  return surface === "monitor" || surface === "window";
+}
+
 /** Does the computer audio go along with the screen? Only Chromium on desktop. */
 export function sharesAudio(support: ShareSupport): boolean {
   return support === "full";
