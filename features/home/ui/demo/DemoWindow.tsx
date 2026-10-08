@@ -92,15 +92,15 @@ function RemotePointer() {
 
 /**
  * A miniature of the room: Bruno shares a report with sound, Ana points at the
- * button, reacts and writes in the chat. Every element starts in its final state,
+ * button, reacts and writes in the chat, and a guest joins. Every element starts in its final state,
  * so the picture makes sense without JavaScript or with reduced motion.
  */
 export function DemoWindow() {
   return (
-    <figure className="panel overflow-hidden rounded-2xl">
+    <figure className="panel overflow-hidden rounded-2xl text-ink">
       <figcaption className="sr-only">
         Prévia de uma sala do Nelcota: Bruno compartilha um relatório com som, Ana aponta para o
-        botão Publicar, reage e escreve no chat.
+        botão Publicar, reage e escreve no chat, e Iris entra pelo link como convidada.
       </figcaption>
       <div aria-hidden="true">
         <div className="flex items-center gap-3 border-b border-line px-4 py-3">
@@ -138,6 +138,13 @@ export function DemoWindow() {
                 <span data-demo="level" className="h-2/3 w-0.5 origin-bottom rounded bg-brand" />
                 <span data-demo="level" className="h-full w-0.5 origin-bottom rounded bg-brand" />
               </span>
+            </span>
+            <span
+              data-demo="guest"
+              className="absolute top-[5%] left-[4%] inline-flex items-center gap-1.5 rounded-full bg-canvas/85 px-2.5 py-1 text-xs font-medium backdrop-blur"
+            >
+              <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
+              Iris (convidado) entrou na sala
             </span>
             <RemotePointer />
             <span
