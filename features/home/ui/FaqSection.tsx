@@ -1,6 +1,7 @@
-import { ArrowRight } from "lucide-react";
-import type { ReactNode } from "react";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
 import { Link } from "react-router";
+import { cn } from "@/lib/utils";
 import { SectionIntro } from "./SectionIntro";
 
 function faqItems(maxParticipants: number): { question: string; answer: string }[] {
@@ -58,28 +59,60 @@ function NelcotaSays({ children }: { children: ReactNode }) {
   );
 }
 
+/** How many questions the chat shows before "Ver mais". */
+const FIRST_QUESTIONS = 3;
+
 /**
  * Last objections as a chat, like the one in the room: the visitor's questions on the
- * right, Nelcota's answers on the left, and the privacy notice as the last message. Under
- * the bubbles it is still a list of questions and answers.
+ * right, Nelcota's answers on the left. The first few show; a button opens the rest, and
+ * the privacy notice stays as the last message. Under the bubbles it is a list of
+ * questions and answers.
  */
 export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
+  const listId = useId();
+  const [expanded, setExpanded] = useState(false);
+  const items = faqItems(maxParticipants);
+  const shown = expanded ? items : items.slice(0, FIRST_QUESTIONS);
+  const hidden = items.length - FIRST_QUESTIONS;
+
   return (
     <section aria-labelledby="faq-title" className="w-full max-w-5xl">
       <SectionIntro id="faq-title" title="Perguntas" subtitle="frequentes." align="center" />
 
-      <dl data-fx className="mx-auto mt-12 flex max-w-2xl flex-col gap-3 sm:mt-16">
-        {faqItems(maxParticipants).map(({ question, answer }) => (
-          <div key={question} className="flex flex-col gap-3">
-            <dt className="max-w-[85%] self-end rounded-[1.4rem] rounded-br-md bg-brand px-4 py-2.5 text-base font-medium text-brand-ink">
-              {question}
-            </dt>
-            <dd>
-              <NelcotaSays>{answer}</NelcotaSays>
-            </dd>
-          </div>
-        ))}
-        <div className="flex flex-col gap-3 pt-3">
+      <div data-fx className="mx-auto mt-12 flex max-w-2xl flex-col gap-3 sm:mt-16">
+        <dl id={listId} className="flex flex-col gap-3">
+          {shown.map(({ question, answer }) => (
+            <div key={question} className="flex flex-col gap-3">
+              <dt className="max-w-[85%] self-end rounded-[1.4rem] rounded-br-md bg-brand px-4 py-2.5 text-base font-medium text-brand-ink">
+                {question}
+              </dt>
+              <dd>
+                <NelcotaSays>{answer}</NelcotaSays>
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        {hidden > 0 ? (
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={listId}
+            onClick={() => setExpanded((open) => !open)}
+            className="inline-flex items-center gap-1.5 self-center rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors duration-(--motion-feedback) hover:border-line-strong hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            {expanded ? "Mostrar menos" : `Ver mais ${hidden} perguntas`}
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform duration-(--motion-surface) motion-reduce:transition-none",
+                expanded && "rotate-180",
+              )}
+              aria-hidden="true"
+            />
+          </button>
+        ) : null}
+
+        <dl className="pt-3">
           <dt className="sr-only">E sobre privacidade?</dt>
           <dd>
             <NelcotaSays>
@@ -94,8 +127,8 @@ export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
               </Link>
             </NelcotaSays>
           </dd>
-        </div>
-      </dl>
+        </dl>
+      </div>
     </section>
   );
 }
