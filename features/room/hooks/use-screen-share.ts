@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   canRestrictOwnAudio,
   echoesRoomAudio,
+  shareSupportMessage,
   showsCaptureBar,
   type ShareChoice,
 } from "@/features/room/domain/share-support";
@@ -98,9 +99,7 @@ export function useScreenShare() {
         return;
       }
       if (error instanceof DOMException && error.name === "NotSupportedError") {
-        toast.error(
-          "Este navegador não consegue compartilhar a tela. Tente pelo Chrome, Edge ou Firefox no computador.",
-        );
+        toast.error(shareSupportMessage("unsupported"));
         return;
       }
       toast.error(
