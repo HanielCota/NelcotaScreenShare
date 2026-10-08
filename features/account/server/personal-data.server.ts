@@ -17,23 +17,23 @@ export async function personalData(db: DbExecutor, userId: string) {
   const [profile] = await db
     .select({
       id: users.id,
-      name: users.name,
-      image: users.image,
+      nome: users.name,
+      foto: users.image,
       email: users.email,
-      emailVerified: users.emailVerified,
-      twoFactorEnabled: users.twoFactorEnabled,
-      createdAt: users.createdAt,
-      lastSeenAt: users.lastSeenAt,
+      emailConfirmado: users.emailVerified,
+      duasEtapasAtiva: users.twoFactorEnabled,
+      criadaEm: users.createdAt,
+      ultimoAcesso: users.lastSeenAt,
     })
     .from(users)
     .where(eq(users.id, userId));
   const sessions = await db
     .select({
-      createdAt: userSessions.createdAt,
-      updatedAt: userSessions.updatedAt,
-      expiresAt: userSessions.expiresAt,
-      ipAddress: userSessions.ipAddress,
-      userAgent: userSessions.userAgent,
+      criadaEm: userSessions.createdAt,
+      ultimoUso: userSessions.updatedAt,
+      expiraEm: userSessions.expiresAt,
+      ip: userSessions.ipAddress,
+      navegador: userSessions.userAgent,
     })
     .from(userSessions)
     .where(and(eq(userSessions.userId, userId), gt(userSessions.expiresAt, new Date())))
