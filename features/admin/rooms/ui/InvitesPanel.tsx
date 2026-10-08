@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { ChoiceSelect } from "@/components/ChoiceSelect";
 import { FormError } from "@/components/FormError";
 import { formatDateTime } from "@/lib/format";
+import { formText } from "@/lib/utils";
 import { createInviteAction, revokeInviteAction } from "@/features/admin/rooms/actions";
 import {
   INVITE_MAX_USES,
@@ -122,11 +123,8 @@ function CreateInviteDialog({
             onSubmit={(event) => {
               event.preventDefault();
               const data = new FormData(event.currentTarget);
-              // Text fields: a File here could only come from a tampered form.
-              const field = (name: string) => {
-                const value = data.get(name);
-                return typeof value === "string" ? value : "";
-              };
+              // Text fields: a File here could only come from a tampered form (formText).
+              const field = (name: string) => formText(data, name);
               const uses = field("uses").trim();
               const maxUses = uses ? Number(uses) : null;
               const usesInput =
