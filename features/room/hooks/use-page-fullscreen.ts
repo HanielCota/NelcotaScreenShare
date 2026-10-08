@@ -1,0 +1,43 @@
+import { useEffect, useSyncExternalStore } from "react";
+import { toast } from "sonner";
+
+function subscribeFullscreen(onChange: () => void) {
+  document.addEventListener("fullscreenchange", onChange);
+  return () => document.removeEventListener("fullscreenchange", onChange);
+}
+
+/**
+ * Fullscreen is the whole page with the stage covering it, not the stage element:
+ * notices and tooltips live in portals on <body> and would be hidden otherwise.
+ */
+function isPageFullscreen(): boolean {
+  return document.fullscreenElement === document.documentElement;
+}
+
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+      return;
+    }
+    await document.documentElement.requestFullscreen();
+  } catch {
+    toast.error("Não foi possível alternar a tela cheia.");
+  }
+}
+
+/** Page fullscreen tied to the stage's lifetime. */
+export function usePageFullscreen() {
+  const isFullscreen = useSyncExternalStore(subscribeFullscreen, isPageFullscreen, () => false);
+
+  // The stage leaves (the share ended): the page must not stay in fullscreen without it.
+  useEffect(
+    () => () => {
+      if (isPageFullscreen()) void document.exitFullscreen().catch(() => undefined);
+    },
+    [],
+  );
+
+  // iPhone Safari has no fullscreen for regular elements: no API, no button.
+  return { isFullscreen, canFullscreen: document.fullscreenEnabled, toggle: toggleFullscreen };
+}
