@@ -228,7 +228,7 @@ export default defineConfig({
     },
     {
       files: ["features/auth/ui/SignUpForm.tsx"],
-      // Oxlint 1.86 leaves the valid HTML token `nickname` out of this rule's list.
+      // Oxlint leaves the valid HTML token `nickname` out of this rule's list.
       // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill-field
       rules: { "jsx-a11y/autocomplete-valid": "off" },
     },
