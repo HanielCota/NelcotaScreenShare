@@ -15,13 +15,16 @@ export function PointerArrow({ className }: { className: string }) {
   );
 }
 
-/** The three dots at the start of a window's title bar. */
+/** macOS window controls: close, minimize and zoom, in their system colors. */
+const TRAFFIC_LIGHTS = ["bg-[#ff5f57]", "bg-[#febc2e]", "bg-[#28c840]"];
+
+/** The three dots at the start of a window's title bar, colored like a Mac window's. */
 export function WindowDots({ className, dot }: { className: string; dot: string }) {
   return (
     <span className={`flex ${className}`}>
-      <span className={`rounded-full bg-white/15 ${dot}`} />
-      <span className={`rounded-full bg-white/15 ${dot}`} />
-      <span className={`rounded-full bg-white/15 ${dot}`} />
+      {TRAFFIC_LIGHTS.map((color) => (
+        <span key={color} className={`rounded-full ${color} ${dot}`} />
+      ))}
     </span>
   );
 }
