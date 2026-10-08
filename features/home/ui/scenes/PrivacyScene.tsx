@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { Link } from "react-router";
 import { gsap } from "@/lib/animation/gsap";
 import { useScrollScene } from "@/lib/animation/scroll-scene";
+import { useStageHeader } from "@/features/home/hooks/use-stage-header";
 
 const NOT_KEPT = ["Áudio.", "Vídeo.", "Telas.", "Chat."];
 
@@ -27,15 +28,13 @@ export function PrivacyScene() {
       },
     });
     // The words fade out one by one, then the promise takes their place.
-    tl.to(
-      q("[data-privacy-word]"),
-      { autoAlpha: 0, filter: "blur(14px)", y: -12, stagger: 0.7 },
-      0.3,
-    )
-      .from(q("[data-privacy-promise]"), { autoAlpha: 0, y: 40, duration: 0.8 }, ">-0.5")
-      .from(q("[data-privacy-detail]"), { autoAlpha: 0, y: 24, duration: 0.8 }, ">-0.4")
+    tl.to(q("[data-privacy-word]"), { opacity: 0, filter: "blur(14px)", y: -12, stagger: 0.7 }, 0.3)
+      .from(q("[data-privacy-promise]"), { opacity: 0, y: 40, duration: 0.8 }, ">-0.5")
+      .from(q("[data-privacy-detail]"), { opacity: 0, y: 24, duration: 0.8 }, ">-0.4")
       .to({}, { duration: 0.4 });
   });
+
+  useStageHeader(scope);
 
   return (
     <section ref={scope} aria-labelledby="privacy-title" className="stage w-full">
@@ -61,7 +60,10 @@ export function PrivacyScene() {
           >
             Nada disso fica gravado.
           </h2>
-          <div data-privacy-detail className="flex max-w-xl flex-col gap-4">
+          <div
+            data-privacy-detail
+            className="flex max-w-xl flex-col gap-4 focus-within:transform-none! focus-within:opacity-100!"
+          >
             <p className="text-lg text-pretty text-(--stage-muted) sm:text-xl">
               Tudo passa ao vivo e some quando a sala acaba. Você baixa ou apaga os seus dados
               quando quiser, como manda a LGPD.

@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { gsap } from "@/lib/animation/gsap";
 import { useScrollScene } from "@/lib/animation/scroll-scene";
+import { useStageHeader } from "@/features/home/hooks/use-stage-header";
 import { SplitText } from "@/lib/animation/gsap-scroll";
 
 /**
@@ -33,6 +34,8 @@ export function ManifestoScene() {
     );
     return () => split.revert();
   });
+
+  useStageHeader(scope);
 
   return (
     <section ref={scope} aria-label="Por que o Nelcota existe" className="stage w-full">

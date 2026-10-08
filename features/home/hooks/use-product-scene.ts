@@ -43,8 +43,8 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
       },
     });
 
-    tl.set(chapters, { autoAlpha: 0, y: 28 })
-      .set(chapters[0] ?? [], { autoAlpha: 1, y: 0 })
+    tl.set(chapters, { opacity: 0, y: 28 })
+      .set(chapters[0] ?? [], { opacity: 1, y: 0 })
       .set(screen, { opacity: 0, scale: 0.96 })
       .set(part("line"), { opacity: 0, x: -12 })
       .set(part("terminal"), { opacity: 0, y: 12 })
@@ -63,9 +63,9 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
         at,
       );
       if (index === 0) return;
-      tl.to(chapters[index - 1] ?? [], { autoAlpha: 0, y: -28, duration: 0.3 }, at).to(
+      tl.to(chapters[index - 1] ?? [], { opacity: 0, y: -28, duration: 0.3 }, at).to(
         chapters[index] ?? [],
-        { autoAlpha: 1, y: 0, duration: 0.3 },
+        { opacity: 1, y: 0, duration: 0.3 },
         at + 0.15,
       );
     };

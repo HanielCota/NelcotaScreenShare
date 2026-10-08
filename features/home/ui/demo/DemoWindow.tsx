@@ -1,5 +1,6 @@
 import { Hand, MessageSquare, Mic, MonitorUp, PhoneOff, Volume2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { PointerArrow, WindowDots } from "./RoomChrome";
 
 /**
  * A miniature of a real call, drawn with a fixed dark palette (the room's own look, the
@@ -47,15 +48,7 @@ function RemotePointer() {
         data-demo="ripple"
         className="absolute -top-[1.2cqi] -left-[1.2cqi] size-[3cqi] rounded-full border-2 border-[#a78bfa] opacity-0"
       />
-      <svg viewBox="0 0 16 16" className="size-[2.6cqi] text-[#8b5cf6] drop-shadow">
-        <path
-          d="M2 1.5 13.5 7 8 8.4 5.6 14z"
-          fill="currentColor"
-          stroke="white"
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <PointerArrow className="size-[2.6cqi]" />
       <span className="mt-[2cqi] rounded-full bg-[#8b5cf6] px-[1.2cqi] py-[0.3cqi] font-sans text-[1.5cqi] font-semibold text-white">
         Ana
       </span>
@@ -176,7 +169,7 @@ function DockKey({
  */
 export function DemoWindow() {
   return (
-    <figure className="@container overflow-hidden rounded-[2cqi] border border-white/12 bg-[#161618] text-white shadow-[0_40px_120px_-40px_rgb(0_0_0/0.9)]">
+    <figure className="@container overflow-hidden rounded-2xl border border-white/12 bg-[#161618] text-white shadow-[0_40px_120px_-40px_rgb(0_0_0/0.9)]">
       <figcaption className="sr-only">
         Prévia de uma sala do Nelcota: Bruno compartilha o editor com um erro e o som do computador,
         Ana aponta a linha com o bug, levanta a mão e escreve no chat, e Iris entra pelo link como
@@ -184,11 +177,7 @@ export function DemoWindow() {
       </figcaption>
       <div aria-hidden="true" className="font-sans">
         <div className="flex items-center gap-[1.6cqi] border-b border-white/8 px-[2cqi] py-[1.4cqi] text-[1.4cqi]">
-          <span className="flex gap-[0.8cqi]">
-            <span className="size-[1.2cqi] rounded-full bg-white/15" />
-            <span className="size-[1.2cqi] rounded-full bg-white/15" />
-            <span className="size-[1.2cqi] rounded-full bg-white/15" />
-          </span>
+          <WindowDots className="gap-[0.8cqi]" dot="size-[1.2cqi]" />
           <span className="rounded-full bg-white/8 px-[1.4cqi] py-[0.3cqi] text-white/70 tabular-nums">
             kfa-mtrx-q2p
           </span>

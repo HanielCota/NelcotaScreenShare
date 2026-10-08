@@ -54,6 +54,7 @@ export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
       <div className="mt-12 flex max-w-3xl flex-col gap-3 sm:mt-16">
         {faqItems(maxParticipants).map(({ question, answer }) => (
           <details
+            data-fx="rise"
             key={question}
             className="group rounded-2xl border border-line bg-surface/60 transition-colors open:border-brand/30"
           >
