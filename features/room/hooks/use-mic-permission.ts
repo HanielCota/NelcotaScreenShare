@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { microphonePermissionDenied } from "@/features/room/client/microphone-errors";
 
 /**
  * "unknown": the browser does not tell (no Permissions API): treated as
@@ -40,9 +41,7 @@ export function useMicPermission() {
       setPermission("granted");
       return undefined;
     } catch (error) {
-      if (error instanceof DOMException && error.name === "NotAllowedError") {
-        setPermission("denied");
-      }
+      if (microphonePermissionDenied(error)) setPermission("denied");
       return error;
     }
   }, []);

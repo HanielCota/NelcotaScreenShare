@@ -4,7 +4,6 @@ import { presenceText } from "@/features/room/domain/join";
 import type { RoomPresence } from "@/features/room/domain/presence";
 import { cn } from "@/lib/utils";
 
-/** "Who is already inside": answers "am I in the right place? has it started?". */
 export function PresenceLine({ presence, max }: { presence: RoomPresence | null; max: number }) {
   if (!presence) return null;
   const line = presenceText(presence.online, max);

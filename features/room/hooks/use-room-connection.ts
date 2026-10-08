@@ -9,6 +9,7 @@ import {
 } from "@/features/room/client/connection-errors";
 import type { LeaveNotice } from "@/features/room/domain/leave";
 import type { JoinChoices } from "@/features/room/domain/join";
+import { roomMicErrorMessage } from "@/features/room/client/microphone-errors";
 import { MIC_ERROR_TOAST } from "@/features/room/client/toast-ids";
 
 /**
@@ -60,12 +61,9 @@ export function useRoomConnection(
     };
     const handleReconnected = () => toast.success("Conexão restabelecida.");
     // Microphone failures only (screen sharing has its own notices).
-    const handleMediaError = (_error: Error, kind?: MediaDeviceKind) => {
+    const handleMediaError = (error: Error, kind?: MediaDeviceKind) => {
       if (kind !== "audioinput") return;
-      toast.error(
-        "Não foi possível usar o microfone. Confira as permissões deste site e tente ligá-lo de novo.",
-        { id: MIC_ERROR_TOAST },
-      );
+      toast.error(roomMicErrorMessage(error), { id: MIC_ERROR_TOAST });
     };
 
     room

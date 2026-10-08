@@ -7,12 +7,13 @@ import type { RoomPresence } from "@/features/room/domain/presence";
 import { callDuration, type LeaveNotice, type LeaveReason } from "@/features/room/domain/leave";
 import { roomLink } from "@/features/room/domain/room-code";
 import { PreJoin } from "@/features/room/ui/prejoin/PreJoin";
+import { LeftScreen } from "./LeftScreen";
+
 const loadRoomView = () => import("./call/RoomView");
 const RoomView = lazy(() => loadRoomView().then((module) => ({ default: module.RoomView })));
 const prepareRoomView = () => {
   void loadRoomView().catch(() => {});
 };
-import { LeftScreen } from "./LeftScreen";
 
 interface RoomSessionProps {
   code: string;

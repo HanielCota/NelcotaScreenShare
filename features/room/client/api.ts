@@ -25,7 +25,7 @@ export async function requestToken(input: TokenRequest): Promise<TokenFetchResul
     return {
       ok: false,
       code: "network_error",
-      message: "Não foi possível entrar na sala. Verifique sua internet e tente novamente.",
+      message: "Não foi possível entrar na sala. Verifique sua internet e tente de novo.",
     };
   }
 
@@ -41,7 +41,7 @@ export async function requestToken(input: TokenRequest): Promise<TokenFetchResul
   return {
     ok: false,
     code: "server_error",
-    message: "Não foi possível concluir sua entrada. Aguarde alguns segundos e tente novamente.",
+    message: "Não foi possível concluir sua entrada. Aguarde alguns segundos e tente de novo.",
   };
 }
 

@@ -18,6 +18,7 @@ import {
 import { adminUsers } from "./admin-auth";
 import { createdAt, id, timestamptz, updatedAt } from "./columns";
 import { users } from "./user-auth";
+import { TOKEN_LOG_RESULTS } from "@/features/room/domain/issue-token";
 import { ROOM_CODE_PATTERN } from "@/features/room/domain/room-code";
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
@@ -210,18 +211,7 @@ export const roomInviteUses = pgTable(
   (t) => [primaryKey({ columns: [t.inviteId, t.userId] })],
 );
 
-export const tokenResult = pgEnum("token_result", [
-  "granted",
-  "wrong_password",
-  "room_full",
-  "rate_limited",
-  "blocked",
-  "unverified",
-  "unauthenticated",
-  "invalid",
-  "invite_invalid",
-  "error",
-]);
+export const tokenResult = pgEnum("token_result", TOKEN_LOG_RESULTS);
 
 /** Every request to /api/token (insert-only; 6-month retention). */
 export const tokenRequests = pgTable(

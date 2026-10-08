@@ -3,7 +3,7 @@ import { Track, type Participant } from "livekit-client";
 import { MicOff, MonitorUp } from "lucide-react";
 import { useRef } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
-import { participantName } from "@/features/room/domain/participant-label";
+import { participantLabel, participantName } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";
 
 interface ParticipantTileProps {
@@ -95,7 +95,7 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
           ) : null}
         </div>
         <span className="w-full truncate text-center text-sm font-medium lg:text-left lg:text-base">
-          {participant.isLocal ? "Você" : name}
+          {participantLabel(participant)}
         </span>
         {isSpeaking ? <span className="sr-only">{name} está falando</span> : null}
       </div>

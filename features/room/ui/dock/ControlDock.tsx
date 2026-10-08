@@ -1,5 +1,4 @@
 import { useIsSpeaking, useLocalParticipant } from "@livekit/components-react";
-import { MediaDeviceFailure } from "livekit-client";
 import { MessageSquare, Mic, MicOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +11,7 @@ import { LeaveMenu } from "./LeaveMenu";
 import { MicMenu } from "./MicMenu";
 import { ReactionsMenu } from "./Reactions";
 import { ShareMenu } from "./ShareMenu";
+import { roomMicErrorMessage } from "@/features/room/client/microphone-errors";
 import { MIC_ERROR_TOAST } from "@/features/room/client/toast-ids";
 import type { ScreenShareControl } from "@/features/room/hooks/use-screen-share";
 
@@ -36,12 +36,7 @@ export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
     try {
       await localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
     } catch (error) {
-      toast.error(
-        MediaDeviceFailure.getFailure(error) === MediaDeviceFailure.PermissionDenied
-          ? "Permissão do microfone negada. Libere o acesso nas configurações do navegador."
-          : "Não foi possível alterar o microfone. Confira o dispositivo e tente novamente.",
-        { id: MIC_ERROR_TOAST },
-      );
+      toast.error(roomMicErrorMessage(error), { id: MIC_ERROR_TOAST });
     } finally {
       setMicBusy(false);
     }

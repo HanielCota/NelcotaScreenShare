@@ -1,5 +1,5 @@
 import { INVITE_TOKEN_PATTERN } from "./invite-token";
-import { roomCodeSchema } from "@/features/room/domain/room-code";
+import { decodeRoomParam, roomCodeSchema } from "@/features/room/domain/room-code";
 
 /**
  * What the person typed or pasted into the home page bar: nothing (creates a room),
@@ -20,12 +20,8 @@ export function parseRoomInput(raw: string): RoomInput {
 
   const pathMatch = ROOM_PATH.exec(text);
   if (pathMatch?.[1]) {
-    let segment: string;
-    try {
-      segment = decodeURIComponent(pathMatch[1]);
-    } catch {
-      return { kind: "invalid", reason: "bad-code" };
-    }
+    const segment = decodeRoomParam(pathMatch[1]);
+    if (segment === undefined) return { kind: "invalid", reason: "bad-code" };
     const code = roomCodeSchema.safeParse(segment);
     if (!code.success) return { kind: "invalid", reason: "bad-code" };
     const invite = /[?&]convite=([^&#\s]+)/.exec(text)?.[1];

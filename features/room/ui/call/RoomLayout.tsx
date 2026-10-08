@@ -22,7 +22,7 @@ import { AloneWelcome } from "./AloneWelcome";
 import { ParticipantTile } from "./ParticipantTile";
 import { RoomTopBar } from "./RoomTopBar";
 
-type Connection = "connecting" | "reconnecting" | "connected";
+export type Connection = "connecting" | "reconnecting" | "connected";
 
 function connectionStatus(state: ConnectionState): Connection {
   if (state === ConnectionState.Reconnecting || state === ConnectionState.SignalReconnecting) {

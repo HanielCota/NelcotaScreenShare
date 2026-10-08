@@ -6,7 +6,7 @@ import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { DockButton } from "./DockButton";
 import { DockPopoverContent } from "./DockPopover";
 import { SharePanel } from "./SharePanel";
-import { canShare } from "@/features/room/domain/share-support";
+import { canShare, shareSupportMessage } from "@/features/room/domain/share-support";
 import type { ScreenShareControl } from "@/features/room/hooks/use-screen-share";
 import { useShareSupport } from "@/features/room/hooks/use-share-support";
 
@@ -53,7 +53,7 @@ export function ShareMenu({ share }: { share: ScreenShareControl }) {
 
   function handleOpenChange(next: boolean) {
     if (next && !supported) {
-      toast.info("Este navegador não compartilha tela. Use Chrome, Edge ou Firefox no computador.");
+      toast.info(shareSupportMessage(support ?? "unsupported"));
       return;
     }
     // While sharing: the button stops immediately, without opening the menu.

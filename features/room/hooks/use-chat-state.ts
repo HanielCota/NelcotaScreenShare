@@ -8,7 +8,7 @@ import type { Participant } from "livekit-client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
-import { participantName } from "@/features/room/domain/participant-label";
+import { participantLabel } from "@/features/room/domain/participant-label";
 import {
   CHAT_EDIT_TOPIC,
   chatEditSchema,
@@ -40,11 +40,6 @@ export interface ChatState {
   open: boolean;
   unread: number;
   setOpen: (open: boolean) => void;
-}
-
-export function chatAuthor(from: Participant | undefined): string {
-  if (from?.isLocal) return "Você";
-  return participantName(from);
 }
 
 /** New message toast: disappears if the message is edited or deleted. */
@@ -107,7 +102,7 @@ export function useChatState(): ChatState {
     if (open) return;
     const last = fresh.findLast((message) => !message.from?.isLocal);
     if (last) {
-      toast(`${chatAuthor(last.from)}: ${last.message}`, {
+      toast(`${participantLabel(last.from)}: ${last.message}`, {
         id: chatToastId(last.id),
         action: { label: "Abrir", onClick: () => setOpenState(true) },
       });

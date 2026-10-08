@@ -1,8 +1,9 @@
 import { Check, Copy } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef } from "react";
 import { QrCode } from "@/components/QrCode";
 import { Button } from "@/components/ui/button";
 import { roomPath } from "@/features/room/domain/room-code";
+import { roomUrl, useCopyRoomLink } from "@/features/room/hooks/use-copy-room-link";
 
 /**
  * Empty room invite: the link in plain sight (the person sees what they are copying), the
@@ -11,26 +12,13 @@ import { roomPath } from "@/features/room/domain/room-code";
 export function InviteCard({ code }: { code: string }) {
   const titleId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}${roomPath(code)}`;
+  const url = roomUrl(code);
   const shown = `${window.location.host}${roomPath(code)}`;
-
-  useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), 2500);
-    return () => clearTimeout(timer);
-  }, [copied]);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-    } catch {
-      // No clipboard access: leaves the link selected to copy by hand.
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }
-  }
+  // No clipboard access: leaves the link selected to copy by hand.
+  const { copied, copy } = useCopyRoomLink(code, () => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  });
 
   return (
     <section

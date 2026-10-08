@@ -31,9 +31,10 @@ function tooLarge() {
  * LiveKit webhook. The signature uses the same keys as the token, so only the
  * LiveKit server can call it. Each event is stored in `livekit_events`
  * and projected into rooms, participations and shares
- * (server/livekit/webhook-projector.ts). If storing fails, it responds 503
- * so LiveKit retries; if only the projection fails, the event is already
- * saved and maintenance (server/maintenance.ts) re-projects it later.
+ * (features/room/server/webhook/projector.server.ts). If storing fails, it
+ * responds 503 so LiveKit retries; if only the projection fails, the event is
+ * already saved and maintenance (features/runtime/server/maintenance.server.ts)
+ * re-projects it later.
  */
 export async function receiveLivekitWebhook(request: Request) {
   const env = getEnv();

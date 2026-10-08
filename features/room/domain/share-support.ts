@@ -103,6 +103,12 @@ export const SHARE_SUPPORT_TEXT: Record<
   },
 };
 
+/** The support note as one sentence, for a toast. */
+export function shareSupportMessage(support: ShareSupport): string {
+  const { title, detail } = SHARE_SUPPORT_TEXT[support];
+  return detail ? `${title} ${detail}` : title;
+}
+
 /** What to share: the whole screen, a window or a tab (with or without sound). */
 export type ShareSurface = "monitor" | "window" | "browser";
 

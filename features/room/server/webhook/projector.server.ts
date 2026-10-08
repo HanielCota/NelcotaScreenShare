@@ -25,7 +25,7 @@ async function processStoredEvent(
 ): Promise<IngestResult> {
   try {
     const parsed = webhookPayloadSchema.parse(payload);
-    const result = await db.transaction(async (tx) => {
+    return await db.transaction(async (tx) => {
       const projected = await projectEvent(tx, parsed);
       await tx
         .update(livekitEvents)
@@ -33,7 +33,6 @@ async function processStoredEvent(
         .where(eq(livekitEvents.id, id));
       return projected;
     });
-    return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await db

@@ -15,7 +15,7 @@ import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { useTimeouts } from "@/lib/hooks/use-timeouts";
 import { setHandRaised } from "@/features/room/client/api";
 import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
-import { participantName } from "@/features/room/domain/participant-label";
+import { participantName, SELF_LABEL } from "@/features/room/domain/participant-label";
 import {
   createReceiveThrottle,
   decodeMessage,
@@ -63,7 +63,8 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
   const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));
 
   const { send } = useDataChannel(TOPICS.reaction, (message) => {
-    if (!acceptFrom(message.from?.identity ?? "")) return;
+    const sender = message.from?.identity;
+    if (!sender || !acceptFrom(sender)) return;
     const data = decodeMessage(message.payload, reactionSchema);
     if (data) show(data.emoji, participantName(message.from));
   });
@@ -72,7 +73,7 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
     const now = Date.now();
     if (now - lastSent.current < SEND_INTERVAL_MS) return;
     lastSent.current = now;
-    show(emoji, "Você");
+    show(emoji, SELF_LABEL);
     send(encodeMessage({ emoji }), { reliable: true }).catch(() => {
       toast.error("Não foi possível enviar a reação.");
     });
@@ -167,7 +168,7 @@ export function ReactionsMenu() {
         toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
         return;
       }
-      toast.error("Não foi possível levantar a mão. Tente de novo.");
+      toast.error(`Não foi possível ${next ? "levantar" : "baixar"} a mão. Tente de novo.`);
     });
   }
 

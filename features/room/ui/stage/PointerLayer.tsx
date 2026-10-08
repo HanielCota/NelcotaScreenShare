@@ -17,7 +17,7 @@ import {
   TOPICS,
   type PointerMessage,
 } from "@/features/room/domain/data-channel";
-import { participantName } from "@/features/room/domain/participant-label";
+import { participantName, SELF_LABEL } from "@/features/room/domain/participant-label";
 import { moveCursor, type CursorPosition } from "@/features/room/domain/pointer-cursor";
 import { useTimeouts } from "@/lib/hooks/use-timeouts";
 
@@ -28,6 +28,8 @@ interface Ping extends PointerMessage {
 }
 
 const PING_MS = 2500;
+/** On screen at the same time: the oldest go first, so a flood does not freeze the stage. */
+const MAX_PINGS = 20;
 /** Minimum interval between points sent by this person. */
 const SEND_INTERVAL_MS = 150;
 
@@ -39,14 +41,15 @@ export function usePointers() {
 
   function add(point: PointerMessage, name: string) {
     const id = nextId.current++;
-    setPings((list) => [...list.slice(-19), { ...point, id, name }]);
+    setPings((list) => [...list.slice(-(MAX_PINGS - 1)), { ...point, id, name }]);
     later(() => setPings((list) => list.filter((ping) => ping.id !== id)), PING_MS);
   }
 
   const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));
 
   const { send } = useDataChannel(TOPICS.pointer, (message) => {
-    if (!acceptFrom(message.from?.identity ?? "")) return;
+    const sender = message.from?.identity;
+    if (!sender || !acceptFrom(sender)) return;
     const received = decodeMessage(message.payload, pointerSchema);
     if (received) add(received, participantName(message.from));
   });
@@ -55,7 +58,7 @@ export function usePointers() {
     const now = Date.now();
     if (now - lastSent.current < SEND_INTERVAL_MS) return;
     lastSent.current = now;
-    add(message, "Você");
+    add(message, SELF_LABEL);
     send(encodeMessage(message), { reliable: false }).catch(() => {
       toast.error("Não foi possível marcar o ponto na tela.");
     });

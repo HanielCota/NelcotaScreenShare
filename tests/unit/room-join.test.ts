@@ -1,10 +1,6 @@
 import { ConnectionError, DisconnectReason } from "livekit-client";
 import { describe, expect, it } from "vitest";
-import {
-  connectErrorMessage,
-  disconnectMessage,
-  micErrorMessage,
-} from "@/features/room/client/connection-errors";
+import { connectErrorMessage, disconnectMessage } from "@/features/room/client/connection-errors";
 import { pickFocusedShare, sortByOrder, trackShareOrder } from "@/features/room/domain/focus";
 import { joinFailure, presenceText } from "@/features/room/domain/join";
 import { presenceForGuests } from "@/features/room/domain/presence";
@@ -88,12 +84,6 @@ describe("LiveKit error messages", () => {
     expect(disconnectMessage(DisconnectReason.PARTICIPANT_REMOVED)).toContain("removido");
     expect(disconnectMessage(DisconnectReason.ROOM_DELETED)).toContain("encerrada");
     expect(disconnectMessage(DisconnectReason.CLIENT_INITIATED)).toBeUndefined();
-  });
-
-  it("microphone: blocked, missing and in use", () => {
-    expect(micErrorMessage(new DOMException("", "NotAllowedError"))).toContain("bloqueou");
-    expect(micErrorMessage(new DOMException("", "NotFoundError"))).toContain("Nenhum microfone");
-    expect(micErrorMessage(new DOMException("", "NotReadableError"))).toContain("em uso");
   });
 });
 

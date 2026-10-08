@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, Headphones, Loader2, Ticket } from "lucide-react
 import { Link, useLocation, useViewTransitionState } from "react-router";
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { subscribeNothing } from "@/lib/hooks/subscribe-nothing";
 import { upsetMascot } from "@/features/mascot/client/events";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { requestToken } from "@/features/room/client/api";
@@ -38,8 +39,6 @@ interface PreJoinProps {
   /** Download the call UI while the token request is in flight. */
   onPrepareJoin?: () => void;
 }
-
-const subscribeNothing = () => () => {};
 
 /** Native submission stays unavailable until the client handler is attached. */
 function useJoinDisabled(submitting: boolean) {
@@ -148,7 +147,7 @@ export function PreJoin({
       token: result.data.token,
       serverUrl: result.data.serverUrl,
       // Microphone blocked: join listen-only instead of failing inside.
-      micEnabled: mic.enabled && !mic.blocked,
+      micEnabled: !mic.joinsMuted,
       audioDeviceId: mic.deviceId,
     });
   }

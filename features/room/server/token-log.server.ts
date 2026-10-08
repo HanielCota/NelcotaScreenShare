@@ -2,8 +2,7 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/server/db/index.server";
 import { rooms, tokenRequests } from "@/server/db/schema";
 import { logger } from "@/server/logger.server";
-
-export type TokenResult = (typeof tokenRequests.$inferInsert)["result"];
+import type { TokenLogResult } from "@/features/room/domain/issue-token";
 
 /**
  * Records a request to /api/token (security, metrics and the join IP).
@@ -12,7 +11,7 @@ export type TokenResult = (typeof tokenRequests.$inferInsert)["result"];
 export async function recordTokenRequest(entry: {
   roomCode: string;
   userId: string | null;
-  result: TokenResult;
+  result: TokenLogResult;
   ip: string | null;
 }): Promise<void> {
   const db = getDb();

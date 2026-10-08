@@ -2,11 +2,6 @@ import { Bluetooth, Camera, Headphones, Mic, Phone, Star, type LucideIcon } from
 import type { MicrophoneOption } from "@/features/room/domain/microphone-options";
 import { cn } from "@/lib/utils";
 
-/**
- * Visual pieces of a microphone, the same in the pre-join screen and the room dock:
- * icon colored by type and badges ("Padrão", "Chamadas", Bluetooth).
- */
-
 const ICONS = { system: Mic, microphone: Mic, headset: Headphones, camera: Camera };
 
 /** One color per device type: the headset or the webcam can be spotted at a glance. */
@@ -22,6 +17,7 @@ const BADGES: Partial<Record<string, { icon: LucideIcon; className: string }>> =
   Chamadas: { icon: Phone, className: "bg-info/15 text-info" },
 };
 
+/** Microphone icon colored by type, the same in the pre-join screen and the room dock. */
 export function DeviceIcon({
   kind,
   size = "md",
@@ -44,6 +40,7 @@ export function DeviceIcon({
   );
 }
 
+/** Microphone badges ("Padrão", "Chamadas", Bluetooth). */
 export function DeviceBadges({ option }: { option: MicrophoneOption }) {
   return (
     <>

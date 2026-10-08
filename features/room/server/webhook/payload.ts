@@ -30,10 +30,10 @@ export type WebhookPayload = z.infer<typeof webhookPayloadSchema>;
 export type WebhookParticipant = NonNullable<WebhookPayload["participant"]>;
 
 /** Stored leave reason (the database enum). */
-export type LeaveReason = (typeof leaveReason.enumValues)[number];
+export type StoredLeaveReason = (typeof leaveReason.enumValues)[number];
 
 /** LiveKit reason (DisconnectReason) to the stored reason. */
-export function leaveReasonFrom(reason: string | undefined): LeaveReason {
+export function leaveReasonFrom(reason: string | undefined): StoredLeaveReason {
   switch (reason) {
     case "CLIENT_INITIATED":
       return "left";

@@ -24,3 +24,11 @@ export function micErrorMessage(error: unknown): string {
       return "Não deu para usar o microfone. Confira se ele está conectado e tente de novo.";
   }
 }
+
+/** Microphone failure inside the room: a blocked microphone needs the site settings, not a retry. */
+export function roomMicErrorMessage(error: unknown): string {
+  if (microphonePermissionDenied(error)) {
+    return "O navegador bloqueou o microfone. Libere o acesso nas configurações deste site e tente ligá-lo de novo.";
+  }
+  return micErrorMessage(error);
+}

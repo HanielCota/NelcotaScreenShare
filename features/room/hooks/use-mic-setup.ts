@@ -1,14 +1,13 @@
 import { useState, useSyncExternalStore, type RefObject } from "react";
-import { micErrorMessage } from "@/features/room/client/microphone-errors";
+import { subscribeNothing } from "@/lib/hooks/subscribe-nothing";
+import {
+  micErrorMessage,
+  microphonePermissionDenied,
+} from "@/features/room/client/microphone-errors";
 import { saveMicrophone, savedMicrophone } from "@/features/room/client/saved-microphone";
 import { useMicLevel } from "./use-mic-level";
 import { useMicPermission } from "./use-mic-permission";
 import type { MicrophoneCheck } from "@/features/room/domain/microphone-check";
-
-/** The saved microphone only changes through this screen, which already keeps the choice in state. */
-function subscribeNothing(): () => void {
-  return () => {};
-}
 
 /**
  * Microphone in the pre-join screen: on or off, browser permission, chosen
@@ -28,6 +27,7 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
   // Choice made on this screen; before that, the microphone from last time applies.
   // `null` is "Padrão do sistema" chosen on purpose.
   const [chosen, setChosen] = useState<string | null>();
+  // The saved microphone only changes through this screen, which already keeps the choice in state.
   const saved = useSyncExternalStore(subscribeNothing, savedMicrophone, () => undefined);
   const requestedId = chosen === undefined ? saved : (chosen ?? undefined);
   const deviceId = captured?.requestedId === requestedId ? captured?.deviceId : requestedId;
@@ -51,10 +51,7 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
 
   return {
     levelRef,
-    check:
-      testing && check !== undefined && check.deviceId === deviceId
-        ? check.state
-        : ("starting" as MicrophoneCheck),
+    check: testing && check !== undefined && check.deviceId === deviceId ? check.state : "starting",
     enabled,
     permission,
     error,
@@ -84,7 +81,7 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
       setError(undefined);
       const failure = await request();
       setRequesting(false);
-      if (failure && !(failure instanceof DOMException && failure.name === "NotAllowedError")) {
+      if (failure && !microphonePermissionDenied(failure)) {
         setError(micErrorMessage(failure));
       }
     },

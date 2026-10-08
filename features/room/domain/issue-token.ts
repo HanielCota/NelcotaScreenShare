@@ -6,18 +6,21 @@ import { tokenRequestSchema, type TokenErrorCode } from "./token-contract";
  * has a test (tests/unit/issue-token.test.ts).
  */
 
-/** Result recorded in token_requests (the database's `token_result` enum). */
-type TokenLogResult =
-  | "granted"
-  | "wrong_password"
-  | "room_full"
-  | "rate_limited"
-  | "blocked"
-  | "unverified"
-  | "unauthenticated"
-  | "invalid"
-  | "invite_invalid"
-  | "error";
+/** Result recorded in token_requests; the database's `token_result` enum is built from it. */
+export const TOKEN_LOG_RESULTS = [
+  "granted",
+  "wrong_password",
+  "room_full",
+  "rate_limited",
+  "blocked",
+  "unverified",
+  "unauthenticated",
+  "invalid",
+  "invite_invalid",
+  "error",
+] as const;
+
+export type TokenLogResult = (typeof TOKEN_LOG_RESULTS)[number];
 
 export interface TokenAccount {
   id: string;
@@ -82,7 +85,7 @@ export const TOKEN_ERROR_STATUS: Record<TokenRefusal, number> = {
 };
 
 export const SERVER_ERROR_MESSAGE =
-  "A sala está indisponível no momento. Aguarde alguns segundos e tente novamente.";
+  "A sala está indisponível no momento. Aguarde alguns segundos e tente de novo.";
 
 function refuse(
   error: TokenRefusal,
@@ -103,7 +106,7 @@ function invalidMessage(field: PropertyKey | undefined): string {
   if (field === "password")
     return "Confira a senha de acesso. Ela deve ter no máximo 128 caracteres.";
   if (field === "room") return "Confira o código da sala ou peça um novo convite a quem enviou.";
-  return "Confira os dados de entrada e tente novamente.";
+  return "Confira os dados de entrada e tente de novo.";
 }
 
 /** Account: signed in, active, with a verified email (if required) and within the limit. */
@@ -164,7 +167,7 @@ function checkPassword(password: string | undefined, deps: TokenDeps): TokenDeci
   return refuse(
     "invalid_password",
     "wrong_password",
-    "Essa senha não confere. Confira a senha com quem enviou o convite e tente novamente.",
+    "Essa senha não confere. Confira a senha com quem enviou o convite e tente de novo.",
   );
 }
 
@@ -186,7 +189,7 @@ export async function decideTokenRequest(
     return refuse(
       "invalid_request",
       "invalid",
-      "Não foi possível ler os dados de entrada. Atualize a página e tente novamente.",
+      "Não foi possível ler os dados de entrada. Atualize a página e tente de novo.",
     );
   }
   const parsed = tokenRequestSchema.safeParse(body.value);
@@ -205,7 +208,7 @@ export async function decideTokenRequest(
     return refuse(
       "room_full",
       "room_full",
-      `A sala está cheia (máximo de ${policy.maxParticipants} pessoas). Aguarde alguém sair e tente novamente.`,
+      `A sala está cheia (máximo de ${policy.maxParticipants} pessoas). Aguarde alguém sair e tente de novo.`,
     );
   }
   // After the capacity check: a full room does not consume an invite use.

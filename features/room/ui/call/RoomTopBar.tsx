@@ -1,8 +1,6 @@
 import type { Participant } from "livekit-client";
 import { Check, Copy, LayoutDashboard, MoreHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { toast } from "sonner";
 import { Hint } from "@/components/Hint";
 import {
   NavBar,
@@ -13,30 +11,26 @@ import {
 } from "@/components/shell/NavBar";
 import { navItemClass } from "@/components/shell/nav-item-class";
 import { ThemeToggle } from "@/components/shell/ThemeToggle";
-import { roomPath } from "@/features/room/domain/room-code";
+import { useCopyRoomLink } from "@/features/room/hooks/use-copy-room-link";
 import { participantName } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
+import type { Connection } from "./RoomLayout";
+
+const CONNECTION_LABELS: Record<Connection, string> = {
+  connected: "Conectado",
+  connecting: "Conectando",
+  reconnecting: "Reconectando",
+};
 
 /** "Sala abc-defg-hij" that copies the link; the confirmation appears on the button itself. */
 function RoomCodeButton({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), 2000);
-    return () => clearTimeout(timer);
-  }, [copied]);
+  const { copied, copy } = useCopyRoomLink(code);
 
   return (
     <button
       type="button"
-      onClick={() => {
-        void navigator.clipboard
-          .writeText(`${window.location.origin}${roomPath(code)}`)
-          .then(() => setCopied(true))
-          .catch(() => toast.error("Não foi possível copiar o link. Tente de novo."));
-      }}
+      onClick={() => void copy()}
       aria-label={`Sala ${code}. Copiar link para convidar`}
       className="group flex h-10 min-w-0 items-center gap-2 rounded-xl px-3 transition-colors hover:bg-surface-3"
     >
@@ -122,14 +116,14 @@ export function RoomTopBar({
   maxParticipants: number;
   /** Admins open the panel without leaving: the call goes on minimized. */
   isAdmin: boolean;
-  connection: "connected" | "connecting" | "reconnecting";
+  connection: Connection;
 }) {
   return (
     <NavBar aria-label="Sala" className="mx-auto max-w-5xl">
       <NavBrand showName={false} className="max-sm:hidden" />
       <NavDivider className="max-sm:hidden" />
       <RoomCodeButton code={code} />
-      {/* Just a dot: green when connected, pulsing yellow while reconnecting (the
+      {/* Just a dot: green when connected, pulsing yellow while (re)connecting (the
           written notice appears in the middle of the screen). */}
       <span className="flex shrink-0 items-center">
         <span
@@ -139,7 +133,7 @@ export function RoomTopBar({
             connection === "connected" ? "bg-success" : "animate-pulse bg-warning",
           )}
         />
-        <span className="sr-only">{connection === "connected" ? "Conectado" : "Reconectando"}</span>
+        <span className="sr-only">{CONNECTION_LABELS[connection]}</span>
       </span>
 
       <span className="ml-auto" />
