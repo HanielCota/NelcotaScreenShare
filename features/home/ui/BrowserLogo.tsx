@@ -1,7 +1,8 @@
 import type { SVGProps } from "react";
 
 /*
- * Browser marks from Simple Icons (CC0-1.0), single-color, drawn in the current text color.
+ * Browser marks from Simple Icons (CC0-1.0), single-color, drawn in the current text color
+ * (the cards set each brand's color).
  * Simple Icons no longer ships Edge, so the Chromium card shows Chrome's mark.
  */
 
