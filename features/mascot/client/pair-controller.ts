@@ -5,15 +5,17 @@ import { PAIR_BUSY_SELECTOR } from "@/features/mascot/domain/rules";
 import { SLEEPY_AFTER_MS } from "@/features/mascot/domain/sleep";
 import { MOTION_QUERIES } from "@/lib/animation/motion";
 
+/** Focusing or touching these sends the visitor back: the person is busy with the page. */
+const INTERRUPTING_TARGETS = "input, textarea, [contenteditable=true], [data-mascot-action]";
+
 /** Keeps the position when pausing; React only receives phase changes. */
 export function createPairController(
   scene: HTMLElement,
-  initialPending: boolean,
   onPhase: (phase: PairPhase, suspended: boolean) => void,
 ) {
   const motion = createPairMotion();
   const preference = window.matchMedia(MOTION_QUERIES.reduced);
-  let pending = initialPending;
+  let pending = false;
   let visible = true;
   let idle = false;
   let disposed = false;
@@ -32,9 +34,7 @@ export function createPairController(
   function available() {
     return (
       !idle &&
-      !document.activeElement?.matches(
-        "input, textarea, [contenteditable=true], [data-mascot-action]",
-      ) &&
+      !document.activeElement?.matches(INTERRUPTING_TARGETS) &&
       !scene.querySelector(PAIR_BUSY_SELECTOR)
     );
   }
@@ -135,11 +135,7 @@ export function createPairController(
 
   function focusOrTouch(event: Event) {
     noteActivity();
-    if (
-      event.target instanceof Element &&
-      event.target.closest("input, textarea, [contenteditable=true], [data-mascot-action]")
-    )
-      interrupt();
+    if (event.target instanceof Element && event.target.closest(INTERRUPTING_TARGETS)) interrupt();
   }
 
   const resize = new ResizeObserver(measure);

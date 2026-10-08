@@ -1,4 +1,5 @@
 import { type Motion } from "@/features/mascot/domain/body-motions";
+import { IDLE, type Gaze } from "@/features/mascot/domain/eye-tracking";
 import { EXPRESSIONS, toFaceState, type Expression } from "@/features/mascot/domain/face";
 import {
   createPersonality,
@@ -7,6 +8,7 @@ import {
 } from "@/features/mascot/domain/personality";
 import { createReasons, type Reason } from "@/features/mascot/domain/reasons";
 import {
+  allowsPlay,
   blocksPlay,
   canBlink,
   canSneeze,
@@ -19,7 +21,7 @@ import {
 import { prefersReducedMotion } from "@/lib/animation/motion";
 import { createFaceAnimator } from "./face-animator";
 import type { FaceRenderer } from "./face-renderer";
-import { gazeFor, IDLE, pairPartner, passwordEyes } from "./gaze";
+import { focusTarget, gazeFor, passwordEyes } from "./gaze";
 import { createHandMotions } from "./hand-motions";
 import { startAmbient } from "./ambient";
 import { listenToSignals } from "./signals";
@@ -41,9 +43,9 @@ export interface MascotInputs {
  * The mascot's behavior: combines what happens on screen (mouse, focus,
  * typing, system signals) into an expression and a gaze, and animates the face.
  *
- * - Expression: reasons with deadline and priority (engine/reasons.ts).
- * - Per-expression rules: engine/rules.ts.
- * - Gaze: screen geometry (dom/gaze.ts). Drawing: dom/face-animator.ts.
+ * - Expression: reasons with deadline and priority (domain/reasons.ts).
+ * - Per-expression rules: domain/rules.ts.
+ * - Gaze: screen geometry (client/gaze.ts). Drawing: client/face-animator.ts.
  */
 export function createMascotController(
   root: HTMLElement,
@@ -53,7 +55,6 @@ export function createMascotController(
 ) {
   const hands = createHandMotions(root);
   const reasons = createReasons();
-  const reducedMotion = prefersReducedMotion;
 
   let pointer: { x: number; y: number } | null = null;
   let current: Expression = inputs.base();
@@ -74,8 +75,9 @@ export function createMascotController(
       const voice = listening ? voiceAmount(inputs.voice()) : 0;
       const nextFace = listening ? listeningFace(faceTarget(), voice) : undefined;
       root.style.setProperty("--voice", listening ? voice.toFixed(3) : "0");
+      const gaze = animatedGaze(time);
       return {
-        ...(waiting ? { gaze: waitingGaze(time) } : trackingPartner ? { gaze: gazeTarget() } : {}),
+        ...(gaze ? { gaze } : {}),
         ...(nextFace ? { face: nextFace } : {}),
         keepAlive: waiting || listening || trackingPartner,
       };
@@ -97,7 +99,7 @@ export function createMascotController(
       onScreen &&
       !document.hidden &&
       !eyeOverride() &&
-      (inputs.activity() === "idle" || inputs.activity() === "walking") &&
+      allowsPlay(inputs.activity()) &&
       !blocksPlay(current),
   });
 
@@ -112,8 +114,6 @@ export function createMascotController(
     stopBody: () => bodyAnimation?.cancel(),
     update,
   });
-
-  // ---------- Expression and gaze ----------
 
   function setReason(reason: Reason, expression: Expression, durationMs?: number) {
     reasons.set(reason, expression, durationMs);
@@ -142,14 +142,15 @@ export function createMascotController(
   function gazeTarget() {
     const focus = gazeFocus(current);
     if (focus === "idle") return IDLE;
-    const target =
-      signals.attentionTarget() ??
-      (focus === "partner"
-        ? pairPartner(root)
-        : focus === "stage"
-          ? (document.querySelector("[data-mascot-stage]") ?? undefined)
-          : undefined);
+    const target = signals.attentionTarget() ?? focusTarget(root, focus);
     return gazeFor(face, target, pointer);
+  }
+
+  /** Gaze that moves on its own every frame, without pointer or focus events. */
+  function animatedGaze(time: number): Gaze | undefined {
+    if (current === "waiting") return waitingGaze(time);
+    if (gazeFocus(current) === "partner") return gazeTarget();
+    return undefined;
   }
 
   /** Schedules a re-evaluation for the next reason that will expire. */
@@ -168,8 +169,8 @@ export function createMascotController(
     if (eyes || isSleeping(current)) hands.cancel();
     if (personality.active && (eyes || blocksPlay(current))) personality.cancel();
     // Pairs a held pose with attention on the stage; the hand routine does not cover password eyes.
-    if (current === "presenting" && !eyes && !reducedMotion()) hands.hold();
-    if (eyes || current === "asleep" || reducedMotion()) animator.cancelBlink();
+    if (current === "presenting" && !eyes && !prefersReducedMotion()) hands.hold();
+    if (eyes || current === "asleep" || prefersReducedMotion()) animator.cancelBlink();
   }
 
   /** Reduced motion: no springs or animations, straight to the final pose. */
@@ -190,7 +191,7 @@ export function createMascotController(
     scheduleReasonExpiry();
     animator.setTargets(gazeTarget(), faceTarget());
     settleGestures(previous, eyeOverride());
-    if (reducedMotion()) {
+    if (prefersReducedMotion()) {
       snapToTargets();
       return;
     }
@@ -211,12 +212,10 @@ export function createMascotController(
   function move({ keyframes, options }: Motion) {
     bodyAnimation?.cancel();
     bodyAnimation = undefined;
-    if (reducedMotion() || document.hidden || !onScreen) return undefined;
+    if (prefersReducedMotion() || document.hidden || !onScreen) return undefined;
     bodyAnimation = root.animate(keyframes, options);
     return bodyAnimation;
   }
-
-  // ---------- Sleep ----------
 
   const sleep = createSleepClock({
     personality,
@@ -231,8 +230,6 @@ export function createMascotController(
   function onActivity() {
     sleep.activity();
   }
-
-  // ---------- Events ----------
 
   const touch = attachTouch({
     root,
@@ -283,9 +280,8 @@ export function createMascotController(
   /** The activity changed (walking, presenting…): the context expression follows. */
   function syncContext() {
     const nextActivity = inputs.activity();
-    // Walking and standing still alternate in the home page pair every few seconds:
-    // a pat or "high five" in progress continues; anything else is interrupted.
-    if (nextActivity !== "idle" && nextActivity !== "walking") personality.cancel();
+    // A pat or "high five" in progress survives the pair's walk; anything else interrupts it.
+    if (!allowsPlay(nextActivity)) personality.cancel();
     if (nextActivity !== "idle") {
       sleep.forget();
       reasons.delete("curiosity");
@@ -299,14 +295,18 @@ export function createMascotController(
 
   const stopAmbient = startAmbient({
     canBlink: () =>
-      !reducedMotion() && !document.hidden && onScreen && canBlink(current) && !eyeOverride(),
+      !prefersReducedMotion() &&
+      !document.hidden &&
+      onScreen &&
+      canBlink(current) &&
+      !eyeOverride(),
     blink: () => {
       animator.blink();
       update();
     },
     canSneeze: () =>
       !disposed &&
-      !reducedMotion() &&
+      !prefersReducedMotion() &&
       !personality.active &&
       canSneeze(current) &&
       !(document.activeElement instanceof HTMLInputElement) &&

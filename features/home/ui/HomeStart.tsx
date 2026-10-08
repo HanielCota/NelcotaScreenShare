@@ -1,6 +1,5 @@
-import { useNavigate } from "react-router";
-
 import { useTransition } from "react";
+import { useNavigate } from "react-router";
 import { MascotPair } from "@/features/mascot/ui/MascotPair";
 import { SmartBar } from "./SmartBar";
 

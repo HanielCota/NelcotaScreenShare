@@ -1,7 +1,6 @@
 import { gazeAt, IDLE, type Gaze, type Point } from "@/features/mascot/domain/eye-tracking";
 import type { Expression } from "@/features/mascot/domain/face";
-
-export { IDLE, type Gaze } from "@/features/mascot/domain/eye-tracking";
+import type { GazeFocus } from "@/features/mascot/domain/rules";
 
 /** Turns the face away while the password is being typed. */
 const LOOK_AWAY: Gaze = {
@@ -74,10 +73,17 @@ export function passwordEyes(expression: Expression): readonly [number, number] 
 }
 
 /** The other mascot of the pair (walking or greeting, they look at each other). */
-export function pairPartner(root: Element): Element | undefined {
+function pairPartner(root: Element): Element | undefined {
   return [
     ...(root.closest("[data-mascot-pair]")?.querySelectorAll("[data-slot=mascot]") ?? []),
   ].find((other) => other !== root);
+}
+
+/** Element the expression asks to look at, when nothing asked for attention. */
+export function focusTarget(root: Element, focus: GazeFocus): Element | undefined {
+  if (focus === "partner") return pairPartner(root);
+  if (focus === "stage") return document.querySelector("[data-mascot-stage]") ?? undefined;
+  return undefined;
 }
 
 /**
@@ -94,7 +100,7 @@ export function gazeFor(
   if (pointer) return lookAt(face, pointer);
   const active = document.activeElement;
   if (active instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(active.type)) {
-    return active.type === "password" ? LOOK_AWAY : lookAt(face, caretPoint(active));
+    return lookAt(face, caretPoint(active));
   }
   // Free text (multiple lines): looks at the field, like someone following what is being written.
   if (active instanceof HTMLTextAreaElement) return lookAt(face, center(active));

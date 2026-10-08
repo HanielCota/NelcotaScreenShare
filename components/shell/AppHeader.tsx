@@ -25,6 +25,46 @@ export interface AppHeaderProps {
   "data-anim"?: string;
 }
 
+/** The signed-in account, or the sign-in links for visitors (when the page shows them). */
+function AccountLinks({
+  account,
+  accountHref,
+  accountCurrent,
+  showAuthLinks,
+}: Required<Pick<AppHeaderProps, "account" | "accountHref" | "accountCurrent" | "showAuthLinks">>) {
+  if (account) {
+    return (
+      <>
+        <NavDivider />
+        <Link
+          viewTransition
+          to={accountHref}
+          aria-label="Minha conta"
+          aria-current={accountCurrent ? "page" : undefined}
+          className={cn(navItemClass, "max-w-44 pl-0.5 max-sm:pr-0.5")}
+        >
+          <UserAvatar image={account.image} className="size-8" />
+          <span className="truncate max-sm:hidden">{account.name}</span>
+        </Link>
+      </>
+    );
+  }
+  if (!showAuthLinks) return null;
+  return (
+    <>
+      <NavDivider />
+      <Link viewTransition to="/entrar" className={navItemClass}>
+        Entrar
+      </Link>
+      <Button asChild className="max-sm:hidden">
+        <Link viewTransition to="/cadastro">
+          Criar conta
+        </Link>
+      </Button>
+    </>
+  );
+}
+
 /** Shared navigation for the app pages, before and after the call. */
 export function AppHeader({
   account,
@@ -57,33 +97,12 @@ export function AppHeader({
           Privacidade
         </Link>
         <ThemeToggle className="ml-auto" />
-        {account ? (
-          <>
-            <NavDivider />
-            <Link
-              viewTransition
-              to={accountHref}
-              aria-label="Minha conta"
-              aria-current={accountCurrent ? "page" : undefined}
-              className={cn(navItemClass, "max-w-44 pl-0.5 max-sm:pr-0.5")}
-            >
-              <UserAvatar image={account.image} className="size-8" />
-              <span className="truncate max-sm:hidden">{account.name}</span>
-            </Link>
-          </>
-        ) : showAuthLinks ? (
-          <>
-            <NavDivider />
-            <Link viewTransition to="/entrar" className={navItemClass}>
-              Entrar
-            </Link>
-            <Button asChild className="max-sm:hidden">
-              <Link viewTransition to="/cadastro">
-                Criar conta
-              </Link>
-            </Button>
-          </>
-        ) : null}
+        <AccountLinks
+          account={account}
+          accountHref={accountHref}
+          accountCurrent={accountCurrent}
+          showAuthLinks={showAuthLinks}
+        />
         {actions ? (
           <>
             <NavDivider />

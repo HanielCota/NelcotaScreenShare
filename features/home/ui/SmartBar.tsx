@@ -17,6 +17,7 @@ import {
 } from "@/features/mascot/client/events";
 import { generateRoomCode, roomLink, roomPath } from "@/features/room/domain/room-code";
 import { parseRoomInput, type RoomInput } from "@/features/room/domain/room-input";
+import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { cn } from "@/lib/utils";
 
 interface SmartBarProps {
@@ -24,7 +25,7 @@ interface SmartBarProps {
   pending: boolean;
   onNavigate: (href: string) => void;
   /** Mascot "peeking" over the bar. */
-  mascot?: ReactNode;
+  mascot: ReactNode;
 }
 
 /** Key drawn like a real key (thicker bottom border). */
@@ -107,6 +108,31 @@ function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "e
   }
 }
 
+function SubmitLabel({ pending, creating }: { pending: boolean; creating: boolean }) {
+  if (pending) {
+    return (
+      <>
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        Abrindo…
+      </>
+    );
+  }
+  if (creating) {
+    return (
+      <>
+        <Plus className="size-4" aria-hidden="true" />
+        Criar sala
+      </>
+    );
+  }
+  return (
+    <>
+      <ArrowRight className="size-4" aria-hidden="true" />
+      Entrar
+    </>
+  );
+}
+
 /**
  * The home bar: when empty, creates a room; with a code or a pasted link
  * (with or without an invite), joins. The "/" key anywhere focuses the bar.
@@ -136,23 +162,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
   }, [invalidCode]);
 
   // "/" focuses the bar (outside text fields), like in search engines.
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
-      const target = event.target;
-      if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        (target instanceof HTMLElement && target.isContentEditable)
-      ) {
-        return;
-      }
-      event.preventDefault();
-      inputRef.current?.focus();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  useShortcut("/", () => inputRef.current?.focus());
 
   useEffect(() => () => setMascotDoubt(false), []);
 
@@ -183,10 +193,8 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col items-center gap-3">
       <div className="relative w-full">
-        {mascot ? (
-          // The feet go in front of the bar's border, without being clipped by it.
-          <div className="relative z-20 flex justify-center">{mascot}</div>
-        ) : null}
+        {/* The feet go in front of the bar's border, without being clipped by it. */}
+        <div className="relative z-20 flex justify-center">{mascot}</div>
         <div
           className={cn(
             "relative z-10 flex h-16 items-center gap-2 rounded-full border border-line bg-surface pr-2 pl-5 shadow-[0_12px_32px_-20px_rgb(0_0_0/0.45)] transition-colors focus-within:border-brand/60 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
@@ -216,14 +224,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
             disabled={pending}
             className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-brand px-5 text-base font-medium text-brand-ink transition-[transform,background-color] duration-200 hover:bg-brand-hover active:scale-[0.97] disabled:opacity-60 motion-reduce:active:scale-100"
           >
-            {pending ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : creating ? (
-              <Plus className="size-4" aria-hidden="true" />
-            ) : (
-              <ArrowRight className="size-4" aria-hidden="true" />
-            )}
-            {pending ? "Abrindo…" : creating ? "Criar sala" : "Entrar"}
+            <SubmitLabel pending={pending} creating={creating} />
           </button>
         </div>
       </div>

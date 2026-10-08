@@ -2,8 +2,8 @@ import { JUMP, NOD, SHAKE, type Motion } from "@/features/mascot/domain/body-mot
 import type { Expression } from "@/features/mascot/domain/face";
 import type { createPersonality } from "@/features/mascot/domain/personality";
 import type { Reason } from "@/features/mascot/domain/reasons";
-import { ATTENTION_MS, reactionTo } from "@/features/mascot/domain/rules";
-import { onMascotSignal, type MascotSignal } from "@/features/mascot/client/events";
+import { ATTENTION_MS, reactionTo, type MascotSignal } from "@/features/mascot/domain/rules";
+import { onMascotSignal } from "@/features/mascot/client/events";
 import type { createHandMotions } from "./hand-motions";
 
 interface SignalContext {

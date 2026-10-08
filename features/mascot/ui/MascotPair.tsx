@@ -17,7 +17,7 @@ export function MascotPair({ pending }: { pending: boolean }) {
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
-    const controller = createPairController(scene, false, (nextPhase, nextSuspended) => {
+    const controller = createPairController(scene, (nextPhase, nextSuspended) => {
       setPlayback({ phase: nextPhase, suspended: nextSuspended });
     });
     controllerRef.current = controller;

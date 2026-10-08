@@ -28,18 +28,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatNumber } from "@/lib/format";
 import { useSearchParams } from "react-router";
-
+import { formatNumber } from "@/lib/format";
 import { filterQuery, pageParsers, type BulkSelection } from "@/lib/table-params";
 import { cn } from "@/lib/utils";
+import type { PageInfo } from "./page-info";
 
-/** Sorting, filters and pagination belong to the server: the table only displays and selects. */
 const dataTableFeatures = tableFeatures({ rowSelectionFeature });
 type DataTableFeatures = typeof dataTableFeatures;
 export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures, TData>;
-
-import type { PageInfo } from "./page-info";
 
 interface DataTableProps<TData extends RowData & { id: string }> {
   /** Table label for screen readers. */
@@ -59,19 +56,21 @@ interface DataTableProps<TData extends RowData & { id: string }> {
   renderCard?: (row: TData) => ReactNode;
 }
 
+function pageSelection<TData extends RowData>(
+  table: HeaderContext<DataTableFeatures, TData>["table"],
+): boolean | "indeterminate" {
+  if (table.getIsAllPageRowsSelected()) return true;
+  if (table.getIsSomePageRowsSelected()) return "indeterminate";
+  return false;
+}
+
 /** "Select all on this page" checkbox (component defined outside render). */
 function SelectAllHeader<TData extends RowData>({
   table,
 }: HeaderContext<DataTableFeatures, TData>) {
   return (
     <Checkbox
-      checked={
-        table.getIsAllPageRowsSelected()
-          ? true
-          : table.getIsSomePageRowsSelected()
-            ? "indeterminate"
-            : false
-      }
+      checked={pageSelection(table)}
       onCheckedChange={(value) => table.toggleAllPageRowsSelected(value === true)}
       aria-label="Selecionar todos desta página"
     />
@@ -178,6 +177,7 @@ function Pagination({
   );
 }
 
+/** Sorting, filters and pagination belong to the server: the table only displays and selects. */
 export function DataTable<TData extends RowData & { id: string }>({
   label,
   columns,

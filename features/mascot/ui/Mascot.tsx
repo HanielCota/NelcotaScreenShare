@@ -1,14 +1,15 @@
-import { Hint } from "@/components/Hint";
-
 import { useId, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { cn } from "@/lib/utils";
-const atlas = "/mascot/nelcota-mint-atlas.webp";
+import { Hint } from "@/components/Hint";
 import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
 import type { Expression } from "@/features/mascot/domain/face";
+import type { MascotActivity } from "@/features/mascot/domain/personality";
+import { allowsPlay } from "@/features/mascot/domain/rules";
+import { cn } from "@/lib/utils";
 import { useMascot } from "../hooks/use-mascot";
 import { SpriteEyes } from "./SpriteEyes";
 import styles from "./Mascot.module.css";
-import type { MascotActivity } from "@/features/mascot/domain/personality";
+
+const atlas = "/mascot/nelcota-mint-atlas.webp";
 
 interface MascotProps {
   className?: string;
@@ -38,7 +39,7 @@ export function Mascot({
   const faceRef = useRef<HTMLDivElement>(null);
   const footClipId = useId();
   const [initialPose] = useState(() => avatarFrame(expression));
-  useMascot(rootRef, faceRef, expression, canSleep, activity, voiceLevelRef, facing);
+  useMascot(rootRef, faceRef, expression, canSleep, activity, voiceLevelRef);
   const faceStyle: CSSProperties & Record<`--${string}`, string | number> = {
     "--sprite-column": initialPose.column,
     "--sprite-row": initialPose.row,
@@ -125,13 +126,13 @@ export function Mascot({
           </div>
         </div>
       </div>
+      {/* Mouse and touch play: both buttons stay out of the Tab order, so they do not
+          get between the person and the page's main field. */}
       <Hint text="Fazer carinho">
         <button
           type="button"
-          // Mouse and touch play: out of the Tab order, so it does not get
-          // between the person and the page's main field.
           tabIndex={-1}
-          disabled={activity !== "idle" && activity !== "walking"}
+          disabled={!allowsPlay(activity)}
           data-mascot-action="pet"
           aria-label="Fazer carinho no Nelcota"
           className={styles.petTarget}
@@ -140,10 +141,8 @@ export function Mascot({
       <Hint text="Toca aqui!">
         <button
           type="button"
-          // Mouse and touch play: out of the Tab order, so it does not get
-          // between the person and the page's main field.
           tabIndex={-1}
-          disabled={activity !== "idle" && activity !== "walking"}
+          disabled={!allowsPlay(activity)}
           data-mascot-action="high-five"
           aria-label="Toca aqui com o Nelcota"
           className={styles.handTarget}

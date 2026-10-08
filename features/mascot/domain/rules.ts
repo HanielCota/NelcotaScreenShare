@@ -1,11 +1,11 @@
 import { IDLE, type Gaze } from "./eye-tracking";
 import type { Expression, FaceState } from "./face";
+import type { MascotActivity } from "./personality";
 import type { Reason } from "./reasons";
 
 /**
- * Mascot rules that depend only on the current expression. They used to be
- * `current === "…"` comparisons scattered across the hook; here each one has a name
- * and a test (tests/unit/mascot-rules.test.ts).
+ * Mascot rules that depend only on the current expression, each named and
+ * covered by tests/unit/mascot-rules.test.ts.
  */
 
 const SLEEPING: ReadonlySet<Expression> = new Set(["sleepy", "asleep"]);
@@ -20,6 +20,14 @@ export function isSleeping(expression: Expression): boolean {
 /** Expressions that prevent (and interrupt) petting, sneezing and the like. */
 export function blocksPlay(expression: Expression): boolean {
   return UPSET.has(expression) || expression === "skeptical" || expression === "asleep";
+}
+
+/**
+ * Petting, high fives and other play: only while idle or walking, which alternate
+ * every few seconds in the home page pair.
+ */
+export function allowsPlay(activity: MascotActivity): boolean {
+  return activity === "idle" || activity === "walking";
 }
 
 /** Blink only with open, calm eyes. */
@@ -121,13 +129,20 @@ export interface SignalReaction {
   lookAtTarget?: boolean;
 }
 
-type Signal =
+export type MascotSignal =
+  /** It worked: a little jump of joy. */
   | { type: "celebrate" }
-  | { type: "upset"; mood: "grumpy" | "worried" }
+  /**
+   * It failed. `grumpy`: error caused by the attempt (frowns and shakes its head);
+   * `worried`: everything else (gets worried about the person). `target`: where it looks.
+   */
+  | { type: "upset"; mood: "grumpy" | "worried"; target?: Element | undefined }
+  /** Suspicious (e.g. an email that looks mistyped) until `active` turns false again. */
   | { type: "doubt"; active: boolean }
+  /** Approving nod (e.g. the email is complete). */
   | { type: "nod" };
 
-export function reactionTo(signal: Signal): SignalReaction {
+export function reactionTo(signal: MascotSignal): SignalReaction {
   switch (signal.type) {
     case "celebrate":
       return {
