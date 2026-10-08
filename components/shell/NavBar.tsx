@@ -10,7 +10,10 @@ import { Hint } from "@/components/Hint";
 export function NavBar({ className, ...props }: ComponentProps<"nav">) {
   return (
     <nav
-      className={cn("glass flex h-14 items-center gap-1 rounded-2xl px-2 sm:px-2.5", className)}
+      className={cn(
+        "glass flex h-14 items-center gap-1 rounded-2xl px-2 transition-colors duration-(--motion-surface) sm:px-2.5",
+        className,
+      )}
       {...props}
     />
   );

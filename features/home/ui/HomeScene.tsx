@@ -1,4 +1,6 @@
 import { Check } from "lucide-react";
+import { useRef } from "react";
+import { useHeroRecede } from "@/features/home/hooks/use-hero-recede";
 import { Link } from "react-router";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
@@ -24,12 +26,18 @@ export function HomeScene({
   /** Room size configured on the server, quoted by the sections. */
   maxParticipants: number;
 }) {
+  const hero = useRef<HTMLDivElement>(null);
+  useHeroRecede(hero);
+
   return (
-    <HomeEntrance className="flex flex-col items-center px-4 pb-8 sm:px-8">
+    <HomeEntrance className="flex flex-col items-center pb-8">
       <AppHeader account={account} data-anim="nav" className="fixed inset-x-0 top-0 z-30" />
 
-      {/* Only as tall as its content: the product demo starts right below the fold line. */}
-      <div className="flex w-full max-w-2xl flex-col items-center pt-32 pb-16 sm:pt-40 sm:pb-20">
+      {/* A full screen of its own; as the story starts, it steps back (see useHeroRecede). */}
+      <div
+        ref={hero}
+        className="flex min-h-svh w-full max-w-5xl flex-col items-center justify-center px-4 pt-28 pb-16 sm:px-8"
+      >
         {notice ? (
           <output className="mb-8 block w-full rounded-2xl bg-surface-2 px-4 py-3 text-center text-sm">
             {notice}
@@ -37,19 +45,20 @@ export function HomeScene({
         ) : null}
         <h1
           data-anim="title"
-          className="text-center text-4xl leading-tight font-medium tracking-[-0.03em] text-balance sm:text-5xl"
+          className="text-center text-[clamp(3rem,8.5vw,7rem)] leading-[0.95] font-semibold tracking-[-0.05em] text-balance"
         >
-          Mostre a tela com <span className="text-brand-soft">som e ponteiro</span>.
+          Mostre a tela.
+          <span className="block text-brand-soft">Com som e ponteiro.</span>
         </h1>
         <p
           data-anim="subtitle"
-          className="mt-4 max-w-lg text-center text-base leading-relaxed text-pretty text-ink-muted sm:text-lg"
+          className="mt-6 max-w-xl text-center text-lg leading-relaxed text-pretty text-ink-muted sm:text-xl"
         >
           Para times de tecnologia mostrarem um bug, revisarem uma tela ou parearem num problema.
           Direto do navegador, e quem recebe o link entra sem criar conta.
         </p>
 
-        <div data-anim="card" className="mt-8 w-full will-change-transform sm:mt-10">
+        <div data-anim="card" className="mt-10 w-full max-w-2xl will-change-transform sm:mt-12">
           <HomeStart invalidCode={invalidCode} signedIn={account !== null} />
         </div>
         <ul
@@ -68,7 +77,7 @@ export function HomeScene({
 
       <HomeSections maxParticipants={maxParticipants} signedIn={account !== null} />
 
-      <footer className="mt-24 flex w-full max-w-5xl flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
+      <footer className="mx-4 mt-24 flex w-[calc(100%-2rem)] max-w-5xl flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
         <ShareSupportNote variant="badge" />
         <nav
           aria-label="Rodapé"
