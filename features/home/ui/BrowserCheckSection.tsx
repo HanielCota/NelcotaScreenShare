@@ -46,6 +46,7 @@ export function BrowserCheckSection() {
         id="browsers-title"
         title="Funciona no seu navegador?"
         subtitle="Veja o que cada um faz."
+        align="center"
       />
 
       <ul
@@ -90,7 +91,7 @@ export function BrowserCheckSection() {
         })}
       </ul>
 
-      <div className="mt-6 flex flex-col gap-3 text-sm text-ink-muted">
+      <div className="mt-6 flex flex-col items-center gap-3 text-center text-sm text-ink-muted">
         {/* A browser none of the cards describe still gets its own answer. */}
         {support !== null && current === null ? <ShareSupportNote /> : null}
         <p>Em qualquer um deles você assiste, fala e usa o chat.</p>

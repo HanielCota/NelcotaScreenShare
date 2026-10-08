@@ -68,7 +68,12 @@ export function PricingSection({
 }) {
   return (
     <section id="precos" aria-labelledby="pricing-title" className="w-full max-w-5xl scroll-mt-28">
-      <SectionIntro id="pricing-title" title="Preços." subtitle="Comece grátis, hoje." />
+      <SectionIntro
+        id="pricing-title"
+        title="Preços."
+        subtitle="Comece grátis, hoje."
+        align="center"
+      />
 
       <ul data-fx className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-2 md:gap-y-8">
         <Plan

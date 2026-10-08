@@ -46,7 +46,12 @@ export function ChangelogSection() {
       aria-labelledby="changelog-title"
       className="w-full max-w-5xl scroll-mt-28"
     >
-      <SectionIntro id="changelog-title" title="Novidades." subtitle="O que mudou por aqui." />
+      <SectionIntro
+        id="changelog-title"
+        title="Novidades."
+        subtitle="O que mudou por aqui."
+        align="center"
+      />
 
       <div data-fx className="mx-auto mt-12 flex w-full max-w-lg flex-col gap-2.5 sm:mt-16">
         <p className="mb-1 px-1 text-sm text-ink-subtle">{latest.title}</p>
