@@ -2,9 +2,9 @@ import { z } from "zod";
 import { roomCodeSchema } from "./room-code";
 
 /**
- * HTTP contract of POST /api/token, the same in the browser and on the server.
+ * Body of POST /api/token, the same in the browser and on the server. The name and
+ * identity come from the signed-in account (server), never from the browser.
  */
-/** The name and identity come from the signed-in account (server), never from the browser. */
 export const tokenRequestSchema = z.object({
   room: roomCodeSchema,
   password: z.string().max(128).optional(),

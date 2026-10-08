@@ -85,7 +85,7 @@ function PictureInPictureButton({ videoRef }: { videoRef: RefObject<HTMLVideoEle
   );
 }
 
-/** Points marked on the shared screen (data channel, no delivery guarantee). */
+/** The shared screen in focus, with its pointers, controls and screen picker. */
 export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   // Pointing mode applies to the screen it was turned on for: switching screens turns it off.
