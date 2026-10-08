@@ -38,7 +38,7 @@ export function Mascot({
   const faceRef = useRef<HTMLDivElement>(null);
   const footClipId = useId();
   const [initialPose] = useState(() => avatarFrame(expression));
-  useMascot(rootRef, faceRef, expression, canSleep, activity, voiceLevelRef, facing);
+  useMascot(rootRef, faceRef, expression, canSleep, activity, voiceLevelRef);
   const faceStyle: CSSProperties & Record<`--${string}`, string | number> = {
     "--sprite-column": initialPose.column,
     "--sprite-row": initialPose.row,

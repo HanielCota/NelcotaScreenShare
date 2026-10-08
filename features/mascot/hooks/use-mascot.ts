@@ -19,9 +19,8 @@ export function useMascot(
   canSleep: boolean,
   activity: MascotActivity,
   voiceLevelRef?: RefObject<number>,
-  facing?: "left" | "right",
 ) {
-  const props = useRef({ baseExpression, canSleep, activity, voiceLevelRef, facing });
+  const props = useRef({ baseExpression, canSleep, activity, voiceLevelRef });
   const controller = useRef<Controller | undefined>(undefined);
 
   useEffect(() => {
@@ -34,11 +33,6 @@ export function useMascot(
     props.current.baseExpression = baseExpression;
     controller.current?.update();
   }, [baseExpression]);
-
-  useEffect(() => {
-    props.current.facing = facing;
-    controller.current?.update();
-  }, [facing]);
 
   useEffect(() => {
     props.current.canSleep = canSleep;
