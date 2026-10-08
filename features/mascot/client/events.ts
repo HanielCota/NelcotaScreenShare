@@ -11,7 +11,14 @@ import type { MascotSignal } from "@/features/mascot/domain/rules";
 const listeners = new Set<(signal: MascotSignal) => void>();
 
 function emit(signal: MascotSignal) {
-  for (const listener of listeners) listener(signal);
+  for (const listener of listeners) {
+    // A broken reaction must not break the form that sent the signal.
+    try {
+      listener(signal);
+    } catch (error) {
+      reportError(error);
+    }
+  }
 }
 
 export const celebrateMascot = () => emit({ type: "celebrate" });
