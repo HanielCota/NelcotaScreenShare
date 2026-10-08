@@ -51,9 +51,19 @@ export function currentShareSupport(): ShareSupport {
   });
 }
 
-/** Does the browser open the screen picker? (same check as the room) */
-export function canShareScreen(): boolean {
+/** Does the browser open the screen picker? */
+function canShareScreen(): boolean {
   return "getDisplayMedia" in (navigator.mediaDevices ?? {});
+}
+
+/** Can the person start a screen share from this browser? */
+export function canShare(support: ShareSupport): boolean {
+  return support === "full" || support === "screen-only" || support === "safari";
+}
+
+/** Does the computer audio go along with the screen? Only Chromium on desktop. */
+export function sharesAudio(support: ShareSupport): boolean {
+  return support === "full";
 }
 
 export const SHARE_SUPPORT_TEXT: Record<

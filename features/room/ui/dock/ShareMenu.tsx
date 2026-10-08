@@ -8,11 +8,15 @@ import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";
 import { DockPopoverContent, DockPopoverTitle } from "./DockPopover";
-import type { ShareChoice, ShareSurface } from "@/features/room/domain/share-support";
+import {
+  canShare,
+  type ShareChoice,
+  type ShareSurface,
+} from "@/features/room/domain/share-support";
+import { useShareSupport } from "@/features/room/hooks/use-share-support";
 
 interface ShareMenuProps {
   isSharing: boolean;
-  supported: boolean;
   busy: boolean;
   onShare: (choice: ShareChoice) => void;
   onStop: () => void;
@@ -76,7 +80,10 @@ function formatElapsed(total: number): string {
  * Our own menu before the native picker: the person chooses the surface type
  * and the browser picker opens on the matching tab (`displaySurface`).
  */
-export function ShareMenu({ isSharing, supported, busy, onShare, onStop }: ShareMenuProps) {
+export function ShareMenu({ isSharing, busy, onShare, onStop }: ShareMenuProps) {
+  const support = useShareSupport();
+  // Same rule as the notes before joining: phones and tablets watch, they do not share.
+  const supported = support !== null && canShare(support);
   const [open, setOpen] = useState(false);
   const [audio, setAudio] = useState(true);
   const [hovered, setHovered] = useState<ShareSurface>("monitor");

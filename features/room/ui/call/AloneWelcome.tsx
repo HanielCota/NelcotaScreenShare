@@ -1,13 +1,15 @@
 import { Loader2, MonitorUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Mascot } from "@/features/mascot/ui/Mascot";
-import { canShareScreen } from "@/features/room/domain/share-support";
+import { canShare } from "@/features/room/domain/share-support";
 import type { ScreenShareControl } from "@/features/room/hooks/use-screen-share";
+import { useShareSupport } from "@/features/room/hooks/use-share-support";
 import { InviteCard } from "./InviteCard";
 
 /** Actions available while the person is alone in the room. */
 export function AloneWelcome({ code, share }: { code: string; share: ScreenShareControl }) {
-  const shareSupported = canShareScreen();
+  const shareSupport = useShareSupport();
+  const shareSupported = shareSupport !== null && canShare(shareSupport);
 
   return (
     <section
