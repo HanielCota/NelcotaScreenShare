@@ -38,9 +38,6 @@ export function ErrorScreen({
       role="alert"
       className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 py-16 text-center"
     >
-      <a href="/" aria-label="Nelcota, início" className="absolute top-6 left-1/2 -translate-x-1/2">
-        <img src="/icon.png" alt="" width={32} height={32} className="size-8 rounded-lg" />
-      </a>
       {mascot}
       <p className="text-sm font-medium text-ink-subtle tabular-nums">{code}</p>
       <h1 className="text-[clamp(2.25rem,6vw,4rem)] leading-[1] font-semibold tracking-[-0.045em]">
