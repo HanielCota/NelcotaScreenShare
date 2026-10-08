@@ -22,10 +22,13 @@ export function ParticipantAccount({ account }: { account: ParticipantDetail["ac
             ? ([
                 ["Bloqueada em", formatDateTime(account.blockedAt)],
                 ["Motivo", account.blockReason ?? "—"],
-              ] as [string, string][])
+              ] satisfies [string, string][])
             : []),
           ...(account.anonymizedAt
-            ? ([["Anonimizada em", formatDateTime(account.anonymizedAt)]] as [string, string][])
+            ? ([["Anonimizada em", formatDateTime(account.anonymizedAt)]] satisfies [
+                string,
+                string,
+              ][])
             : []),
         ]}
       />
