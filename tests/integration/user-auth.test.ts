@@ -10,7 +10,7 @@ import {
 import * as schema from "@/server/db/schema";
 import { logger } from "@/server/logger.server";
 import { verifiedParticipant } from "./support/accounts";
-import { CookieJar, makeCaller } from "./support/http-auth";
+import { CookieJar, errorCode, makeCaller } from "./support/http-auth";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
@@ -101,7 +101,8 @@ describe("sign-up", () => {
     const res = await newCaller()("/sign-up/email", {
       body: { name: "Nina", email: "nina@exemplo.com", password: "curta" },
     });
-    assert.notEqual(res.status, 200);
+    assert.equal(res.status, 400);
+    assert.equal(errorCode(res.body), "PASSWORD_TOO_SHORT");
   });
 });
 
@@ -112,7 +113,8 @@ describe("login", () => {
     const res = await newCaller()("/sign-in/email", {
       body: { email: ana.email, password: ana.password },
     });
-    assert.notEqual(res.status, 200);
+    assert.equal(res.status, 401);
+    assert.equal(errorCode(res.body), "FAILED_TO_CREATE_SESSION");
   });
 
   test("attempt lockout applies to participants, separate from admin", async () => {

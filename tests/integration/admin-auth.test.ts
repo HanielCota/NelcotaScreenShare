@@ -13,7 +13,7 @@ import {
   createAdminInvitation,
 } from "@/features/auth/server/admin-invitations.server";
 import * as schema from "@/server/db/schema";
-import { CookieJar, makeCaller } from "./support/http-auth";
+import { CookieJar, errorCode, makeCaller } from "./support/http-auth";
 import { totpFromUri } from "./support/totp";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -166,7 +166,8 @@ describe("sign-in", () => {
     const res = await call("/sign-up/email", {
       body: { email: "intruso@exemplo.com", password: PASSWORD, name: "Intruso" },
     });
-    assert.notEqual(res.status, 200);
+    assert.equal(res.status, 400);
+    assert.equal(errorCode(res.body), "EMAIL_PASSWORD_SIGN_UP_DISABLED");
     const rows = await db
       .select()
       .from(schema.adminUsers)
@@ -280,7 +281,8 @@ describe("password reset", () => {
     const reused = await call("/reset-password", {
       body: { token, newPassword: "mais-uma-senha-789" },
     });
-    assert.notEqual(reused.status, 200);
+    assert.equal(reused.status, 400);
+    assert.equal(errorCode(reused.body), "INVALID_TOKEN");
 
     const oldSession = await call("/get-session", { method: "GET", jar });
     assert.equal(oldSession.body, null, "old session ended");

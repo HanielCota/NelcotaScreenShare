@@ -6,6 +6,11 @@ interface AuthCallResult {
   body: unknown;
 }
 
+/** Better Auth error code (`{ code, message }`), or undefined for any other body. */
+export function errorCode(body: unknown): string | undefined {
+  return typeof body === "object" && body && "code" in body ? String(body.code) : undefined;
+}
+
 export class CookieJar {
   private readonly jar = new Map<string, string>();
 
