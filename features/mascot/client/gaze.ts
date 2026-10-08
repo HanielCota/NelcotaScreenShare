@@ -94,7 +94,7 @@ export function gazeFor(
   if (pointer) return lookAt(face, pointer);
   const active = document.activeElement;
   if (active instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(active.type)) {
-    return active.type === "password" ? LOOK_AWAY : lookAt(face, caretPoint(active));
+    return lookAt(face, caretPoint(active));
   }
   // Free text (multiple lines): looks at the field, like someone following what is being written.
   if (active instanceof HTMLTextAreaElement) return lookAt(face, center(active));
