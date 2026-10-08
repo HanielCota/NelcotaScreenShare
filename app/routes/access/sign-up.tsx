@@ -15,17 +15,17 @@ export const loader = routeLoader(async ({ searchParams }) => {
   const returnTo = safeReturnPath(voltar);
   if (await getUserSession()) redirect(returnTo);
 
-  const configuration0 = getEnv().REQUIRE_EMAIL_VERIFICATION;
-  return { returnTo, configuration0 };
+  const verificationRequired = getEnv().REQUIRE_EMAIL_VERIFICATION;
+  return { returnTo, verificationRequired };
 });
 
 export default function SignUpPage() {
-  const { returnTo, configuration0 } = useLoaderData<typeof loader>();
+  const { returnTo, verificationRequired } = useLoaderData<typeof loader>();
   return (
     <SignUpForm
       returnTo={returnTo}
       context={accessContext(returnTo)}
-      verificationRequired={configuration0}
+      verificationRequired={verificationRequired}
     />
   );
 }
