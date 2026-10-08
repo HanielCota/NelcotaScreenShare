@@ -1,3 +1,4 @@
+import { HomeBack } from "@/features/auth/ui/HomeBack";
 import { routeLoader } from "@/server/route-loader.server";
 import { useLoaderData } from "react-router";
 
@@ -22,10 +23,13 @@ export const loader = routeLoader(async ({ searchParams }) => {
 export default function SignUpPage() {
   const { returnTo, verificationRequired } = useLoaderData<typeof loader>();
   return (
-    <SignUpForm
-      returnTo={returnTo}
-      context={accessContext(returnTo)}
-      verificationRequired={verificationRequired}
-    />
+    <>
+      <HomeBack />
+      <SignUpForm
+        returnTo={returnTo}
+        context={accessContext(returnTo)}
+        verificationRequired={verificationRequired}
+      />
+    </>
   );
 }

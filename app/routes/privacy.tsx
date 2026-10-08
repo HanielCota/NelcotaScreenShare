@@ -21,6 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { BackLink } from "@/components/shell/BackLink";
 import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 import { SiteFooter } from "@/components/shell/SiteFooter";
 import { PrivacyItem, PrivacyList, PrivacySection } from "@/features/privacy/ui/PrivacySection";
@@ -115,6 +116,7 @@ export default function PrivacyPage() {
     <div className="flex min-h-dvh flex-col bg-canvas">
       <ParticipantHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 sm:py-16">
+        <BackLink className="mb-8" />
         <header className="max-w-2xl">
           <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1.5 text-sm font-medium text-ink-muted">
             <ShieldCheck className="size-4.5 text-brand-soft" aria-hidden="true" />

@@ -1,3 +1,4 @@
+import { HomeBack } from "@/features/auth/ui/HomeBack";
 import { routeLoader } from "@/server/route-loader.server";
 import { useLoaderData } from "react-router";
 
@@ -26,10 +27,13 @@ export const loader = routeLoader(async ({ searchParams }) => {
 export default function SignInPage() {
   const { aviso, returnTo } = useLoaderData<typeof loader>();
   return (
-    <SignInForm
-      returnTo={returnTo}
-      context={accessContext(returnTo)}
-      notice={typeof aviso === "string" ? NOTICES[aviso] : undefined}
-    />
+    <>
+      <HomeBack />
+      <SignInForm
+        returnTo={returnTo}
+        context={accessContext(returnTo)}
+        notice={typeof aviso === "string" ? NOTICES[aviso] : undefined}
+      />
+    </>
   );
 }

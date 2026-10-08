@@ -1,3 +1,4 @@
+import { HomeBack } from "@/features/auth/ui/HomeBack";
 import { routeLoader } from "@/server/route-loader.server";
 import { useLoaderData } from "react-router";
 
@@ -23,5 +24,10 @@ export const loader = routeLoader(async ({ searchParams }) => {
 
 export default function VerifyEmailPage() {
   const { returnTo, address } = useLoaderData<typeof loader>();
-  return <VerifyEmailPanel email={address} returnTo={returnTo} />;
+  return (
+    <>
+      <HomeBack />
+      <VerifyEmailPanel email={address} returnTo={returnTo} />
+    </>
+  );
 }

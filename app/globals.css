@@ -347,6 +347,7 @@
    * with reduced motion.
    */
   .icon-nudge,
+  .icon-back,
   .icon-turn,
   .icon-spin {
     transition:
@@ -356,6 +357,9 @@
   :is(a, button, summary):hover .icon-nudge {
     translate: 3px 0;
   }
+  :is(a, button):hover .icon-back {
+    translate: -3px 0;
+  }
   :is(a, button):hover .icon-turn {
     rotate: 90deg;
   }
@@ -364,6 +368,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .icon-nudge,
+    .icon-back,
     .icon-turn,
     .icon-spin {
       transition: none;
