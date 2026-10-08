@@ -28,6 +28,8 @@ interface Ping extends PointerMessage {
 }
 
 const PING_MS = 2500;
+/** On screen at the same time: the oldest go first, so a flood does not freeze the stage. */
+const MAX_PINGS = 20;
 /** Minimum interval between points sent by this person. */
 const SEND_INTERVAL_MS = 150;
 
@@ -39,7 +41,7 @@ export function usePointers() {
 
   function add(point: PointerMessage, name: string) {
     const id = nextId.current++;
-    setPings((list) => [...list.slice(-19), { ...point, id, name }]);
+    setPings((list) => [...list.slice(-(MAX_PINGS - 1)), { ...point, id, name }]);
     later(() => setPings((list) => list.filter((ping) => ping.id !== id)), PING_MS);
   }
 
