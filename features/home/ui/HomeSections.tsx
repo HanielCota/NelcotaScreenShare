@@ -87,8 +87,8 @@ export function HomeSections({
         <PricingSection maxParticipants={maxParticipants} signedIn={signedIn} />
         <ChangelogSection />
         <FaqSection maxParticipants={maxParticipants} />
-        <FinalCta signedIn={signedIn} />
       </div>
+      <FinalCta signedIn={signedIn} />
     </div>
   );
 }
