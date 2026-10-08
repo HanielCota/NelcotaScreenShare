@@ -14,7 +14,12 @@ import {
   softDeleteParticipants,
   unblockParticipants,
 } from "@/features/account/server/participant-accounts.server";
-import { bulkSelectionSchema, resolveSelection } from "@/server/table/selection.server";
+import {
+  bulkChange,
+  bulkSelectionSchema,
+  resolveSelection,
+  type BulkSelectionInput,
+} from "@/server/table/selection.server";
 import { participantIdsForFilter } from "./server/queries.server";
 
 const reasonSchema = z
@@ -22,6 +27,11 @@ const reasonSchema = z
   .trim()
   .min(3, "Escreva o motivo do bloqueio.")
   .max(300, "O motivo pode ter até 300 caracteres.");
+
+function participantIds(selection: BulkSelectionInput) {
+  const db = getDb();
+  return resolveSelection(selection, (search, limit) => participantIdsForFilter(db, search, limit));
+}
 
 /** Block: sessions ended; sign-in and joining rooms refused. */
 export const blockParticipantsAction = defineAdminOperation(
@@ -32,24 +42,20 @@ export const blockParticipantsAction = defineAdminOperation(
   },
   z.object({ selection: bulkSelectionSchema, reason: reasonSchema }),
   async ({ parsedInput, ctx }) => {
-    const db = getDb();
-    const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
-      participantIdsForFilter(db, search, limit),
-    );
-    const changed = await db.transaction(async (tx) => {
-      const done = await blockParticipants(tx, ids, parsedInput.reason);
-      if (done.length === 0) throw new ActionError("Nenhuma conta para bloquear na seleção.");
-      await ctx.audit.recordMany(
-        tx,
-        done.map((id) => ({
+    const ids = await participantIds(parsedInput.selection);
+    const changed = await bulkChange(
+      ctx.audit,
+      (tx) => blockParticipants(tx, ids, parsedInput.reason),
+      {
+        empty: "Nenhuma conta para bloquear na seleção.",
+        entry: (id) => ({
           action: "user.block",
           resourceType: "user",
           resourceId: id,
           metadata: { motivo: parsedInput.reason },
-        })),
-      );
-      return done;
-    });
+        }),
+      },
+    );
     return { count: changed.length };
   },
 );
@@ -62,18 +68,10 @@ export const unblockParticipantsAction = defineAdminOperation(
   },
   z.object({ selection: bulkSelectionSchema }),
   async ({ parsedInput, ctx }) => {
-    const db = getDb();
-    const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
-      participantIdsForFilter(db, search, limit),
-    );
-    const changed = await db.transaction(async (tx) => {
-      const done = await unblockParticipants(tx, ids);
-      if (done.length === 0) throw new ActionError("Nenhuma conta bloqueada na seleção.");
-      await ctx.audit.recordMany(
-        tx,
-        done.map((id) => ({ action: "user.unblock", resourceType: "user", resourceId: id })),
-      );
-      return done;
+    const ids = await participantIds(parsedInput.selection);
+    const changed = await bulkChange(ctx.audit, (tx) => unblockParticipants(tx, ids), {
+      empty: "Nenhuma conta bloqueada na seleção.",
+      entry: (id) => ({ action: "user.unblock", resourceType: "user", resourceId: id }),
     });
     return { count: changed.length };
   },
@@ -88,18 +86,10 @@ export const deleteParticipantsAction = defineAdminOperation(
   },
   z.object({ selection: bulkSelectionSchema }),
   async ({ parsedInput, ctx }) => {
-    const db = getDb();
-    const ids = await resolveSelection(parsedInput.selection, (search, limit) =>
-      participantIdsForFilter(db, search, limit),
-    );
-    const changed = await db.transaction(async (tx) => {
-      const done = await softDeleteParticipants(tx, ids);
-      if (done.length === 0) throw new ActionError("Nenhuma conta para excluir na seleção.");
-      await ctx.audit.recordMany(
-        tx,
-        done.map((id) => ({ action: "user.delete", resourceType: "user", resourceId: id })),
-      );
-      return done;
+    const ids = await participantIds(parsedInput.selection);
+    const changed = await bulkChange(ctx.audit, (tx) => softDeleteParticipants(tx, ids), {
+      empty: "Nenhuma conta para excluir na seleção.",
+      entry: (id) => ({ action: "user.delete", resourceType: "user", resourceId: id }),
     });
     return { ids: changed };
   },
@@ -113,15 +103,9 @@ export const restoreParticipantsAction = defineAdminOperation(
   },
   z.object({ ids: z.array(z.uuid()).min(1).max(BULK_FILTER_LIMIT) }),
   async ({ parsedInput, ctx }) => {
-    const db = getDb();
-    const changed = await db.transaction(async (tx) => {
-      const done = await restoreParticipants(tx, parsedInput.ids);
-      if (done.length === 0) throw new ActionError("Nada para restaurar.");
-      await ctx.audit.recordMany(
-        tx,
-        done.map((id) => ({ action: "user.restore", resourceType: "user", resourceId: id })),
-      );
-      return done;
+    const changed = await bulkChange(ctx.audit, (tx) => restoreParticipants(tx, parsedInput.ids), {
+      empty: "Nada para restaurar.",
+      entry: (id) => ({ action: "user.restore", resourceType: "user", resourceId: id }),
     });
     return { count: changed.length };
   },
