@@ -214,6 +214,17 @@ test.describe("in the room", () => {
       edu.page.getByRole("region", { name: "Tela compartilhada por Dani Souza" }),
     ).toBeVisible();
 
+    // Shared screen in a floating window, and back. The window needs the first frames.
+    await expect
+      .poll(() =>
+        edu.page.getByLabel("Tela de Dani Souza").evaluate((v: HTMLVideoElement) => v.readyState),
+      )
+      .toBeGreaterThan(0);
+    await edu.page.getByRole("button", { name: "Abrir em janela" }).click();
+    await expect(edu.page.getByRole("button", { name: "Fechar a janela" })).toBeVisible();
+    await edu.page.keyboard.press("j");
+    await expect(edu.page.getByRole("button", { name: "Abrir em janela" })).toBeVisible();
+
     // Chat with the panel closed: notice and unread counter.
     await edu.page.getByRole("button", { name: /^Chat/ }).click();
     await edu.page.getByPlaceholder("Escreva para a sala").fill("Oi, Dani!");

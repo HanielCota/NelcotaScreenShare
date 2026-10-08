@@ -43,15 +43,16 @@ Self-hosted, with LiveKit and React Router.
 
 ### Room shortcuts
 
-| Key | Action                                  |
-| --- | --------------------------------------- |
-| `M` | Toggles the microphone                  |
-| `S` | Opens the share menu (or stops sharing) |
-| `F` | Full screen on the stage                |
-| `P` | Point at someone else's screen          |
-| `H` | Raise or lower your hand                |
-| `C` | Opens and closes the chat               |
-| `E` | Leave the room (asks for confirmation)  |
+| Key | Action                                     |
+| --- | ------------------------------------------ |
+| `M` | Toggles the microphone                     |
+| `S` | Opens the share menu (or stops sharing)    |
+| `F` | Full screen on the stage                   |
+| `J` | Someone else's screen in a floating window |
+| `P` | Point at someone else's screen             |
+| `H` | Raise or lower your hand                   |
+| `C` | Opens and closes the chat                  |
+| `E` | Leave the room (asks for confirmation)     |
 
 Shortcuts don't fire while you are typing in the chat or another field.
 
