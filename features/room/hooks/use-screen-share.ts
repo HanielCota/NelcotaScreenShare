@@ -1,9 +1,34 @@
 import { useLocalParticipant } from "@livekit/components-react";
-import { ScreenSharePresets, Track } from "livekit-client";
+import { ScreenSharePresets, Track, type LocalTrack, type VideoEncoding } from "livekit-client";
 import { useState } from "react";
 import { toast } from "sonner";
-import { showsCaptureBar, type ShareChoice } from "@/features/room/domain/share-support";
+import {
+  canRestrictOwnAudio,
+  echoesRoomAudio,
+  showsCaptureBar,
+  type ShareChoice,
+} from "@/features/room/domain/share-support";
 import { useShareSupport } from "@/features/room/hooks/use-share-support";
+
+/**
+ * Drops the computer audio when it would carry the room back to everyone (see
+ * `echoesRoomAudio`). Checked before publishing, so nobody hears even a moment of it.
+ */
+function withoutEchoingAudio(tracks: LocalTrack[]): LocalTrack[] {
+  const audio = tracks.find((track) => track.source === Track.Source.ScreenShareAudio);
+  if (audio === undefined) return tracks;
+  const video = tracks.find((track) => track.source === Track.Source.ScreenShare);
+  const surface = video?.mediaStreamTrack.getSettings().displaySurface;
+  const audioSettings: MediaTrackSettings & { restrictOwnAudio?: boolean } =
+    audio.mediaStreamTrack.getSettings();
+  if (!echoesRoomAudio(surface, audioSettings.restrictOwnAudio)) return tracks;
+
+  audio.stop();
+  toast.info(
+    "O som do computador ficou de fora: ele levaria a voz da sala de volta para todos. Para compartilhar som, escolha uma aba.",
+  );
+  return tracks.filter((track) => track !== audio);
+}
 
 /**
  * Starting and stopping screen sharing. One instance per room
@@ -22,6 +47,21 @@ export function useScreenShare() {
         ?.track?.mediaStreamTrack.getSettings().displaySurface
     : undefined;
 
+  /** Publishes the screen and its sound; if one fails, nothing stays captured or half-shared. */
+  async function publishScreen(tracks: LocalTrack[], encoding: VideoEncoding) {
+    try {
+      await Promise.all(
+        tracks.map((track) =>
+          localParticipant.publishTrack(track, { screenShareEncoding: encoding }),
+        ),
+      );
+    } catch (error) {
+      await Promise.allSettled(tracks.map((track) => localParticipant.unpublishTrack(track)));
+      for (const track of tracks) track.stop();
+      throw error;
+    }
+  }
+
   async function start({ surface, audio }: ShareChoice) {
     // Text (screen, window): 15fps leaves bandwidth for every frame to come out sharp.
     // A tab is usually video or animated slides: 30fps.
@@ -29,29 +69,27 @@ export function useScreenShare() {
       surface === "browser" ? ScreenSharePresets.h1080fps30 : ScreenSharePresets.h1080fps15;
     setBusy(true);
     try {
-      await localParticipant.setScreenShareEnabled(
-        true,
-        {
-          // Opens the browser picker directly on the tab chosen in our menu.
-          video: { displaySurface: surface },
-          audio: audio
-            ? {
-                echoCancellation: false,
-                noiseSuppression: false,
-                autoGainControl: false,
-                // System audio also carries the room's own playback: without this,
-                // everyone would hear their voice coming back (Chromium only).
-                restrictOwnAudio: true,
-              }
-            : false,
-          systemAudio: audio ? "include" : "exclude",
-          selfBrowserSurface: "exclude",
-          surfaceSwitching: "include",
-          contentHint: surface === "browser" ? "motion" : "detail",
-          resolution: preset.resolution,
-        },
-        { screenShareEncoding: preset.encoding },
-      );
+      const tracks = await localParticipant.createScreenTracks({
+        // Opens the browser picker directly on the tab chosen in our menu.
+        video: { displaySurface: surface },
+        audio: audio
+          ? {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false,
+              // System audio also carries the room's own playback: without this,
+              // everyone would hear their voice coming back (Chromium only).
+              restrictOwnAudio: true,
+            }
+          : false,
+        // Only where the browser can strip the room from it (see `withoutEchoingAudio`).
+        systemAudio: audio && canRestrictOwnAudio() ? "include" : "exclude",
+        selfBrowserSurface: "exclude",
+        surfaceSwitching: "include",
+        contentHint: surface === "browser" ? "motion" : "detail",
+        resolution: preset.resolution,
+      });
+      await publishScreen(withoutEchoingAudio(tracks), preset.encoding);
     } catch (error) {
       if (error instanceof DOMException && error.name === "NotAllowedError") {
         toast.info(

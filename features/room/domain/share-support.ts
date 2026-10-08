@@ -110,3 +110,23 @@ export interface ShareChoice {
   surface: ShareSurface;
   audio: boolean;
 }
+
+/**
+ * Computer audio from a whole screen or a window also carries the room's own playback.
+ * Chromium 141+ strips it (`restrictOwnAudio`); without that, the others would hear their
+ * own voice coming back. A tab's audio is safe: our own tab is never offered.
+ */
+export function echoesRoomAudio(
+  surface: string | undefined,
+  ownAudioRestricted: boolean | undefined,
+): boolean {
+  if (surface === "browser") return false;
+  return ownAudioRestricted !== true;
+}
+
+/** Does this browser strip the page's own playback from the computer audio? (client only) */
+export function canRestrictOwnAudio(): boolean {
+  const supported: MediaTrackSupportedConstraints & { restrictOwnAudio?: boolean } =
+    navigator.mediaDevices.getSupportedConstraints();
+  return supported.restrictOwnAudio === true;
+}
