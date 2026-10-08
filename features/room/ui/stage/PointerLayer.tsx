@@ -46,7 +46,8 @@ export function usePointers() {
   const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));
 
   const { send } = useDataChannel(TOPICS.pointer, (message) => {
-    if (!acceptFrom(message.from?.identity ?? "")) return;
+    const sender = message.from?.identity;
+    if (!sender || !acceptFrom(sender)) return;
     const received = decodeMessage(message.payload, pointerSchema);
     if (received) add(received, participantName(message.from));
   });

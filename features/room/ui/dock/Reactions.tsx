@@ -63,7 +63,8 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
   const [acceptFrom] = useState(() => createReceiveThrottle(SEND_INTERVAL_MS / 2));
 
   const { send } = useDataChannel(TOPICS.reaction, (message) => {
-    if (!acceptFrom(message.from?.identity ?? "")) return;
+    const sender = message.from?.identity;
+    if (!sender || !acceptFrom(sender)) return;
     const data = decodeMessage(message.payload, reactionSchema);
     if (data) show(data.emoji, participantName(message.from));
   });
