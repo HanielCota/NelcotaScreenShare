@@ -3,5 +3,6 @@
   "entry": ["scripts/*.ts", "tests/**/*.test.ts", "app/server.ts"],
   "project": ["**/*.{ts,tsx,mjs,css}", "!.react-router/**", "!build/**", "!dist/**"],
   "ignoreIssues": { "components/ui/**": ["exports", "types"] },
-  "ignoreDependencies": ["pino-pretty"]
+  "ignoreDependencies": ["pino-pretty"],
+  "ignoreBinaries": ["pwsh"]
 }
