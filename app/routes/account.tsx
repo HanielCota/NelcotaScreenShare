@@ -1,7 +1,7 @@
 import { routeLoader } from "@/server/route-loader.server";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData } from "react-router";
 
-import { ArrowLeft, Check, CircleCheck, Download, ShieldAlert } from "lucide-react";
+import { Check, CircleCheck, Download, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { revokeMyOtherSessions, revokeMySession } from "@/features/account/actions";
 import { AccountHealth } from "@/features/account/ui/AccountHealth";
@@ -18,6 +18,7 @@ import {
 } from "@/features/account/ui/settings/Settings";
 import { UserSignOutButton } from "@/features/account/ui/UserSignOutButton";
 import { AppHeader } from "@/components/shell/AppHeader";
+import { BackLink } from "@/components/shell/BackLink";
 import { SiteFooter } from "@/components/shell/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { SessionList } from "@/features/security/ui/SessionList";
@@ -88,15 +89,12 @@ export default function AccountPage() {
       />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 sm:py-12">
         {back ? (
-          <Link
-            viewTransition
-            to={back}
-            className="inline-flex items-center gap-2 self-start text-sm font-medium text-brand-soft hover:underline"
-          >
-            <ArrowLeft className="size-4" aria-hidden="true" />
+          <BackLink to={back} className="self-start">
             Voltar para a sala
-          </Link>
-        ) : null}
+          </BackLink>
+        ) : (
+          <BackLink className="self-start" />
+        )}
         {notice ? (
           <output className="flex items-center gap-2.5 rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm">
             <CircleCheck className="size-4 shrink-0 text-brand-soft" aria-hidden="true" />

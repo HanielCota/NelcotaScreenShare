@@ -1,4 +1,5 @@
 import type { MetaFunction } from "react-router";
+import { BackLink } from "@/components/shell/BackLink";
 import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 import { SiteFooter } from "@/components/shell/SiteFooter";
 import { RELEASES } from "@/features/home/domain/changelog";
@@ -20,6 +21,7 @@ export default function ChangelogPage() {
     <div className="flex min-h-dvh flex-col bg-canvas">
       <ParticipantHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 sm:py-16">
+        <BackLink className="mb-8" />
         <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[1] font-semibold tracking-[-0.045em] text-balance">
           Novidades.
           <span className="block text-ink-subtle">O que mudou por aqui.</span>
