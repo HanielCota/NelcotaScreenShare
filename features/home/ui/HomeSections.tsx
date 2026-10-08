@@ -1,5 +1,6 @@
 import { useRef } from "react";
-import { gsap, useGSAP } from "@/lib/animation/gsap";
+import { NavigationType, useNavigationType } from "react-router";
+import { useGSAP } from "@/lib/animation/gsap";
 import { ScrollTrigger } from "@/lib/animation/gsap-scroll";
 import { useReferenceFx } from "@/features/home/hooks/use-reference-fx";
 import { BrowserCheckSection } from "./BrowserCheckSection";
@@ -13,6 +14,23 @@ import { PrivacyScene } from "./scenes/PrivacyScene";
 import { ProductScene } from "./scenes/ProductScene";
 import { StepsScene } from "./scenes/StepsScene";
 import { UseCasesScene } from "./scenes/UseCasesScene";
+
+/** The element a "#section" link points at, if the hash names one. */
+function hashTarget(): HTMLElement | null {
+  const id = window.location.hash.slice(1);
+  if (!id) return null;
+  try {
+    return document.getElementById(decodeURIComponent(id));
+  } catch {
+    return null;
+  }
+}
+
+/** The page itself was just opened (typed, linked or reloaded), not restored from history. */
+function isFreshPageLoad(): boolean {
+  const [entry] = performance.getEntriesByType("navigation");
+  return entry instanceof PerformanceNavigationTiming && entry.type !== "back_forward";
+}
 
 /**
  * Below the hero: first the story, told in pinned scroll scenes (product, why, use cases,
@@ -30,27 +48,23 @@ export function HomeSections({
   const reference = useRef<HTMLDivElement>(null);
   useReferenceFx(reference);
 
+  const navigationType = useNavigationType();
+
   // Pins add scroll length once fonts and layout settle: measure again, then honor a
-  // "#section" link, whose position only exists after the pins are in place. While a dark
-  // stage passes under the fixed navigation, the bar turns dark too.
+  // "#section" link, whose position only exists after the pins are in place. Not on back or
+  // forward, where the browser restores the reading position on its own.
   useGSAP(
     () => {
-      const header = scope.current?.closest("main")?.querySelector("header");
-      for (const stage of gsap.utils.toArray<HTMLElement>(".stage", scope.current)) {
-        // A pinned section sits inside a pin-spacer, which holds its whole scroll length.
-        const spacer = stage.parentElement?.classList.contains("pin-spacer");
-        ScrollTrigger.create({
-          trigger: spacer ? stage.parentElement : stage,
-          start: "top 40px",
-          end: "bottom 40px",
-          toggleClass: header ? { targets: header, className: "over-stage" } : undefined,
-        });
-      }
+      const honorHash = navigationType !== NavigationType.Pop || isFreshPageLoad();
+      let mounted = true;
       void document.fonts.ready.then(() => {
+        if (!mounted) return;
         ScrollTrigger.refresh();
-        const target = window.location.hash && document.querySelector(window.location.hash);
-        if (target instanceof HTMLElement) target.scrollIntoView();
+        if (honorHash) hashTarget()?.scrollIntoView();
       });
+      return () => {
+        mounted = false;
+      };
     },
     { scope },
   );

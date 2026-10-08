@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { Link } from "react-router";
 import { gsap } from "@/lib/animation/gsap";
 import { useScrollScene } from "@/lib/animation/scroll-scene";
+import { useStageHeader } from "@/features/home/hooks/use-stage-header";
 
 const NOT_KEPT = ["Áudio.", "Vídeo.", "Telas.", "Chat."];
 
@@ -36,6 +37,8 @@ export function PrivacyScene() {
       .from(q("[data-privacy-detail]"), { autoAlpha: 0, y: 24, duration: 0.8 }, ">-0.4")
       .to({}, { duration: 0.4 });
   });
+
+  useStageHeader(scope);
 
   return (
     <section ref={scope} aria-labelledby="privacy-title" className="stage w-full">

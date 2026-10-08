@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useProductScene } from "@/features/home/hooks/use-product-scene";
+import { useStageHeader } from "@/features/home/hooks/use-stage-header";
 import { DemoWindow } from "../demo/DemoWindow";
 
 const PRODUCT_CHAPTERS = [
@@ -16,6 +17,7 @@ const PRODUCT_CHAPTERS = [
 export function ProductScene() {
   const scope = useRef<HTMLElement>(null);
   useProductScene(scope);
+  useStageHeader(scope);
 
   return (
     <section
