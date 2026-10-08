@@ -26,7 +26,14 @@ export function useScreenShare() {
           // Opens the browser picker directly on the tab chosen in our menu.
           video: { displaySurface: surface },
           audio: audio
-            ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            ? {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false,
+                // System audio also carries the room's own playback: without this,
+                // everyone would hear their voice coming back (Chromium only).
+                restrictOwnAudio: true,
+              }
             : false,
           systemAudio: audio ? "include" : "exclude",
           selfBrowserSurface: "exclude",
