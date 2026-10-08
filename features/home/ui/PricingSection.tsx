@@ -71,8 +71,8 @@ export function PricingSection({
   signedIn: boolean;
 }) {
   return (
-    <section id="precos" aria-labelledby="pricing-title" className="w-full max-w-4xl scroll-mt-28">
-      <SectionIntro id="pricing-title" title="Preços" />
+    <section id="precos" aria-labelledby="pricing-title" className="w-full max-w-5xl scroll-mt-28">
+      <SectionIntro id="pricing-title" title="Preços." subtitle="Comece grátis, hoje." />
 
       <ul className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-2">
         <Plan

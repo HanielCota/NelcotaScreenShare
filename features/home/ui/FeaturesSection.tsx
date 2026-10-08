@@ -35,7 +35,11 @@ export function FeaturesSection({ maxParticipants }: { maxParticipants: number }
       aria-labelledby="features-title"
       className="w-full max-w-5xl scroll-mt-28"
     >
-      <SectionIntro id="features-title" title="Outros detalhes da sala" />
+      <SectionIntro
+        id="features-title"
+        title="Os detalhes."
+        subtitle="Pequenos, mas fazem diferença."
+      />
 
       <dl className="mt-12 grid gap-x-10 gap-y-8 sm:mt-16 sm:grid-cols-2">
         <Feature title="Microfone testado antes de entrar">

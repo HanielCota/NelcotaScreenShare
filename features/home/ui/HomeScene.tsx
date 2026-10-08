@@ -33,10 +33,11 @@ export function HomeScene({
     <HomeEntrance className="flex flex-col items-center pb-8">
       <AppHeader account={account} data-anim="nav" className="fixed inset-x-0 top-0 z-30" />
 
-      {/* A full screen of its own; as the story starts, it steps back (see useHeroRecede). */}
+      {/* Almost a full screen: the dark stage peeks in below, inviting the scroll. As the story
+          starts, the hero steps back (see useHeroRecede). */}
       <div
         ref={hero}
-        className="flex min-h-svh w-full max-w-5xl flex-col items-center justify-center px-4 pt-28 pb-16 sm:px-8"
+        className="flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col items-center justify-center px-4 pt-28 pb-12 sm:px-8"
       >
         {notice ? (
           <output className="mb-8 block w-full rounded-2xl bg-surface-2 px-4 py-3 text-center text-sm">
@@ -45,7 +46,7 @@ export function HomeScene({
         ) : null}
         <h1
           data-anim="title"
-          className="text-center text-[clamp(3rem,8.5vw,7rem)] leading-[0.95] font-semibold tracking-[-0.05em] text-balance"
+          className="text-center text-[clamp(3rem,8vw,6.5rem)] leading-[0.95] font-semibold tracking-[-0.05em] text-balance"
         >
           Mostre a tela.
           <span className="block text-brand-soft">Com som e ponteiro.</span>

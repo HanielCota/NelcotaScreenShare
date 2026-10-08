@@ -46,9 +46,11 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
     tl.set(chapters, { autoAlpha: 0, y: 28 })
       .set(chapters[0] ?? [], { autoAlpha: 1, y: 0 })
       .set(screen, { opacity: 0, scale: 0.96 })
-      .set(part("bar"), { scaleY: 0 })
+      .set(part("line"), { opacity: 0, x: -12 })
+      .set(part("terminal"), { opacity: 0, y: 12 })
       .set([part("badge"), part("hand"), part("chat"), part("guest")], { opacity: 0, y: 8 })
-      .set(pointer, { x: 0, y: 0, xPercent: 18, yPercent: 88, opacity: 0 })
+      // The pointer rests on the bug in the markup; it starts far below and to the right.
+      .set(pointer, { xPercent: 900, yPercent: 700, opacity: 0 })
       .set(part("ripple"), { scale: 0.4, opacity: 0 })
       .set(part("reaction"), { opacity: 0, y: 12, scale: 0.6 })
       .set(progress, { scaleX: 0 });
@@ -68,13 +70,11 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
       );
     };
 
-    // 1. The screen arrives and the report draws itself.
+    // 1. The editor arrives, line by line, and the error shows up in the terminal.
     chapter(0, 0);
-    tl.to(screen, { opacity: 1, scale: 1 }, 0.05).to(
-      part("bar"),
-      { scaleY: 1, stagger: 0.05 },
-      0.2,
-    );
+    tl.to(screen, { opacity: 1, scale: 1 }, 0.05)
+      .to(part("line"), { opacity: 1, x: 0, duration: 0.3, stagger: 0.05 }, 0.15)
+      .to(part("terminal"), { opacity: 1, y: 0 }, 0.6);
 
     // 2. The computer's sound comes along.
     chapter(1, 1);
@@ -91,11 +91,16 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
       1.3,
     );
 
-    // 3. Ana points at the button, and it "clicks".
+    // 3. Ana's pointer travels to the bug and "clicks" on it.
     chapter(2, 2);
     tl.to(pointer, { opacity: 1, duration: 0.2 }, 2.1)
-      .to(pointer, { xPercent: 80, yPercent: 12, duration: 0.6, ease: "power2.inOut" }, 2.15)
-      .to(part("target"), { scale: 0.92, duration: 0.08, yoyo: true, repeat: 1 }, 2.75)
+      .to(pointer, { xPercent: 0, yPercent: 0, duration: 0.6, ease: "power2.inOut" }, 2.15)
+      .fromTo(
+        part("target"),
+        { backgroundColor: "rgb(255 107 107 / 0)" },
+        { backgroundColor: "rgb(255 107 107 / 0.22)", duration: 0.2 },
+        2.75,
+      )
       .fromTo(
         part("ripple"),
         { scale: 0.4, opacity: 0.9 },
