@@ -116,7 +116,7 @@
   border-radius: 0.65rem;
   background: var(--color-surface-2);
   color: var(--color-brand-soft);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
   pointer-events: none;
@@ -126,6 +126,17 @@
 .root[data-facing="right"] .invitation {
   right: auto;
   left: 96%;
+}
+
+/* On narrow screens the side of the mascot can be the edge of the page: the bubble goes above. */
+@media (max-width: 639px) {
+  .root .invitation,
+  .root[data-facing="right"] .invitation {
+    top: -14%;
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+  }
 }
 
 .root[data-high-five="true"] .invitation {

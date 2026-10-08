@@ -5,7 +5,6 @@ import { useId, useRef, useState, type FormEvent } from "react";
 import { AccessTabs } from "./AccessTabs";
 import { EmailField, forgetTypedEmail } from "./EmailField";
 import { AuthCard } from "./AuthCard";
-import { SignUpPhotoField } from "./SignUpPhotoField";
 import { FormError } from "@/components/FormError";
 import { PasswordInput } from "@/components/PasswordInput";
 import { celebrateMascot, upsetMascot } from "@/features/mascot/client/events";
@@ -97,7 +96,6 @@ export function SignUpForm({
   const [pending, setPending] = useState(false);
   const [password, setPassword] = useState("");
   const [personal, setPersonal] = useState<string[]>([]);
-  const [photo, setPhoto] = useState<string | null>(null);
   const back = encodeURIComponent(returnTo);
 
   function fail(message: string, field?: HTMLElement | null) {
@@ -133,8 +131,6 @@ export function SignUpForm({
       name,
       email,
       password,
-      // Without a photo, the account keeps the default icon.
-      image: photo ?? undefined,
       callbackURL: returnTo,
     });
     // With confirmation, an already registered e-mail responds the same (the owner is notified by e-mail).
@@ -180,7 +176,6 @@ export function SignUpForm({
         noValidate
         className="flex flex-col gap-4"
       >
-        <SignUpPhotoField photo={photo} onChange={setPhoto} disabled={pending} />
         <div className="flex flex-col gap-2">
           <Label htmlFor={ids.name}>Seu nome</Label>
           <Input

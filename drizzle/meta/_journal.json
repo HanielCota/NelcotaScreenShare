@@ -71,6 +71,13 @@
       "when": 1791466833926,
       "tag": "0009_token_result_host_absent",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791468253923,
+      "tag": "0010_pro_interests",
+      "breakpoints": true
     }
   ]
 }

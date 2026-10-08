@@ -10,9 +10,14 @@ function faqItems(maxParticipants: number): { question: string; answer: string }
         "Não. A sala abre no navegador, tanto no computador quanto no celular. Nada de programa ou extensão.",
     },
     {
-      question: "Preciso ter conta? E quem eu convido?",
+      question: "Quem eu convido precisa criar conta?",
       answer:
-        "Sim, cada pessoa entra com a própria conta: assim todo mundo sabe quem está na sala. Quem ainda não tem cria em poucos segundos e volta direto para a sala do link.",
+        "Não. Quem recebe o link entra só com o nome, como convidado, e aparece na sala marcado assim. A conta grátis é só para quem abre a sala.",
+    },
+    {
+      question: "Quanto custa?",
+      answer:
+        "O plano Grátis não tem prazo nem cartão. O Pro, para times que usam todo dia, vai custar R$ 19 por pessoa por mês; deixe seu e-mail na seção de preços para saber quando abrir.",
     },
     {
       question: "O som do computador vai junto com a tela?",

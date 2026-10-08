@@ -15,7 +15,7 @@ import {
   setMascotDoubt,
   upsetMascot,
 } from "@/features/mascot/client/events";
-import { generateRoomCode, roomLink, roomPath } from "@/features/room/domain/room-code";
+import { roomLink } from "@/features/room/domain/room-code";
 import { parseRoomInput, type RoomInput } from "@/features/room/domain/room-input";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,8 @@ interface SmartBarProps {
   invalidCode: boolean;
   pending: boolean;
   onNavigate: (href: string) => void;
+  /** Where an empty bar's "Criar sala" goes (a new room, or sign-up first). */
+  createRoomHref: () => string;
   /** Mascot "peeking" over the bar. */
   mascot: ReactNode;
 }
@@ -137,7 +139,13 @@ function SubmitLabel({ pending, creating }: { pending: boolean; creating: boolea
  * The home bar: when empty, creates a room; with a code or a pasted link
  * (with or without an invite), joins. The "/" key anywhere focuses the bar.
  */
-export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarProps) {
+export function SmartBar({
+  invalidCode,
+  pending,
+  onNavigate,
+  createRoomHref,
+  mascot,
+}: SmartBarProps) {
   const inputId = useId();
   const hintId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -183,9 +191,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
       return;
     }
     celebrateMascot();
-    onNavigate(
-      input.kind === "room" ? roomLink(input.code, input.invite) : roomPath(generateRoomCode()),
-    );
+    onNavigate(input.kind === "room" ? roomLink(input.code, input.invite) : createRoomHref());
   }
 
   // "Criar sala" only with an empty bar; with text, the person is trying to join.

@@ -32,11 +32,11 @@ test("without APP_URL, links use the request origin", async () => {
 });
 
 test("page meta builds absolute preview URLs from the root origin", () => {
-  const origin = originFromMatches([{ id: "root", data: { origin: "https://nelcota.app" } }]);
+  const origin = originFromMatches([{ id: "root", loaderData: { origin: "https://nelcota.app" } }]);
   const meta = pageMeta({ title: "T", description: "D", path: "/novidades", origin });
   assert.ok(meta.some((tag) => "property" in tag && tag.content === "https://nelcota.app/og.png"));
   assert.ok(meta.some((tag) => "href" in tag && tag.href === "https://nelcota.app/novidades"));
-  assert.equal(originFromMatches([{ id: "home", data: {} }]), "");
+  assert.equal(originFromMatches([{ id: "home", loaderData: {} }]), "");
 });
 
 test("only routes marked as indexable skip the noindex tag", () => {
