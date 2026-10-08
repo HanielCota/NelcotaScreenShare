@@ -8,8 +8,9 @@ import { BrowserLogo } from "./BrowserLogo";
 import { SectionIntro } from "./SectionIntro";
 
 /**
- * Each family's mark in its brand color (Simple Icons' hex), on a faint tint of it; phones
- * and tablets get a device glyph in the text color instead.
+ * Each family's mark in its brand color (Simple Icons' hex); phones and tablets get a device
+ * glyph in the text color instead. Every mark sits on the same neutral tile: a tint of each
+ * brand turned muddy (brown, navy) on the dark canvas.
  */
 const MARKS: Record<BrowserRow["id"], { mark: ReactNode; color?: string }> = {
   chromium: { mark: <BrowserLogo browser="chrome" className="size-6" />, color: "#4285f4" },
@@ -65,7 +66,7 @@ export function BrowserCheckSection() {
             >
               <span className="flex items-start justify-between gap-3">
                 <span
-                  style={color ? { color, backgroundColor: `${color}1f` } : undefined}
+                  style={color ? { color } : undefined}
                   className="grid size-12 place-items-center rounded-2xl bg-surface-2 text-ink"
                 >
                   {mark}
