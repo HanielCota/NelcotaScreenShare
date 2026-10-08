@@ -18,6 +18,11 @@ import { ChoiceSelect } from "@/components/ChoiceSelect";
 import { FormError } from "@/components/FormError";
 import { formatDateTime } from "@/lib/format";
 import { createInviteAction, revokeInviteAction } from "@/features/admin/rooms/actions";
+import {
+  INVITE_MAX_USES,
+  INVITE_VALIDITY,
+  inviteMaxUsesSchema,
+} from "@/features/admin/rooms/domain/invites";
 
 export interface InviteRow {
   id: string;
@@ -34,10 +39,7 @@ export interface InviteRow {
 
 const VALIDITY_OPTIONS = [
   { value: "", label: "Sem validade" },
-  { value: "1", label: "1 hora" },
-  { value: "24", label: "1 dia" },
-  { value: "168", label: "7 dias" },
-  { value: "720", label: "30 dias" },
+  ...INVITE_VALIDITY.map((option) => ({ value: String(option.hours), label: option.label })),
 ];
 
 const STATES = {
@@ -126,15 +128,11 @@ function CreateInviteDialog({
               };
               const uses = field("uses").trim();
               const maxUses = uses ? Number(uses) : null;
-              const badInput =
-                event.currentTarget.querySelector<HTMLInputElement>('input[name="uses"]')?.validity
-                  .badInput;
-              if (
-                badInput ||
-                (maxUses !== null && (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 1000))
-              ) {
+              const usesInput =
+                event.currentTarget.querySelector<HTMLInputElement>('input[name="uses"]');
+              if (usesInput?.validity.badInput || !inviteMaxUsesSchema.safeParse(maxUses).success) {
                 setUsesError("Informe um limite inteiro entre 1 e 1.000 pessoas.");
-                event.currentTarget.querySelector<HTMLInputElement>('input[name="uses"]')?.focus();
+                usesInput?.focus();
                 return;
               }
               setUsesError(undefined);
@@ -166,7 +164,7 @@ function CreateInviteDialog({
                   name="uses"
                   type="number"
                   min={1}
-                  max={1000}
+                  max={INVITE_MAX_USES}
                   aria-invalid={usesError ? true : undefined}
                   aria-describedby={usesError ? `${ids.uses}-error` : undefined}
                   onChange={() => setUsesError(undefined)}

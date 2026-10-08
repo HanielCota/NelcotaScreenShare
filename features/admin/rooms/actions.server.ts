@@ -11,6 +11,7 @@ import { rooms } from "@/server/db/schema";
 import { appUrl } from "@/server/env.server";
 import { createRoomInvite, revokeRoomInvite } from "@/features/room/server/invites.server";
 import { bulkChange, bulkSelectionSchema, resolveSelection } from "@/server/table/selection.server";
+import { INVITE_VALIDITY, inviteMaxUsesSchema } from "./domain/invites";
 import { roomIdsForFilter } from "./server/queries.server";
 
 /** Reversible deletion. A live room cannot be deleted: end it first. */
@@ -127,8 +128,6 @@ export const updateRoomNoteAction = defineAdminOperation(
   },
 );
 
-const VALIDITY_HOURS = [1, 24, 24 * 7, 24 * 30] as const;
-
 /** Invite with an expiry and/or a people limit. The link is only shown now. */
 export const createInviteAction = defineAdminOperation(
   {
@@ -139,10 +138,10 @@ export const createInviteAction = defineAdminOperation(
   z.object({
     roomId: z.uuid(),
     label: z.string().trim().max(80, "O nome pode ter até 80 caracteres."),
-    maxUses: z.number().int().min(1).max(1000).nullable(),
+    maxUses: inviteMaxUsesSchema,
     validityHours: z
       .number()
-      .refine((hours) => VALIDITY_HOURS.some((option) => option === hours))
+      .refine((hours) => INVITE_VALIDITY.some((option) => option.hours === hours))
       .nullable(),
   }),
   async ({ parsedInput, ctx }) => {
