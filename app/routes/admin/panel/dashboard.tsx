@@ -1,82 +1,63 @@
 import { routeLoader } from "@/server/route-loader.server";
 import { useLoaderData, Link } from "react-router";
 
-import { ArrowUpRight, KeyRound, MonitorSmartphone, Settings2 } from "lucide-react";
-import { Mascot } from "@/features/mascot/ui/Mascot";
 import { requireAdmin } from "@/features/auth/server/admin-session.server";
-import { can } from "@/features/auth/server/permissions.server";
+import { getDashboardSummary } from "@/features/admin/dashboard/server/summary.server";
+import { getDb } from "@/server/db/index.server";
+
+export const meta = () => [{ title: "Início · Nelcota" }];
 
 export const loader = routeLoader(async () => {
-  const admin = await requireAdmin({ dashboard: ["read"] });
-  const firstName = admin.user.name.split(" ")[0];
-  const mayReadSettings = can(admin.user.role, { settings: ["read"] });
-
-  return { firstName, mayReadSettings };
+  await requireAdmin({ dashboard: ["read"] });
+  return { summary: await getDashboardSummary(getDb()) };
 });
 
+function Stat({ href, value, label }: { href: string; value: number; label: string }) {
+  return (
+    <li>
+      <Link
+        viewTransition
+        to={href}
+        className="panel flex h-full flex-col gap-1 rounded-2xl p-5 transition-colors hover:bg-surface-2"
+      >
+        <span className="text-3xl font-medium tracking-tight tabular-nums">{value}</span>
+        <span className="text-sm text-ink-muted">{label}</span>
+      </Link>
+    </li>
+  );
+}
+
 export default function AdminHomePage() {
-  const { firstName, mayReadSettings } = useLoaderData<typeof loader>();
-  const links = [
-    mayReadSettings
-      ? {
-          href: "/admin/configuracoes",
-          icon: Settings2,
-          title: "Configurações",
-          text: "Saturação do mascote e ajustes do app.",
-        }
-      : null,
-    {
-      href: "/admin/conta/seguranca",
-      icon: KeyRound,
-      title: "Segurança da conta",
-      text: "Verificação em duas etapas e códigos de backup.",
-    },
-    {
-      href: "/admin/conta/sessoes",
-      icon: MonitorSmartphone,
-      title: "Sessões ativas",
-      text: "Onde sua conta está conectada agora.",
-    },
-  ].filter((link) => link !== null);
+  const { summary } = useLoaderData<typeof loader>();
   return (
     <>
-      <section className="flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-line bg-surface px-6 py-7 sm:px-8 sm:py-8">
-        <div className="flex min-w-0 flex-col gap-3">
-          <p className="text-sm text-ink-subtle">Painel admin</p>
-          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">Olá, {firstName}</h1>
-          <p className="max-w-md text-sm leading-relaxed text-ink-muted sm:text-base">
-            Escolha uma área do painel para começar.
-          </p>
-        </div>
-        <Mascot
-          facing="left"
-          className="size-24 shrink-0 overflow-hidden sm:size-36"
-          sizes="(min-width: 640px) 432px, 288px"
+      <div>
+        <h1 className="text-2xl font-medium tracking-tight">Início</h1>
+        <p className="mt-1 text-ink-muted">
+          O que está acontecendo agora e o que mudou nos últimos dias.
+        </p>
+      </div>
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat
+          href="/admin/salas?status=ativa"
+          value={summary.activeRooms}
+          label="Salas abertas agora"
         />
-      </section>
-      <h2 className="text-lg font-medium tracking-tight">Acesso rápido</h2>
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {links.map(({ href, icon: Icon, title, text }) => (
-          <li key={href}>
-            <Link
-              viewTransition
-              to={href}
-              className="group/shortcut flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface p-5 transition-colors hover:bg-surface-2"
-            >
-              <span className="flex items-center justify-between">
-                <span className="grid size-10 place-items-center rounded-xl bg-surface-2">
-                  <Icon className="size-5 text-brand-soft" aria-hidden="true" />
-                </span>
-                <ArrowUpRight
-                  className="size-4 text-ink-subtle transition-transform group-hover/shortcut:translate-x-0.5 group-hover/shortcut:-translate-y-0.5 motion-reduce:transform-none"
-                  aria-hidden="true"
-                />
-              </span>
-              <span className="font-medium">{title}</span>
-              <span className="text-sm text-ink-muted">{text}</span>
-            </Link>
-          </li>
-        ))}
+        <Stat
+          href="/admin/salas?status=ativa"
+          value={summary.peopleOnline}
+          label="Pessoas em sala agora"
+        />
+        <Stat
+          href="/admin/compartilhamentos"
+          value={summary.sharesToday}
+          label="Telas compartilhadas nas últimas 24 h"
+        />
+        <Stat
+          href="/admin/usuarios"
+          value={summary.newParticipants}
+          label="Contas novas nos últimos 7 dias"
+        />
       </ul>
     </>
   );
