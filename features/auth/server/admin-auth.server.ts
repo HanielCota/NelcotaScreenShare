@@ -17,7 +17,8 @@ import { recordAudit } from "@/server/audit.server";
 import { logger } from "@/server/logger.server";
 import { mailLayout } from "@/server/mail.server";
 import { deliverAccountMail } from "./auth-mail.server";
-import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password.server";
+import { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
+import { hashPassword, verifyPassword } from "./password.server";
 import { ac, roles } from "./permissions.server";
 import { AUTH_RATE_LIMIT_RULES, authHooks, FRESH_SESSION_SECONDS } from "./auth-shared.server";
 

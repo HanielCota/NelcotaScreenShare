@@ -26,6 +26,3 @@ export async function verifyPassword({
     return false;
   }
 }
-
-/** The same limits used in browser validation. */
-export { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
