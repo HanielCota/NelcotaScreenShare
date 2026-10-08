@@ -153,7 +153,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
 
       {pointing && !isOwnScreen ? (
         <p className="glass pointer-events-none absolute top-14 right-3 rounded-xl px-3 py-1.5 text-xs font-medium">
-          Clique na tela para apontar. Todos veem o ponto.
+          Clique na tela (ou use as setas e Enter) para apontar. Todos veem o ponto.
         </p>
       ) : null}
 
