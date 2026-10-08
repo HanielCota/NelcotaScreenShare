@@ -47,6 +47,7 @@ export function NavBrand({
   const className = cn("flex shrink-0 items-center gap-2 rounded-xl px-2 py-1.5", extraClass);
   return href ? (
     <Link
+      viewTransition
       to={href}
       aria-label="Nelcota, início"
       className={cn(className, "transition-colors hover:bg-surface-3")}
@@ -88,12 +89,13 @@ export function NavPopover({
       </Hint>
       <Popover.Portal>
         <Popover.Content
+          data-slot="popover-content"
           side="bottom"
           align={align}
           sideOffset={12}
           collisionPadding={16}
           aria-label={label}
-          className="glass z-50 w-[min(20rem,calc(100vw-2rem))] rounded-2xl p-4 outline-none"
+          className="glass z-50 w-[min(20rem,calc(100vw-2rem))] origin-(--radix-popover-content-transform-origin) rounded-2xl p-4 outline-none"
         >
           {children}
         </Popover.Content>

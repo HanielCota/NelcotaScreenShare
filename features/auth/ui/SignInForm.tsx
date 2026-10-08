@@ -72,7 +72,7 @@ export function SignInForm({
       return;
     }
     celebrateMascot();
-    void navigate(returnTo, { replace: true });
+    void navigate(returnTo, { replace: true, viewTransition: true });
     void revalidator.revalidate();
   }
 
@@ -108,6 +108,7 @@ export function SignInForm({
           <div className="flex items-baseline justify-between gap-2">
             <Label htmlFor={passwordId}>Senha</Label>
             <Link
+              viewTransition
               to="/recuperar-senha"
               className="text-sm font-medium text-brand-soft hover:underline"
             >

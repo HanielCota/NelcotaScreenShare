@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
 import type { ComponentProps } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { gsap, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
+import { gsap, MOTION_DURATION, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
 import { cn } from "@/lib/utils";
 
 type DockTone = "default" | "active" | "danger" | "muted";
@@ -58,6 +58,7 @@ export function DockButton({
   onPointerLeave,
   onPointerDown,
   onPointerUp,
+  onPointerCancel,
   ...props
 }: DockButtonProps) {
   const { contextSafe } = useGSAP();
@@ -73,7 +74,7 @@ export function DockButton({
       button.getAttribute("aria-disabled") === "true"
     )
       return;
-    gsap.to(surface, { duration: 0.25, ease: "power3.out", overwrite: "auto", ...vars });
+    gsap.to(surface, { duration: MOTION_DURATION.surface, overwrite: "auto", ...vars });
   });
 
   return (
@@ -93,11 +94,15 @@ export function DockButton({
           }}
           onPointerDown={(e) => {
             onPointerDown?.(e);
-            animate(e.currentTarget, { scale: 0.92, duration: 0.1 });
+            animate(e.currentTarget, { scale: 0.96, duration: MOTION_DURATION.feedback });
           }}
           onPointerUp={(e) => {
             onPointerUp?.(e);
-            animate(e.currentTarget, { scale: 1, ease: "back.out(3)", duration: 0.35 });
+            animate(e.currentTarget, { scale: 1 });
+          }}
+          onPointerCancel={(e) => {
+            onPointerCancel?.(e);
+            animate(e.currentTarget, { scale: 1 });
           }}
           className={cn(
             "group flex shrink-0 touch-manipulation flex-col items-center gap-2 rounded-xl outline-none disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50",

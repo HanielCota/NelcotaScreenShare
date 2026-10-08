@@ -71,6 +71,7 @@ export default function RoomPage() {
     <>
       <div className="flex flex-col gap-3">
         <Link
+          viewTransition
           to="/admin/salas"
           className="flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink"
         >

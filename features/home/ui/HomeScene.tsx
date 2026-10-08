@@ -43,7 +43,7 @@ export function HomeScene({
           aria-label="Rodapé"
           className="flex items-center gap-5 text-xs font-medium text-ink-muted"
         >
-          <Link to="/privacidade" className="transition-colors hover:text-ink">
+          <Link viewTransition to="/privacidade" className="transition-colors hover:text-ink">
             Privacidade
           </Link>
           <span className="text-ink-subtle">© Nelcota</span>

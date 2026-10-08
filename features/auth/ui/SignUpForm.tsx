@@ -145,11 +145,12 @@ export function SignUpForm({
     if (verificationRequired) {
       void navigate(`/verificar-email?email=${encodeURIComponent(email)}&voltar=${back}`, {
         replace: true,
+        viewTransition: true,
       });
       return;
     }
     // Without confirmation, Better Auth already opened the session: go where the person was heading.
-    void navigate(returnTo, { replace: true });
+    void navigate(returnTo, { replace: true, viewTransition: true });
     void revalidator.revalidate();
   }
 
@@ -218,6 +219,7 @@ export function SignUpForm({
         <p className="text-center text-xs text-ink-subtle">
           Ao criar a conta, você concorda com o{" "}
           <Link
+            viewTransition
             to="/privacidade"
             target="_blank"
             className="font-medium text-brand-soft hover:underline"

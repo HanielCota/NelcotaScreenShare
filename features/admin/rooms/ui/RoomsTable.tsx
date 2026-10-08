@@ -92,6 +92,7 @@ function Filters({ exportHref }: { exportHref: string | null }) {
 function CodeCell({ row }: { row: RoomRow }) {
   return (
     <Link
+      viewTransition
       to={`/admin/salas/${row.id}`}
       className="font-sans text-sm font-medium tabular-nums hover:underline"
     >

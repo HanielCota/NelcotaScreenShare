@@ -31,7 +31,9 @@ export default function AcceptInvitationPage() {
         description="Este convite expirou, foi revogado ou já foi usado. Peça um novo a quem convidou você."
       >
         <Button asChild variant="outline" size="lg" className="w-full">
-          <Link to="/admin/entrar">Ir para o login</Link>
+          <Link viewTransition to="/admin/entrar">
+            Ir para o login
+          </Link>
         </Button>
       </AuthCard>
     );

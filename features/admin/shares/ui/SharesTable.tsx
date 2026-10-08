@@ -111,7 +111,7 @@ function Duration({ row }: { row: ShareRow }) {
 
 function Person({ row }: { row: ShareRow }) {
   return row.userId ? (
-    <Link to={`/admin/usuarios/${row.userId}`} className="hover:underline">
+    <Link viewTransition to={`/admin/usuarios/${row.userId}`} className="hover:underline">
       {row.person}
     </Link>
   ) : (
@@ -122,6 +122,7 @@ function Person({ row }: { row: ShareRow }) {
 function Room({ row }: { row: ShareRow }) {
   return (
     <Link
+      viewTransition
       to={`/admin/salas/${row.roomId}`}
       className="font-sans text-sm tabular-nums hover:underline"
     >

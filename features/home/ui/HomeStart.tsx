@@ -11,7 +11,7 @@ export function HomeStart({ invalidCode }: { invalidCode: boolean }) {
 
   // Keeps the content visible while the route loads. Pending also ends when navigating back.
   function openRoom(href: string) {
-    startTransition(() => navigate(href));
+    startTransition(() => navigate(href, { viewTransition: true }));
   }
 
   return (

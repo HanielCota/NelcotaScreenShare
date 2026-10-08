@@ -38,6 +38,7 @@
   --color-warning: #fbbf24;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /*
@@ -47,6 +48,11 @@
  */
 :root {
   --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 20px 50px -20px rgb(0 0 0 / 0.7);
+  /* Keep these timings aligned with lib/animation/motion.ts. */
+  --motion-feedback: 160ms;
+  --motion-surface: 280ms;
+  --motion-exit: 180ms;
+  --motion-layout: 450ms;
 }
 
 @utility shadow-soft {
@@ -377,9 +383,9 @@ body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"][da
   border-color: transparent;
   letter-spacing: -0.01em;
   transition:
-    transform 180ms var(--ease-out-expo),
-    background-color 180ms ease,
-    opacity 180ms ease;
+    transform var(--motion-feedback) var(--ease-out-smooth),
+    background-color var(--motion-feedback) ease,
+    opacity var(--motion-feedback) ease;
 }
 
 /* Default button: comfortable touch target and 16 px text (easy to read). */
@@ -428,5 +434,155 @@ body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"][da
 @media (prefers-reduced-motion: reduce) {
   .apple-buttons [data-slot="button"]:active:not(:disabled) {
     transform: none;
+  }
+}
+
+/* One reversible path for both shadcn surfaces and the room's Radix menus. */
+:where(
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="select-content"],
+  [data-slot="tooltip-content"],
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"]
+) {
+  --surface-x: 0px;
+  --surface-y: 6px;
+  --surface-scale: 0.98;
+  animation-duration: var(--motion-surface);
+  animation-timing-function: var(--ease-out-smooth);
+  animation-fill-mode: both;
+
+  &:where([data-state]:not([data-state="closed"])) {
+    animation-name: surface-enter;
+  }
+
+  &[data-state="closed"] {
+    animation-name: surface-exit;
+    animation-duration: var(--motion-exit);
+    animation-timing-function: ease-in;
+    pointer-events: none;
+  }
+
+  &[data-side="bottom"] {
+    --surface-y: -6px;
+  }
+
+  &[data-side="left"] {
+    --surface-x: 6px;
+    --surface-y: 0px;
+  }
+
+  &[data-side="right"] {
+    --surface-x: -6px;
+    --surface-y: 0px;
+  }
+}
+
+[data-slot="tooltip-content"] {
+  animation-duration: var(--motion-feedback);
+}
+
+/* Item-aligned selects keep the chosen option under the pointer. */
+[data-slot="select-content"][data-align-trigger="true"] {
+  animation: none;
+}
+
+[data-slot="sheet-content"] {
+  --surface-scale: 1;
+  --surface-y: -24px;
+
+  &[data-side="bottom"] {
+    --surface-y: 24px;
+  }
+
+  &[data-side="left"] {
+    --surface-x: -24px;
+    --surface-y: 0px;
+  }
+
+  &[data-side="right"] {
+    --surface-x: 24px;
+    --surface-y: 0px;
+  }
+}
+
+:where([data-slot="dialog-overlay"], [data-slot="sheet-overlay"]) {
+  animation-duration: var(--motion-surface);
+  animation-timing-function: ease-in-out;
+
+  &[data-state="closed"] {
+    animation-duration: var(--motion-exit);
+  }
+}
+
+.room-topbar {
+  transition: padding-right var(--motion-layout) cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes surface-enter {
+  from {
+    opacity: 0;
+    transform: translate(var(--surface-x), var(--surface-y)) scale(var(--surface-scale));
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes surface-exit {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--surface-x), var(--surface-y)) scale(var(--surface-scale));
+  }
+}
+
+/* Cross-fade navigation and theme changes without moving the whole viewport. */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--motion-surface);
+  animation-timing-function: ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"],
+    [data-slot="select-content"],
+    [data-slot="tooltip-content"],
+    [data-slot="dialog-content"],
+    [data-slot="dialog-overlay"],
+    [data-slot="sheet-content"],
+    [data-slot="sheet-overlay"]
+  )[data-state] {
+    animation: none;
+  }
+
+  .room-topbar,
+  .apple-buttons [data-slot="button"],
+  [data-slot="sidebar-gap"],
+  [data-slot="sidebar-container"],
+  [data-slot="sidebar-group-label"],
+  [data-slot="sidebar-menu-button"],
+  [data-slot="switch-thumb"] {
+    transition: none;
+  }
+
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 }

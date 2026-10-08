@@ -45,7 +45,7 @@ export function TwoFactorCodeForm({
       setError(authErrorMessage(failure, "Código inválido. Confira e tente de novo."));
       return;
     }
-    void navigate(doneHref, { replace: true });
+    void navigate(doneHref, { replace: true, viewTransition: true });
     void revalidator.revalidate();
   }
 
@@ -59,7 +59,7 @@ export function TwoFactorCodeForm({
           : "Digite o código de 6 dígitos do seu app autenticador."
       }
       footer={
-        <Link to={backHref} className="font-medium text-brand-soft hover:underline">
+        <Link viewTransition to={backHref} className="font-medium text-brand-soft hover:underline">
           Voltar ao login
         </Link>
       }

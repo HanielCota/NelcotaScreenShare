@@ -99,7 +99,7 @@ function Filters({ exportHref }: { exportHref: string | null }) {
 
 function NameCell({ row }: { row: ParticipantRow }) {
   return (
-    <Link to={`/admin/usuarios/${row.id}`} className="group flex flex-col">
+    <Link viewTransition to={`/admin/usuarios/${row.id}`} className="group flex flex-col">
       <span className="font-medium group-hover:underline">{row.name}</span>
       <span className="text-xs text-ink-muted">{row.email}</span>
     </Link>

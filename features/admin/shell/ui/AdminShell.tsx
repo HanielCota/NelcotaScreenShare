@@ -103,7 +103,7 @@ export function AdminShell({
 
   function signOut() {
     void adminAuthClient.signOut().finally(() => {
-      void navigate("/admin/entrar?aviso=saiu", { replace: true });
+      void navigate("/admin/entrar?aviso=saiu", { replace: true, viewTransition: true });
       void revalidator.revalidate();
     });
   }
@@ -136,6 +136,7 @@ export function AdminShell({
                           tooltip={item.label}
                         >
                           <Link
+                            viewTransition
                             to={item.href}
                             aria-current={isActive(pathname, item.href) ? "page" : undefined}
                           >
@@ -155,7 +156,7 @@ export function AdminShell({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Voltar ao app">
-                <Link to="/">
+                <Link viewTransition to="/">
                   <ArrowUpRight aria-hidden="true" />
                   <span>Voltar ao app</span>
                 </Link>
@@ -186,7 +187,7 @@ export function AdminShell({
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
-                      <Link to="/admin/conta/seguranca">
+                      <Link viewTransition to="/admin/conta/seguranca">
                         <UserRound aria-hidden="true" />
                         Minha conta
                       </Link>
@@ -221,7 +222,9 @@ export function AdminShell({
                         <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                       ) : (
                         <BreadcrumbLink asChild>
-                          <Link to={crumb.href}>{crumb.label}</Link>
+                          <Link viewTransition to={crumb.href}>
+                            {crumb.label}
+                          </Link>
                         </BreadcrumbLink>
                       )}
                     </BreadcrumbItem>

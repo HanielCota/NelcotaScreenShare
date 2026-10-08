@@ -2,7 +2,8 @@ import { ArrowDown, EyeOff, MessagesSquare, X } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
+import { gsap, MOTION_DURATION, useGSAP } from "@/lib/animation/gsap";
+import { useReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { chatGroupStarts } from "@/features/room/domain/chat-format";
 import type { ChatEntry, ChatState } from "@/features/room/hooks/use-chat-state";
 import { ChatComposer } from "./ChatComposer";
@@ -18,6 +19,7 @@ async function copyMessage(text: string) {
 }
 
 export function ChatPanel({ chat }: { chat: ChatState }) {
+  const reducedMotion = useReducedMotion();
   const scope = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLOListElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -31,15 +33,29 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
 
   useGSAP(
     () => {
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
-        gsap.from(scope.current, { x: 24, opacity: 0, duration: 0.35 });
-      });
+      const panel = scope.current;
+      if (!panel) return;
+      gsap.set(panel, { x: 16, autoAlpha: 0 });
     },
     { scope },
   );
 
+  useGSAP(
+    () => {
+      const panel = scope.current;
+      if (!panel) return;
+      gsap.to(panel, {
+        x: reducedMotion || chat.open ? 0 : 16,
+        autoAlpha: chat.open ? 1 : 0,
+        duration: reducedMotion ? 0 : MOTION_DURATION.surface,
+        overwrite: "auto",
+      });
+    },
+    { scope, dependencies: [chat.open, reducedMotion] },
+  );
+
   useEffect(() => {
+    if (!chat.open) return;
     inputRef.current?.focus();
     // Focus and the panel's first layout can change its scrollable height.
     const frame = requestAnimationFrame(() => {
@@ -47,7 +63,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
       list?.scrollTo({ top: list.scrollHeight });
     });
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [chat.open]);
 
   function scrollToEnd(behavior: ScrollBehavior = "auto") {
     const list = listRef.current;
@@ -147,9 +163,11 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
   return (
     <aside
       ref={scope}
+      aria-hidden={!chat.open}
+      inert={!chat.open}
       aria-label="Chat da sala"
       // Wide screen: a column as tall as the room, aligned with the top of the bar and the bottom of the dock.
-      className="glass fixed top-20 right-3 bottom-32 z-40 flex w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-3xl sm:right-6 lg:top-4 lg:bottom-4"
+      className="glass invisible fixed top-20 right-3 bottom-32 z-40 flex w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-3xl sm:right-6 lg:top-4 lg:bottom-4"
     >
       <header className="flex items-center justify-between gap-3 border-b border-line py-3 pr-2 pl-4">
         <div className="min-w-0">
@@ -209,7 +227,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
           {missed > 0 ? (
             <button
               type="button"
-              onClick={() => scrollToEnd("smooth")}
+              onClick={() => scrollToEnd(reducedMotion ? "auto" : "smooth")}
               className="absolute bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-sm font-medium text-brand-ink shadow-soft transition-colors hover:bg-brand-hover"
             >
               <ArrowDown className="size-4" aria-hidden="true" />

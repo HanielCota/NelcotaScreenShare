@@ -53,7 +53,7 @@ export function AppHeader({
         >
           <ShortcutsPanel />
         </NavPopover>
-        <Link to="/privacidade" className={cn(navItemClass, "max-lg:hidden")}>
+        <Link viewTransition to="/privacidade" className={cn(navItemClass, "max-lg:hidden")}>
           Privacidade
         </Link>
         <ThemeToggle className="ml-auto" />
@@ -61,6 +61,7 @@ export function AppHeader({
           <>
             <NavDivider />
             <Link
+              viewTransition
               to={accountHref}
               aria-label="Minha conta"
               aria-current={accountCurrent ? "page" : undefined}
@@ -73,11 +74,13 @@ export function AppHeader({
         ) : showAuthLinks ? (
           <>
             <NavDivider />
-            <Link to="/entrar" className={navItemClass}>
+            <Link viewTransition to="/entrar" className={navItemClass}>
               Entrar
             </Link>
             <Button asChild className="max-sm:hidden">
-              <Link to="/cadastro">Criar conta</Link>
+              <Link viewTransition to="/cadastro">
+                Criar conta
+              </Link>
             </Button>
           </>
         ) : null}

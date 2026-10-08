@@ -88,6 +88,7 @@ export default function AccountPage() {
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 sm:py-12">
         {back ? (
           <Link
+            viewTransition
             to={back}
             className="inline-flex items-center gap-2 self-start text-sm font-medium text-brand-soft hover:underline"
           >
@@ -231,7 +232,7 @@ export default function AccountPage() {
       </main>
       <footer className="mx-auto w-[min(100%-2rem,42rem)] border-t border-line py-6 text-center text-xs text-ink-subtle">
         Nelcota
-        <Link to="/privacidade" className="ml-3 underline-offset-4 hover:underline">
+        <Link viewTransition to="/privacidade" className="ml-3 underline-offset-4 hover:underline">
           Privacidade
         </Link>
       </footer>

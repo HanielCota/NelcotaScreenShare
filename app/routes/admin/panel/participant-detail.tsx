@@ -65,6 +65,7 @@ export default function ParticipantPage() {
     <>
       <div className="flex flex-col gap-3">
         <Link
+          viewTransition
           to="/admin/usuarios"
           className="flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink"
         >

@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { useRef, type ReactNode } from "react";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
+import { useLocation, useViewTransitionState } from "react-router";
+import { gsap, MOTION_DURATION, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 import { cn } from "@/lib/utils";
 
 interface StatusScreenProps {
@@ -22,12 +23,19 @@ export function StatusScreen({
   children,
 }: StatusScreenProps) {
   const scope = useRef<HTMLDivElement>(null);
+  const transitioning = useViewTransitionState(useLocation().pathname);
 
   useGSAP(
     () => {
+      if (transitioning) return;
       const mm = gsap.matchMedia();
       mm.add(MOTION_QUERIES.motion, () => {
-        gsap.from(scope.current, { y: 20, opacity: 0, scale: 0.97, duration: 0.7 });
+        gsap.from(scope.current, {
+          y: 12,
+          opacity: 0,
+          duration: MOTION_DURATION.entrance,
+          clearProps: "transform,opacity",
+        });
       });
     },
     { scope },

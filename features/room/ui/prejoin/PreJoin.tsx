@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, Headphones, Loader2, Ticket } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useLocation, useViewTransitionState } from "react-router";
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { upsetMascot } from "@/features/mascot/client/events";
@@ -10,7 +10,13 @@ import type { RoomPresence } from "@/features/room/domain/presence";
 import { roomLink } from "@/features/room/domain/room-code";
 import { useMicSetup } from "@/features/room/hooks/use-mic-setup";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
-import { gsap, MOTION_QUERIES, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
+import {
+  gsap,
+  MOTION_DURATION,
+  MOTION_QUERIES,
+  prefersReducedMotion,
+  useGSAP,
+} from "@/lib/animation/gsap";
 import { formText } from "@/lib/utils";
 import { InviteLinkButton } from "./InviteLinkButton";
 import { MicSetup } from "./MicSetup";
@@ -57,6 +63,7 @@ export function PreJoin({
   onPrepareJoin,
 }: PreJoinProps) {
   const scope = useRef<HTMLFormElement>(null);
+  const transitioning = useViewTransitionState(useLocation().pathname);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(userName);
   const [formError, setFormError] = useState<{ message: string; field?: "password" }>();
@@ -67,14 +74,15 @@ export function PreJoin({
 
   useGSAP(
     () => {
+      if (transitioning) return;
       const mm = gsap.matchMedia();
       mm.add(MOTION_QUERIES.motion, () => {
-        gsap.fromTo(
-          scope.current,
-          { y: 12, opacity: 0, scale: 0.985 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.28 },
-        );
-        gsap.from("[data-anim=row]", { y: 6, opacity: 0, duration: 0.2, stagger: 0.025 });
+        gsap.from(scope.current, {
+          y: 10,
+          opacity: 0,
+          duration: MOTION_DURATION.entrance,
+          clearProps: "transform,opacity",
+        });
       });
     },
     { scope },
@@ -91,7 +99,12 @@ export function PreJoin({
     if (failure.passwordField) passwordRef.current?.focus();
     upsetMascot(failure.mood, (failure.passwordField && passwordRef.current) || undefined);
     if (!prefersReducedMotion()) {
-      gsap.fromTo(scope.current, { x: -6 }, { x: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+      gsap.to(scope.current, {
+        keyframes: [{ x: -4 }, { x: 4 }, { x: 0 }],
+        duration: MOTION_DURATION.surface,
+        ease: "sine.inOut",
+        overwrite: "auto",
+      });
     }
   }
 
@@ -213,6 +226,7 @@ export function PreJoin({
           {submitting ? null : <ArrowRight aria-hidden="true" />}
         </Button>
         <Link
+          viewTransition
           to="/"
           className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >

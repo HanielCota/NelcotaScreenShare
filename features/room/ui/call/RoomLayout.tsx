@@ -138,14 +138,17 @@ export function RoomLayout({
   const alone =
     !hasStage && participants.length === 1 && connectionState === ConnectionState.Connected;
 
-  const layoutKey = `${hasStage ? "stage" : alone ? "alone" : "grid"}|${participants.map((p) => p.identity).join(",")}`;
+  const layoutKey = `${hasStage ? "stage" : alone ? "alone" : "grid"}|${participants.map((p) => p.identity).join(",")}|chat:${chat.open}`;
   useRoomAnimations(scope, layoutKey);
 
   return (
     <div ref={scope} className="relative flex h-dvh flex-col overflow-hidden bg-canvas">
       <header
         data-anim="topbar"
-        className={cn("relative z-20 px-3 pt-3 sm:px-6 sm:pt-4", chat.open && "lg:pr-[26.5rem]")}
+        className={cn(
+          "room-topbar relative z-20 px-3 pt-3 sm:px-6 sm:pt-4",
+          chat.open && "lg:pr-[26.5rem]",
+        )}
       >
         <RoomTopBar
           code={code}
@@ -186,7 +189,7 @@ export function RoomLayout({
         )}
       </main>
 
-      {chat.open ? <ChatPanel chat={chat} /> : null}
+      <ChatPanel chat={chat} />
       <ControlDock chat={chat} share={share} onLeave={onLeave} />
     </div>
   );
