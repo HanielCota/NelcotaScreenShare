@@ -73,7 +73,7 @@ export function SessionList({
                 <span className="flex items-center gap-2 font-medium">
                   {describeUserAgent(session.userAgent)}
                   {current ? (
-                    <span className="rounded-md bg-brand px-1.5 py-0.5 text-[0.7rem] font-semibold text-brand-ink">
+                    <span className="rounded-md bg-brand px-1.5 py-0.5 text-xs font-semibold text-brand-ink">
                       Este dispositivo
                     </span>
                   ) : null}

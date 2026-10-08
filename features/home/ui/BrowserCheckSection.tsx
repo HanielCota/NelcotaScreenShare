@@ -60,7 +60,7 @@ export function BrowserCheckSection() {
                   <span className="inline-flex flex-wrap items-center gap-2">
                     {row.name}
                     {row.id === current ? (
-                      <span className="rounded-full bg-brand px-2 py-0.5 text-[0.6875rem] text-brand-ink">
+                      <span className="rounded-full bg-brand px-2 py-0.5 text-xs text-brand-ink">
                         Você está aqui
                       </span>
                     ) : null}

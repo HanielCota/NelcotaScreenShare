@@ -102,7 +102,7 @@ export function ChatMessage({
           )}
         </div>
         {message.edited && !message.deleted ? (
-          <span className="px-1 text-[0.6875rem] text-ink-subtle">editada</span>
+          <span className="px-1 text-xs text-ink-subtle">editada</span>
         ) : null}
       </div>
     </li>

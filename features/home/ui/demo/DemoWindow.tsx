@@ -7,7 +7,7 @@ const CHART = [38, 54, 46, 70, 62, 84, 76];
 function Avatar({ initial, tone }: { initial: string; tone: string }) {
   return (
     <span
-      className={`grid size-6 place-items-center rounded-full text-[0.625rem] font-semibold ring-2 ring-surface ${tone}`}
+      className={`grid size-6 place-items-center rounded-full text-xs font-semibold ring-2 ring-surface ${tone}`}
     >
       {initial}
     </span>
@@ -53,7 +53,7 @@ function SharedReport() {
       </div>
       <span
         data-demo="target"
-        className="absolute top-[7%] left-[74%] rounded-full bg-brand px-[3%] py-[1.5%] text-[0.625rem] font-semibold text-brand-ink ring-brand-soft/40 sm:text-xs"
+        className="absolute top-[7%] left-[74%] rounded-full bg-brand px-[3%] py-[1.5%] text-xs font-semibold text-brand-ink ring-brand-soft/40"
       >
         Publicar
       </span>
@@ -83,7 +83,7 @@ function RemotePointer() {
           strokeLinejoin="round"
         />
       </svg>
-      <span className="ml-3 inline-block rounded-full bg-violet px-2 py-0.5 text-[0.625rem] font-semibold text-canvas">
+      <span className="ml-3 inline-block rounded-full bg-violet px-2 py-0.5 text-xs font-semibold text-canvas">
         Ana
       </span>
     </div>
@@ -129,7 +129,7 @@ export function DemoWindow() {
             </div>
             <span
               data-demo="badge"
-              className="absolute bottom-[5%] left-[4%] inline-flex items-center gap-1.5 rounded-full bg-canvas/85 px-2.5 py-1 text-[0.625rem] font-medium backdrop-blur sm:text-xs"
+              className="absolute bottom-[5%] left-[4%] inline-flex items-center gap-1.5 rounded-full bg-canvas/85 px-2.5 py-1 text-xs font-medium backdrop-blur"
             >
               <Volume2 className="size-3.5 text-brand-soft" aria-hidden="true" />
               Bruno · tela com som
