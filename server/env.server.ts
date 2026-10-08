@@ -9,7 +9,6 @@ const databaseUrlSchema = z.url({
   error: "DATABASE_URL is required (postgres:// or postgresql://)",
 });
 
-// Public origin of the app (e-mail links, Better Auth CSRF). In dev: localhost.
 const appUrlSchema = z.preprocess(emptyToUndefined, z.url().optional());
 
 export const logLevelSchema = z.preprocess(
@@ -35,8 +34,8 @@ const envSchema = z
       emptyToUndefined,
       z.coerce.number().int().min(2).max(8).default(6),
     ),
-    // Participant e-mail confirmation. Disabled for now: the account
-    // gets in right away, without the link. "true" requires the link again to join rooms.
+    // Participant e-mail confirmation. Off by default: the account gets in right
+    // away, without the link. "true" requires the link to join rooms.
     REQUIRE_EMAIL_VERIFICATION: z.preprocess(
       emptyToUndefined,
       z

@@ -6,7 +6,7 @@ import { loadParticipantParams } from "@/features/admin/participants/domain/sear
 /** Participants CSV with the screen filters (requires `participant.export`). */
 export const exportCsv = csvExportRoute({
   permission: { participant: ["export"] },
-  // "user.export" is the name already stored in the audit log (open decision: Q5).
+  // "user.export" is the name already stored in the audit log.
   audit: { action: "user.export", resourceType: "user" },
   filename: "participantes",
   header: [
