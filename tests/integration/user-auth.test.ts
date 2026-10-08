@@ -53,9 +53,8 @@ describe("sign-up", () => {
       Object.keys(again.body as object).toSorted(),
       Object.keys(first.body as object).toSorted(),
     );
-    await new Promise((resolve) => setTimeout(resolve, 50));
     // The email owner gets the verification and then the attempt notice.
-    assert.equal(mail.count("lia@exemplo.com"), 2);
+    await vi.waitFor(() => assert.equal(mail.count("lia@exemplo.com"), 2));
     const rows = await db
       .select()
       .from(schema.users)
@@ -74,10 +73,12 @@ describe("sign-up", () => {
       body: { email: "mel@exemplo.com", password: PASSWORD },
     });
     assert.equal(blocked.status, 403);
-    await new Promise((resolve) => setTimeout(resolve, 50));
 
-    const link = mail.linkFor("mel@exemplo.com");
-    assert.ok(link, "verification link in the email");
+    const link = await vi.waitFor(() => {
+      const found = mail.linkFor("mel@exemplo.com");
+      assert.ok(found, "verification link in the email");
+      return found;
+    });
     const url = new URL(link);
     const jar = new CookieJar();
     const verify = await auth.handler(
