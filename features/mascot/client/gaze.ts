@@ -1,8 +1,6 @@
 import { gazeAt, IDLE, type Gaze, type Point } from "@/features/mascot/domain/eye-tracking";
 import type { Expression } from "@/features/mascot/domain/face";
 
-export { IDLE, type Gaze } from "@/features/mascot/domain/eye-tracking";
-
 /** Turns the face away while the password is being typed. */
 const LOOK_AWAY: Gaze = {
   x: -0.95,

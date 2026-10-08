@@ -1,4 +1,5 @@
 import { type Motion } from "@/features/mascot/domain/body-motions";
+import { IDLE } from "@/features/mascot/domain/eye-tracking";
 import { EXPRESSIONS, toFaceState, type Expression } from "@/features/mascot/domain/face";
 import {
   createPersonality,
@@ -19,7 +20,7 @@ import {
 import { prefersReducedMotion } from "@/lib/animation/motion";
 import { createFaceAnimator } from "./face-animator";
 import type { FaceRenderer } from "./face-renderer";
-import { gazeFor, IDLE, pairPartner, passwordEyes } from "./gaze";
+import { gazeFor, pairPartner, passwordEyes } from "./gaze";
 import { createHandMotions } from "./hand-motions";
 import { startAmbient } from "./ambient";
 import { listenToSignals } from "./signals";
@@ -292,7 +293,11 @@ export function createMascotController(
 
   const stopAmbient = startAmbient({
     canBlink: () =>
-      !prefersReducedMotion() && !document.hidden && onScreen && canBlink(current) && !eyeOverride(),
+      !prefersReducedMotion() &&
+      !document.hidden &&
+      onScreen &&
+      canBlink(current) &&
+      !eyeOverride(),
     blink: () => {
       animator.blink();
       update();

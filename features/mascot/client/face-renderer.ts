@@ -1,7 +1,11 @@
 import type { FaceState } from "@/features/mascot/domain/face";
-import type { Gaze } from "./gaze";
 import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
-import { EYE_SHAPES, pupilOffset, eyelidOffset } from "@/features/mascot/domain/eye-tracking";
+import {
+  EYE_SHAPES,
+  pupilOffset,
+  eyelidOffset,
+  type Gaze,
+} from "@/features/mascot/domain/eye-tracking";
 
 /** Updates only the drawing, without React renders on every frame. */
 export function createFaceRenderer(face: HTMLElement) {
