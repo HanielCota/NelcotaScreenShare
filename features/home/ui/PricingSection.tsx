@@ -1,6 +1,5 @@
 import { Check } from "lucide-react";
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
 import { CreateRoomButton } from "./CreateRoomButton";
 import { ProWaitlistForm } from "./ProWaitlistForm";
 import { SectionIntro } from "./SectionIntro";
@@ -12,7 +11,6 @@ function Plan({
   summary,
   badge,
   features,
-  stage = false,
   children,
 }: {
   name: string;
@@ -21,17 +19,10 @@ function Plan({
   summary: string;
   badge?: string;
   features: string[];
-  /** Drawn on the black stage, with the dark material, to set it apart. */
-  stage?: boolean;
   children: ReactNode;
 }) {
   return (
-    <li
-      className={cn(
-        "flex flex-col gap-8 rounded-3xl border p-6 sm:p-10 md:row-span-3 md:grid md:grid-rows-subgrid",
-        stage ? "stage over-stage border-white/10" : "border-line bg-surface",
-      )}
-    >
+    <li className="flex flex-col gap-8 rounded-3xl border border-line p-6 sm:p-10 md:row-span-3 md:grid md:grid-rows-subgrid">
       <div className="flex flex-col gap-4">
         <h3 className="flex items-center gap-2.5 text-xl font-semibold tracking-[-0.02em]">
           {name}
@@ -63,8 +54,8 @@ function Plan({
 }
 
 /**
- * Free today, Pro announced. The free plan lists only what the product does now; the Pro,
- * on the black stage, has no checkout yet, so it collects e-mails for the launch. Each card
+ * Free today, Pro announced. The free plan lists only what the product does now; the Pro
+ * has no checkout yet, so it collects e-mails for the launch. Each card
  * puts its action right under the price, before the list; side by side, the cards share
  * rows (subgrid), so both lists start at the same height.
  */
@@ -106,7 +97,6 @@ export function PricingSection({
             "Salas fixas do time, com link permanente",
             "Painel do time: histórico, membros e convites",
           ]}
-          stage
         >
           <ProWaitlistForm />
         </Plan>
