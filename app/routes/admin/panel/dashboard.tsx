@@ -12,16 +12,30 @@ export const loader = routeLoader(async () => {
   return { summary: await getDashboardSummary(getDb()) };
 });
 
-function Stat({ href, value, label }: { href: string; value: number; label: string }) {
+const STAT = "panel flex h-full flex-col gap-1 rounded-2xl p-5";
+
+function StatBody({ value, label }: { value: number; label: string }) {
+  return (
+    <>
+      <span className="text-3xl font-medium tracking-tight tabular-nums">{value}</span>
+      <span className="text-sm text-ink-muted">{label}</span>
+    </>
+  );
+}
+
+/** A number that links to its list, or plain when there is no list to open. */
+function Stat({ href, value, label }: { href?: string; value: number; label: string }) {
+  if (!href) {
+    return (
+      <li className={STAT}>
+        <StatBody value={value} label={label} />
+      </li>
+    );
+  }
   return (
     <li>
-      <Link
-        viewTransition
-        to={href}
-        className="panel flex h-full flex-col gap-1 rounded-2xl p-5 transition-colors hover:bg-surface-2"
-      >
-        <span className="text-3xl font-medium tracking-tight tabular-nums">{value}</span>
-        <span className="text-sm text-ink-muted">{label}</span>
+      <Link viewTransition to={href} className={`${STAT} transition-colors hover:bg-surface-2`}>
+        <StatBody value={value} label={label} />
       </Link>
     </li>
   );
@@ -37,7 +51,7 @@ export default function AdminHomePage() {
           O que está acontecendo agora e o que mudou nos últimos dias.
         </p>
       </div>
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Stat
           href="/admin/salas?status=ativa"
           value={summary.activeRooms}
@@ -58,6 +72,7 @@ export default function AdminHomePage() {
           value={summary.newParticipants}
           label="Contas novas nos últimos 7 dias"
         />
+        <Stat value={summary.proInterests} label="Pessoas na lista de espera do Pro" />
       </ul>
     </>
   );

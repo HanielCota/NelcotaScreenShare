@@ -5,6 +5,7 @@ export default [
   route("conta", "routes/account.tsx"),
   route("privacidade", "routes/privacy.tsx"),
   route("novidades", "routes/changelog.tsx"),
+  route("api/pro/interesse", "routes/api/pro-interest.ts"),
   route("robots.txt", "routes/robots.ts"),
   route("sitemap.xml", "routes/sitemap.ts"),
   route("sala/:codigo", "routes/room.tsx", { id: "room" }),

@@ -7,6 +7,7 @@ import {
   Hourglass,
   KeyRound,
   Landmark,
+  Mail,
   MessageSquareOff,
   MicOff,
   MonitorOff,
@@ -14,6 +15,7 @@ import {
   Trash2,
   UserRound,
   UserRoundCheck,
+  UsersRound,
   VideoOff,
   Wrench,
   type LucideIcon,
@@ -165,6 +167,14 @@ export default function PrivacyPage() {
                 <PrivacyItem icon={Fingerprint} title="Uso">
                   Em quais salas você entrou, quando entrou e saiu, e quando compartilhou a tela,
                   com o IP de acesso.
+                </PrivacyItem>
+                <PrivacyItem icon={UsersRound} title="Convidados sem conta">
+                  O nome que a pessoa digitou para a sala, quando entrou e saiu, e o IP de acesso,
+                  com os mesmos prazos dos registros de uso.
+                </PrivacyItem>
+                <PrivacyItem icon={Mail} title="Lista de espera do Pro">
+                  Só o e-mail de quem pediu para ser avisado, até enviarmos o aviso do lançamento.
+                  Para sair da lista antes, é só pedir.
                 </PrivacyItem>
               </PrivacyList>
             </PrivacySection>

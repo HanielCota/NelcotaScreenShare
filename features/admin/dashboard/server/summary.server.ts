@@ -1,6 +1,6 @@
 import { and, count, eq, gte, isNull } from "drizzle-orm";
 import type { DbExecutor } from "@/server/db/index.server";
-import { roomParticipations, rooms, shareSessions, users } from "@/server/db/schema";
+import { proInterests, roomParticipations, rooms, shareSessions, users } from "@/server/db/schema";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -9,6 +9,8 @@ export interface DashboardSummary {
   peopleOnline: number;
   sharesToday: number;
   newParticipants: number;
+  /** E-mails on the Pro launch list (landing page). */
+  proInterests: number;
 }
 
 /**
@@ -23,7 +25,7 @@ export async function getDashboardSummary(
   const dayAgo = new Date(now.getTime() - DAY_MS);
   const weekAgo = new Date(now.getTime() - 7 * DAY_MS);
 
-  const [activeRooms, peopleOnline, sharesToday, newParticipants] = await Promise.all([
+  const [activeRooms, peopleOnline, sharesToday, newParticipants, proList] = await Promise.all([
     db
       .select({ value: count() })
       .from(rooms)
@@ -40,6 +42,7 @@ export async function getDashboardSummary(
       .select({ value: count() })
       .from(users)
       .where(and(gte(users.createdAt, weekAgo), isNull(users.deletedAt))),
+    db.select({ value: count() }).from(proInterests),
   ]);
 
   return {
@@ -47,5 +50,6 @@ export async function getDashboardSummary(
     peopleOnline: peopleOnline[0]?.value ?? 0,
     sharesToday: sharesToday[0]?.value ?? 0,
     newParticipants: newParticipants[0]?.value ?? 0,
+    proInterests: proList[0]?.value ?? 0,
   };
 }
