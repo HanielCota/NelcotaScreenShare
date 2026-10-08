@@ -1,5 +1,5 @@
 import { type Motion } from "@/features/mascot/domain/body-motions";
-import { IDLE } from "@/features/mascot/domain/eye-tracking";
+import { IDLE, type Gaze } from "@/features/mascot/domain/eye-tracking";
 import { EXPRESSIONS, toFaceState, type Expression } from "@/features/mascot/domain/face";
 import {
   createPersonality,
@@ -20,7 +20,7 @@ import {
 import { prefersReducedMotion } from "@/lib/animation/motion";
 import { createFaceAnimator } from "./face-animator";
 import type { FaceRenderer } from "./face-renderer";
-import { gazeFor, pairPartner, passwordEyes } from "./gaze";
+import { focusTarget, gazeFor, passwordEyes } from "./gaze";
 import { createHandMotions } from "./hand-motions";
 import { startAmbient } from "./ambient";
 import { listenToSignals } from "./signals";
@@ -74,8 +74,9 @@ export function createMascotController(
       const voice = listening ? voiceAmount(inputs.voice()) : 0;
       const nextFace = listening ? listeningFace(faceTarget(), voice) : undefined;
       root.style.setProperty("--voice", listening ? voice.toFixed(3) : "0");
+      const gaze = animatedGaze(time);
       return {
-        ...(waiting ? { gaze: waitingGaze(time) } : trackingPartner ? { gaze: gazeTarget() } : {}),
+        ...(gaze ? { gaze } : {}),
         ...(nextFace ? { face: nextFace } : {}),
         keepAlive: waiting || listening || trackingPartner,
       };
@@ -140,14 +141,15 @@ export function createMascotController(
   function gazeTarget() {
     const focus = gazeFocus(current);
     if (focus === "idle") return IDLE;
-    const target =
-      signals.attentionTarget() ??
-      (focus === "partner"
-        ? pairPartner(root)
-        : focus === "stage"
-          ? (document.querySelector("[data-mascot-stage]") ?? undefined)
-          : undefined);
+    const target = signals.attentionTarget() ?? focusTarget(root, focus);
     return gazeFor(face, target, pointer);
+  }
+
+  /** Gaze that moves on its own every frame, without pointer or focus events. */
+  function animatedGaze(time: number): Gaze | undefined {
+    if (current === "waiting") return waitingGaze(time);
+    if (gazeFocus(current) === "partner") return gazeTarget();
+    return undefined;
   }
 
   /** Schedules a re-evaluation for the next reason that will expire. */
