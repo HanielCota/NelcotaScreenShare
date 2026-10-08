@@ -14,7 +14,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { searchPanelAction } from "@/features/admin/search/actions";
-import { applyTheme, currentTheme } from "@/lib/theme";
+import { currentTheme, switchTheme } from "@/lib/theme";
 import type { NavGroup } from "@/features/admin/shell/server/nav.server";
 import { NAV_ICONS } from "./nav-icons";
 
@@ -92,7 +92,7 @@ export function CommandPalette({
                   value={`${term} sala ${room.code}`}
                   onSelect={() =>
                     run(() => {
-                      void navigate(`/admin/salas/${room.id}`);
+                      void navigate(`/admin/salas/${room.id}`, { viewTransition: true });
                     })
                   }
                 >
@@ -113,7 +113,7 @@ export function CommandPalette({
                   value={`${term} pessoa ${person.id}`}
                   onSelect={() =>
                     run(() => {
-                      void navigate(`/admin/usuarios/${person.id}`);
+                      void navigate(`/admin/usuarios/${person.id}`, { viewTransition: true });
                     })
                   }
                 >
@@ -134,7 +134,7 @@ export function CommandPalette({
                     value={`${item.label} ${item.keywords.join(" ")}`}
                     onSelect={() =>
                       run(() => {
-                        void navigate(item.href);
+                        void navigate(item.href, { viewTransition: true });
                       })
                     }
                   >
@@ -149,7 +149,7 @@ export function CommandPalette({
           <CommandGroup heading="Ações">
             <CommandItem
               value="alternar tema claro escuro"
-              onSelect={() => run(() => applyTheme(currentTheme() === "light" ? "dark" : "light"))}
+              onSelect={() => run(() => switchTheme(currentTheme() === "light" ? "dark" : "light"))}
             >
               <SunMoon aria-hidden="true" />
               Alternar tema claro/escuro

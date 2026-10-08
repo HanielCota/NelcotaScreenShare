@@ -11,7 +11,9 @@ export default function AdminNotFound() {
       <h1 className="mt-5 text-2xl font-medium tracking-tight">Não encontrado</h1>
       <p className="mt-2 text-ink-muted">Este item não existe ou foi removido.</p>
       <Button asChild className="mt-6">
-        <Link to="/admin">Voltar ao início</Link>
+        <Link viewTransition to="/admin">
+          Voltar ao início
+        </Link>
       </Button>
     </div>
   );

@@ -1,12 +1,12 @@
 import { ArrowLeft, Check, Link2, Lock, Plus, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation, useViewTransitionState } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { Expression } from "@/features/mascot/domain/face";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { formatCallDuration, type LeaveReason } from "@/features/room/domain/leave";
 import { roomPath } from "@/features/room/domain/room-code";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
+import { gsap, MOTION_DURATION, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 
 /** Title, mascot mood and what can be done for each leave reason. */
 const COPY: Record<
@@ -97,15 +97,23 @@ export function LeftScreen({
 }) {
   const scope = useRef<HTMLElement>(null);
   const copy = COPY[reason];
+  const transitioning = useViewTransitionState(useLocation().pathname);
   const joined = durationMs !== undefined && reason !== "failed";
   // Room ended or person removed: the way forward is the home page, not the same room.
   const rejoinIsPrimary = copy.rejoin !== null && reason !== "elsewhere";
 
   useGSAP(
     () => {
+      if (transitioning) return;
       const mm = gsap.matchMedia();
       mm.add(MOTION_QUERIES.motion, () => {
-        gsap.from("[data-anim=left]", { y: 14, opacity: 0, duration: 0.6, stagger: 0.07 });
+        gsap.from("[data-anim=left]", {
+          y: 10,
+          opacity: 0,
+          duration: MOTION_DURATION.entrance,
+          stagger: 0.045,
+          clearProps: "transform,opacity",
+        });
       });
     },
     { scope },
@@ -162,7 +170,7 @@ export function LeftScreen({
             </Button>
           ) : (
             <Button asChild size="lg" data-primary="">
-              <Link to="/">
+              <Link viewTransition to="/">
                 <Plus aria-hidden="true" />
                 {reason === "ended" ? "Criar nova sala" : "Ir para o início"}
               </Link>
@@ -178,6 +186,7 @@ export function LeftScreen({
         </div>
         {rejoinIsPrimary ? (
           <Link
+            viewTransition
             to="/"
             className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           >

@@ -17,7 +17,7 @@ export function UserSignOutButton() {
       onClick={() => {
         setPending(true);
         void authClient.signOut().finally(() => {
-          void navigate("/entrar?aviso=saiu", { replace: true });
+          void navigate("/entrar?aviso=saiu", { replace: true, viewTransition: true });
           void revalidator.revalidate();
         });
       }}

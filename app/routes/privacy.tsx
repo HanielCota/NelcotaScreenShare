@@ -202,6 +202,7 @@ export default function PrivacyPage() {
               <div className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Link
+                    viewTransition
                     to="/conta#privacidade"
                     className="group flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-colors hover:bg-surface-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                   >
@@ -216,6 +217,7 @@ export default function PrivacyPage() {
                     />
                   </Link>
                   <Link
+                    viewTransition
                     to="/conta#excluir"
                     className="group flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-colors hover:bg-surface-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                   >
@@ -234,7 +236,9 @@ export default function PrivacyPage() {
                   Outros pedidos sobre seus dados são respondidos em até 15 dias.
                 </p>
                 <Button asChild variant="outline" className="mt-4">
-                  <Link to="/conta">Abrir Minha conta</Link>
+                  <Link viewTransition to="/conta">
+                    Abrir Minha conta
+                  </Link>
                 </Button>
               </div>
             </PrivacySection>
@@ -243,7 +247,7 @@ export default function PrivacyPage() {
       </main>
       <footer className="mx-auto w-[min(100%-2rem,48rem)] border-t border-line py-6 text-center text-xs text-ink-subtle">
         Nelcota
-        <Link to="/" className="ml-3 underline-offset-4 hover:underline">
+        <Link viewTransition to="/" className="ml-3 underline-offset-4 hover:underline">
           Início
         </Link>
       </footer>

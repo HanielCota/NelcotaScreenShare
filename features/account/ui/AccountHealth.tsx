@@ -35,7 +35,9 @@ export function AccountHealth({
         : "Para recuperar a conta se você esquecer a senha.",
       action: (
         <Button asChild size="sm">
-          <Link to="/verificar-email?voltar=%2Fconta">Reenviar link</Link>
+          <Link viewTransition to="/verificar-email?voltar=%2Fconta">
+            Reenviar link
+          </Link>
         </Button>
       ),
     },

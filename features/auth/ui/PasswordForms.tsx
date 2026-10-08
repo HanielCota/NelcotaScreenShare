@@ -33,7 +33,11 @@ const PATHS: Record<Scope, { login: string; forgot: string; reset: string; minLe
 
 function BackToLogin({ scope }: { scope: Scope }) {
   return (
-    <Link to={PATHS[scope].login} className="font-medium text-brand-soft hover:underline">
+    <Link
+      viewTransition
+      to={PATHS[scope].login}
+      className="font-medium text-brand-soft hover:underline"
+    >
       Voltar para entrar
     </Link>
   );
@@ -46,7 +50,11 @@ function OtherAccountRecovery({ scope }: { scope: Scope }) {
       {scope === "admin"
         ? "Contas de participante e do painel são separadas. "
         : "Sua conta é do painel administrativo? "}
-      <Link to={PATHS[otherScope].forgot} className="font-medium text-brand-soft hover:underline">
+      <Link
+        viewTransition
+        to={PATHS[otherScope].forgot}
+        className="font-medium text-brand-soft hover:underline"
+      >
         {scope === "admin" ? "Recuperar conta de participante" : "Recuperar conta do painel"}
       </Link>
     </p>
@@ -156,7 +164,9 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
         footer={<BackToLogin scope={scope} />}
       >
         <Button asChild size="lg" className="w-full">
-          <Link to={PATHS[scope].forgot}>Pedir um novo link</Link>
+          <Link viewTransition to={PATHS[scope].forgot}>
+            Pedir um novo link
+          </Link>
         </Button>
       </AuthCard>
     );
@@ -183,7 +193,7 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
       setError(authErrorMessage(failure));
       return;
     }
-    void navigate(`${PATHS[scope].login}?aviso=senha`, { replace: true });
+    void navigate(`${PATHS[scope].login}?aviso=senha`, { replace: true, viewTransition: true });
   }
 
   return (

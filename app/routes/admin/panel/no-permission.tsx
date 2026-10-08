@@ -15,7 +15,9 @@ export default function NoPermissionPage() {
         Seu papel não dá acesso a esta área. Se precisar, peça ao dono do painel.
       </p>
       <Button asChild className="mt-6">
-        <Link to="/admin">Voltar ao início</Link>
+        <Link viewTransition to="/admin">
+          Voltar ao início
+        </Link>
       </Button>
     </div>
   );

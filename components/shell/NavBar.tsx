@@ -47,6 +47,7 @@ export function NavBrand({
   const className = cn("flex shrink-0 items-center gap-2 rounded-xl px-2 py-1.5", extraClass);
   return href ? (
     <Link
+      viewTransition
       to={href}
       aria-label="Nelcota, início"
       className={cn(className, "transition-colors hover:bg-surface-3")}

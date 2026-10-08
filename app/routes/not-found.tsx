@@ -18,7 +18,9 @@ export default function NotFound() {
           <h1 className="mt-5 text-2xl font-medium tracking-tight">Página não encontrada</h1>
           <p className="mt-2 text-ink-muted">O endereço não existe ou mudou.</p>
           <Button asChild className="mt-6">
-            <Link to="/">Voltar ao início</Link>
+            <Link viewTransition to="/">
+              Voltar ao início
+            </Link>
           </Button>
         </div>
       </main>

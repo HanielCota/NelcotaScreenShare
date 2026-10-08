@@ -21,6 +21,7 @@ export function AccessTabs({
     <nav aria-label="Entrar ou criar conta" className="flex gap-6 border-b border-line">
       {tabs.map((tab) => (
         <Link
+          viewTransition
           key={tab.id}
           to={tab.href}
           replace

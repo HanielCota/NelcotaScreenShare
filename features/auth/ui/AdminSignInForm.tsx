@@ -38,7 +38,7 @@ export function AdminSignInForm({ notice }: { notice?: string | undefined }) {
     }
     // With 2FA active, the plugin redirects to /admin/verificar-2fa.
     if (result && "twoFactorRedirect" in result && result.twoFactorRedirect) return;
-    void navigate("/admin", { replace: true });
+    void navigate("/admin", { replace: true, viewTransition: true });
     void revalidator.revalidate();
   }
 
@@ -48,7 +48,11 @@ export function AdminSignInForm({ notice }: { notice?: string | undefined }) {
       title="Entrar no painel"
       description="Acesso restrito à equipe do Nelcota."
       footer={
-        <Link to="/admin/recuperar-senha" className="font-medium text-brand-soft hover:underline">
+        <Link
+          viewTransition
+          to="/admin/recuperar-senha"
+          className="font-medium text-brand-soft hover:underline"
+        >
           Esqueci minha senha
         </Link>
       }

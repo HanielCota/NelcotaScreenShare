@@ -123,7 +123,7 @@ export function TwoFactorSettings({
   function finish() {
     setStep({ name: "idle" });
     toast.success("Verificação em duas etapas ativa.");
-    void navigate(doneHref, { replace: true });
+    void navigate(doneHref, { replace: true, viewTransition: true });
     void revalidator.revalidate();
   }
 

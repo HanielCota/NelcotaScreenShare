@@ -31,6 +31,7 @@ export function RoomSummary({
             "Criada por",
             room.createdById ? (
               <Link
+                viewTransition
                 key="criador"
                 to={`/admin/usuarios/${room.createdById}`}
                 className="hover:underline"
@@ -75,6 +76,7 @@ export function RoomParticipants({ participants }: { participants: RoomDetail["p
                   <td className="py-2 pr-4">
                     {participant.userId ? (
                       <Link
+                        viewTransition
                         to={`/admin/usuarios/${participant.userId}`}
                         className="hover:underline"
                       >

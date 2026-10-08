@@ -1,21 +1,25 @@
 import { useRef, type ReactNode } from "react";
-import { gsap, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
+import { useLocation, useViewTransitionState } from "react-router";
+import { gsap, MOTION_DURATION, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 
 /** Home entrance: the blocks marked with data-anim rise in sequence. */
 export function HomeEntrance({ className, children }: { className: string; children: ReactNode }) {
   const scope = useRef<HTMLElement>(null);
+  const transitioning = useViewTransitionState(useLocation().pathname);
 
   useGSAP(
     () => {
+      // Let the router capture the fully visible page for its cross-fade.
+      if (transitioning) return;
       const mm = gsap.matchMedia();
 
       mm.add(MOTION_QUERIES.motion, () => {
         gsap.from("[data-anim]", {
-          y: 12,
+          y: 10,
           opacity: 0,
-          duration: 0.28,
-          stagger: 0.035,
-          ease: "expo.out",
+          duration: MOTION_DURATION.entrance,
+          stagger: 0.045,
+          clearProps: "transform,opacity",
         });
       });
 

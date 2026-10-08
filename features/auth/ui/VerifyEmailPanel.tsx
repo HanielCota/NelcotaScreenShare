@@ -73,6 +73,7 @@ export function VerifyEmailPanel({
       }
       footer={
         <Link
+          viewTransition
           to={`/entrar?voltar=${encodeURIComponent(returnTo)}`}
           className="font-medium text-brand-soft hover:underline"
         >

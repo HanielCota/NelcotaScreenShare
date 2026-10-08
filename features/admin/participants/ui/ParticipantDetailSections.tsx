@@ -88,6 +88,7 @@ export function ParticipantTimeline({ timeline }: { timeline: ParticipantDetail[
                 <tr key={item.id} className="border-t border-line">
                   <td className="py-2 pr-4">
                     <Link
+                      viewTransition
                       to={`/admin/salas/${item.roomId}`}
                       className="font-sans text-xs tabular-nums hover:underline"
                     >

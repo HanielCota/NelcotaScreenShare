@@ -59,6 +59,7 @@ export default function AdminHomePage() {
         {links.map(({ href, icon: Icon, title, text }) => (
           <li key={href}>
             <Link
+              viewTransition
               to={href}
               className="group/shortcut flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface p-5 transition-colors hover:bg-surface-2"
             >
