@@ -12,7 +12,6 @@ import { PricingSection } from "./PricingSection";
 import { StatementScene } from "./scenes/StatementScene";
 import { PrivacyScene } from "./scenes/PrivacyScene";
 import { ProductScene } from "./scenes/ProductScene";
-import { StepsScene } from "./scenes/StepsScene";
 import { UseCasesScene } from "./scenes/UseCasesScene";
 
 /** The element a "#section" link points at, if the hash names one. */
@@ -76,7 +75,6 @@ export function HomeSections({
       <ProductScene />
       <StatementScene />
       <UseCasesScene />
-      <StepsScene />
       <PrivacyScene />
       <div
         ref={reference}
