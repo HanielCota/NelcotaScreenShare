@@ -214,7 +214,7 @@ export default function AccountPage() {
             </SettingsRow>
           </SettingsSection>
 
-          <SettingsSection id="excluir" title="Zona de perigo" danger>
+          <SettingsSection id="excluir" title="Encerrar conta" danger>
             <ExpandableRow
               title="Excluir conta"
               description="Apaga e-mail, nome, senha e sessões na hora e não pode ser desfeito. Registros de acesso exigidos por lei ficam guardados, sem seus dados de contato, até o fim do prazo legal."
