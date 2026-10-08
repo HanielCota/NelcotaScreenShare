@@ -28,7 +28,6 @@ ENV NODE_ENV=production APP_VERSION=$APP_VERSION PUBLIC_SENTRY_DSN=$PUBLIC_SENTR
 RUN addgroup -S -g 1001 nodejs && adduser -S -u 1001 -G nodejs nelcota
 COPY --from=production-deps --chown=nelcota:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=nelcota:nodejs /app/package.json ./package.json
-COPY --from=build --chown=nelcota:nodejs /app/server.mjs ./server.mjs
 COPY --from=build --chown=nelcota:nodejs /app/build ./build
 COPY --from=build --chown=nelcota:nodejs /app/dist/migrate.mjs ./migrate.mjs
 COPY --from=build --chown=nelcota:nodejs /app/dist/create-owner.mjs ./create-owner.mjs
@@ -37,4 +36,4 @@ USER nelcota
 EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=5 \
     CMD wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1
-CMD ["node", "server.mjs", "--production"]
+CMD ["node", "build/server/index.js"]

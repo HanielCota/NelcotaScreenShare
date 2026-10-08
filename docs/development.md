@@ -139,7 +139,7 @@ doesn't offer individual exceptions; on managed machines, ask the administrator
 responsible for the application policy. For full validation in CI, run `pnpm lint`,
 `pnpm typecheck`, `pnpm test` and `pnpm build`.
 
-> In production and locally, `pnpm start` runs React Router's Express adapter (`server.mjs --production`). The Docker image includes only production dependencies, the SSR build, assets and the migration scripts.
+> In production and locally, `pnpm start` runs the Hono server built from `app/server.ts` (`build/server/index.js`, port from `PORT`). The Docker image includes only production dependencies, the SSR build, assets and the migration scripts.
 
 ## Common problems
 

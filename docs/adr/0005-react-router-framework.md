@@ -24,7 +24,7 @@ The direct dependencies were checked against the registry. Babel stays on 7.29.7
 ## Consequences
 
 - There is no `next`, `next-safe-action`, Next cache APIs or Nuqs's Next adapter in the runtime.
-- `pnpm dev` and `pnpm start` run `server.mjs`. The Docker image includes the SSR build and production dependencies, without a development server.
+- The HTTP server is Hono, through `react-router-hono-server` (`app/server.ts`): `pnpm dev` runs React Router's dev server with its Vite plugin, and `pnpm start` runs the built `build/server/index.js`. The Docker image includes the SSR build and production dependencies, without a development server.
 - Existing deployments need to rename `NEXT_PUBLIC_LIVEKIT_URL` to `LIVEKIT_URL` and, if used, `NEXT_PUBLIC_SENTRY_DSN` to `PUBLIC_SENTRY_DSN`. The authentication secrets and the database stay the same.
 - This ADR supersedes the Next/RSC/next-safe-action-specific decisions of ADR 0001 and of the earlier plans in `docs/archive/refactor/`. The feature boundaries and the domain rules remain valid.
 - Integration tests keep using disposable databases. E2E tests run the production build by default; `E2E_DEV=true` allows checking the Vite server.

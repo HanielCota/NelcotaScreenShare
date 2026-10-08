@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["scripts/*.ts", "tests/**/*.test.ts"],
+  "entry": ["scripts/*.ts", "tests/**/*.test.ts", "app/server.ts"],
   "project": ["**/*.{ts,tsx,mjs,css}", "!.react-router/**", "!build/**", "!dist/**"],
   "ignoreIssues": { "components/ui/**": ["exports", "types"] },
   "ignoreDependencies": ["pino-pretty"]
