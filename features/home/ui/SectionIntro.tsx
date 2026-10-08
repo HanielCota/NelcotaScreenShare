@@ -15,10 +15,15 @@ export function SectionIntro({
   return (
     <h2
       id={id}
+      data-fx="title"
       className="max-w-4xl text-[clamp(2.25rem,5.5vw,4.5rem)] leading-[1] font-semibold tracking-[-0.045em] text-balance"
     >
       {title}
-      {subtitle ? <span className="block text-ink-subtle">{subtitle}</span> : null}
+      {subtitle ? (
+        <span data-fx-sub className="block text-ink-subtle">
+          {subtitle}
+        </span>
+      ) : null}
     </h2>
   );
 }

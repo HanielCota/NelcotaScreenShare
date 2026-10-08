@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/animation/gsap";
 import { ScrollTrigger } from "@/lib/animation/gsap-scroll";
+import { useReferenceFx } from "@/features/home/hooks/use-reference-fx";
 import { BrowserCheckSection } from "./BrowserCheckSection";
 import { ChangelogSection } from "./ChangelogSection";
 import { FaqSection } from "./FaqSection";
@@ -26,6 +27,8 @@ export function HomeSections({
   signedIn: boolean;
 }) {
   const scope = useRef<HTMLDivElement>(null);
+  const reference = useRef<HTMLDivElement>(null);
+  useReferenceFx(reference);
 
   // Pins add scroll length once fonts and layout settle: measure again, then honor a
   // "#section" link, whose position only exists after the pins are in place. While a dark
@@ -61,7 +64,10 @@ export function HomeSections({
       <UseCasesScene />
       <StepsScene />
       <PrivacyScene />
-      <div className="flex w-full flex-col items-center gap-28 px-4 pt-28 sm:gap-40 sm:px-8 sm:pt-40">
+      <div
+        ref={reference}
+        className="flex w-full flex-col items-center gap-28 px-4 pt-28 sm:gap-40 sm:px-8 sm:pt-40"
+      >
         <FeaturesSection maxParticipants={maxParticipants} />
         <BrowserCheckSection />
         <PricingSection maxParticipants={maxParticipants} signedIn={signedIn} />

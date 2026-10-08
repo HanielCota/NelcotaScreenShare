@@ -5,6 +5,7 @@ export function FinalCta({ signedIn }: { signedIn: boolean }) {
   return (
     <section
       aria-labelledby="cta-title"
+      data-fx="expand"
       className="flex w-full max-w-5xl flex-col items-center gap-6 rounded-[2rem] border border-brand/25 bg-brand/10 px-6 py-20 text-center sm:py-28"
     >
       <h2

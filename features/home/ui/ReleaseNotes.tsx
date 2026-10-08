@@ -36,7 +36,7 @@ export function ReleaseNotes({
       </header>
       <ul className="flex flex-col divide-y divide-line border-y border-line">
         {changes.map((change) => (
-          <li key={change.text} className="flex gap-4 py-3 text-sm leading-relaxed">
+          <li key={change.text} data-fx="sweep" className="flex gap-4 py-3 text-sm leading-relaxed">
             <span className={cn("w-20 shrink-0 font-medium", KIND_CLASSES[change.kind])}>
               {CHANGE_LABELS[change.kind]}
             </span>

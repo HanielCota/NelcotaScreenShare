@@ -56,6 +56,7 @@ export function BrowserCheckSection() {
           <tbody>
             {BROWSER_ROWS.map((row) => (
               <tr
+                data-fx="row"
                 key={row.id}
                 aria-current={row.id === current || undefined}
                 className="border-b border-line last:border-0 aria-[current]:bg-brand/10"
