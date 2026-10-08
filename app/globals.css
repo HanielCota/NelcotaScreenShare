@@ -351,7 +351,8 @@
     --stage-dim: rgb(245 245 247 / 0.16);
     /* The light theme's dark green would vanish on the stage (focus rings use it). */
     --color-brand-soft: #cdf2d6;
-    background: #0b0b0c;
+    /* Pure black: it still reads as a stage next to the dark theme's graphite canvas. */
+    background: #000;
     color: var(--stage-ink);
     color-scheme: dark;
   }

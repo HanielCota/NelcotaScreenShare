@@ -3,14 +3,13 @@ import { useRef } from "react";
 import { useHeroRecede } from "@/features/home/hooks/use-hero-recede";
 import { Link } from "react-router";
 import { AppHeader } from "@/components/shell/AppHeader";
-import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { HomeEntrance } from "./HomeEntrance";
 import { HomeSections } from "./HomeSections";
 import { HomeStart } from "./HomeStart";
 
 const FOOTER_LINK = "transition-colors hover:text-ink";
 
-const HERO_FACTS = ["Grátis para começar", "Sem instalar nada", "Nada é gravado"];
+const HERO_FACTS = ["Grátis", "Sem instalar", "Sem gravação"];
 
 /** Home page: the hero with the entry bar and the mascots, then the sections that sell it. */
 export function HomeScene({
@@ -82,8 +81,11 @@ export function HomeScene({
 
       <HomeSections maxParticipants={maxParticipants} signedIn={account !== null} />
 
-      <footer className="mx-4 mt-24 flex w-[calc(100%-2rem)] max-w-5xl flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
-        <ShareSupportNote variant="badge" />
+      <footer className="page-column mt-24 flex flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
+        <span className="inline-flex items-center gap-2 text-sm font-semibold">
+          <img src="/icon.png" alt="" width={24} height={24} className="size-6 rounded-md" />
+          Nelcota
+        </span>
         <nav
           aria-label="Rodapé"
           className="flex items-center gap-5 text-xs font-medium text-ink-muted"
@@ -100,7 +102,7 @@ export function HomeScene({
           <Link viewTransition to="/privacidade" className={FOOTER_LINK}>
             Privacidade
           </Link>
-          <span className="text-ink-subtle">© Nelcota</span>
+          <span className="text-ink-subtle">© 2026</span>
         </nav>
       </footer>
     </HomeEntrance>
