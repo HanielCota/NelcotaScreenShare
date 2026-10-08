@@ -23,7 +23,7 @@ export function InviteCard({ code }: { code: string }) {
   return (
     <section
       aria-labelledby={titleId}
-      className="apple-buttons flex w-full items-center gap-5 rounded-2xl border border-line bg-surface p-4 text-left sm:p-5"
+      className="flex w-full items-center gap-5 rounded-2xl border border-line bg-surface p-4 text-left sm:p-5"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div>

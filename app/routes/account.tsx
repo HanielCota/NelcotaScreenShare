@@ -79,7 +79,7 @@ export default function AccountPage() {
   const { currentId, back, sessions, notice, user, requireEmailVerification } =
     useLoaderData<typeof loader>();
   return (
-    <div className="apple-buttons flex min-h-dvh flex-col bg-canvas">
+    <div className="flex min-h-dvh flex-col bg-canvas">
       <AppHeader
         account={{ name: user.name, image: user.image }}
         accountCurrent

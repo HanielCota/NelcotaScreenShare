@@ -66,11 +66,7 @@ export function AloneWelcome({ code, share }: { code: string; share: ScreenShare
             : "Chame o time para entrar. Para mostrar sua tela, use o Chrome, Edge ou Firefox no computador."}
         </p>
       </div>
-      {shareSupported ? (
-        <div className="apple-buttons">
-          <ShareButton share={share} />
-        </div>
-      ) : null}
+      {shareSupported ? <ShareButton share={share} /> : null}
       <InviteCard code={code} />
     </section>
   );

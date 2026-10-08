@@ -108,7 +108,7 @@ export function AdminShell({
   }
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen} className="admin-shell apple-buttons">
+    <SidebarProvider defaultOpen={defaultOpen} className="admin-shell">
       <Sidebar collapsible="icon" variant="floating">
         <SidebarHeader className="gap-0 pt-4 pb-3 group-data-[collapsible=icon]:pt-2">
           <div className="flex h-10 items-center group-data-[collapsible=icon]:justify-center">
