@@ -78,16 +78,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 26.9.0
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm build:scripts
+      - uses: docker/setup-buildx-action@v4
+      # The Dockerfile runs the production build and bundles the deployment scripts.
       - name: Docker image (the same as deploy) builds without errors
-        run: docker build --tag nelcota-ci .
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: nelcota-ci
+          cache-from: type=gha,scope=nelcota-image
+          cache-to: type=gha,scope=nelcota-image,mode=max
 
   e2e:
     name: E2E (real Playwright, Postgres and LiveKit)

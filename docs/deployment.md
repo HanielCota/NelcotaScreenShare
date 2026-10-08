@@ -114,6 +114,26 @@ The package keeps its original lowercase `nelcota` name after the repository was
 
 GitHub secrets (`production` environment): `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`, `DEPLOY_USER`, `MIGRATOR_DATABASE_URL`, `COOLIFY_DEPLOY_WEBHOOK`, `COOLIFY_TOKEN`. Variables: `APP_URL`, `DEPLOY_DOCKER_NETWORK` (default `coolify`), `PUBLIC_SENTRY_DSN` (optional). On the server, the deploy user needs `docker login ghcr.io` once.
 
+#### Interim deployment from Git
+
+If GitHub Actions is unavailable or the GHCR pipeline has not been configured, keep the Coolify resource on **Dockerfile** with Docker build cache enabled and `SOURCE_COMMIT` available only at runtime. The production resource currently uses this path. Automatic deployments are disabled: merge a batch of reviewed changes, then deploy `main` once from Coolify. Git submodules and Git LFS are disabled because this repository uses neither.
+
+Before deploying a batch, check for pending database migrations. The app does not migrate on startup; apply new migrations with the migration user and the new image before deploying code that requires them. Keep the rolling update and `/api/ready` health check enabled. The production resource uses a 10-second start period, a 5-second interval and timeout, and 10 retries.
+
+If a burst has already filled the queue, cancel queued deployments of superseded commits, let any rolling update in progress finish, and deploy the current `main`. Check `/api/ready` for the expected commit SHA and a healthy database. The CI builds the Docker image once and shares its BuildKit cache with the GHCR publication job.
+
+To enable the GHCR pipeline, first resolve any GitHub Actions billing block, configure the secrets and variables above, and enable the `Deploy` workflow. Verify image publication and migrations before switching the Coolify resource to **Docker Image**. Keep direct Git auto-deploy disabled so only the pipeline triggers production deployments.
+
+#### Local CI while hosted runners are unavailable
+
+The free interim path runs CI on the developer's computer and publishes actual results as `Local CI / quality`, `Local CI / tests`, `Local CI / build`, and `Local CI / e2e`. These commit statuses replace the four GitHub Actions requirements on `main`; PRs and the requirement to be up to date with `main` remain enabled. The hosted `CI` and `Deploy` workflows stay disabled until hosted runners are available again.
+
+Use PowerShell 7, Node 26.9 or newer, pnpm, Docker, and authenticated GitHub CLI. Start the development Postgres and LiveKit described in [development](development.md), and set `TEST_DATABASE_URL` in the environment or `.env.local` to a disposable test database. Integration tests recreate template/worker databases and E2E recreates `nelcota_e2e`, so use the test Postgres only. Run `pnpm ci:local` to validate the working tree. The command runs formatting, lint, types, unused-code and duplication checks, schema generation, dependency audit, coverage, Docker build, and Chromium E2E; any failed command stops validation.
+
+To publish checks, commit and push the reviewed changes, rebase onto `origin/main`, and run `pnpm ci:local -Publish -PullRequest <number>` from a clean working tree. Publication verifies that the PR head matches the exact local commit before reporting each result. Logs and a JSON receipt are saved under `output/local-ci/<sha>/` and are excluded from Git and the Docker context. Use these receipts when reviewing local results. A failure is published as a failure; checks that did not run remain pending.
+
+After all four required local checks pass, merge through the PR and deploy `main` once in Coolify. Before restoring hosted CI, enable the workflow and verify a successful run, then restore the four original required checks from the GitHub Actions app.
+
 > The rate limit is in memory: it holds for a single replica (the Coolify default). To scale horizontally, switch to Redis.
 >
 > The IP used for rate limiting is taken from `X-Forwarded-For` counting from the end, according to `TRUSTED_PROXY_HOPS` (Traefik = 1). If `app.` also goes through the Cloudflare proxy, use `TRUSTED_PROXY_HOPS=2`. The same count tells Express which proxies to trust for `X-Forwarded-Proto`: the app must see `https` requests, or React Router refuses every browser action (400) because its `Origin` is `https://`.
