@@ -195,11 +195,7 @@ export default function AccountPage() {
                 currentId={currentId}
                 revokeSession={revokeMySession}
                 revokeOtherSessions={revokeMyOtherSessions}
-                sessions={sessions.map((row) => ({
-                  ...row,
-                  createdAt: row.createdAt.toISOString(),
-                  updatedAt: row.updatedAt.toISOString(),
-                }))}
+                sessions={sessions}
               />
             </SettingsBlock>
           </SettingsSection>
