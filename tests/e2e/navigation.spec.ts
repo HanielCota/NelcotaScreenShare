@@ -88,7 +88,7 @@ test("public pages are indexable with a preview card; private pages stay out", a
     await expect(robots).toHaveCount(0);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
-      /\/og\.png$/,
+      /^https?:\/\/[^/]+\/og\.png$/,
     );
   }
   for (const path of ["/entrar", "/cadastro"]) {

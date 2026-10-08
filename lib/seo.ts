@@ -15,9 +15,9 @@ const OG_IMAGE = { path: "/og.png", width: 1200, height: 630 } as const;
 
 /** The origin published in links and previews, read from the root loader data. */
 export function originFromMatches(
-  matches: readonly ({ id: string; data?: unknown } | undefined)[],
+  matches: readonly ({ id: string; loaderData: unknown } | undefined)[],
 ) {
-  const root = matches.find((match) => match?.id === "root")?.data;
+  const root = matches.find((match) => match?.id === "root")?.loaderData;
   if (typeof root !== "object" || root === null || !("origin" in root)) return "";
   return typeof root.origin === "string" ? root.origin : "";
 }
