@@ -73,14 +73,18 @@ describe("settings (settings.update)", () => {
 
   test("an invalid value is neither written nor audited", async () => {
     requestHeaders.current = owner.headers;
+    const before = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(eq(schema.auditLogs.action, "settings.update"));
     const result = await saveMascotSettings({ saturationDark: 9, saturationLight: 1 });
     assert.deepEqual(result.validationErrors?.fieldErrors, {
       saturationDark: ["A saturação precisa ficar entre 0% e 200%."],
     });
-    const rows = await db
+    const after = await db
       .select()
       .from(schema.auditLogs)
       .where(eq(schema.auditLogs.action, "settings.update"));
-    assert.equal(rows.length, 1);
+    assert.equal(after.length, before.length);
   });
 });
