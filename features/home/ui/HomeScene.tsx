@@ -65,6 +65,9 @@ export function HomeScene({
           <a href="#recursos" className={FOOTER_LINK}>
             Recursos
           </a>
+          <Link viewTransition to="/novidades" className={FOOTER_LINK}>
+            Novidades
+          </Link>
           <Link viewTransition to="/privacidade" className={FOOTER_LINK}>
             Privacidade
           </Link>
