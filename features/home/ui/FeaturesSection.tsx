@@ -226,7 +226,12 @@ export function FeaturesSection({ maxParticipants }: { maxParticipants: number }
       aria-labelledby="features-title"
       className="w-full max-w-5xl scroll-mt-28"
     >
-      <SectionIntro id="features-title" title="Os detalhes." subtitle="Que fazem diferença." />
+      <SectionIntro
+        id="features-title"
+        title="Os detalhes."
+        subtitle="Que fazem diferença."
+        align="center"
+      />
 
       <ul data-fx className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-5">
         <Tile
