@@ -1,8 +1,5 @@
 import { toast } from "sonner";
-
-interface ActionResult {
-  serverError?: string;
-}
+import type { OperationResult } from "@/lib/operations/operation";
 
 /**
  * "… · Desfazer" toast for 10 s. Undo calls the action directly (not through
@@ -11,7 +8,7 @@ interface ActionResult {
  */
 export function toastWithUndo(
   message: string,
-  undo: () => Promise<ActionResult | undefined>,
+  undo: () => Promise<OperationResult<unknown>>,
   undoneMessage: string,
 ) {
   toast.success(message, {
@@ -21,7 +18,7 @@ export function toastWithUndo(
       onClick: () => {
         undo()
           .then((result) => {
-            if (result?.serverError) {
+            if (result.serverError) {
               toast.error(result.serverError);
               return;
             }
