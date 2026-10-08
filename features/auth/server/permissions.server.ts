@@ -32,21 +32,7 @@ export const statements = {
 export const ac = createAccessControl(statements);
 
 export const roles = {
-  owner: ac.newRole({
-    user: ["create", "list", "set-role", "ban", "get", "update"],
-    session: ["list", "revoke", "delete"],
-    adminInvitation: ["create", "revoke"],
-    dashboard: ["read"],
-    participant: ["read", "update", "delete", "export", "anonymize"],
-    room: ["read", "update", "delete", "export"],
-    shareSession: ["read", "export"],
-    live: ["read", "kick", "close"],
-    roomInvite: ["create", "revoke"],
-    audit: ["read", "export"],
-    settings: ["read", "update"],
-    lgpd: ["read", "handle"],
-    system: ["dbHealth"],
-  }),
+  owner: ac.newRole(statements),
   admin: ac.newRole({
     user: ["list", "get"],
     dashboard: ["read"],
