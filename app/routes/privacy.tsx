@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, type MetaFunction } from "react-router";
 import {
   ArrowRight,
   Clock,
@@ -22,14 +22,17 @@ import type { ReactNode } from "react";
 import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 import { PrivacyItem, PrivacyList, PrivacySection } from "@/features/privacy/ui/PrivacySection";
 import { PrivacyToc } from "@/features/privacy/ui/PrivacyToc";
+import { INDEXABLE, originFromMatches, pageMeta } from "@/lib/seo";
 
-export const meta = () => [
-  { title: "Aviso de privacidade · Nelcota" },
-  {
-    name: "description",
-    content: "Quais dados o Nelcota guarda, por quê e por quanto tempo.",
-  },
-];
+export const handle = INDEXABLE;
+
+export const meta: MetaFunction = ({ matches }) =>
+  pageMeta({
+    title: "Aviso de privacidade · Nelcota",
+    description: "Quais dados o Nelcota guarda, por quê e por quanto tempo.",
+    path: "/privacidade",
+    origin: originFromMatches(matches),
+  });
 
 const SECTIONS = [
   { id: "o-que-guardamos", label: "O que guardamos" },

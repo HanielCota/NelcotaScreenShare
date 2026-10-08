@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useMatches,
   useRouteLoaderData,
   useRevalidator,
   isRouteErrorResponse,
@@ -23,6 +24,8 @@ import { THEME_COLOR, THEME_INIT_SCRIPT } from "@/lib/theme";
 import { requestMiddleware } from "@/server/middleware.server";
 import { getUserSession } from "@/features/auth/server/participant-session.server";
 import { getEnv } from "@/server/env.server";
+import { publicOrigin } from "@/server/seo.server";
+import { isIndexable } from "@/lib/seo";
 import { configureBrowserTelemetry } from "@/lib/telemetry.client";
 import { NavigationProgress } from "@/components/shell/NavigationProgress";
 import { ActiveRoom } from "@/features/room/ui/ActiveRoom";
@@ -39,7 +42,7 @@ export const meta = () => [
   { title: "Nelcota · Compartilhamento de tela" },
   {
     name: "description",
-    content: "Compartilhamento de tela para times pequenos, direto do navegador.",
+    content: "Compartilhamento de tela para times de tecnologia, direto do navegador.",
   },
 ];
 
@@ -48,6 +51,7 @@ export const loader = ({ request, context }: LoaderFunctionArgs) =>
     const [mascot, current] = await Promise.all([getSetting(mascotSettings), getUserSession()]);
     return {
       nonce: request.headers.get("x-nonce") ?? undefined,
+      origin: publicOrigin(request),
       mascot,
       account: current ? { name: current.user.name, image: current.user.image } : null,
       telemetry: { dsn: getEnv().PUBLIC_SENTRY_DSN, release: getEnv().APP_VERSION },
@@ -57,6 +61,8 @@ export const loader = ({ request, context }: LoaderFunctionArgs) =>
 export function Layout({ children }: { children: ReactNode }) {
   const data = useLoaderData<typeof loader>();
   const [nonce] = useState(data?.nonce);
+  // Only pages marked as indexable (see lib/seo.ts) may show up in search results.
+  const indexable = useMatches().some((match) => isIndexable(match.handle));
   useEffect(() => {
     configureBrowserTelemetry(data?.telemetry);
   }, [data?.telemetry]);
@@ -70,7 +76,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="robots" content="noindex, nofollow" />
+        {indexable ? null : <meta name="robots" content="noindex, nofollow" />}
         <meta name="theme-color" content={THEME_COLOR.dark} />
         <meta name="color-scheme" content="dark light" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
