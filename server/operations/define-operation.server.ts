@@ -36,7 +36,7 @@ export function defineOperation<P extends BasePolicy, C extends { audit: AuditRe
         return { data };
       } catch (error) {
         if (error instanceof ActionError) return { serverError: error.message };
-        (await requestLogger({ operation: policy.name })).error({ err: error }, "operation failed");
+        requestLogger({ operation: policy.name }).error({ err: error }, "operation failed");
         return { serverError: "Algo deu errado do nosso lado. Tente de novo em instantes." };
       }
     };
