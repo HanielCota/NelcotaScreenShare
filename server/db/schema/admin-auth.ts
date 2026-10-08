@@ -17,7 +17,7 @@ import { createdAt, id, timestamptz, updatedAt } from "./columns";
 /**
  * Tables of the Better Auth admin instance (`/api/admin/auth`). The TypeScript
  * keys follow Better Auth's field names; the columns are snake_case.
- * See `server/auth/admin.ts` (modelName of each table).
+ * See `features/auth/server/admin-auth.server.ts` (modelName of each table).
  */
 const roleList = sql.raw(ADMIN_ROLES.map((role) => `'${role}'`).join(", "));
 

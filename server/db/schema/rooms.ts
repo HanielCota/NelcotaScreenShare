@@ -26,7 +26,7 @@ const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
 /**
  * Business data (docs/archive/admin-plan.md §4.3). Rooms, participations and
  * shares are projections of the LiveKit webhooks (`livekit_events`);
- * see `server/livekit/projector.ts`.
+ * see `features/room/server/webhook/projector.server.ts`.
  */
 export const roomStatus = pgEnum("room_status", ["active", "finished"]);
 
@@ -163,7 +163,7 @@ export const shareSessions = pgTable(
   ],
 );
 
-/** Invitation with expiry/usage limit (screens in Phase 5). The token only exists as a hash. */
+/** Invitation with expiry/usage limit. The token only exists as a hash. */
 export const roomInvites = pgTable(
   "room_invites",
   {
