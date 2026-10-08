@@ -1,18 +1,24 @@
-/** Opening of a home section: a plain title (h2), centered above the content. */
+/**
+ * Opening of a reference section, in the scenes' type: a large left-aligned title and, when
+ * there is one, a second line in a quieter tone.
+ */
 export function SectionIntro({
   id,
   title,
+  subtitle,
 }: {
   /** The h2 id, referenced by the section's aria-labelledby. */
   id: string;
   title: string;
+  subtitle?: string;
 }) {
   return (
     <h2
       id={id}
-      className="mx-auto max-w-2xl text-center text-3xl leading-tight tracking-[-0.03em] sm:text-4xl"
+      className="max-w-4xl text-[clamp(2.25rem,5.5vw,4.5rem)] leading-[1] font-semibold tracking-[-0.045em] text-balance"
     >
       {title}
+      {subtitle ? <span className="block text-ink-subtle">{subtitle}</span> : null}
     </h2>
   );
 }

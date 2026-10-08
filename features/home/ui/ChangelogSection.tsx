@@ -16,15 +16,15 @@ export function ChangelogSection() {
     <section
       id="novidades"
       aria-labelledby="changelog-title"
-      className="w-full max-w-3xl scroll-mt-28"
+      className="w-full max-w-5xl scroll-mt-28"
     >
-      <SectionIntro id="changelog-title" title="Novidades" />
+      <SectionIntro id="changelog-title" title="Novidades." subtitle="O que mudou por aqui." />
 
-      <div className="mt-10">
+      <div className="mt-12 max-w-3xl sm:mt-16">
         <ReleaseNotes release={latest} limit={PREVIEW_CHANGES} />
       </div>
 
-      <p className="mt-6 text-center">
+      <p className="mt-6">
         <Link
           viewTransition
           to="/novidades"

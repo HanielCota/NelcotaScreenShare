@@ -48,10 +48,10 @@ function faqItems(maxParticipants: number): { question: string; answer: string }
 /** Last objections, as native disclosure widgets, with the full privacy notice one click away. */
 export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
   return (
-    <section aria-labelledby="faq-title" className="w-full max-w-3xl">
-      <SectionIntro id="faq-title" title="Perguntas frequentes" />
+    <section aria-labelledby="faq-title" className="w-full max-w-5xl">
+      <SectionIntro id="faq-title" title="Perguntas" subtitle="frequentes." />
 
-      <div className="mt-10 flex flex-col gap-3">
+      <div className="mt-12 flex max-w-3xl flex-col gap-3 sm:mt-16">
         {faqItems(maxParticipants).map(({ question, answer }) => (
           <details
             key={question}
@@ -69,7 +69,7 @@ export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
         ))}
       </div>
 
-      <p className="mt-6 text-center">
+      <p className="mt-6">
         <Link
           viewTransition
           to="/privacidade"
