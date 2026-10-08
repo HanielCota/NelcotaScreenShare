@@ -1,5 +1,6 @@
 import { IDLE, type Gaze } from "./eye-tracking";
 import type { Expression, FaceState } from "./face";
+import type { MascotActivity } from "./personality";
 import type { Reason } from "./reasons";
 
 /**
@@ -19,6 +20,14 @@ export function isSleeping(expression: Expression): boolean {
 /** Expressions that prevent (and interrupt) petting, sneezing and the like. */
 export function blocksPlay(expression: Expression): boolean {
   return UPSET.has(expression) || expression === "skeptical" || expression === "asleep";
+}
+
+/**
+ * Petting, high fives and other play: only while idle or walking, which alternate
+ * every few seconds in the home page pair.
+ */
+export function allowsPlay(activity: MascotActivity): boolean {
+  return activity === "idle" || activity === "walking";
 }
 
 /** Blink only with open, calm eyes. */

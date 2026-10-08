@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 const atlas = "/mascot/nelcota-mint-atlas.webp";
 import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
 import type { Expression } from "@/features/mascot/domain/face";
+import { allowsPlay } from "@/features/mascot/domain/rules";
 import { useMascot } from "../hooks/use-mascot";
 import { SpriteEyes } from "./SpriteEyes";
 import styles from "./Mascot.module.css";
@@ -125,13 +126,13 @@ export function Mascot({
           </div>
         </div>
       </div>
+      {/* Mouse and touch play: both buttons stay out of the Tab order, so they do not
+          get between the person and the page's main field. */}
       <Hint text="Fazer carinho">
         <button
           type="button"
-          // Mouse and touch play: out of the Tab order, so it does not get
-          // between the person and the page's main field.
           tabIndex={-1}
-          disabled={activity !== "idle" && activity !== "walking"}
+          disabled={!allowsPlay(activity)}
           data-mascot-action="pet"
           aria-label="Fazer carinho no Nelcota"
           className={styles.petTarget}
@@ -140,10 +141,8 @@ export function Mascot({
       <Hint text="Toca aqui!">
         <button
           type="button"
-          // Mouse and touch play: out of the Tab order, so it does not get
-          // between the person and the page's main field.
           tabIndex={-1}
-          disabled={activity !== "idle" && activity !== "walking"}
+          disabled={!allowsPlay(activity)}
           data-mascot-action="high-five"
           aria-label="Toca aqui com o Nelcota"
           className={styles.handTarget}

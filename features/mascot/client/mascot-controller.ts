@@ -8,6 +8,7 @@ import {
 } from "@/features/mascot/domain/personality";
 import { createReasons, type Reason } from "@/features/mascot/domain/reasons";
 import {
+  allowsPlay,
   blocksPlay,
   canBlink,
   canSneeze,
@@ -98,7 +99,7 @@ export function createMascotController(
       onScreen &&
       !document.hidden &&
       !eyeOverride() &&
-      (inputs.activity() === "idle" || inputs.activity() === "walking") &&
+      allowsPlay(inputs.activity()) &&
       !blocksPlay(current),
   });
 
@@ -279,9 +280,8 @@ export function createMascotController(
   /** The activity changed (walking, presenting…): the context expression follows. */
   function syncContext() {
     const nextActivity = inputs.activity();
-    // Walking and standing still alternate in the home page pair every few seconds:
-    // a pat or "high five" in progress continues; anything else is interrupted.
-    if (nextActivity !== "idle" && nextActivity !== "walking") personality.cancel();
+    // A pat or "high five" in progress survives the pair's walk; anything else interrupts it.
+    if (!allowsPlay(nextActivity)) personality.cancel();
     if (nextActivity !== "idle") {
       sleep.forget();
       reasons.delete("curiosity");
