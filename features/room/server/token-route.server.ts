@@ -34,10 +34,12 @@ function rejection(
 }
 
 /** Without a session the caller is a guest: the signed cookie's id, or a new one. */
-function guestCaller(request: Request): { caller: TokenGuest; headers: Record<string, string> } {
-  const known = readGuestId(request);
+async function guestCaller(
+  request: Request,
+): Promise<{ caller: TokenGuest; headers: Record<string, string> }> {
+  const known = await readGuestId(request);
   if (known) return { caller: { guestId: known }, headers: {} };
-  const created = newGuestSession(request);
+  const created = await newGuestSession(request);
   return { caller: { guestId: created.guestId }, headers: { "Set-Cookie": created.setCookie } };
 }
 
@@ -86,7 +88,7 @@ export async function requestRoomToken(request: Request) {
         },
         headers: {},
       }
-    : guestCaller(request);
+    : await guestCaller(request);
 
   const result = await issueRoomToken({ caller, body, ip, requestedRoom: room });
   if (result.ok) {

@@ -10,25 +10,27 @@ vi.mock("@/server/env.server", () => ({
 const withCookie = (cookie: string) =>
   new Request("https://nelcota.app/api/token", { headers: { cookie } });
 
-test("a new guest session is read back from its own signed cookie", () => {
-  const { guestId, setCookie } = newGuestSession(new Request("https://nelcota.app/api/token"));
+test("a new guest session is read back from its own signed cookie", async () => {
+  const { guestId, setCookie } = await newGuestSession(
+    new Request("https://nelcota.app/api/token"),
+  );
   assert.match(setCookie, /HttpOnly/);
   assert.match(setCookie, /SameSite=Lax/);
   assert.match(setCookie, /Secure/);
+  assert.match(setCookie, /Max-Age=43200/);
   const value = setCookie.split(";")[0] ?? "";
-  assert.equal(readGuestId(withCookie(`outro=1; ${value}`)), guestId);
+  assert.equal(await readGuestId(withCookie(`outro=1; ${value}`)), guestId);
 });
 
-test("a missing, malformed or forged cookie is not a guest", () => {
-  const { setCookie } = newGuestSession(new Request("https://nelcota.app/api/token"));
+test("a missing, malformed or forged cookie is not a guest", async () => {
+  const { setCookie } = await newGuestSession(new Request("https://nelcota.app/api/token"));
   const value = setCookie.split(";")[0] ?? "";
-  const forged = value.replace(
-    /^nelcota_convidado=[^.]+/,
-    `nelcota_convidado=${crypto.randomUUID()}`,
-  );
-  assert.equal(readGuestId(new Request("https://nelcota.app/api/token")), undefined);
-  assert.equal(readGuestId(withCookie("nelcota_convidado=nao-e-uuid.assinatura")), undefined);
-  assert.equal(readGuestId(withCookie(forged)), undefined);
+  // Same signature, different payload: the signature no longer matches.
+  const [name = "", signed = ""] = value.split("=");
+  const forged = `${name}=${encodeURIComponent(btoa(JSON.stringify(crypto.randomUUID())))}.${signed.split(".").at(-1)}`;
+  assert.equal(await readGuestId(new Request("https://nelcota.app/api/token")), undefined);
+  assert.equal(await readGuestId(withCookie("nelcota_convidado=nao-e-uuid.assinatura")), undefined);
+  assert.equal(await readGuestId(withCookie(forged)), undefined);
 });
 
 test("guests show up with a marked name; accounts do not", () => {

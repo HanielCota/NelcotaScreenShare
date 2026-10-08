@@ -74,7 +74,9 @@ describe("raise hand", () => {
   });
 
   it("a guest writes it with the identity from the signed guest cookie", async () => {
-    const { guestId, setCookie } = newGuestSession(new Request("http://localhost:3000/api/token"));
+    const { guestId, setCookie } = await newGuestSession(
+      new Request("http://localhost:3000/api/token"),
+    );
     const response = await post({ room: "sala-teste", raised: true }, setCookie.split(";")[0]);
     expect(response.status).toBe(204);
     expect(received.at(-1)?.body).toMatchObject({ identity: `convidado-${guestId}` });
