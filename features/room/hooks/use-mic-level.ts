@@ -9,6 +9,9 @@ import {
   type MicrophoneCheck,
 } from "@/features/room/domain/microphone-check";
 
+/** The analyser reads normal speech low on its 0–1 scale: the gain spreads it over the meter. */
+const METER_GAIN = 2.5;
+
 interface MicLevelEvents {
   /** Available microphones (after permission, with names). */
   onDevices: (devices: MediaDeviceInfo[]) => void;
@@ -135,7 +138,7 @@ export function useMicLevel(
         const tick = () => {
           if (cancelled || revision !== captureRevision) return;
           try {
-            const volume = Math.min(1, audioAnalyser.calculateVolume() * 2.5);
+            const volume = Math.min(1, audioAnalyser.calculateVolume() * METER_GAIN);
             levelRef.current = volume;
             // Perceptual curve: normal speech fills a good part of the meter, not just the tip.
             meterStyle.transform = `scaleX(${Math.sqrt(volume).toFixed(3)})`;
