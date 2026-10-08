@@ -32,12 +32,14 @@ import {
   unblockParticipantsAction,
 } from "@/features/admin/participants/actions";
 import {
+  BLOCK_DESCRIPTION,
   SORT_OPTIONS,
   STATUS_LABELS,
   STATUS_OPTIONS,
 } from "@/features/admin/participants/domain/labels";
 import type { ParticipantRow } from "@/features/admin/participants/server/queries.server";
 import { participantParsers } from "@/features/admin/participants/domain/search-params";
+import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 export interface ParticipantPermissions {
   update: boolean;
@@ -190,14 +192,14 @@ function BulkActions({
       setDialog(null);
       clear();
     },
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível bloquear."),
+    onError: toastError("Não foi possível bloquear."),
   });
   const unblock = useOperation(unblockParticipantsAction, {
     onSuccess: ({ data }) => {
       toast.success(`${plural(data.count, "conta desbloqueada", "contas desbloqueadas")}.`);
       clear();
     },
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível desbloquear."),
+    onError: toastError("Não foi possível desbloquear."),
   });
   const remove = useOperation(deleteParticipantsAction, {
     onSuccess: ({ data }) => {
@@ -211,7 +213,7 @@ function BulkActions({
         `${plural(data.ids.length, "conta restaurada", "contas restauradas")}.`,
       );
     },
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível excluir."),
+    onError: toastError("Não foi possível excluir."),
   });
   const target = plural(count, "conta", "contas");
 
@@ -244,7 +246,7 @@ function BulkActions({
         open={dialog === "block"}
         onOpenChange={(open) => setDialog(open ? "block" : null)}
         title={`Bloquear ${target}?`}
-        description="As sessões são encerradas e a pessoa não consegue entrar nem participar de salas até ser desbloqueada."
+        description={BLOCK_DESCRIPTION}
         confirmLabel="Bloquear"
         danger
         pending={block.isPending}

@@ -23,6 +23,7 @@ import {
   INVITE_VALIDITY,
   inviteMaxUsesSchema,
 } from "@/features/admin/rooms/domain/invites";
+import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 export interface InviteRow {
   id: string;
@@ -63,7 +64,7 @@ function CreateInviteDialog({
   const [usesError, setUsesError] = useState<string>();
   const create = useOperation(createInviteAction, {
     onSuccess: ({ data }) => setLink(data.link),
-    onError: ({ error }) => toast.error(error.serverError ?? "Confira os campos e tente de novo."),
+    onError: toastError("Confira os campos e tente de novo."),
   });
   const close = (next: boolean) => {
     if (!next) {
@@ -212,7 +213,7 @@ export function InvitesPanel({
   const [open, setOpen] = useState(false);
   const revoke = useOperation(revokeInviteAction, {
     onSuccess: () => toast.success("Convite revogado."),
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível revogar."),
+    onError: toastError("Não foi possível revogar."),
   });
   return (
     <div className="flex flex-col gap-3">

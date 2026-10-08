@@ -16,16 +16,10 @@ import {
 } from "@/features/admin/participants/actions";
 import type { ParticipantStatus } from "@/features/admin/participants/domain/search-params";
 import { availableActions } from "@/features/admin/participants/domain/available-actions";
+import { BLOCK_DESCRIPTION } from "@/features/admin/participants/domain/labels";
+import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 type Dialog = "block" | "delete" | "anonymize" | null;
-
-/** Server error in a toast (the message already comes ready for the user). */
-function fail(fallback: string) {
-  return {
-    onError: ({ error }: { error: { serverError?: string } }) =>
-      toast.error(error.serverError ?? fallback),
-  };
-}
 
 /** Actions on a participant's detail page, according to status and permissions. */
 export function ParticipantActions({
@@ -50,24 +44,24 @@ export function ParticipantActions({
       setDialog(null);
       toast.success("Conta bloqueada. Sessões encerradas.");
     },
-    ...fail("Não foi possível bloquear."),
+    onError: toastError("Não foi possível bloquear."),
   });
   const unblock = useOperation(unblockParticipantsAction, {
     onSuccess: () => toast.success("Conta desbloqueada."),
-    ...fail("Não foi possível desbloquear."),
+    onError: toastError("Não foi possível desbloquear."),
   });
   const revoke = useOperation(revokeParticipantSessionsAction, {
     onSuccess: ({ data }) =>
       toast.success(data.count === 1 ? "1 sessão encerrada." : `${data.count} sessões encerradas.`),
-    ...fail("Não foi possível encerrar as sessões."),
+    onError: toastError("Não foi possível encerrar as sessões."),
   });
   const resend = useOperation(resendVerificationAction, {
     onSuccess: () => toast.success("Link de confirmação reenviado."),
-    ...fail("Não foi possível reenviar."),
+    onError: toastError("Não foi possível reenviar."),
   });
   const restore = useOperation(restoreParticipantsAction, {
     onSuccess: () => toast.success("Conta restaurada."),
-    ...fail("Não foi possível restaurar."),
+    onError: toastError("Não foi possível restaurar."),
   });
   const remove = useOperation(deleteParticipantsAction, {
     onSuccess: ({ data }) => {
@@ -78,14 +72,14 @@ export function ParticipantActions({
         "Conta restaurada.",
       );
     },
-    ...fail("Não foi possível excluir."),
+    onError: toastError("Não foi possível excluir."),
   });
   const anonymize = useOperation(anonymizeParticipantAction, {
     onSuccess: () => {
       setDialog(null);
       toast.success("Conta anonimizada.");
     },
-    ...fail("Não foi possível anonimizar."),
+    onError: toastError("Não foi possível anonimizar."),
   });
 
   const show = availableActions({ status, verified, anonymized, sessions, can });
@@ -154,7 +148,7 @@ export function ParticipantActions({
         open={dialog === "block"}
         onOpenChange={(open) => setDialog(open ? "block" : null)}
         title="Bloquear esta conta?"
-        description="As sessões são encerradas e a pessoa não consegue entrar nem participar de salas até ser desbloqueada."
+        description={BLOCK_DESCRIPTION}
         confirmLabel="Bloquear"
         danger
         pending={block.isPending}

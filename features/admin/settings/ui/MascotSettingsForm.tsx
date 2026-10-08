@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import type { MascotSettings } from "@/features/admin/settings/server/settings.server";
 import { cn } from "@/lib/utils";
+import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 interface Limits {
   min: number;
@@ -50,7 +51,7 @@ export function MascotSettingsForm({
   const baseId = useId();
   const save = useOperation(saveMascotSettings, {
     onSuccess: () => toast.success("Salvo. Novas páginas já abrem com a saturação nova."),
-    onError: ({ error }) => toast.error(error.serverError ?? "Confira os valores e tente de novo."),
+    onError: toastError("Confira os valores e tente de novo."),
   });
   const pending = save.isPending;
 

@@ -3,7 +3,6 @@ import { useOperation } from "@/lib/operations/use-operation";
 import { Link } from "react-router";
 import { debounce, useQueryStates } from "nuqs";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toastWithUndo } from "@/lib/undo-toast";
 import type { PageInfo } from "@/components/data-table/page-info";
@@ -27,6 +26,7 @@ import type { RoomRow } from "@/features/admin/rooms/server/queries.server";
 import { roomParsers } from "@/features/admin/rooms/domain/search-params";
 import { STATUS_OPTIONS } from "@/features/admin/rooms/domain/labels";
 import { RoomStatus } from "./RoomStatus";
+import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 const SORT_OPTIONS = [
   { value: "atividade", label: "Última atividade" },
@@ -179,7 +179,7 @@ function BulkActions({
         data.ids.length === 1 ? "Sala restaurada." : "Salas restauradas.",
       );
     },
-    onError: ({ error }) => toast.error(error.serverError ?? "Não foi possível excluir."),
+    onError: toastError("Não foi possível excluir."),
   });
   return (
     <>
