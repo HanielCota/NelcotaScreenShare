@@ -34,6 +34,13 @@ function Pointer({ name, className }: { name: string; className: string }) {
   );
 }
 
+/** The level bars of the sound badge: heights and a rhythm per bar, fixed for SSR. */
+const SOUND_LEVELS = [
+  { height: "100%", duration: "0.9s", delay: "-0.2s" },
+  { height: "55%", duration: "1.2s", delay: "-0.5s" },
+  { height: "80%", duration: "1s", delay: "-0.8s" },
+];
+
 /** The app's console while the bug happens, with the computer's sound going along. */
 export function BugArt() {
   const logs = [
@@ -57,10 +64,15 @@ export function BugArt() {
       <span className="absolute right-[4cqi] bottom-[4cqi] inline-flex items-center gap-[1.6cqi] rounded-full bg-black/60 px-[2.6cqi] py-[1.2cqi] text-[2.8cqi] font-medium">
         <Volume2 className="size-[3.4cqi] text-[#a2e1b2]" />
         som do computador
+        {/* The sound is playing: each bar moves on its own rhythm, from the baseline. */}
         <span className="flex h-[2.8cqi] items-end gap-[0.6cqi]">
-          <span className="h-full w-[0.7cqi] rounded bg-[#a2e1b2]" />
-          <span className="h-1/2 w-[0.7cqi] rounded bg-[#a2e1b2]" />
-          <span className="h-3/4 w-[0.7cqi] rounded bg-[#a2e1b2]" />
+          {SOUND_LEVELS.map(({ height, duration, delay }) => (
+            <span
+              key={delay}
+              style={{ height, animationDuration: duration, animationDelay: delay }}
+              className="w-[0.7cqi] origin-bottom rounded bg-[#a2e1b2] motion-safe:animate-[talk_1s_ease-in-out_infinite]"
+            />
+          ))}
         </span>
       </span>
     </Shot>
