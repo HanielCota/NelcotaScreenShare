@@ -12,7 +12,7 @@ function Shot({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div
       aria-hidden="true"
-      className="@container relative aspect-[4/3] w-full overflow-hidden rounded-[3cqi] border border-white/10 bg-[#161618] font-sans text-white shadow-[0_30px_80px_-40px_rgb(0_0_0/0.8)]"
+      className="@container relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#161618] font-sans text-white shadow-[0_30px_80px_-40px_rgb(0_0_0/0.8)]"
     >
       <div className="flex items-center gap-[2cqi] border-b border-white/8 px-[4cqi] py-[2.6cqi] text-[3cqi] text-white/55">
         <WindowDots className="gap-[1.4cqi]" dot="size-[2cqi]" />

@@ -169,7 +169,7 @@ function DockKey({
  */
 export function DemoWindow() {
   return (
-    <figure className="@container overflow-hidden rounded-[2cqi] border border-white/12 bg-[#161618] text-white shadow-[0_40px_120px_-40px_rgb(0_0_0/0.9)]">
+    <figure className="@container overflow-hidden rounded-2xl border border-white/12 bg-[#161618] text-white shadow-[0_40px_120px_-40px_rgb(0_0_0/0.9)]">
       <figcaption className="sr-only">
         Prévia de uma sala do Nelcota: Bruno compartilha o editor com um erro e o som do computador,
         Ana aponta a linha com o bug, levanta a mão e escreve no chat, e Iris entra pelo link como
