@@ -1,5 +1,6 @@
 import { Volume2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { PointerArrow, WindowDots } from "../demo/RoomChrome";
 
 /**
  * Small product shots for the use cases, in the room's fixed dark palette (like the demo
@@ -14,11 +15,7 @@ function Shot({ title, children }: { title: string; children: ReactNode }) {
       className="@container relative aspect-[4/3] w-full overflow-hidden rounded-[3cqi] border border-white/10 bg-[#161618] font-sans text-white shadow-[0_30px_80px_-40px_rgb(0_0_0/0.8)]"
     >
       <div className="flex items-center gap-[2cqi] border-b border-white/8 px-[4cqi] py-[2.6cqi] text-[3cqi] text-white/55">
-        <span className="flex gap-[1.4cqi]">
-          <span className="size-[2cqi] rounded-full bg-white/15" />
-          <span className="size-[2cqi] rounded-full bg-white/15" />
-          <span className="size-[2cqi] rounded-full bg-white/15" />
-        </span>
+        <WindowDots className="gap-[1.4cqi]" dot="size-[2cqi]" />
         {title}
       </div>
       {children}
@@ -29,15 +26,7 @@ function Shot({ title, children }: { title: string; children: ReactNode }) {
 function Pointer({ name, className }: { name: string; className: string }) {
   return (
     <span className={`absolute flex items-start ${className}`}>
-      <svg viewBox="0 0 16 16" className="size-[5cqi] text-[#8b5cf6] drop-shadow">
-        <path
-          d="M2 1.5 13.5 7 8 8.4 5.6 14z"
-          fill="currentColor"
-          stroke="white"
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <PointerArrow className="size-[5cqi]" />
       <span className="mt-[4cqi] rounded-full bg-[#8b5cf6] px-[2cqi] py-[0.5cqi] text-[2.8cqi] font-semibold">
         {name}
       </span>
