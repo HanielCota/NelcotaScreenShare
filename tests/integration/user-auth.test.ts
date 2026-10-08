@@ -160,21 +160,25 @@ describe("login", () => {
   });
 });
 
-/** The 1 px WebP below with an EXIF chunk (metadata such as location). */
+/** 1 px WebP: the endpoint receives the format produced by the editor. */
+const WEBP_IMAGE =
+  "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
+
+/** The same 1 px WebP with an EXIF chunk (metadata such as location). */
 const WEBP_WITH_EXIF =
   "data:image/webp;base64,UklGRkAAAABXRUJQVlA4WAoAAAAIAAAAAAAAAAAARVhJRgQAAABHUFMhVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
 
+const INVALID_IMAGES = [
+  "https://example.com/photo.png",
+  "data:image/svg+xml;base64,PHN2Zz4=",
+  "data:image/webp;base64," + "A".repeat(180_001),
+  "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
+  WEBP_WITH_EXIF,
+];
+
 describe("profile photo", () => {
   test("sign-up validates the photo with the same rules as the update", async () => {
-    const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
-    const invalidImages = [
-      "https://example.com/photo.png",
-      "data:image/svg+xml;base64,PHN2Zz4=",
-      "data:image/webp;base64," + "A".repeat(180_001),
-      "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
-      WEBP_WITH_EXIF,
-    ];
-    for (const invalid of invalidImages) {
+    for (const invalid of INVALID_IMAGES) {
       const email = `foto-invalida-${crypto.randomUUID()}@exemplo.com`;
       const rejected = await newCaller()("/sign-up/email", {
         body: { name: "Foto", email, password: PASSWORD, image: invalid },
@@ -187,34 +191,26 @@ describe("profile photo", () => {
     }
     const email = `foto-valida-${crypto.randomUUID()}@exemplo.com`;
     const saved = await newCaller()("/sign-up/email", {
-      body: { name: "Foto", email, password: PASSWORD, image },
+      body: { name: "Foto", email, password: PASSWORD, image: WEBP_IMAGE },
     });
     assert.equal(saved.status, 200);
     assert.equal(
       (await db.query.users.findFirst({ where: eq(schema.users.email, email) }))?.image,
-      image,
+      WEBP_IMAGE,
     );
   });
 
   test("saves and removes the account's own photo; rejects URLs, SVG and large images", async () => {
     const participant = await verifiedParticipant(db, handler);
     const call = newCaller();
-    // 1 px WebP: the endpoint receives the format produced by the editor.
-    const image = "data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
-    const saved = await call("/update-user", { body: { image }, jar: participant.jar });
+    const saved = await call("/update-user", { body: { image: WEBP_IMAGE }, jar: participant.jar });
     assert.equal(saved.status, 200);
     const [row] = await db
       .select({ image: schema.users.image })
       .from(schema.users)
       .where(eq(schema.users.id, participant.id));
-    assert.equal(row?.image, image);
-    for (const invalid of [
-      "https://example.com/photo.png",
-      "data:image/svg+xml;base64,PHN2Zz4=",
-      "data:image/webp;base64," + "A".repeat(180_001),
-      "data:image/webp;base64,UklGRxxxxxxxxxxxxxxxxxxx",
-      WEBP_WITH_EXIF,
-    ]) {
+    assert.equal(row?.image, WEBP_IMAGE);
+    for (const invalid of INVALID_IMAGES) {
       const rejected = await call("/update-user", {
         body: { image: invalid },
         jar: participant.jar,
