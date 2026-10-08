@@ -108,6 +108,31 @@ function hintFor(input: RoomInput): { text: ReactNode; tone: "muted" | "ok" | "e
   }
 }
 
+function SubmitLabel({ pending, creating }: { pending: boolean; creating: boolean }) {
+  if (pending) {
+    return (
+      <>
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        Abrindo…
+      </>
+    );
+  }
+  if (creating) {
+    return (
+      <>
+        <Plus className="size-4" aria-hidden="true" />
+        Criar sala
+      </>
+    );
+  }
+  return (
+    <>
+      <ArrowRight className="size-4" aria-hidden="true" />
+      Entrar
+    </>
+  );
+}
+
 /**
  * The home bar: when empty, creates a room; with a code or a pasted link
  * (with or without an invite), joins. The "/" key anywhere focuses the bar.
@@ -199,14 +224,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
             disabled={pending}
             className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-brand px-5 text-base font-medium text-brand-ink transition-[transform,background-color] duration-200 hover:bg-brand-hover active:scale-[0.97] disabled:opacity-60 motion-reduce:active:scale-100"
           >
-            {pending ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : creating ? (
-              <Plus className="size-4" aria-hidden="true" />
-            ) : (
-              <ArrowRight className="size-4" aria-hidden="true" />
-            )}
-            {pending ? "Abrindo…" : creating ? "Criar sala" : "Entrar"}
+            <SubmitLabel pending={pending} creating={creating} />
           </button>
         </div>
       </div>
