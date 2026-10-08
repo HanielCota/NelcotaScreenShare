@@ -277,7 +277,7 @@ test.describe("in the room", () => {
       await route.fulfill({ response, json: { ...body, serverUrl: "ws://127.0.0.1:9" } });
     });
     await fia.page.goto(`/sala/${newRoomCode()}`);
-    await fia.page.getByLabel("Senha da sala (quem te convidou sabe)").fill("senha-de-acesso-e2e");
+    await fia.page.getByLabel("Senha da sala (quem te convidou sabe)").fill(E2E_ACCESS_PASSWORD);
     await fia.page.getByRole("button", { name: /Entrar na sala|Entrar só ouvindo/ }).click();
     await expect(fia.page.getByText("Não deu para conectar")).toBeVisible({ timeout: 30_000 });
     await expect(fia.page.getByRole("button", { name: "Tentar de novo" })).toBeVisible();
