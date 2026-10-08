@@ -30,7 +30,7 @@ export function BrowserCheckSection() {
         <ShareSupportNote className="rounded-2xl border border-brand/30 bg-brand/8 px-4 py-3" />
       </div>
 
-      <div className="relative mt-8 overflow-x-auto rounded-3xl border border-line bg-surface/60">
+      <div className="relative mt-8 overflow-x-auto rounded-2xl border border-line bg-surface/60">
         <table className="w-full min-w-[30rem] text-sm">
           <caption className="sr-only">O que cada navegador faz na sala</caption>
           <thead>

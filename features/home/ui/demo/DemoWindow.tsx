@@ -97,7 +97,7 @@ function RemotePointer() {
  */
 export function DemoWindow() {
   return (
-    <figure className="panel overflow-hidden rounded-3xl">
+    <figure className="panel overflow-hidden rounded-2xl">
       <figcaption className="sr-only">
         Prévia de uma sala do Nelcota: Bruno compartilha um relatório com som, Ana aponta para o
         botão Publicar, reage e escreve no chat.
