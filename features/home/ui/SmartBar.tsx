@@ -28,6 +28,8 @@ interface SmartBarProps {
   createRoomHref: () => string;
   /** Mascot "peeking" over the bar. */
   mascot: ReactNode;
+  /** Whether "/" focuses this bar; only one bar on the page should answer it. */
+  focusShortcut?: boolean;
 }
 
 /** Key drawn like a real key (thicker bottom border). */
@@ -145,6 +147,7 @@ export function SmartBar({
   onNavigate,
   createRoomHref,
   mascot,
+  focusShortcut = true,
 }: SmartBarProps) {
   const inputId = useId();
   const hintId = useId();
@@ -170,7 +173,10 @@ export function SmartBar({
   }, [invalidCode]);
 
   // "/" focuses the bar (outside text fields), like in search engines.
-  useShortcut("/", () => inputRef.current?.focus());
+  useShortcut("/", () => {
+    if (!focusShortcut) return;
+    inputRef.current?.focus();
+  });
 
   useEffect(() => () => setMascotDoubt(false), []);
 

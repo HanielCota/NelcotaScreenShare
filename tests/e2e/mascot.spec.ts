@@ -35,7 +35,7 @@ test("an invalid code on the home page makes the mascot grumpy, then it calms do
   const { page, context } = await newVisitor(browser);
   await page.clock.install();
   await page.goto("/");
-  const input = page.getByPlaceholder("Link ou código da sala");
+  const input = page.getByPlaceholder("Link ou código da sala").first();
   await input.fill("!!");
   await input.press("Enter");
   const grumpy = page.locator('[data-expression="grumpy"]');

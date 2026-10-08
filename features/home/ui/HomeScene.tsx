@@ -79,7 +79,7 @@ export function HomeScene({
 
       <HomeSections maxParticipants={maxParticipants} signedIn={account !== null} />
 
-      <SiteFooter className="mt-24" />
+      <SiteFooter className="mt-8" />
     </HomeEntrance>
   );
 }

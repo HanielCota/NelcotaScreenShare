@@ -135,7 +135,8 @@ test("a failure sending links does not show as success", async ({ browser }) => 
 test('home: "/" focuses the room field and a valid code opens the room', async ({ browser }) => {
   const { page, context } = await newVisitor(browser);
   await page.goto("/");
-  const input = page.getByPlaceholder("Link ou código da sala");
+  // The top bar; the closing one repeats it lower on the page and leaves "/" to it.
+  const input = page.getByPlaceholder("Link ou código da sala").first();
   await page.keyboard.press("/");
   await expect(input).toBeFocused();
 

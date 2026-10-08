@@ -6,7 +6,7 @@ test("home: a visitor creating a room signs up first; the Pro list takes an e-ma
 }) => {
   const { page, context } = await newVisitor(browser);
   await page.goto("/");
-  await page.getByRole("button", { name: "Criar sala", exact: true }).click();
+  await page.getByRole("button", { name: "Criar sala", exact: true }).first().click();
   await expect(page).toHaveURL(/\/cadastro\?voltar=%2Fsala%2F[a-z0-9-]+$/);
 
   await page.goto("/#precos");
