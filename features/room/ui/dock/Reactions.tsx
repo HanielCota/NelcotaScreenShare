@@ -167,7 +167,7 @@ export function ReactionsMenu() {
         toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
         return;
       }
-      toast.error("Não foi possível levantar a mão. Tente de novo.");
+      toast.error(`Não foi possível ${next ? "levantar" : "baixar"} a mão. Tente de novo.`);
     });
   }
 
