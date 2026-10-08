@@ -31,11 +31,7 @@ export default function AccountSessionsPage() {
         currentId={currentId}
         revokeSession={revokeOwnSession}
         revokeOtherSessions={revokeOtherOwnSessions}
-        sessions={rows.map((row) => ({
-          ...row,
-          createdAt: row.createdAt.toISOString(),
-          updatedAt: row.updatedAt.toISOString(),
-        }))}
+        sessions={rows}
       />
     </>
   );

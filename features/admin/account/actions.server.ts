@@ -37,7 +37,7 @@ export const revokeOwnSession = defineAdminOperation(
       resourceType: "admin_session",
       resourceId: parsedInput.sessionId,
     });
-    return { revoked: 1 };
+    return { revoked: true };
   },
 );
 

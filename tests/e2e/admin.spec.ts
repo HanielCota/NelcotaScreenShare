@@ -46,7 +46,7 @@ test("admin panel: invitation, sign-in with required 2FA, room filter and CSV ex
 
   await page.goto(`/admin/convite/${token}`);
   await page.getByLabel("Seu nome").fill("Dona do Painel");
-  await page.getByLabel("Senha (mínimo de 12 caracteres)").fill(PASSWORD);
+  await page.getByLabel("Senha (pelo menos 12 caracteres)").fill(PASSWORD);
   await page.getByLabel("Repita a senha").fill(PASSWORD);
   await page.getByRole("button", { name: "Criar acesso" }).click();
   await expect(page).toHaveURL(/\/admin\/entrar/);

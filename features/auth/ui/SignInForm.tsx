@@ -5,6 +5,7 @@ import { useId, useRef, useState, type FormEvent } from "react";
 import { AccessTabs } from "./AccessTabs";
 import { EmailField, forgetTypedEmail } from "./EmailField";
 import { AuthCard } from "./AuthCard";
+import { FormNotice } from "./FormNotice";
 import { FormError } from "@/components/FormError";
 import { PasswordInput } from "@/components/PasswordInput";
 import { celebrateMascot, nodMascot, upsetMascot } from "@/features/mascot/client/events";
@@ -93,11 +94,7 @@ export function SignInForm({
         noValidate
         className="flex flex-col gap-4"
       >
-        {notice ? (
-          <output className="block rounded-xl bg-surface-2 px-3 py-2.5 text-sm text-ink-muted">
-            {notice}
-          </output>
-        ) : null}
+        <FormNotice message={notice} />
         <EmailField
           id={emailId}
           autoComplete="username"

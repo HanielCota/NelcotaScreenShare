@@ -62,10 +62,10 @@ export function ProfilePhotoForm({
       const { error: failure } = await authClient.updateUser({ image: draft });
       if (failure) return setError(authErrorMessage(failure, "Não foi possível salvar a foto."));
       toast.success(draft === null ? "Foto de perfil removida." : "Foto de perfil atualizada.");
+      // The draft is not cleared: it stays as the preview until the new image arrives.
       void revalidator.revalidate();
-      // Keeps the preview until the server returns the updated image.
     } catch {
-      setError("Não foi possível salvar a foto. Tente novamente.");
+      setError("Não foi possível salvar a foto. Tente de novo.");
     } finally {
       setPending(false);
     }

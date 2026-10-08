@@ -107,11 +107,7 @@ export function VerifyEmailPanel({
             onClick={() => void resend()}
           >
             {status === "sending" ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
-            {cooldown > 0
-              ? `Reenviar em ${cooldown} s`
-              : status === "sent"
-                ? "Reenviar de novo"
-                : "Reenviar link"}
+            {cooldown > 0 ? `Reenviar em ${cooldown} s` : "Reenviar link"}
           </Button>
         ) : null}
         <p aria-live="polite" className="text-sm">

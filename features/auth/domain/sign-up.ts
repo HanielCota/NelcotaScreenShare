@@ -1,4 +1,5 @@
 import { displayNameSchema } from "@/features/room/domain/participant-label";
+import { passwordTooShortMessage } from "./password-rules";
 
 /** E-mail that looks valid (the server does the real check). */
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -30,7 +31,7 @@ export function checkSignUp(input: {
     return {
       ok: false,
       field: "password",
-      message: `A senha precisa ter ao menos ${input.minPassword} caracteres.`,
+      message: passwordTooShortMessage(input.minPassword),
     };
   }
   return { ok: true, name: name.data, email };

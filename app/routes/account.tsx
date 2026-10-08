@@ -53,15 +53,10 @@ function StatusChip({ ok, children }: { ok: boolean; children: ReactNode }) {
   );
 }
 
-/**
- * Account home, in a single column: who you are (card with the photo), what is
- * left to secure the account (checklist with the action alongside) and the settings
- * in anchored sections (/conta#seguranca). Long forms open inline.
- */
 export const loader = routeLoader(async ({ searchParams }) => {
   const current = await requireUser("/conta", { requireVerified: false });
   const { voltar, aviso } = searchParams;
-  const back = typeof voltar === "string" ? safeReturnPath(voltar, "") : "";
+  const back = safeReturnPath(voltar, "");
   const sessions = await listActiveSessions(getDb(), userSessions, current.user.id);
   const notice = typeof aviso === "string" ? NOTICES[aviso] : undefined;
   const { name, email, image, emailVerified, twoFactorEnabled } = current.user;
@@ -75,6 +70,11 @@ export const loader = routeLoader(async ({ searchParams }) => {
   };
 });
 
+/**
+ * Account home, in a single column: who you are (card with the photo), what is
+ * left to secure the account (checklist with the action alongside) and the settings
+ * in anchored sections (/conta#seguranca). Long forms open inline.
+ */
 export default function AccountPage() {
   const { currentId, back, sessions, notice, user, requireEmailVerification } =
     useLoaderData<typeof loader>();
@@ -158,7 +158,7 @@ export default function AccountPage() {
             <ExpandableRow
               id="duas-etapas"
               title="Verificação em duas etapas"
-              description="Pede um código do app autenticador no login."
+              description="Pede um código do app autenticador ao entrar."
               summary={
                 user.twoFactorEnabled ? (
                   <span className="inline-flex items-center gap-1.5 text-brand-soft">
@@ -195,11 +195,7 @@ export default function AccountPage() {
                 currentId={currentId}
                 revokeSession={revokeMySession}
                 revokeOtherSessions={revokeMyOtherSessions}
-                sessions={sessions.map((row) => ({
-                  ...row,
-                  createdAt: row.createdAt.toISOString(),
-                  updatedAt: row.updatedAt.toISOString(),
-                }))}
+                sessions={sessions}
               />
             </SettingsBlock>
           </SettingsSection>

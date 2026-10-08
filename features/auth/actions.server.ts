@@ -3,7 +3,7 @@ import { definePublicOperation } from "@/features/auth/server/operation-policies
 import { ActionError } from "@/server/operations/action-error";
 import { getAdminAuth } from "@/features/auth/server/admin-auth.server";
 import { acceptAdminInvitation } from "@/features/auth/server/admin-invitations.server";
-import { PASSWORD_LIMITS } from "@/features/auth/server/password.server";
+import { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
 import { getDb } from "@/server/db/index.server";
 import { logger } from "@/server/logger.server";
 

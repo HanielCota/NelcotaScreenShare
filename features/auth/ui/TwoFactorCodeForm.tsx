@@ -60,7 +60,7 @@ export function TwoFactorCodeForm({
       }
       footer={
         <Link viewTransition to={backHref} className="font-medium text-brand-soft hover:underline">
-          Voltar ao login
+          Voltar para entrar
         </Link>
       }
     >

@@ -3,6 +3,7 @@ import { Link, useNavigate, useRevalidator } from "react-router";
 
 import { useId, useState, type FormEvent } from "react";
 import { AuthCard } from "./AuthCard";
+import { FormNotice } from "./FormNotice";
 import { FormError } from "@/components/FormError";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Button } from "@/components/ui/button";
@@ -63,11 +64,7 @@ export function AdminSignInForm({ notice }: { notice?: string | undefined }) {
         noValidate
         className="flex flex-col gap-4"
       >
-        {notice ? (
-          <output className="block rounded-xl bg-surface-2 px-3 py-2.5 text-sm text-ink-muted">
-            {notice}
-          </output>
-        ) : null}
+        <FormNotice message={notice} />
         <div className="flex flex-col gap-2">
           <Label htmlFor={emailId}>E-mail</Label>
           <Input

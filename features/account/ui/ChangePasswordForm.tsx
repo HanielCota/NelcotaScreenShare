@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
-import { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
+import { newPasswordError, PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
 import { formText } from "@/lib/utils";
 import { useCloseRow } from "./settings/ExpandableRow";
 
@@ -25,9 +25,12 @@ export function ChangePasswordForm() {
     const form = event.currentTarget;
     const data = new FormData(form);
     const newPassword = formText(data, "next");
-    if (newPassword.length < PASSWORD_LIMITS.user.min)
-      return setError(`A nova senha precisa ter ao menos ${PASSWORD_LIMITS.user.min} caracteres.`);
-    if (newPassword !== formText(data, "confirm")) return setError("As senhas não são iguais.");
+    const invalid = newPasswordError(
+      newPassword,
+      formText(data, "confirm"),
+      PASSWORD_LIMITS.user.min,
+    );
+    if (invalid) return setError(invalid);
     setPending(true);
     setError(undefined);
     const { error: failure } = await authClient.changePassword({
@@ -66,7 +69,7 @@ export function ChangePasswordForm() {
           aria-describedby={ids.hint}
         />
         <p id={ids.hint} className="text-xs text-ink-muted">
-          Mínimo de {PASSWORD_LIMITS.user.min} caracteres.
+          Pelo menos {PASSWORD_LIMITS.user.min} caracteres.
         </p>
       </div>
       <div className="flex flex-col gap-2">

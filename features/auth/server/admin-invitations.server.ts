@@ -4,7 +4,7 @@ import type { Database } from "@/server/db/index.server";
 import { adminInvitations, adminUsers } from "@/server/db/schema";
 import { appUrl } from "@/server/env.server";
 import type { AdminAuth } from "./admin-auth.server";
-import { PASSWORD_LIMITS } from "./password.server";
+import { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
 import type { AdminRole } from "@/features/auth/domain/roles";
 
 const INVITE_TTL_MS = 48 * 60 * 60 * 1000;

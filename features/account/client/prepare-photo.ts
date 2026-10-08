@@ -10,7 +10,7 @@ export async function preparePhoto(file: File): Promise<string> {
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = PROFILE_PHOTO.size;
     const context = canvas.getContext("2d");
-    if (!context) throw new Error("Não foi possível preparar a imagem. Tente novamente.");
+    if (!context) throw new Error("Não foi possível preparar a imagem. Tente de novo.");
     const side = Math.min(bitmap.width, bitmap.height);
     context.drawImage(
       bitmap,

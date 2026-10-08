@@ -2,13 +2,16 @@ import { and, desc, eq, gt, sql } from "drizzle-orm";
 import type { DbExecutor } from "@/server/db/index.server";
 import type { adminSessions, userSessions } from "@/server/db/schema";
 
-/** Still-valid sessions of an account, from the most recently used backwards. */
+/**
+ * Still-valid sessions of an account, from the most recently used backwards, with
+ * ISO dates as the session list expects them.
+ */
 export async function listActiveSessions(
   db: DbExecutor,
   table: typeof userSessions | typeof adminSessions,
   ownerId: string,
 ) {
-  return db
+  const rows = await db
     .select({
       id: table.id,
       ipAddress: table.ipAddress,
@@ -19,4 +22,9 @@ export async function listActiveSessions(
     .from(table)
     .where(and(eq(table.userId, ownerId), gt(table.expiresAt, sql`now()`)))
     .orderBy(desc(table.updatedAt));
+  return rows.map((row) => ({
+    ...row,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }));
 }

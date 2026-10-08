@@ -7,6 +7,8 @@ import { navFor } from "@/features/admin/shell/server/nav.server";
 import { needsTwoFactorSetup, requireAdmin } from "@/features/auth/server/admin-session.server";
 import { ADMIN_ROLE_LABELS } from "@/features/auth/domain/roles";
 
+// Without mandatory 2FA, the other screens redirect to the security one:
+// the menu shows only what can be opened (redirecting links become a prefetch loop).
 const SETUP_ONLY_NAV = [
   {
     label: "Minha conta",
@@ -40,21 +42,17 @@ export const loader = routeLoader(async ({ request }) => {
 
 export default function AdminPanelLayout() {
   const { admin, sidebar, groups } = useLoaderData<typeof loader>();
-  const children = <Outlet />;
   return (
     <AdminShell
       user={{
         name: admin.user.name,
         email: admin.user.email,
-        roleLabel:
-          (ADMIN_ROLE_LABELS as Record<string, string>)[admin.user.role] ?? admin.user.role,
+        roleLabel: ADMIN_ROLE_LABELS[admin.user.role],
       }}
-      // Without mandatory 2FA, the other screens redirect to the security one:
-      // the menu shows only what can be opened (redirecting links become a prefetch loop).
       groups={groups}
       defaultOpen={sidebar !== "false"}
     >
-      {children}
+      <Outlet />
     </AdminShell>
   );
 }

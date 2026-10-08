@@ -15,7 +15,8 @@ import {
 import { appUrl, getEnv } from "@/server/env.server";
 import { mailLayout } from "@/server/mail.server";
 import { deliverAccountMail } from "./auth-mail.server";
-import { hashPassword, PASSWORD_LIMITS, verifyPassword } from "./password.server";
+import { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
+import { hashPassword, verifyPassword } from "./password.server";
 import { AUTH_RATE_LIMIT_RULES, authHooks, FRESH_SESSION_SECONDS } from "./auth-shared.server";
 
 export const USER_AUTH_BASE_PATH = "/api/auth";

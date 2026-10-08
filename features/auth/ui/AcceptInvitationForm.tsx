@@ -9,7 +9,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
+import { newPasswordError, PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
 import { formText } from "@/lib/utils";
 
 const MIN = PASSWORD_LIMITS.admin.min;
@@ -36,15 +36,9 @@ export function AcceptInvitationForm({
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const password = formText(data, "password");
-    if (password.length < MIN) {
-      setLocalError(`A senha precisa ter ao menos ${MIN} caracteres.`);
-      return;
-    }
-    if (password !== formText(data, "confirm")) {
-      setLocalError("As senhas não são iguais.");
-      return;
-    }
-    setLocalError(undefined);
+    const invalid = newPasswordError(password, formText(data, "confirm"), MIN);
+    setLocalError(invalid);
+    if (invalid) return;
     accept.execute({ token, name: formText(data, "name"), password });
   }
 
@@ -73,7 +67,7 @@ export function AcceptInvitationForm({
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor={passwordId}>Senha (mínimo de {MIN} caracteres)</Label>
+          <Label htmlFor={passwordId}>Senha (pelo menos {MIN} caracteres)</Label>
           <PasswordInput
             id={passwordId}
             name="password"

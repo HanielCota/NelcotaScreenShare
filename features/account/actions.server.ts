@@ -30,7 +30,7 @@ export const revokeMySession = defineUserOperation(
       )
       .returning({ id: userSessions.id });
     if (deleted.length === 0) throw new ActionError("Sessão não encontrada. Atualize a página.");
-    return { revoked: 1 };
+    return { revoked: true };
   },
 );
 

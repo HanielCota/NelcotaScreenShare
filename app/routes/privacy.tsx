@@ -19,7 +19,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
 import { ParticipantHeader } from "@/components/shell/ParticipantHeader";
 import { PrivacyItem, PrivacyList, PrivacySection } from "@/features/privacy/ui/PrivacySection";
 import { PrivacyToc } from "@/features/privacy/ui/PrivacyToc";
@@ -64,6 +63,36 @@ const NOT_STORED: { icon: LucideIcon; label: string }[] = [
   { icon: MonitorOff, label: "Telas compartilhadas" },
   { icon: MessageSquareOff, label: "Mensagens do chat" },
 ];
+
+function RightsLink({
+  to,
+  icon,
+  title,
+  detail,
+}: {
+  to: string;
+  icon: ReactNode;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <Link
+      viewTransition
+      to={to}
+      className="group flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-colors hover:bg-surface-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+    >
+      {icon}
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{title}</span>
+        <span className="block text-xs text-ink-muted">{detail}</span>
+      </span>
+      <ArrowRight
+        className="size-4 text-ink-subtle transition-transform group-hover:translate-x-0.5"
+        aria-hidden="true"
+      />
+    </Link>
+  );
+}
 
 function Duration({ children }: { children: ReactNode }) {
   return (
@@ -201,45 +230,24 @@ export default function PrivacyPage() {
             >
               <div className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Link
-                    viewTransition
+                  <RightsLink
                     to="/conta#privacidade"
-                    className="group flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-colors hover:bg-surface-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-                  >
-                    <Download className="size-5 shrink-0 text-brand-soft" aria-hidden="true" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">Baixar meus dados</span>
-                      <span className="block text-xs text-ink-muted">Arquivo JSON completo</span>
-                    </span>
-                    <ArrowRight
-                      className="size-4 text-ink-subtle transition-transform group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    />
-                  </Link>
-                  <Link
-                    viewTransition
+                    icon={
+                      <Download className="size-5 shrink-0 text-brand-soft" aria-hidden="true" />
+                    }
+                    title="Baixar meus dados"
+                    detail="Arquivo JSON completo"
+                  />
+                  <RightsLink
                     to="/conta#excluir"
-                    className="group flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-4 transition-colors hover:bg-surface-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-                  >
-                    <Trash2 className="size-5 shrink-0 text-danger" aria-hidden="true" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">Excluir conta</span>
-                      <span className="block text-xs text-ink-muted">Não pode ser desfeito</span>
-                    </span>
-                    <ArrowRight
-                      className="size-4 text-ink-subtle transition-transform group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    />
-                  </Link>
+                    icon={<Trash2 className="size-5 shrink-0 text-danger" aria-hidden="true" />}
+                    title="Excluir conta"
+                    detail="Não pode ser desfeito"
+                  />
                 </div>
                 <p className="mt-4 text-sm leading-relaxed text-ink-muted">
                   Outros pedidos sobre seus dados são respondidos em até 15 dias.
                 </p>
-                <Button asChild variant="outline" className="mt-4">
-                  <Link viewTransition to="/conta">
-                    Abrir Minha conta
-                  </Link>
-                </Button>
               </div>
             </PrivacySection>
           </div>

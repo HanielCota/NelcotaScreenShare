@@ -24,6 +24,14 @@ const BY_CODE: Record<string, string> = {
   ADMIN_DISABLED: "O painel admin está desligado neste servidor.",
 };
 
+/**
+ * Codes whose message the server already writes in pt-BR: the sign-in lockout
+ * (with the wait time) and the disabled admin account.
+ */
+const SERVER_WORDED = new Set(["SIGN_IN_LOCKED", "BANNED_USER"]);
+
+const GENERIC_MESSAGE = "Algo deu errado. Tente de novo.";
+
 export interface AuthErrorLike {
   code?: string | undefined;
   message?: string | undefined;
@@ -32,17 +40,14 @@ export interface AuthErrorLike {
 
 export function authErrorMessage(
   error: AuthErrorLike | null | undefined,
-  fallback?: string,
+  fallback = GENERIC_MESSAGE,
 ): string {
-  if (!error) return fallback ?? "Algo deu errado. Tente de novo.";
-  if (error.code && BY_CODE[error.code]) return BY_CODE[error.code] ?? "";
-  // 429: the server message is already in pt-BR (lockout after attempts or rate limit).
-  if (error.status === 429) {
-    return error.message?.startsWith("Muitas")
-      ? error.message
-      : "Muitas tentativas. Aguarde um minuto.";
-  }
-  // Disabled account: message configured on the server, in pt-BR.
-  if (error.status === 403 && error.message?.includes("desativada")) return error.message;
-  return fallback ?? "Algo deu errado. Tente de novo.";
+  if (!error) return fallback;
+  const code = error.code ?? "";
+  const known = BY_CODE[code];
+  if (known) return known;
+  if (SERVER_WORDED.has(code) && error.message) return error.message;
+  // The per-IP rate limit answers 429 with an English message.
+  if (error.status === 429) return "Muitas tentativas. Aguarde um minuto.";
+  return fallback;
 }

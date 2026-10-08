@@ -20,11 +20,9 @@ import { getDb } from "@/server/db/index.server";
 
 export const meta = () => [{ title: "Participante · Nelcota" }];
 
-export const loader = routeLoader(async ({ params: routeParams }) => {
-  const params = { id: routeParams.id ?? "" };
-
+export const loader = routeLoader(async ({ params }) => {
   const admin = await requireAdmin({ participant: ["read"] });
-  const { id } = params;
+  const id = params.id ?? "";
   if (!z.uuid().safeParse(id).success) notFound();
   const db = getDb();
   const detail = await getParticipantDetail(db, id);
@@ -33,34 +31,23 @@ export const loader = routeLoader(async ({ params: routeParams }) => {
   const role = admin.user.role;
   const status = STATUS_LABELS[account.status];
 
-  const canUpdate = can(role, { participant: ["update"] });
-  const canDelete = can(role, { participant: ["delete"] });
-  const canAnonymize = can(role, { participant: ["anonymize"] });
   return {
     account,
     sessions,
     timeline,
     history,
-
     status,
-    canUpdate,
-    canDelete,
-    canAnonymize,
+    permissions: {
+      update: can(role, { participant: ["update"] }),
+      delete: can(role, { participant: ["delete"] }),
+      anonymize: can(role, { participant: ["anonymize"] }),
+    },
   };
 });
 
 export default function ParticipantPage() {
-  const {
-    account,
-    sessions,
-    timeline,
-    history,
-
-    status,
-    canUpdate,
-    canDelete,
-    canAnonymize,
-  } = useLoaderData<typeof loader>();
+  const { account, sessions, timeline, history, status, permissions } =
+    useLoaderData<typeof loader>();
   return (
     <>
       <div className="flex flex-col gap-3">
@@ -83,11 +70,7 @@ export default function ParticipantPage() {
           verified={account.emailVerified}
           anonymized={account.anonymizedAt !== null}
           sessions={sessions.length}
-          can={{
-            update: canUpdate,
-            delete: canDelete,
-            anonymize: canAnonymize,
-          }}
+          can={permissions}
         />
       </div>
 
