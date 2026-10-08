@@ -2,9 +2,13 @@ import { expect, test, type Page } from "@playwright/test";
 import { joinRoom, newParticipant, newRoomCode, newVisitor } from "./support/session";
 import { E2E_ACCESS_PASSWORD, E2E_URL } from "./support/env";
 
-/** Fake shared screen: an animated canvas instead of the browser's picker. */
-async function fakeScreenCapture(page: Page) {
-  await page.addInitScript(() => {
+/**
+ * Fake shared screen: an animated canvas instead of the browser's picker. `withSound`
+ * adds computer audio that, like a real capture without `restrictOwnAudio`, would carry
+ * the room's playback.
+ */
+async function fakeScreenCapture(page: Page, { withSound = false } = {}) {
+  await page.addInitScript((sound) => {
     navigator.mediaDevices.getDisplayMedia = () => {
       const canvas = document.createElement("canvas");
       canvas.width = 1280;
@@ -17,9 +21,16 @@ async function fakeScreenCapture(page: Page) {
         context.fillStyle = frame % 2 ? "#3a7" : "#173";
         context.fillRect(0, 0, canvas.width, canvas.height);
       }, 100);
-      return Promise.resolve(canvas.captureStream(15));
+      const stream = canvas.captureStream(15);
+      if (sound) {
+        const audio = new AudioContext();
+        const destination = audio.createMediaStreamDestination();
+        audio.createOscillator().connect(destination);
+        stream.addTrack(destination.stream.getAudioTracks()[0]!);
+      }
+      return Promise.resolve(stream);
     };
-  });
+  }, withSound);
 }
 
 test.describe("room access", () => {
@@ -178,6 +189,19 @@ test.describe("in the room", () => {
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await dock.screenshot({ path: test.info().outputPath("dock-mobile-light.png") });
     await context.close();
+  });
+
+  test("computer audio that would echo the room is left out of the share", async ({ browser }) => {
+    const pessoa = await newParticipant(browser, "Bia Teste");
+    await fakeScreenCapture(pessoa.page, { withSound: true });
+    await joinRoom(pessoa.page, newRoomCode(), { micOn: false });
+
+    await pessoa.page.getByRole("button", { name: "Compartilhar minha tela" }).click();
+    await pessoa.page.getByRole("button", { name: /^Tela inteira/ }).click();
+    await expect(pessoa.page.getByLabel("Prévia da sua tela")).toBeVisible();
+    await expect(pessoa.page.getByText(/O som do computador ficou de fora/)).toBeVisible();
+
+    await pessoa.context.close();
   });
 
   test("alone: welcome; leave and join again", async ({ browser }) => {

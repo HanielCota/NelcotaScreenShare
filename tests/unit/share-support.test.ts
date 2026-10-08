@@ -3,6 +3,7 @@ import { test } from "vitest";
 import {
   canShare,
   classifyShareSupport,
+  echoesRoomAudio,
   sharesAudio,
   showsCaptureBar,
 } from "@/features/room/domain/share-support";
@@ -71,4 +72,16 @@ test("a shared tab gets the bar inside the tab, and other browsers float none", 
   assert.equal(showsCaptureBar("full", undefined), false);
   assert.equal(showsCaptureBar("screen-only", "monitor"), false);
   assert.equal(showsCaptureBar("safari", "monitor"), false);
+});
+
+test("computer audio from a screen or a window echoes the room unless the browser strips it", () => {
+  assert.equal(echoesRoomAudio("monitor", undefined), true);
+  assert.equal(echoesRoomAudio("window", false), true);
+  assert.equal(echoesRoomAudio(undefined, undefined), true);
+  assert.equal(echoesRoomAudio("monitor", true), false);
+  assert.equal(echoesRoomAudio("window", true), false);
+});
+
+test("a tab's audio never carries the room: our own tab is not offered", () => {
+  assert.equal(echoesRoomAudio("browser", undefined), false);
 });
