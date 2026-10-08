@@ -1,26 +1,39 @@
-import { Check, Minus } from "lucide-react";
-import { BROWSER_ROWS, visitorRow } from "@/features/home/domain/browser-matrix";
+import { Check, Compass, Flame, Globe, Minus, Smartphone, type LucideIcon } from "lucide-react";
+import { BROWSER_ROWS, visitorRow, type BrowserRow } from "@/features/home/domain/browser-matrix";
 import { useShareSupport } from "@/features/room/hooks/use-share-support";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { cn } from "@/lib/utils";
 import { SectionIntro } from "./SectionIntro";
 
+/** A plain glyph per family; no brand logos. */
+const ICONS: Record<BrowserRow["id"], LucideIcon> = {
+  chromium: Globe,
+  firefox: Flame,
+  safari: Compass,
+  mobile: Smartphone,
+};
+
 function Capability({ on, label }: { on: boolean; label: string }) {
   const Icon = on ? Check : Minus;
   return (
-    <td className="px-3 py-3.5 text-center">
+    <li className="flex items-center justify-between gap-3 py-2.5">
+      <span className={on ? "" : "text-ink-subtle"}>{label}</span>
       <Icon
-        className={cn("mx-auto size-4", on ? "text-success" : "text-ink-subtle")}
+        className={cn("size-4 shrink-0", on ? "text-success" : "text-ink-subtle")}
         aria-hidden="true"
       />
-      <span className="sr-only">{on ? `${label}: sim` : `${label}: não`}</span>
-    </td>
+      <span className="sr-only">{on ? "sim" : "não"}</span>
+    </li>
   );
 }
 
-/** "Will it work here?": the visitor's own browser, then what each browser does in the room. */
+/**
+ * "Will it work here?" as one card per browser family: what it shares, in a sentence and
+ * two checks. The visitor's own browser lights up once the page knows it (after hydration).
+ */
 export function BrowserCheckSection() {
-  const current = visitorRow(useShareSupport());
+  const support = useShareSupport();
+  const current = visitorRow(support);
 
   return (
     <section aria-labelledby="browsers-title" className="w-full max-w-5xl">
@@ -30,58 +43,50 @@ export function BrowserCheckSection() {
         subtitle="Veja o que cada um faz."
       />
 
-      <div className="mt-12 flex sm:mt-16">
-        <ShareSupportNote className="rounded-2xl border border-brand/30 bg-brand/8 px-4 py-3" />
-      </div>
-
-      <div className="relative mt-8 overflow-x-auto rounded-2xl border border-line bg-surface/60">
-        <table className="w-full min-w-[30rem] text-sm">
-          <caption className="sr-only">O que cada navegador faz na sala</caption>
-          <thead>
-            <tr className="border-b border-line text-xs text-ink-subtle">
-              <th scope="col" className="px-5 py-3 text-left font-medium">
-                Navegador
-              </th>
-              <th scope="col" className="px-3 py-3 font-medium">
-                Tela
-              </th>
-              <th scope="col" className="px-3 py-3 font-medium">
-                Som do computador
-              </th>
-              <th scope="col" className="px-5 py-3 text-left font-medium max-sm:hidden">
-                Na prática
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {BROWSER_ROWS.map((row) => (
-              <tr
-                data-fx="row"
-                key={row.id}
-                aria-current={row.id === current || undefined}
-                className="border-b border-line last:border-0 aria-[current]:bg-brand/10"
-              >
-                <th scope="row" className="px-5 py-3.5 text-left font-medium">
-                  <span className="inline-flex flex-wrap items-center gap-2">
-                    {row.name}
-                    {row.id === current ? (
-                      <span className="rounded-full bg-brand px-2 py-0.5 text-xs text-brand-ink">
-                        Você está aqui
-                      </span>
-                    ) : null}
+      <ul
+        aria-label="O que cada navegador faz na sala"
+        className="mt-12 grid gap-4 sm:mt-16 sm:grid-cols-2 lg:grid-cols-4"
+      >
+        {BROWSER_ROWS.map((row) => {
+          const Icon = ICONS[row.id];
+          const here = row.id === current;
+          return (
+            <li
+              key={row.id}
+              data-fx="card"
+              aria-current={here || undefined}
+              className="flex flex-col gap-5 rounded-3xl border border-line bg-surface p-6 transition-colors aria-[current]:border-brand/50 aria-[current]:bg-brand/8"
+            >
+              <span className="flex items-start justify-between gap-3">
+                <span className="grid size-12 place-items-center rounded-2xl bg-surface-2 text-ink-muted">
+                  <Icon className="size-6" aria-hidden="true" />
+                </span>
+                {here ? (
+                  <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-medium text-brand-ink">
+                    Você está aqui
                   </span>
-                </th>
+                ) : null}
+              </span>
+              <span className="flex flex-col gap-1">
+                <span className="text-lg leading-snug font-semibold tracking-[-0.02em]">
+                  {row.name}
+                </span>
+                <span className="text-sm text-ink-muted">{row.summary}</span>
+              </span>
+              <ul className="mt-auto divide-y divide-line border-t border-line text-sm">
                 <Capability on={row.screen} label="Compartilha a tela" />
                 <Capability on={row.audio} label="Som do computador" />
-                <td className="px-5 py-3.5 text-ink-muted max-sm:hidden">{row.summary}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              </ul>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="mt-6 flex flex-col gap-3 text-sm text-ink-muted">
+        {/* A browser none of the cards describe still gets its own answer. */}
+        {support !== null && current === null ? <ShareSupportNote /> : null}
+        <p>Em qualquer um deles você assiste, fala e usa o chat.</p>
       </div>
-      <p className="mt-4 text-xs text-ink-subtle">
-        Em qualquer um deles você assiste, fala e usa o chat.
-      </p>
     </section>
   );
 }
