@@ -70,7 +70,7 @@ export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
         </Link>
       </div>
 
-      <div data-fx="rise" className="flex flex-col divide-y divide-line border-y border-line">
+      <div data-fx className="flex flex-col divide-y divide-line border-y border-line">
         {faqItems(maxParticipants).map(({ question, answer }) => (
           <details key={question} className="group">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-lg font-medium tracking-[-0.01em] transition-colors hover:text-brand-soft [&::-webkit-details-marker]:hidden">

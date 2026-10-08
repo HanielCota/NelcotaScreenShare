@@ -44,6 +44,7 @@ export function BrowserCheckSection() {
       />
 
       <ul
+        data-fx
         aria-label="O que cada navegador faz na sala"
         className="mt-12 grid gap-4 sm:mt-16 sm:grid-cols-2 lg:grid-cols-4"
       >
@@ -53,7 +54,6 @@ export function BrowserCheckSection() {
           return (
             <li
               key={row.id}
-              data-fx="card"
               aria-current={here || undefined}
               className="flex flex-col gap-5 rounded-3xl border border-line bg-surface p-6 transition-colors aria-[current]:border-brand/50 aria-[current]:bg-brand/8"
             >

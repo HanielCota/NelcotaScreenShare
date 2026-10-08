@@ -20,7 +20,6 @@ function Tile({
 }) {
   return (
     <li
-      data-fx="rise"
       className={cn(
         "flex flex-col gap-8 overflow-hidden rounded-3xl border border-line bg-surface p-6 sm:p-8",
         className,
@@ -229,7 +228,7 @@ export function FeaturesSection({ maxParticipants }: { maxParticipants: number }
     >
       <SectionIntro id="features-title" title="Os detalhes." subtitle="Que fazem diferença." />
 
-      <ul className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-5">
+      <ul data-fx className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-5">
         <Tile
           title="Microfone testado."
           rest="Você vê o nível do som antes de entrar. Sem “alô, tão me ouvindo?”."
