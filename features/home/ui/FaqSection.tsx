@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import { Link } from "react-router";
 import { SectionIntro } from "./SectionIntro";
 
@@ -45,41 +45,47 @@ function faqItems(maxParticipants: number): { question: string; answer: string }
   ];
 }
 
-/** Last objections, as native disclosure widgets, with the full privacy notice one click away. */
+/**
+ * Last objections: the title and the way to the privacy notice stay on the left while the
+ * questions, native disclosure widgets on hairlines, run on the right.
+ */
 export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
   return (
-    <section aria-labelledby="faq-title" className="w-full max-w-5xl">
-      <SectionIntro id="faq-title" title="Perguntas" subtitle="frequentes." />
-
-      <div className="mt-12 flex max-w-3xl flex-col gap-3 sm:mt-16">
-        {faqItems(maxParticipants).map(({ question, answer }) => (
-          <details
-            data-fx="rise"
-            key={question}
-            className="group rounded-2xl border border-line bg-surface/60 transition-colors open:border-brand/30"
-          >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium [&::-webkit-details-marker]:hidden">
-              {question}
-              <ChevronDown
-                className="size-5 shrink-0 text-ink-subtle transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
-                aria-hidden="true"
-              />
-            </summary>
-            <p className="px-5 pb-5 text-sm leading-relaxed text-pretty text-ink-muted">{answer}</p>
-          </details>
-        ))}
-      </div>
-
-      <p className="mt-6">
+    <section
+      aria-labelledby="faq-title"
+      className="grid w-full max-w-5xl gap-12 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-16"
+    >
+      <div className="flex flex-col gap-6 md:sticky md:top-28 md:self-start">
+        <SectionIntro id="faq-title" title="Perguntas" subtitle="frequentes." />
+        <p className="max-w-xs text-base text-pretty text-ink-muted">
+          O que as pessoas perguntam antes de abrir a primeira sala.
+        </p>
         <Link
           viewTransition
           to="/privacidade"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-soft underline-offset-4 hover:underline"
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-brand-soft underline-offset-4 hover:underline"
         >
           Leia o aviso de privacidade
           <ArrowRight className="size-4" aria-hidden="true" />
         </Link>
-      </p>
+      </div>
+
+      <div data-fx="rise" className="flex flex-col divide-y divide-line border-y border-line">
+        {faqItems(maxParticipants).map(({ question, answer }) => (
+          <details key={question} className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-lg font-medium tracking-[-0.01em] transition-colors hover:text-brand-soft [&::-webkit-details-marker]:hidden">
+              {question}
+              <Plus
+                className="size-5 shrink-0 text-ink-subtle transition-transform duration-200 group-open:rotate-45 motion-reduce:transition-none"
+                aria-hidden="true"
+              />
+            </summary>
+            <p className="max-w-xl pb-6 text-base leading-relaxed text-pretty text-ink-muted">
+              {answer}
+            </p>
+          </details>
+        ))}
+      </div>
     </section>
   );
 }
