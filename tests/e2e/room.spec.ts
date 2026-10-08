@@ -205,6 +205,7 @@ test.describe("in the room", () => {
 
     await joinRoom(dani.page, code);
     await dani.page.getByRole("button", { name: "Compartilhar minha tela" }).click();
+    await dani.page.getByRole("button", { name: /^Tela inteira/ }).click();
     await expect(dani.page.getByLabel("Prévia da sua tela")).toBeVisible();
 
     await joinRoom(edu.page, code);

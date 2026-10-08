@@ -110,12 +110,7 @@ export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
             </span>
           </div>
 
-          <ShareMenu
-            isSharing={share.isSharing}
-            busy={share.busy}
-            onShare={(choice) => void share.start(choice)}
-            onStop={() => void share.stop()}
-          />
+          <ShareMenu share={share} />
         </fieldset>
 
         <Separator
