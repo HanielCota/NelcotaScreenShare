@@ -38,11 +38,19 @@ function Tile({
 /** Heights of the level meter, as the pre-join screen draws it. */
 const LEVELS = [30, 55, 80, 65, 95, 70, 45, 85, 60, 40, 75, 50, 35, 20, 12, 8];
 
-/** A voice, drawn as a symmetric waveform around the middle bar. */
+/** A voice, drawn as a symmetric waveform around the middle bar; it talks unless motion is reduced. */
 const WAVE = [
   12, 20, 34, 26, 48, 38, 62, 44, 78, 56, 92, 70, 100, 70, 92, 56, 78, 44, 62, 38, 48, 26, 34, 20,
   12,
 ];
+
+/** Per-bar rhythm for the talking wave: a spread of durations and offsets, fixed for SSR. */
+function talkTiming(index: number) {
+  return {
+    animationDuration: `${1.1 + ((index * 7) % 5) * 0.12}s`,
+    animationDelay: `-${((index * 11) % 13) * 0.09}s`,
+  };
+}
 
 function MicCheck() {
   return (
@@ -51,8 +59,8 @@ function MicCheck() {
         {WAVE.map((height, index) => (
           <span
             key={index}
-            style={{ height: `${height}%` }}
-            className="w-1.5 rounded-full bg-brand/80 sm:w-2"
+            style={{ height: `${height}%`, ...talkTiming(index) }}
+            className="w-1.5 rounded-full bg-brand/80 motion-safe:animate-[talk_1.3s_ease-in-out_infinite] sm:w-2"
           />
         ))}
       </span>

@@ -534,6 +534,30 @@ body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"][da
   }
 }
 
+/*
+ * One bar of a voice: syllables (two peaks), then a short breath near the floor. Each bar
+ * gets its own duration and delay, so together they never move in step.
+ */
+@keyframes talk {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  18% {
+    transform: scaleY(1);
+  }
+  34% {
+    transform: scaleY(0.5);
+  }
+  52% {
+    transform: scaleY(0.85);
+  }
+  70%,
+  86% {
+    transform: scaleY(0.22);
+  }
+}
+
 /* Cross-fade navigation and theme changes without moving the whole viewport. */
 ::view-transition {
   pointer-events: none;
