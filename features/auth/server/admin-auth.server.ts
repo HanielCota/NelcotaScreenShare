@@ -87,6 +87,13 @@ function createAdminAuth(db: Database, secret: string) {
       password: { hash: hashPassword, verify: verifyPassword },
       resetPasswordTokenExpiresIn: 30 * 60,
       revokeSessionsOnPasswordReset: true,
+      onPasswordReset: async ({ user }) => {
+        await recordAudit(
+          db,
+          { adminId: user.id },
+          { action: "auth.password_reset", resourceType: "admin_user", resourceId: user.id },
+        ).catch((error: unknown) => logger.error({ err: error }, "failed to audit password"));
+      },
       // Fired without waiting: the response time does not reveal whether the e-mail exists.
       sendResetPassword: async ({ user, url }) => {
         const mail = mailLayout({
@@ -139,16 +146,16 @@ function createAdminAuth(db: Database, secret: string) {
       },
       account: {
         update: {
-          // Password changed (in the account) or reset (e-mail link).
+          // Password changed in the account. A reset is audited in onPasswordReset: it goes
+          // through updateMany, so this hook receives a row count instead of the account.
           after: async (account, context) => {
             if (!context?.path || !/password/.test(context.path)) return;
+            if (context.path.includes("reset")) return;
             await recordAudit(
               db,
               { adminId: account.userId },
               {
-                action: context.path.includes("reset")
-                  ? "auth.password_reset"
-                  : "auth.password_changed",
+                action: "auth.password_changed",
                 resourceType: "admin_user",
                 resourceId: account.userId,
               },
