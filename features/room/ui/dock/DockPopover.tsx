@@ -14,6 +14,7 @@ export function DockPopoverContent({
   return (
     <Popover.Portal>
       <Popover.Content
+        data-slot="popover-content"
         side="top"
         align="center"
         sideOffset={14}

@@ -88,12 +88,13 @@ export function NavPopover({
       </Hint>
       <Popover.Portal>
         <Popover.Content
+          data-slot="popover-content"
           side="bottom"
           align={align}
           sideOffset={12}
           collisionPadding={16}
           aria-label={label}
-          className="glass z-50 w-[min(20rem,calc(100vw-2rem))] rounded-2xl p-4 outline-none"
+          className="glass z-50 w-[min(20rem,calc(100vw-2rem))] origin-(--radix-popover-content-transform-origin) rounded-2xl p-4 outline-none"
         >
           {children}
         </Popover.Content>
