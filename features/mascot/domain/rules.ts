@@ -120,13 +120,20 @@ export interface SignalReaction {
   lookAtTarget?: boolean;
 }
 
-type Signal =
+export type MascotSignal =
+  /** It worked: a little jump of joy. */
   | { type: "celebrate" }
-  | { type: "upset"; mood: "grumpy" | "worried" }
+  /**
+   * It failed. `grumpy`: error caused by the attempt (frowns and shakes its head);
+   * `worried`: everything else (gets worried about the person). `target`: where it looks.
+   */
+  | { type: "upset"; mood: "grumpy" | "worried"; target?: Element | undefined }
+  /** Suspicious (e.g. an email that looks mistyped) until `active` turns false again. */
   | { type: "doubt"; active: boolean }
+  /** Approving nod (e.g. the email is complete). */
   | { type: "nod" };
 
-export function reactionTo(signal: Signal): SignalReaction {
+export function reactionTo(signal: MascotSignal): SignalReaction {
   switch (signal.type) {
     case "celebrate":
       return {

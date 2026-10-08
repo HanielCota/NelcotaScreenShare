@@ -1,3 +1,5 @@
+import type { MascotSignal } from "@/features/mascot/domain/rules";
+
 /**
  * How the rest of the system talks to the mascot. It does not know the screens: whoever knows what
  * happened (e.g. the login form) signals through here, and the mascot reacts.
@@ -5,19 +7,6 @@
  * What is generic to any form (focus, typing, password field, Caps Lock), it
  * notices on its own.
  */
-
-export type MascotSignal =
-  /** It worked: a little jump of joy. */
-  | { type: "celebrate" }
-  /**
-   * It failed. `grumpy`: error caused by the attempt (frowns and shakes its head);
-   * `worried`: everything else (gets worried about the person). `target`: where it looks.
-   */
-  | { type: "upset"; mood: "grumpy" | "worried"; target?: Element | undefined }
-  /** Suspicious (e.g. an email that looks mistyped) until `active` turns false again. */
-  | { type: "doubt"; active: boolean }
-  /** Approving nod (e.g. the email is complete). */
-  | { type: "nod" };
 
 const MASCOT_EVENT = "mascot:signal";
 
