@@ -1,6 +1,6 @@
 /**
  * Creates the invitation for the panel's first owner (there is no default password).
- * Prints a single-use link, valid for 30 minutes.
+ * Prints a single-use link, valid for `OWNER_BOOTSTRAP_TTL_MS`.
  *
  *   Dev:        pnpm admin:create-owner owner@example.com
  *   Production: docker exec -it <app-container> node create-owner.mjs owner@example.com
@@ -48,7 +48,7 @@ const { url, invitation } = await createAdminInvitation(db, {
 });
 
 console.info(
-  `\nOwner invitation for ${invitation.email} (valid for 30 minutes, single use):\n\n  ${url}\n`,
+  `\nOwner invitation for ${invitation.email} (valid for ${OWNER_BOOTSTRAP_TTL_MS / 60_000} minutes, single use):\n\n  ${url}\n`,
 );
 console.info("Open the link, set a name and password, and set up two-factor verification.\n");
 process.exit(0);
