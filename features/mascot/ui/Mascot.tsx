@@ -1,15 +1,15 @@
-import { Hint } from "@/components/Hint";
-
 import { useId, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { cn } from "@/lib/utils";
-const atlas = "/mascot/nelcota-mint-atlas.webp";
+import { Hint } from "@/components/Hint";
 import { avatarFrame } from "@/features/mascot/domain/avatar-frames";
 import type { Expression } from "@/features/mascot/domain/face";
+import type { MascotActivity } from "@/features/mascot/domain/personality";
 import { allowsPlay } from "@/features/mascot/domain/rules";
+import { cn } from "@/lib/utils";
 import { useMascot } from "../hooks/use-mascot";
 import { SpriteEyes } from "./SpriteEyes";
 import styles from "./Mascot.module.css";
-import type { MascotActivity } from "@/features/mascot/domain/personality";
+
+const atlas = "/mascot/nelcota-mint-atlas.webp";
 
 interface MascotProps {
   className?: string;
