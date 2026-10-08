@@ -127,7 +127,7 @@ function SelectionBar({
   children: ReactNode;
 }) {
   return (
-    <div className="glass flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
+    <div className="panel flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
       <span className="font-medium">{label}</span>
       {offerAll ? (
         // Above the limit the server always rejects the bulk action (server/table/selection.ts).
@@ -257,7 +257,7 @@ export function DataTable<TData extends RowData & { id: string }>({
       <div
         aria-busy={pending}
         className={cn(
-          "glass overflow-hidden rounded-2xl transition-opacity",
+          "panel overflow-hidden rounded-2xl transition-opacity",
           pending && "pointer-events-none opacity-60",
         )}
       >

@@ -11,7 +11,7 @@ export default function NotFound() {
     <div className="flex min-h-dvh flex-col">
       <ParticipantHeader />
       <main className="flex flex-1 items-center justify-center px-4 py-8">
-        <div className="glass w-full max-w-md rounded-2xl p-8 text-center">
+        <div className="panel w-full max-w-md rounded-2xl p-8 text-center">
           <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-surface-2">
             <SearchX className="size-5 text-brand-soft" aria-hidden="true" />
           </span>

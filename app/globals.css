@@ -319,9 +319,14 @@
 }
 
 @layer components {
-  /* "Glass" surface used by the floating bars. */
+  /* "Glass" surface for bars and overlays that float over moving content (video, scroll). */
   .glass {
     @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl backdrop-saturate-150;
+  }
+
+  /* Opaque card for surfaces that sit on the plain canvas: a blur there has nothing to blur. */
+  .panel {
+    @apply border border-line bg-surface shadow-soft;
   }
 
   /*
@@ -352,7 +357,7 @@
  * contextual design takes precedence over the sidebar's utility classes.
  * The mobile sheet is portaled to body, outside the shell itself. */
 .admin-shell [data-slot="sidebar-inner"] {
-  @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl;
+  @apply border border-line bg-surface shadow-soft;
   border-radius: var(--radius-2xl);
 }
 

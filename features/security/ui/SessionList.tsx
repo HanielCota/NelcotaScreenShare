@@ -52,7 +52,7 @@ export function SessionList({
 
   return (
     <section
-      className={plain ? undefined : "glass rounded-2xl p-2 sm:p-3"}
+      className={plain ? undefined : "panel rounded-2xl p-2 sm:p-3"}
       aria-label="Lista de sessões"
     >
       <ul className="flex flex-col">

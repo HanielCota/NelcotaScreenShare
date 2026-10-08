@@ -45,7 +45,7 @@ export function StatusScreen({
     <div
       ref={scope}
       role={alert ? "alert" : undefined}
-      className="glass w-full max-w-md rounded-2xl p-8 text-center"
+      className="panel w-full max-w-md rounded-2xl p-8 text-center"
     >
       <div
         className={cn(

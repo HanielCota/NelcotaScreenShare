@@ -24,7 +24,7 @@ export function AuthCard({
   footer?: ReactNode;
 }) {
   return (
-    <div className="glass w-full max-w-sm rounded-2xl p-7 group-data-[layout=split]/access:border-0 group-data-[layout=split]/access:bg-transparent group-data-[layout=split]/access:p-0! group-data-[layout=split]/access:shadow-none group-data-[layout=split]/access:backdrop-filter-none sm:p-8">
+    <div className="panel w-full max-w-sm rounded-2xl p-7 group-data-[layout=split]/access:border-0 group-data-[layout=split]/access:bg-transparent group-data-[layout=split]/access:p-0! group-data-[layout=split]/access:shadow-none sm:p-8">
       {top ? <div className="mb-6 flex flex-col gap-4">{top}</div> : null}
       <span className="grid size-11 place-items-center rounded-xl bg-surface-2 group-data-[layout=split]/access:hidden">
         <Icon className="size-5 text-brand-soft" aria-hidden="true" />

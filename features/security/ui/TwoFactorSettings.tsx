@@ -234,7 +234,7 @@ export function TwoFactorSettings({
 
   return (
     <section
-      className={plain ? "flex flex-col gap-5" : "glass flex flex-col gap-5 rounded-2xl p-6 sm:p-8"}
+      className={plain ? "flex flex-col gap-5" : "panel flex flex-col gap-5 rounded-2xl p-6 sm:p-8"}
       aria-labelledby={plain ? undefined : `${codeId}-titulo`}
       aria-label={plain ? "Verificação em duas etapas" : undefined}
     >

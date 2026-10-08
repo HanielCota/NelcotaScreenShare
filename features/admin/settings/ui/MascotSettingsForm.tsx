@@ -65,7 +65,7 @@ export function MascotSettingsForm({
         event.preventDefault();
         save.execute(values);
       }}
-      className="glass w-full max-w-3xl rounded-2xl p-6 sm:p-8"
+      className="panel w-full max-w-3xl rounded-2xl p-6 sm:p-8"
     >
       <h2 className="text-xl font-medium tracking-tight">Saturação do mascote</h2>
       <p className="mt-1 text-sm text-ink-muted">
