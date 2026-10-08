@@ -8,10 +8,10 @@ import type { MascotSignal } from "@/features/mascot/domain/rules";
  * notices on its own.
  */
 
-const MASCOT_EVENT = "mascot:signal";
+const listeners = new Set<(signal: MascotSignal) => void>();
 
 function emit(signal: MascotSignal) {
-  window.dispatchEvent(new CustomEvent<MascotSignal>(MASCOT_EVENT, { detail: signal }));
+  for (const listener of listeners) listener(signal);
 }
 
 export const celebrateMascot = () => emit({ type: "celebrate" });
@@ -22,30 +22,6 @@ export const nodMascot = () => emit({ type: "nod" });
 
 /** Used by the mascot to listen for signals. Returns the function that stops listening. */
 export function onMascotSignal(listener: (signal: MascotSignal) => void): () => void {
-  const handler = (event: Event) => {
-    if (!(event instanceof CustomEvent)) return;
-    const signal: unknown = event.detail;
-    if (isMascotSignal(signal)) listener(signal);
-  };
-  window.addEventListener(MASCOT_EVENT, handler);
-  return () => window.removeEventListener(MASCOT_EVENT, handler);
-}
-
-function isMascotSignal(signal: unknown): signal is MascotSignal {
-  if (!signal || typeof signal !== "object" || !("type" in signal)) return false;
-  switch (signal.type) {
-    case "celebrate":
-    case "nod":
-      return true;
-    case "doubt":
-      return "active" in signal && typeof signal.active === "boolean";
-    case "upset":
-      return (
-        "mood" in signal &&
-        (signal.mood === "grumpy" || signal.mood === "worried") &&
-        (!("target" in signal) || signal.target === undefined || signal.target instanceof Element)
-      );
-    default:
-      return false;
-  }
+  listeners.add(listener);
+  return () => void listeners.delete(listener);
 }
