@@ -30,7 +30,7 @@ export function SettingsSection({
       <div className="px-1">
         <h2
           id={headingId}
-          className={cn("text-lg font-medium tracking-tight", danger && "text-danger")}
+          className={cn("text-lg font-semibold tracking-[-0.025em]", danger && "text-danger")}
         >
           {title}
         </h2>

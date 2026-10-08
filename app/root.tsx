@@ -124,7 +124,7 @@ export function ErrorBoundary() {
   const missing = isRouteErrorResponse(error) && error.status === 404;
   return (
     <main className="mx-auto max-w-xl px-6 py-24 text-center" role="alert">
-      <h1 className="text-2xl font-medium">
+      <h1 className="text-2xl font-semibold">
         {missing ? "Página não encontrada" : "Não foi possível abrir esta página"}
       </h1>
       <p className="mt-3 text-ink-muted">

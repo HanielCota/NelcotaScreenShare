@@ -15,7 +15,7 @@ export default function NotFound() {
           <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-surface-2">
             <SearchX className="size-5 text-brand-soft" aria-hidden="true" />
           </span>
-          <h1 className="mt-5 text-2xl font-medium tracking-tight">Página não encontrada</h1>
+          <h1 className="mt-5 text-2xl font-semibold tracking-[-0.025em]">Página não encontrada</h1>
           <p className="mt-2 text-ink-muted">O endereço não existe ou mudou.</p>
           <Button asChild className="mt-6">
             <Link viewTransition to="/">

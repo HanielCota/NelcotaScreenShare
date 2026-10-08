@@ -57,7 +57,7 @@ export function AloneWelcome({ code, share }: { code: string; share: ScreenShare
     >
       <Mascot className="size-28" sizes="336px" canSleep={false} />
       <div className="flex flex-col gap-2">
-        <h1 id="alone-title" className="text-3xl font-medium tracking-tight text-balance">
+        <h1 id="alone-title" className="text-3xl font-semibold tracking-[-0.025em] text-balance">
           Você é a primeira pessoa aqui
         </h1>
         <p className="text-lg text-pretty text-ink-muted">

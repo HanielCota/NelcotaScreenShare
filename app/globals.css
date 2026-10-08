@@ -227,7 +227,7 @@
   h4,
   h5,
   h6 {
-    @apply font-medium tracking-tight text-balance;
+    @apply font-semibold tracking-[-0.02em] text-balance;
   }
 
   b,

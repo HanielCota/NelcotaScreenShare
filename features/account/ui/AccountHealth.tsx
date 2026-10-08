@@ -70,7 +70,7 @@ export function AccountHealth({
       className="rounded-2xl border border-warning/30 bg-surface p-5 sm:p-6"
     >
       <div className="flex items-center justify-between gap-4">
-        <h2 id="saude-da-conta" className="font-medium tracking-tight">
+        <h2 id="saude-da-conta" className="font-semibold tracking-[-0.025em]">
           Falta pouco para proteger sua conta
         </h2>
         <span className="shrink-0 text-xs text-ink-muted tabular-nums">

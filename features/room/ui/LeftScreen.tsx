@@ -146,7 +146,7 @@ export function LeftScreen({
       </div>
 
       <div data-anim="left" className="flex flex-col gap-2">
-        <h1 id="left-title" className="text-3xl font-medium tracking-tight text-balance">
+        <h1 id="left-title" className="text-3xl font-semibold tracking-[-0.025em] text-balance">
           {copy.title}
         </h1>
         {joined ? (

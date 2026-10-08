@@ -27,7 +27,7 @@ export function InviteCard({ code }: { code: string }) {
     >
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div>
-          <h2 id={titleId} className="text-base font-medium">
+          <h2 id={titleId} className="text-base font-semibold">
             Convide o time
           </h2>
           <p className="mt-0.5 text-sm text-ink-muted">
