@@ -19,7 +19,6 @@ export function ProfileForm({ name }: { name: string }) {
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
   const [value, setValue] = useState(name);
-  // No change, nothing to save.
   const unchanged = value.trim() === name;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
