@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
-import { PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
+import { newPasswordError, PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
 import { formText } from "@/lib/utils";
 
 type Scope = "admin" | "user";
@@ -177,12 +177,9 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
     if (pending || !token) return;
     const data = new FormData(event.currentTarget);
     const newPassword = formText(data, "password");
-    if (newPassword.length < minLength) {
-      setError(`A senha precisa ter ao menos ${minLength} caracteres.`);
-      return;
-    }
-    if (newPassword !== formText(data, "confirm")) {
-      setError("As senhas não são iguais.");
+    const invalid = newPasswordError(newPassword, formText(data, "confirm"), minLength);
+    if (invalid) {
+      setError(invalid);
       return;
     }
     setPending(true);
@@ -200,7 +197,7 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
     <AuthCard
       icon={KeyRound}
       title="Definir nova senha"
-      description={`Use ao menos ${minLength} caracteres. Todas as sessões abertas serão encerradas.`}
+      description={`Use pelo menos ${minLength} caracteres. Todas as sessões abertas serão encerradas.`}
       footer={<BackToLogin scope={scope} />}
     >
       <form

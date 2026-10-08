@@ -4,6 +4,21 @@ export const PASSWORD_LIMITS = {
   user: { min: 8, max: 128 },
 } as const;
 
+export function passwordTooShortMessage(min: number): string {
+  return `A senha precisa ter pelo menos ${min} caracteres.`;
+}
+
+/** Browser check of a new password and its confirmation: the error, if any. */
+export function newPasswordError(
+  password: string,
+  confirmation: string,
+  min: number,
+): string | undefined {
+  if (password.length < min) return passwordTooShortMessage(min);
+  if (password !== confirmation) return "As senhas não são iguais.";
+  return undefined;
+}
+
 const STRENGTHS = [0, 1, 2, 3] as const;
 export type PasswordStrength = (typeof STRENGTHS)[number];
 
