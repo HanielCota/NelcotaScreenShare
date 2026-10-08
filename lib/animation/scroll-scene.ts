@@ -9,7 +9,7 @@ let refreshQueued = false;
  * created again (a media query flipped) lands at the end of ScrollTrigger's list; measured
  * from there, the pins below it would start at the wrong scroll positions.
  */
-export function refreshInPageOrder() {
+function refreshInPageOrder() {
   if (refreshQueued) return;
   refreshQueued = true;
   requestAnimationFrame(() => {

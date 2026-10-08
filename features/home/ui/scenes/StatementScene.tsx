@@ -1,10 +1,9 @@
 import { useRef } from "react";
-import { useStageHeader } from "@/features/home/hooks/use-stage-header";
 import { gsap } from "@/lib/animation/gsap";
 import { useScrollScene } from "@/lib/animation/scroll-scene";
 
 /**
- * One line, zoomed by the scroll as the stage passes: it starts smaller and dim, settles at
+ * One line, zoomed by the scroll as it passes: it starts smaller and dim, settles at
  * full size, then a mint line strikes the question everyone is tired of asking. It never
  * holds the scroll. Without motion it shows the final picture, already struck through.
  */
@@ -15,7 +14,7 @@ export function StatementScene() {
     const q = gsap.utils.selector(section);
     const tl = gsap.timeline({
       defaults: { ease: "none" },
-      // Plays while the stage crosses the screen, without holding the scroll.
+      // Plays while it crosses the screen, without holding the scroll.
       scrollTrigger: {
         trigger: section,
         start: "top 80%",
@@ -36,10 +35,9 @@ export function StatementScene() {
       )
       .to(q("[data-statement-quote]"), { opacity: 0.45, duration: 0.3 }, "<0.2");
   });
-  useStageHeader(scope);
 
   return (
-    <section ref={scope} aria-labelledby="statement-title" className="stage w-full overflow-hidden">
+    <section ref={scope} aria-labelledby="statement-title" className="w-full overflow-hidden">
       <div className="page-column grid min-h-svh place-items-center py-24">
         <h2
           id="statement-title"
@@ -49,7 +47,7 @@ export function StatementScene() {
           Chega de
           {/* One line, so the strike crosses exactly the quote. */}
           <span className="relative mx-auto block w-fit whitespace-nowrap">
-            <span data-statement-quote className="text-(--stage-muted)">
+            <span data-statement-quote className="text-ink-subtle">
               “tá vendo minha tela?”
             </span>
             <span

@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { useProductScene } from "@/features/home/hooks/use-product-scene";
-import { useStageHeader } from "@/features/home/hooks/use-stage-header";
 import { DemoWindow } from "../demo/DemoWindow";
 
 const PRODUCT_CHAPTERS = [
@@ -11,20 +10,19 @@ const PRODUCT_CHAPTERS = [
 ] as const;
 
 /**
- * The product, told by scrolling: the room window rises onto a dark stage and stays pinned
+ * The product, told by scrolling: the room window rises into view and stays pinned
  * while four chapters play on it. Without motion it is the window under the list of chapters.
  */
 export function ProductScene() {
   const scope = useRef<HTMLElement>(null);
   useProductScene(scope);
-  useStageHeader(scope);
 
   return (
     <section
       ref={scope}
       id="como-funciona"
       aria-labelledby="product-title"
-      className="group/scene stage relative w-full scroll-mt-0"
+      className="group/scene relative w-full scroll-mt-0"
     >
       <h2 id="product-title" className="sr-only">
         Como é uma sala do Nelcota
@@ -43,7 +41,7 @@ export function ProductScene() {
               <span className="text-[clamp(2rem,5.5vw,4.5rem)] leading-[1.02] font-semibold tracking-[-0.045em] text-balance">
                 {title}
               </span>
-              <span className="text-base text-pretty text-(--stage-muted) sm:text-xl">{text}</span>
+              <span className="text-base text-pretty text-ink-muted sm:text-xl">{text}</span>
             </li>
           ))}
         </ol>
@@ -57,8 +55,8 @@ export function ProductScene() {
 
         <div aria-hidden="true" className="hidden gap-2 group-data-[scene=live]/scene:flex">
           {PRODUCT_CHAPTERS.map(({ title }) => (
-            <span key={title} className="h-1 w-8 overflow-hidden rounded-full bg-(--stage-dim)">
-              <span data-chapter-progress className="block h-full origin-left scale-x-0 bg-white" />
+            <span key={title} className="h-1 w-8 overflow-hidden rounded-full bg-line">
+              <span data-chapter-progress className="block h-full origin-left scale-x-0 bg-ink" />
             </span>
           ))}
         </div>

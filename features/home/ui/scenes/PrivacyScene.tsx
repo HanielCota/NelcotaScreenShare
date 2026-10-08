@@ -1,7 +1,6 @@
 import { ArrowRight, MessageSquare, Mic, MonitorUp, Video, type LucideIcon } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "react-router";
-import { useStageHeader } from "@/features/home/hooks/use-stage-header";
 import { gsap } from "@/lib/animation/gsap";
 import { useScrollScene } from "@/lib/animation/scroll-scene";
 
@@ -43,10 +42,9 @@ export function PrivacyScene() {
       .to(q("[data-privacy-in]"), { opacity: 1, y: 0, stagger: 0.15 }, 1.05)
       .to({}, { duration: 0.4 });
   });
-  useStageHeader(scope);
 
   return (
-    <section ref={scope} aria-labelledby="privacy-title" className="stage w-full">
+    <section ref={scope} aria-labelledby="privacy-title" className="w-full">
       <div
         data-privacy-frame
         className="page-column flex min-h-svh flex-col items-center justify-center gap-8 py-24 text-center"
@@ -54,7 +52,7 @@ export function PrivacyScene() {
         <div aria-hidden="true" className="relative">
           <span
             data-rec
-            className="inline-flex items-center gap-4 rounded-full border border-white/15 bg-white/[0.04] px-8 py-5 opacity-40 grayscale sm:gap-5 sm:px-10 sm:py-6"
+            className="inline-flex items-center gap-4 rounded-full border border-line-strong px-8 py-5 opacity-40 grayscale sm:gap-5 sm:px-10 sm:py-6"
           >
             <span
               data-rec-dot
@@ -63,14 +61,11 @@ export function PrivacyScene() {
               <Mic className="size-5 sm:size-6" strokeWidth={2.4} />
             </span>
             <span className="text-3xl font-semibold tracking-[0.12em] sm:text-4xl">REC</span>
-            <span className="text-xl text-(--stage-muted) tabular-nums sm:text-2xl">00:00</span>
+            <span className="text-xl text-ink-muted tabular-nums sm:text-2xl">00:00</span>
           </span>
           {/* Rotated around its middle; the line inside draws from left to right. */}
           <span className="absolute inset-x-[-6%] top-1/2 -translate-y-1/2 -rotate-[10deg]">
-            <span
-              data-rec-strike
-              className="block h-1 origin-left rounded-full bg-(--stage-ink) sm:h-1.5"
-            />
+            <span data-rec-strike className="block h-1 origin-left rounded-full bg-ink sm:h-1.5" />
           </span>
         </div>
 
@@ -79,10 +74,10 @@ export function PrivacyScene() {
           data-privacy-in
           className="text-[clamp(2.75rem,7vw,6rem)] leading-[0.95] font-semibold tracking-[-0.05em] text-balance"
         >
-          Nada fica <span className="text-brand">gravado.</span>
+          Nada fica <span className="text-brand-soft">gravado.</span>
         </h2>
 
-        <p data-privacy-in className="max-w-xl text-lg text-pretty text-(--stage-muted) sm:text-xl">
+        <p data-privacy-in className="max-w-xl text-lg text-pretty text-ink-muted sm:text-xl">
           Tudo passa ao vivo e some quando a sala acaba. Você baixa ou apaga os seus dados quando
           quiser, como manda a LGPD.
         </p>
@@ -95,9 +90,9 @@ export function PrivacyScene() {
           {NOT_KEPT.map(({ icon: Icon, label }) => (
             <li
               key={label}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium sm:text-base"
+              className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-medium sm:text-base"
             >
-              <Icon className="size-4 text-brand" aria-hidden="true" />
+              <Icon className="size-4 text-brand-soft" aria-hidden="true" />
               {label}
             </li>
           ))}
@@ -107,7 +102,7 @@ export function PrivacyScene() {
           data-privacy-in
           viewTransition
           to="/privacidade"
-          className="inline-flex items-center gap-1.5 text-base font-medium text-brand underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-1.5 text-base font-medium text-brand-soft underline-offset-4 hover:underline"
         >
           Leia o aviso de privacidade
           <ArrowRight className="size-4" aria-hidden="true" />

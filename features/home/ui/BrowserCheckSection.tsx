@@ -60,7 +60,7 @@ export function BrowserCheckSection() {
             <li
               key={row.id}
               aria-current={here || undefined}
-              className="flex flex-col gap-5 rounded-3xl border border-line bg-surface p-6 transition-colors aria-[current]:border-brand/50 aria-[current]:bg-brand/8"
+              className="flex flex-col gap-5 rounded-3xl border border-line p-6 transition-colors aria-[current]:border-brand"
             >
               <span className="flex items-start justify-between gap-3">
                 <span
