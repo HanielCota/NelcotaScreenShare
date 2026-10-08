@@ -13,10 +13,8 @@ import type { RoomEntry } from "@/features/room/ui/ActiveRoom";
 
 export const meta = () => [{ title: "Sala · Nelcota" }];
 
-export const loader = routeLoader(async ({ params: routeParams, searchParams }) => {
-  const params = { codigo: routeParams.codigo ?? "" };
-
-  const { codigo } = params;
+export const loader = routeLoader(async ({ params, searchParams }) => {
+  const codigo = params.codigo ?? "";
   // Panel invite (?convite=…): format checked here, validity in /api/token.
   const { convite } = searchParams;
   const invite =

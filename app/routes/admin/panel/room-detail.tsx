@@ -21,11 +21,9 @@ import { getDb } from "@/server/db/index.server";
 
 export const meta = () => [{ title: "Sala · Nelcota" }];
 
-export const loader = routeLoader(async ({ params: routeParams }) => {
-  const params = { id: routeParams.id ?? "" };
-
+export const loader = routeLoader(async ({ params }) => {
   const admin = await requireAdmin({ room: ["read"] });
-  const { id } = params;
+  const id = params.id ?? "";
   if (!z.uuid().safeParse(id).success) notFound();
   const db = getDb();
   const detail = await getRoomDetail(db, id);
@@ -35,38 +33,25 @@ export const loader = routeLoader(async ({ params: routeParams }) => {
   const live = room.status === "active" && room.deletedAt === null;
   const online = participants.filter((participant) => participant.leftAt === null).length;
 
-  const canUpdate = can(role, { room: ["update"] });
-  const canCreateInvite = can(role, { roomInvite: ["create"] });
-  const canRevokeInvite = can(role, { roomInvite: ["revoke"] });
   return {
     room,
     participants,
     shares,
     invites,
     history,
-
     live,
     online,
-    canUpdate,
-    canCreateInvite,
-    canRevokeInvite,
+    canUpdate: can(role, { room: ["update"] }),
+    canInvite: {
+      create: can(role, { roomInvite: ["create"] }) && room.deletedAt === null,
+      revoke: can(role, { roomInvite: ["revoke"] }),
+    },
   };
 });
 
 export default function RoomPage() {
-  const {
-    room,
-    participants,
-    shares,
-    invites,
-    history,
-
-    live,
-    online,
-    canUpdate,
-    canCreateInvite,
-    canRevokeInvite,
-  } = useLoaderData<typeof loader>();
+  const { room, participants, shares, invites, history, live, online, canUpdate, canInvite } =
+    useLoaderData<typeof loader>();
   return (
     <>
       <div className="flex flex-col gap-3">
@@ -105,10 +90,7 @@ export default function RoomPage() {
             revokedAt: invite.revokedAt?.toISOString() ?? null,
             createdAt: invite.createdAt.toISOString(),
           }))}
-          can={{
-            create: canCreateInvite && room.deletedAt === null,
-            revoke: canRevokeInvite,
-          }}
+          can={canInvite}
         />
       </Section>
 
