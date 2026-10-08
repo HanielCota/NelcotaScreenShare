@@ -58,33 +58,15 @@ Shortcuts don't fire while you are typing in the chat or another field.
 
 ## 🚀 Quick start
 
-You need **Node 26.9+**, **pnpm 12.9.1** (`npm install -g pnpm@12.9.1`) and **Docker**.
+You need Node 26.9+, pnpm 12.9.1 and Docker. With the dev LiveKit container running and `.env.local` filled in:
 
 ```bash
-# 1. LiveKit in dev mode
-docker run -d --name lk-dev \
-  -p 7880:7880 -p 7881:7881 -p 7882:7882/udp \
-  livekit/livekit-server:v1.13.7 \
-  --dev --bind 0.0.0.0 --node-ip 127.0.0.1 \
-  --keys "devkey: devsecret-0123456789abcdef0123456789abcdef"
-
-# 2. Local Postgres, with the same roles as production
-pnpm db:bootstrap:dev
-
-# 3. Variables (the dev values are in the development guide)
-cp .env.example .env.local
-
-# 4. App
 pnpm install
-pnpm db:migrate
-pnpm db:seed        # optional: sample accounts (password dev-password-1234), rooms and audit entries
+pnpm db:bootstrap:dev && pnpm db:migrate
 pnpm dev            # http://localhost:3000
 ```
 
-Open two tabs (or a private window), join the same room and share your screen.
-
-> [!TIP]
-> The dev values for `.env.local`, every script and fixes for common problems are in [docs/development.md](docs/development.md).
+The LiveKit command, the dev values for `.env.local`, every script and fixes for common problems are in [docs/development.md](docs/development.md#running-locally).
 
 ## 🧱 Architecture
 
