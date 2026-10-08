@@ -1,4 +1,5 @@
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { SectionIntro } from "./SectionIntro";
 
@@ -45,47 +46,56 @@ function faqItems(maxParticipants: number): { question: string; answer: string }
   ];
 }
 
+/** Nelcota's side of the conversation: its icon at the foot of each answer. */
+function NelcotaSays({ children }: { children: ReactNode }) {
+  return (
+    <span className="flex items-end gap-2.5">
+      <img src="/icon.png" alt="" width={32} height={32} className="size-8 shrink-0 rounded-lg" />
+      <span className="max-w-[85%] rounded-[1.4rem] rounded-bl-md border border-line bg-surface-2 px-4 py-2.5 text-base leading-relaxed text-pretty">
+        {children}
+      </span>
+    </span>
+  );
+}
+
 /**
- * Last objections: the title and the way to the privacy notice stay on the left while the
- * questions, native disclosure widgets on hairlines, run on the right.
+ * Last objections as a chat, like the one in the room: the visitor's questions on the
+ * right, Nelcota's answers on the left, and the privacy notice as the last message. Under
+ * the bubbles it is still a list of questions and answers.
  */
 export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
   return (
-    <section
-      aria-labelledby="faq-title"
-      className="grid w-full max-w-5xl gap-12 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-16"
-    >
-      <div className="flex flex-col gap-6 md:sticky md:top-28 md:self-start">
-        <SectionIntro id="faq-title" title="Perguntas" subtitle="frequentes." />
-        <p className="max-w-xs text-base text-pretty text-ink-muted">
-          O que as pessoas perguntam antes de abrir a primeira sala.
-        </p>
-        <Link
-          viewTransition
-          to="/privacidade"
-          className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-brand-soft underline-offset-4 hover:underline"
-        >
-          Leia o aviso de privacidade
-          <ArrowRight className="icon-nudge size-4" aria-hidden="true" />
-        </Link>
-      </div>
+    <section aria-labelledby="faq-title" className="w-full max-w-5xl">
+      <SectionIntro id="faq-title" title="Perguntas" subtitle="frequentes." align="center" />
 
-      <div data-fx className="flex flex-col divide-y divide-line border-y border-line">
+      <dl data-fx className="mx-auto mt-12 flex max-w-2xl flex-col gap-3 sm:mt-16">
         {faqItems(maxParticipants).map(({ question, answer }) => (
-          <details key={question} className="group">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-lg font-medium tracking-[-0.01em] transition-colors hover:text-brand-soft [&::-webkit-details-marker]:hidden">
+          <div key={question} className="flex flex-col gap-3">
+            <dt className="max-w-[85%] self-end rounded-[1.4rem] rounded-br-md bg-brand px-4 py-2.5 text-base font-medium text-brand-ink">
               {question}
-              <Plus
-                className="size-5 shrink-0 text-ink-subtle transition-transform duration-200 group-open:rotate-45 motion-reduce:transition-none"
-                aria-hidden="true"
-              />
-            </summary>
-            <p className="max-w-xl pb-6 text-base leading-relaxed text-pretty text-ink-muted">
-              {answer}
-            </p>
-          </details>
+            </dt>
+            <dd>
+              <NelcotaSays>{answer}</NelcotaSays>
+            </dd>
+          </div>
         ))}
-      </div>
+        <div className="flex flex-col gap-3 pt-3">
+          <dt className="sr-only">E sobre privacidade?</dt>
+          <dd>
+            <NelcotaSays>
+              Os detalhes estão no{" "}
+              <Link
+                viewTransition
+                to="/privacidade"
+                className="inline-flex items-center gap-1 font-medium text-brand-soft underline-offset-4 hover:underline"
+              >
+                aviso de privacidade
+                <ArrowRight className="icon-nudge size-4" aria-hidden="true" />
+              </Link>
+            </NelcotaSays>
+          </dd>
+        </div>
+      </dl>
     </section>
   );
 }
