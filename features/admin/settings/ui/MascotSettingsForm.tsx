@@ -35,10 +35,13 @@ function percent(value: number): string {
 
 export function MascotSettingsForm({
   initial,
+  defaults,
   limits,
   canEdit,
 }: {
   initial: MascotSettings;
+  /** Original art, restored by the reset button. */
+  defaults: MascotSettings;
   limits: Limits;
   /** Without `settings.update`, the screen shows the preview but does not save. */
   canEdit: boolean;
@@ -125,7 +128,7 @@ export function MascotSettingsForm({
           type="button"
           variant="outline"
           disabled={!canEdit}
-          onClick={() => setValues({ saturationDark: 1, saturationLight: 1 })}
+          onClick={() => setValues(defaults)}
         >
           <RotateCcw aria-hidden="true" />
           Restaurar original

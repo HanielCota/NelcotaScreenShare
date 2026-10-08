@@ -17,15 +17,15 @@ export const loader = routeLoader(async () => {
   const mascot = await getSetting(mascotSettings);
 
   const canEdit = can(admin.user.role, { settings: ["update"] });
-  return { mascot, limits: MASCOT_SATURATION, canEdit };
+  return { mascot, defaults: mascotSettings.defaults, limits: MASCOT_SATURATION, canEdit };
 });
 
 export default function AdminSettingsPage() {
-  const { mascot, limits, canEdit } = useLoaderData<typeof loader>();
+  const { mascot, defaults, limits, canEdit } = useLoaderData<typeof loader>();
   return (
     <>
       <h1 className="text-2xl font-medium tracking-tight">Configurações</h1>
-      <MascotSettingsForm initial={mascot} limits={limits} canEdit={canEdit} />
+      <MascotSettingsForm initial={mascot} defaults={defaults} limits={limits} canEdit={canEdit} />
     </>
   );
 }
