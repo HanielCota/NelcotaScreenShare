@@ -12,7 +12,7 @@ function Plan({
   summary,
   badge,
   features,
-  highlighted = false,
+  stage = false,
   children,
 }: {
   name: string;
@@ -21,19 +21,20 @@ function Plan({
   summary: string;
   badge?: string;
   features: string[];
-  highlighted?: boolean;
+  /** Drawn on the black stage, with the dark material, to set it apart. */
+  stage?: boolean;
   children: ReactNode;
 }) {
   return (
     <li
       data-fx="card"
       className={cn(
-        "panel flex flex-col gap-6 rounded-2xl p-6 sm:p-8",
-        highlighted && "border-brand/40",
+        "flex flex-col gap-8 rounded-3xl border p-6 sm:p-10 md:row-span-3 md:grid md:grid-rows-subgrid",
+        stage ? "stage over-stage border-white/10" : "border-line bg-surface",
       )}
     >
-      <div className="flex flex-col gap-2">
-        <h3 className="flex items-center gap-2 text-lg">
+      <div className="flex flex-col gap-4">
+        <h3 className="flex items-center gap-2.5 text-xl font-semibold tracking-[-0.02em]">
           {name}
           {badge ? (
             <span className="rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-medium text-brand-soft">
@@ -41,28 +42,32 @@ function Plan({
             </span>
           ) : null}
         </h3>
-        <p className="flex items-baseline gap-1.5">
-          <span className="text-4xl font-medium tracking-tight tabular-nums">{price}</span>
-          <span className="text-sm text-ink-muted">{unit}</span>
+        <p className="flex items-baseline gap-2">
+          <span className="text-[clamp(3rem,7vw,4.5rem)] leading-none font-semibold tracking-[-0.05em] tabular-nums">
+            {price}
+          </span>
+          <span className="text-base text-ink-muted">{unit}</span>
         </p>
-        <p className="text-sm text-pretty text-ink-muted">{summary}</p>
+        <p className="max-w-sm text-base text-pretty text-ink-muted">{summary}</p>
       </div>
-      <ul className="flex flex-col gap-2.5 text-sm">
+      <div>{children}</div>
+      <ul className="flex flex-col divide-y divide-line border-t border-line text-sm">
         {features.map((feature) => (
-          <li key={feature} className="flex gap-2">
+          <li key={feature} className="flex gap-3 py-3">
             <Check className="mt-0.5 size-4 shrink-0 text-brand-soft" aria-hidden="true" />
             {feature}
           </li>
         ))}
       </ul>
-      <div className="mt-auto">{children}</div>
     </li>
   );
 }
 
 /**
- * Free today, Pro announced. The free plan lists only what the product does now; the Pro
- * has no checkout yet, so it collects e-mails for the launch.
+ * Free today, Pro announced. The free plan lists only what the product does now; the Pro,
+ * on the black stage, has no checkout yet, so it collects e-mails for the launch. Each card
+ * puts its action right under the price, before the list; side by side, the cards share
+ * rows (subgrid), so both lists start at the same height.
  */
 export function PricingSection({
   maxParticipants,
@@ -75,7 +80,7 @@ export function PricingSection({
     <section id="precos" aria-labelledby="pricing-title" className="w-full max-w-5xl scroll-mt-28">
       <SectionIntro id="pricing-title" title="Preços." subtitle="Comece grátis, hoje." />
 
-      <ul className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-2">
+      <ul className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-2 md:gap-y-8">
         <Plan
           name="Grátis"
           price="R$ 0"
@@ -87,9 +92,8 @@ export function PricingSection({
             "Som do computador, ponteiro, chat e reações",
             "Nada é gravado",
           ]}
-          highlighted
         >
-          <CreateRoomButton signedIn={signedIn} />
+          <CreateRoomButton signedIn={signedIn} className="w-full" />
         </Plan>
         <Plan
           name="Pro"
@@ -103,6 +107,7 @@ export function PricingSection({
             "Salas fixas do time, com link permanente",
             "Painel do time: histórico, membros e convites",
           ]}
+          stage
         >
           <ProWaitlistForm />
         </Plan>
