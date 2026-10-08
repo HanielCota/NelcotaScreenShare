@@ -13,5 +13,8 @@ export const shareParsers = {
   ...periodParsers,
 };
 
+/** Filters cleared together (the sort stays). */
+export const SHARE_FILTERS = ["sala", "audio", "situacao", "min", "de", "ate"] as const;
+
 export const loadShareParams = createLoader(shareParsers);
 export type ShareParams = Awaited<ReturnType<typeof loadShareParams>>;

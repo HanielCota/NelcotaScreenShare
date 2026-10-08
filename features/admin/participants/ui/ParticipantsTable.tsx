@@ -24,7 +24,7 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatNumber, formatRelative } from "@/lib/format";
-import { resetPage, type BulkSelection } from "@/lib/table-params";
+import { filterState, resetPage, type BulkSelection } from "@/lib/table-params";
 import {
   blockParticipantsAction,
   deleteParticipantsAction,
@@ -38,7 +38,10 @@ import {
   STATUS_OPTIONS,
 } from "@/features/admin/participants/domain/labels";
 import type { ParticipantRow } from "@/features/admin/participants/server/queries.server";
-import { participantParsers } from "@/features/admin/participants/domain/search-params";
+import {
+  PARTICIPANT_FILTERS,
+  participantParsers,
+} from "@/features/admin/participants/domain/search-params";
 import { toastError } from "@/features/admin/shell/ui/toast-error";
 
 export interface ParticipantPermissions {
@@ -52,7 +55,7 @@ function Filters({ exportHref }: { exportHref: string | null }) {
     shallow: false,
     startTransition,
   });
-  const active = Boolean(params.q || params.status || params.de || params.ate);
+  const filters = filterState(PARTICIPANT_FILTERS, params);
   return (
     <>
       <FilterSearch
@@ -91,9 +94,9 @@ function Filters({ exportHref }: { exportHref: string | null }) {
         onChange={(ordem) => void setParams({ ordem, ...resetPage })}
       />
       <FilterActions
-        active={active}
+        active={filters.active}
         exportHref={exportHref}
-        onClear={() => void setParams({ q: null, status: null, de: null, ate: null, ...resetPage })}
+        onClear={() => void setParams({ ...filters.cleared, ...resetPage })}
       />
     </>
   );

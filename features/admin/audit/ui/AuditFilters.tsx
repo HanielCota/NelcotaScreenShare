@@ -7,8 +7,8 @@ import {
   FilterSelect,
 } from "@/components/data-table/filters";
 import { actionLabel, resourceLabel } from "@/features/admin/audit/domain/labels";
-import { auditParsers } from "@/features/admin/audit/domain/search-params";
-import { resetPage } from "@/lib/table-params";
+import { AUDIT_FILTERS, auditParsers } from "@/features/admin/audit/domain/search-params";
+import { filterState, resetPage } from "@/lib/table-params";
 
 export interface AuditFilterOptions {
   actions: string[];
@@ -28,9 +28,7 @@ export function AuditFilters({
   const set = (
     patch: Partial<Record<"acao" | "recurso" | "autor" | "de" | "ate", string | null>>,
   ) => void setParams({ ...patch, ...resetPage });
-  const active = Boolean(
-    params.q || params.acao || params.recurso || params.autor || params.de || params.ate,
-  );
+  const filters = filterState(AUDIT_FILTERS, params);
 
   return (
     <>
@@ -71,19 +69,9 @@ export function AuditFilters({
       <FilterDate label="De" value={params.de} onChange={(de) => set({ de })} />
       <FilterDate label="Até" value={params.ate} onChange={(ate) => set({ ate })} />
       <FilterActions
-        active={active}
+        active={filters.active}
         exportHref={exportHref}
-        onClear={() =>
-          void setParams({
-            q: null,
-            acao: null,
-            recurso: null,
-            autor: null,
-            de: null,
-            ate: null,
-            ...resetPage,
-          })
-        }
+        onClear={() => void setParams({ ...filters.cleared, ...resetPage })}
       />
     </>
   );

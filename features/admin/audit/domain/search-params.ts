@@ -12,5 +12,8 @@ export const auditParsers = {
   ...periodParsers,
 };
 
+/** Filters cleared together (the sort stays). */
+export const AUDIT_FILTERS = ["q", "acao", "recurso", "autor", "de", "ate"] as const;
+
 export const loadAuditParams = createLoader(auditParsers);
 export type AuditParams = Awaited<ReturnType<typeof loadAuditParams>>;

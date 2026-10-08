@@ -15,9 +15,9 @@ import {
 } from "@/components/data-table/filters";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime, formatDuration } from "@/lib/format";
-import { resetPage } from "@/lib/table-params";
+import { filterState, resetPage } from "@/lib/table-params";
 import type { ShareRow } from "@/features/admin/shares/server/queries.server";
-import { shareParsers } from "@/features/admin/shares/domain/search-params";
+import { SHARE_FILTERS, shareParsers } from "@/features/admin/shares/domain/search-params";
 
 const AUDIO_OPTIONS = [
   { value: "com", label: "Com áudio" },
@@ -32,9 +32,7 @@ const STATUS_OPTIONS = [
 function Filters({ exportHref }: { exportHref: string | null }) {
   const startTransition = useTableTransition();
   const [params, setParams] = useQueryStates(shareParsers, { shallow: false, startTransition });
-  const active = Boolean(
-    params.sala || params.audio || params.situacao || params.min || params.de || params.ate,
-  );
+  const filters = filterState(SHARE_FILTERS, params);
   return (
     <>
       <FilterSearch
@@ -86,19 +84,9 @@ function Filters({ exportHref }: { exportHref: string | null }) {
         onChange={(ordem) => void setParams({ ordem, ...resetPage })}
       />
       <FilterActions
-        active={active}
+        active={filters.active}
         exportHref={exportHref}
-        onClear={() =>
-          void setParams({
-            sala: null,
-            audio: null,
-            situacao: null,
-            min: null,
-            de: null,
-            ate: null,
-            ...resetPage,
-          })
-        }
+        onClear={() => void setParams({ ...filters.cleared, ...resetPage })}
       />
     </>
   );

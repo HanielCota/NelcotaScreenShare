@@ -16,5 +16,8 @@ export const participantParsers = {
   ...periodParsers,
 };
 
+/** Filters cleared together (the sort stays). */
+export const PARTICIPANT_FILTERS = ["q", "status", "de", "ate"] as const;
+
 export const loadParticipantParams = createLoader(participantParsers);
 export type ParticipantParams = Awaited<ReturnType<typeof loadParticipantParams>>;

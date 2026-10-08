@@ -16,5 +16,8 @@ export const roomParsers = {
   ...periodParsers,
 };
 
+/** Filters cleared together (the sort stays). */
+export const ROOM_FILTERS = ["q", "status", "de", "ate"] as const;
+
 export const loadRoomParams = createLoader(roomParsers);
 export type RoomParams = Awaited<ReturnType<typeof loadRoomParams>>;
