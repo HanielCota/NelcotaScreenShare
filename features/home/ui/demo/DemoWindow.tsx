@@ -48,8 +48,8 @@ function RemotePointer() {
         data-demo="ripple"
         className="absolute -top-[1.2cqi] -left-[1.2cqi] size-[3cqi] rounded-full border-2 border-[#a78bfa] opacity-0"
       />
-      <PointerArrow className="size-[2.6cqi]" />
-      <span className="mt-[2cqi] rounded-full bg-[#8b5cf6] px-[1.2cqi] py-[0.3cqi] font-sans text-[1.5cqi] font-semibold text-white">
+      <PointerArrow className="size-[2.6cqi] @max-xl:size-[4.4cqi]" />
+      <span className="mt-[2cqi] rounded-full bg-[#8b5cf6] px-[1.2cqi] py-[0.3cqi] font-sans text-[1.5cqi] font-semibold text-white @max-xl:text-[2.6cqi]">
         Ana
       </span>
     </span>
@@ -88,8 +88,8 @@ function CodeLine({ tokens, number }: { tokens: Token[]; number: number }) {
 /** What Bruno shares: an editor with the failing file and the error in the terminal. */
 function SharedEditor() {
   return (
-    <div className="absolute inset-0 flex flex-col bg-[#1b1b1f] font-mono text-[1.75cqi] leading-[1.7] text-[#e6e6ea]">
-      <div className="flex border-b border-white/8 font-sans text-[1.4cqi]">
+    <div className="absolute inset-0 flex flex-col bg-[#1b1b1f] font-mono text-[1.75cqi] leading-[1.7] text-[#e6e6ea] @max-xl:text-[2.7cqi]">
+      <div className="flex border-b border-white/8 font-sans text-[1.4cqi] @max-xl:text-[2.4cqi]">
         <span className="border-r border-white/8 bg-[#232328] px-[2cqi] py-[0.9cqi] text-white">
           cart.ts
         </span>
@@ -102,7 +102,7 @@ function SharedEditor() {
       </div>
       <div
         data-demo="terminal"
-        className="border-t border-white/8 bg-[#141417] px-[2cqi] py-[1.2cqi] text-[1.4cqi] leading-[1.6]"
+        className="border-t border-white/8 bg-[#141417] px-[2cqi] py-[1.2cqi] text-[1.4cqi] leading-[1.6] @max-xl:text-[2.2cqi]"
       >
         <p className="text-[#ff8a8a]">
           TypeError: Cannot read properties of undefined (reading &apos;items&apos;)
@@ -155,7 +155,7 @@ function DockKey({
 }) {
   return (
     <span
-      className={`grid size-[4.4cqi] place-items-center rounded-full ${tone} [&_svg]:size-[2cqi]`}
+      className={`grid size-[4.4cqi] place-items-center rounded-full ${tone} @max-xl:size-[7cqi] [&_svg]:size-[2cqi] @max-xl:[&_svg]:size-[3.4cqi]`}
     >
       {children}
     </span>
@@ -176,7 +176,7 @@ export function DemoWindow() {
         convidada.
       </figcaption>
       <div aria-hidden="true" className="font-sans">
-        <div className="flex items-center gap-[1.6cqi] border-b border-white/8 px-[2cqi] py-[1.4cqi] text-[1.4cqi]">
+        <div className="flex items-center gap-[1.6cqi] border-b border-white/8 px-[2cqi] py-[1.4cqi] text-[1.4cqi] @max-xl:text-[2.6cqi]">
           <WindowDots className="gap-[0.8cqi]" dot="size-[1.2cqi]" />
           <span className="rounded-full bg-white/8 px-[1.4cqi] py-[0.3cqi] text-white/70 tabular-nums">
             kfa-mtrx-q2p
@@ -188,7 +188,7 @@ export function DemoWindow() {
           <span className="ml-auto text-white/50">3 pessoas</span>
         </div>
 
-        <div className="grid grid-cols-[1fr_22%] gap-[1.6cqi] p-[1.6cqi]">
+        <div className="grid grid-cols-[1fr_22%] gap-[1.6cqi] p-[1.6cqi] @max-xl:grid-cols-1">
           <div
             data-demo="stage"
             className="relative aspect-[16/10] overflow-hidden rounded-[1.6cqi] bg-[#0d0d0f]"
@@ -198,14 +198,14 @@ export function DemoWindow() {
             </div>
             <span
               data-demo="guest"
-              className="absolute top-[3%] right-[3%] inline-flex items-center gap-[0.8cqi] rounded-full bg-black/70 px-[1.4cqi] py-[0.5cqi] text-[1.35cqi] font-medium backdrop-blur"
+              className="absolute top-[3%] right-[3%] inline-flex items-center gap-[0.8cqi] rounded-full bg-black/70 px-[1.4cqi] py-[0.5cqi] text-[1.35cqi] font-medium backdrop-blur @max-xl:text-[2.4cqi]"
             >
               <span className="size-[0.9cqi] rounded-full bg-[#4ade80]" />
               Iris (convidado) entrou na sala
             </span>
             <span
               data-demo="badge"
-              className="absolute bottom-[22%] left-[3%] inline-flex items-center gap-[0.8cqi] rounded-full bg-black/70 px-[1.4cqi] py-[0.5cqi] text-[1.35cqi] font-medium backdrop-blur"
+              className="absolute bottom-[22%] left-[3%] inline-flex items-center gap-[0.8cqi] rounded-full bg-black/70 px-[1.4cqi] py-[0.5cqi] text-[1.35cqi] font-medium backdrop-blur @max-xl:text-[2.4cqi]"
             >
               <Volume2 className="size-[1.8cqi] text-[#a2e1b2]" />
               Bruno · tela com som
@@ -232,7 +232,7 @@ export function DemoWindow() {
             </span>
           </div>
 
-          <div className="flex flex-col gap-[1.6cqi]">
+          <div className="flex flex-col gap-[1.6cqi] @max-xl:hidden">
             <Tile name="Bruno" tone="bg-[#3b82f6] text-white" speaking />
             <Tile name="Ana" tone="bg-[#8b5cf6] text-white">
               <span
@@ -249,7 +249,7 @@ export function DemoWindow() {
         <div className="flex items-center gap-[1.6cqi] px-[1.6cqi] pb-[1.6cqi]">
           <span
             data-demo="chat"
-            className="rounded-[1.6cqi] rounded-bl-[0.4cqi] bg-white/8 px-[1.6cqi] py-[0.8cqi] text-[1.4cqi]"
+            className="rounded-[1.6cqi] rounded-bl-[0.4cqi] bg-white/8 px-[1.6cqi] py-[0.8cqi] text-[1.4cqi] @max-xl:text-[2.6cqi]"
           >
             <span className="font-semibold text-[#c4a7ff]">Ana:</span> é o{" "}
             <code className="font-mono">cart</code> vindo vazio, né?

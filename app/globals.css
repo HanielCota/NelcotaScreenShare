@@ -59,6 +59,19 @@
   box-shadow: var(--shadow-soft);
 }
 
+/*
+ * The page's content column: the same edges as the fixed navigation (a 1rem gutter on
+ * phones, 1.5rem from 640px, at most 64rem wide), so every section lines up under it.
+ */
+@utility page-column {
+  width: min(100% - 2rem, 64rem);
+  margin-inline: auto;
+
+  @media (width >= 40rem) {
+    width: min(100% - 3rem, 64rem);
+  }
+}
+
 /* Bridge to the variables shadcn components expect. */
 @theme inline {
   --font-sans: var(--font-manrope), "Manrope", sans-serif;
@@ -338,7 +351,8 @@
     --stage-dim: rgb(245 245 247 / 0.16);
     /* The light theme's dark green would vanish on the stage (focus rings use it). */
     --color-brand-soft: #cdf2d6;
-    background: #0b0b0c;
+    /* Pure black: it still reads as a stage next to the dark theme's graphite canvas. */
+    background: #000;
     color: var(--stage-ink);
     color-scheme: dark;
   }

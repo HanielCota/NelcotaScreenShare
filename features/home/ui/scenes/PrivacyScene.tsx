@@ -40,7 +40,7 @@ export function PrivacyScene() {
     <section ref={scope} aria-labelledby="privacy-title" className="stage w-full">
       <div
         data-privacy-frame
-        className="mx-auto flex min-h-svh max-w-5xl flex-col justify-center gap-10 px-4 pt-28 pb-16 sm:px-8"
+        className="page-column flex min-h-svh flex-col justify-center gap-10 pt-28 pb-16"
       >
         <ul
           aria-label="O que passa pela chamada"

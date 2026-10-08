@@ -80,7 +80,7 @@ export function HomeSections({
       <PrivacyScene />
       <div
         ref={reference}
-        className="flex w-full flex-col items-center gap-28 px-4 pt-28 sm:gap-40 sm:px-8 sm:pt-40"
+        className="flex w-full flex-col items-center gap-28 px-4 pt-28 sm:gap-40 sm:px-6 sm:pt-40"
       >
         <FeaturesSection maxParticipants={maxParticipants} />
         <BrowserCheckSection />

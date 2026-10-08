@@ -19,8 +19,11 @@ export default function ChangelogPage() {
     <div className="flex min-h-dvh flex-col bg-canvas">
       <ParticipantHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 sm:py-16">
-        <h1 className="text-3xl font-medium tracking-tight text-balance sm:text-4xl">Novidades</h1>
-        <p className="mt-3 text-base leading-relaxed text-pretty text-ink-muted sm:text-lg">
+        <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[1] font-semibold tracking-[-0.045em] text-balance">
+          Novidades.
+          <span className="block text-ink-subtle">O que mudou por aqui.</span>
+        </h1>
+        <p className="mt-6 text-base leading-relaxed text-pretty text-ink-muted sm:text-lg">
           Recursos novos, correções e melhorias, das mais recentes para as mais antigas.
         </p>
         <div className="mt-10 flex flex-col gap-14">
