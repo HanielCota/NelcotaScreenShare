@@ -22,6 +22,7 @@ export function ProductScene() {
   return (
     <section
       ref={scope}
+      id="como-funciona"
       aria-labelledby="product-title"
       className="group/scene stage relative w-full scroll-mt-0"
     >
