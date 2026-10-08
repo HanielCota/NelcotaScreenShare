@@ -17,8 +17,6 @@ export async function readiness() {
   const headers = { "Cache-Control": "no-store" };
   const version = getEnv().APP_VERSION ?? "dev";
   const db = getDb();
-  if (!db) return Response.json({ status: "ok", version, database: "disabled" }, { headers });
-
   const started = performance.now();
   try {
     await Promise.race([
