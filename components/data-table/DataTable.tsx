@@ -56,19 +56,21 @@ interface DataTableProps<TData extends RowData & { id: string }> {
   renderCard?: (row: TData) => ReactNode;
 }
 
+function pageSelection<TData extends RowData>(
+  table: HeaderContext<DataTableFeatures, TData>["table"],
+): boolean | "indeterminate" {
+  if (table.getIsAllPageRowsSelected()) return true;
+  if (table.getIsSomePageRowsSelected()) return "indeterminate";
+  return false;
+}
+
 /** "Select all on this page" checkbox (component defined outside render). */
 function SelectAllHeader<TData extends RowData>({
   table,
 }: HeaderContext<DataTableFeatures, TData>) {
   return (
     <Checkbox
-      checked={
-        table.getIsAllPageRowsSelected()
-          ? true
-          : table.getIsSomePageRowsSelected()
-            ? "indeterminate"
-            : false
-      }
+      checked={pageSelection(table)}
       onCheckedChange={(value) => table.toggleAllPageRowsSelected(value === true)}
       aria-label="Selecionar todos desta página"
     />
