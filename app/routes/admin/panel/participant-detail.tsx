@@ -60,7 +60,7 @@ export default function ParticipantPage() {
           Participantes
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-medium tracking-tight">{account.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.025em]">{account.name}</h1>
           <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
         </div>
         <p className="text-ink-muted">{account.email}</p>

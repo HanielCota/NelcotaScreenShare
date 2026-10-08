@@ -34,7 +34,7 @@ export function AccountHealth({
         ? "Necessário para entrar em salas."
         : "Para recuperar a conta se você esquecer a senha.",
       action: (
-        <Button asChild size="sm">
+        <Button asChild>
           <Link viewTransition to="/verificar-email?voltar=%2Fconta">
             Reenviar link
           </Link>
@@ -70,7 +70,7 @@ export function AccountHealth({
       className="rounded-2xl border border-warning/30 bg-surface p-5 sm:p-6"
     >
       <div className="flex items-center justify-between gap-4">
-        <h2 id="saude-da-conta" className="font-medium tracking-tight">
+        <h2 id="saude-da-conta" className="font-semibold tracking-[-0.01em]">
           Falta pouco para proteger sua conta
         </h2>
         <span className="shrink-0 text-xs text-ink-muted tabular-nums">

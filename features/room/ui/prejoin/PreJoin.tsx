@@ -236,7 +236,9 @@ export function PreJoin({
           voiceLevelRef={mic.levelRef}
         />
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">Pronto para entrar?</h1>
+          <h1 className="text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">
+            Pronto para entrar?
+          </h1>
           <div className="flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1">
             <p className="text-sm text-ink-muted">
               Sala{" "}
