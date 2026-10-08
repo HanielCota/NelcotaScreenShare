@@ -1,5 +1,12 @@
 import { useDataChannel } from "@livekit/components-react";
-import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+  type RefObject,
+} from "react";
 import { toast } from "sonner";
 import { contentBox } from "@/features/room/domain/content-box";
 import {
@@ -11,8 +18,8 @@ import {
   type PointerMessage,
 } from "@/features/room/domain/data-channel";
 import { participantName } from "@/features/room/domain/participant-label";
+import { moveCursor, type CursorPosition } from "@/features/room/domain/pointer-cursor";
 import { useTimeouts } from "@/lib/hooks/use-timeouts";
-import { cn } from "@/lib/utils";
 
 /** Pointer on the shared screen: a dot that appears for everyone for a few seconds. */
 interface Ping extends PointerMessage {
@@ -101,39 +108,85 @@ export function PointerLayer({
   onPoint?: (message: PointerMessage) => void;
 }) {
   const box = useContentBox(videoRef);
+  const layerRef = useRef<HTMLButtonElement>(null);
+  // Keyboard cursor: starts in the middle and only shows on keyboard focus.
+  const [cursor, setCursor] = useState<CursorPosition>({ x: 0.5, y: 0.5 });
+
+  // Pointing turned on: focus goes to the image so the arrows work right away.
+  useEffect(() => {
+    if (pointing) layerRef.current?.focus({ preventScroll: true });
+  }, [pointing]);
+
   if (!box) return null;
 
-  function handleClick(event: MouseEvent<HTMLDivElement>) {
+  function handleClick(event: MouseEvent<HTMLButtonElement>) {
+    // Enter or Space (no pointer position): mark where the keyboard cursor is.
+    if (event.detail === 0) {
+      onPoint?.({ trackSid, ...cursor });
+      return;
+    }
     const rect = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
     if (x >= 0 && x <= 1 && y >= 0 && y <= 1) onPoint?.({ trackSid, x, y });
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    const next = moveCursor(cursor, event.key, event.shiftKey);
+    if (!next) return;
+    event.preventDefault();
+    setCursor(next);
+  }
+
+  const style = { left: box.left, top: box.top, width: box.width, height: box.height };
+  const marks = <PingMarks pings={pings.filter((ping) => ping.trackSid === trackSid)} />;
+
+  if (!pointing) {
+    return (
+      <div aria-hidden="true" className="pointer-events-none absolute" style={style}>
+        {marks}
+      </div>
+    );
+  }
+
   return (
-    <div
-      aria-hidden="true"
-      onClick={pointing ? handleClick : undefined}
-      className={cn("absolute", pointing ? "cursor-crosshair" : "pointer-events-none")}
-      style={{ left: box.left, top: box.top, width: box.width, height: box.height }}
+    <button
+      ref={layerRef}
+      type="button"
+      aria-label="Tela compartilhada. Use as setas para mover o ponto e Enter para marcar."
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      className="group/pointer absolute cursor-crosshair outline-none"
+      style={style}
     >
-      {pings
-        .filter((ping) => ping.trackSid === trackSid)
-        .map((ping) => (
-          <span
-            key={ping.id}
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
-            style={{ left: `${ping.x * 100}%`, top: `${ping.y * 100}%` }}
-          >
-            <span className="relative flex size-5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-75 motion-reduce:animate-none" />
-              <span className="relative inline-flex size-5 rounded-full border-2 border-canvas bg-brand" />
-            </span>
-            <span className="glass rounded-md px-1.5 py-0.5 text-[0.7rem] font-medium whitespace-nowrap">
-              {ping.name}
-            </span>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute hidden size-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-brand bg-brand/20 group-focus-visible/pointer:block"
+        style={{ left: `${cursor.x * 100}%`, top: `${cursor.y * 100}%` }}
+      />
+      <span aria-hidden="true">{marks}</span>
+    </button>
+  );
+}
+
+function PingMarks({ pings }: { pings: Ping[] }) {
+  return (
+    <>
+      {pings.map((ping) => (
+        <span
+          key={ping.id}
+          className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
+          style={{ left: `${ping.x * 100}%`, top: `${ping.y * 100}%` }}
+        >
+          <span className="relative flex size-5">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-75 motion-reduce:animate-none" />
+            <span className="relative inline-flex size-5 rounded-full border-2 border-canvas bg-brand" />
           </span>
-        ))}
-    </div>
+          <span className="glass rounded-md px-1.5 py-0.5 text-[0.7rem] font-medium whitespace-nowrap">
+            {ping.name}
+          </span>
+        </span>
+      ))}
+    </>
   );
 }
