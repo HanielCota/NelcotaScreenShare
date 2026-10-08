@@ -113,7 +113,11 @@ describe("messages and formatting", () => {
       "E-mail ou senha incorretos.",
     );
     assert.equal(
-      authErrorMessage({ status: 429, message: "Muitas tentativas. Tente de novo em 15 min." }),
+      authErrorMessage({
+        code: "SIGN_IN_LOCKED",
+        status: 429,
+        message: "Muitas tentativas. Tente de novo em 15 min.",
+      }),
       "Muitas tentativas. Tente de novo em 15 min.",
     );
     assert.equal(

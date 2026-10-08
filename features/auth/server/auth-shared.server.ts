@@ -128,6 +128,7 @@ export function authHooks(
           );
         }
         throw new APIError("TOO_MANY_REQUESTS", {
+          code: "SIGN_IN_LOCKED",
           message: lockedMessage(status.retryAfterSeconds),
         });
       }
