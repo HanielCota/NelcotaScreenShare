@@ -95,12 +95,9 @@ The app's variables are validated with Zod in `server/env.server.ts`. If somethi
 - `tests/integration`: real Postgres. With `TEST_DATABASE_URL` (a **disposable** database; in dev it is read from `.env.local`), Vitest recreates an already-migrated template database and each test file gets a clean copy (`CREATE DATABASE … TEMPLATE`). Without the variable, it warns that only the unit tests will run. One of the tests runs as `nelcota_app` to check the grants.
 - `tests/e2e`: Playwright with dev Postgres and LiveKit running. It starts the app on `127.0.0.1:3100` with its own database (`nelcota_e2e`, recreated on every run) and Chromium with a fake microphone and screen. If the port is taken, set `E2E_PORT` in the environment before running the tests. Install the browser once with `pnpm exec playwright install chromium`.
 
-## Formatting in AI tasks
+## Formatting
 
-`AGENTS.md` requires AI agents to run `pnpm format` on the whole project after
-any change, including `components/ui`, and to confirm with `pnpm format:check`
-before finishing the task. Oxfmt follows `.oxfmtrc.json` and keeps the exclusions for
-dependencies, builds and generated metadata. CI also checks formatting.
+The formatting rules for AI agents are in [`AGENTS.md`](../AGENTS.md); CI also runs `pnpm format:check`.
 
 ## Oxlint
 
@@ -108,15 +105,8 @@ dependencies, builds and generated metadata. CI also checks formatting.
 It covers `app`, `components` (including `components/ui`), `features`, `lib`, `server`, tests
 and configuration files. Build output, dependencies, coverage and temporary captures are left out.
 
-Beyond code quality, the linter **enforces the architecture** (see the
-[architecture guide](README.md) and [`adr/`](adr/)):
-
-- `components/` and `lib/` (generic) don't import features, routes or the server;
-- each feature's UI doesn't import the server, the database or another feature's UI (only the mascot and the
-  share notice are public); the rule is generated per feature from `features/`;
-- `features/*/domain` (and `features/admin/*/domain`) are pure TypeScript (no React, router, database or SDK);
-- `server/` (infra) only knows the features' `domain/`;
-- no file above 300 effective lines, no function with complexity above 15.
+Beyond code quality, the linter enforces the architecture boundaries, size and complexity limits listed in
+[ADR 0003](adr/0003-oxlint-boundaries.md).
 
 The rules check Hooks and effect dependencies, circular and duplicate imports,
 accessibility (including `Link`, `Input` and `Label`),

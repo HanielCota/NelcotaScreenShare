@@ -25,7 +25,7 @@ The app uses React Router 8 Framework Mode, Vite and SSR. The [development](deve
 
 File names are in English. Existing URLs and persisted values stay in Portuguese. Routes are declared by path in `app/routes.ts`.
 
-Loaders read data and authorize access. Actions perform mutations. Shared operations live in `features/*/actions.server.ts`, with public descriptors in `actions.ts`. Private code uses `.server.ts`; pure rules live in `domain/`. The build and Oxlint check these boundaries.
+Loaders read data and authorize access. Actions perform mutations. Shared operations live in `features/*/actions.server.ts`, with public descriptors in `actions.ts`. Private code uses `.server.ts`; pure rules live in `domain/`. The build and Oxlint check these boundaries ([ADR 0003](adr/0003-oxlint-boundaries.md)).
 
 Every feature follows the same pattern, with only the subfolders it needs: `domain/` (pure TypeScript), `server/` (queries, mutations and API route handlers), `client/` (browser, outside React), `hooks/` and `ui/` (React), and `actions.ts`/`actions.server.ts` at the root. The panel subfeatures (`features/admin/*`) follow the same pattern. An API route only wires the URL to the feature's handler:
 

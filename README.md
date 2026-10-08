@@ -117,7 +117,7 @@ lib/          isomorphic utilities
 server/       infrastructure only: env, database, logs, e-mail, security, routes and operations
 ```
 
-The boundaries between these folders are checked by the linter: UI doesn't import the server, `domain/` imports neither React nor the database, and `server/` knows nothing about features. Details in the [architecture guide](docs/README.md).
+The linter checks the boundaries between these folders ([ADR 0003](docs/adr/0003-oxlint-boundaries.md)); the layout is detailed in the [architecture guide](docs/README.md).
 
 ## 🛠️ Stack
 
