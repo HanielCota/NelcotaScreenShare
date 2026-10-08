@@ -5,7 +5,7 @@ import {
   disconnectMessage,
   micErrorMessage,
 } from "@/features/room/client/connection-errors";
-import { pickFocusedShare } from "@/features/room/domain/focus";
+import { pickFocusedShare, sortByOrder, trackShareOrder } from "@/features/room/domain/focus";
 import { joinFailure, presenceText } from "@/features/room/domain/join";
 import { presenceForGuests } from "@/features/room/domain/presence";
 
@@ -24,6 +24,25 @@ describe("screen on stage", () => {
     expect(pickFocusedShare([ana, bia], "TR_sumiu")).toBe(bia);
     expect(pickFocusedShare([mine], undefined)).toBe(mine);
     expect(pickFocusedShare([], undefined)).toBeUndefined();
+  });
+
+  it("remembers the order screens appeared, not the participant order", () => {
+    const ana = share("TR_ana");
+    const bia = share("TR_bia");
+    // Bia shared first; Ana, who joined earlier, shares later: Ana is the most recent.
+    const first = trackShareOrder([], [bia]);
+    const second = trackShareOrder(first.order, [ana, bia]);
+    expect(second.order).toEqual(["TR_bia", "TR_ana"]);
+    expect(pickFocusedShare(sortByOrder([ana, bia], second.order), undefined)).toBe(ana);
+    expect(trackShareOrder(second.order, [ana]).order).toEqual(["TR_ana"]);
+  });
+
+  it("a new screen from someone else takes the stage; your own does not", () => {
+    const ana = share("TR_ana");
+    const mine = share("TR_eu", true);
+    expect(trackShareOrder([], [ana]).takesStage).toBe(true);
+    expect(trackShareOrder(["TR_ana"], [ana, mine]).takesStage).toBe(false);
+    expect(trackShareOrder(["TR_ana"], [ana]).takesStage).toBe(false);
   });
 });
 

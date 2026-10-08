@@ -6,13 +6,13 @@ import {
 } from "@livekit/components-react";
 import { ConnectionState, Track, type Participant } from "livekit-client";
 import { Loader2, Volume2, WifiOff } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Mascot } from "@/features/mascot/ui/Mascot";
-import { pickFocusedShare } from "@/features/room/domain/focus";
 import { useRoomAnimations } from "@/features/room/hooks/use-room-animations";
 import { useRoomNotices } from "@/features/room/hooks/use-room-notices";
 import { useScreenShare } from "@/features/room/hooks/use-screen-share";
+import { useStageFocus } from "@/features/room/hooks/use-stage-focus";
 import { useChatState } from "@/features/room/hooks/use-chat-state";
 import { ChatPanel } from "@/features/room/ui/dock/Chat";
 import { ControlDock } from "@/features/room/ui/dock/ControlDock";
@@ -119,12 +119,12 @@ export function RoomLayout({
   const screenShares = useTracks([Track.Source.ScreenShare]).filter(
     (ref) => ref.publication.track !== undefined,
   );
-  const [focusedSid, setFocusedSid] = useState<string>();
   const chat = useChatState();
   const share = useScreenShare();
   useRoomNotices();
 
-  const focused = pickFocusedShare(screenShares, focusedSid);
+  const stage = useStageFocus(screenShares);
+  const focused = stage.focused;
   const hasStage = focused !== undefined;
   const sharingIds = new Set(screenShares.map((ref) => ref.participant.identity));
 
@@ -160,7 +160,7 @@ export function RoomLayout({
         )}
       >
         {focused ? (
-          <ScreenStage shares={screenShares} focused={focused} onFocus={setFocusedSid} />
+          <ScreenStage shares={stage.shares} focused={focused} onFocus={stage.focus} />
         ) : null}
 
         {alone ? (
