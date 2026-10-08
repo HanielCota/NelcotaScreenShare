@@ -4,7 +4,7 @@ How participant accounts, the `/admin` panel, the audit log and PostgreSQL work.
 
 ## Database
 
-The app uses **PostgreSQL 18** with **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + the `pg` driver). The original panel plan is preserved in the [historical archive](archive/admin-plan.md); the current architecture is in the [architecture guide](README.md).
+The app uses **PostgreSQL 18** with **[Drizzle ORM](https://orm.drizzle.team)** (`drizzle-orm` + the `pg` driver). The original panel plan is preserved in the [historical archive](archive/admin-plan.md).
 
 - The schema lives in `server/db/schema/` (one file per area). After changing the schema, run `pnpm db:generate`, review the SQL and commit it in `drizzle/`. CI fails if the schema and the migrations don't match.
 - **Migrations never run at app boot.** They are a separate job (`scripts/migrate.ts`), with its own Postgres user, an advisory lock and a 5 s `lock_timeout`. Changes follow _expand/contract_ (the old code keeps working with the new schema).
@@ -43,7 +43,7 @@ The panel uses its **own [Better Auth](https://www.better-auth.com) instance** a
 - **Lockout after failed attempts:** 5 wrong passwords on the same account lock it for 15 min (doubling every 5, up to 24 h); 20 failures from the same IP in 15 min block the IP. On top of that, Better Auth's rate limit (5 logins/min per IP), stored in the database.
 - **No enumeration:** login, password recovery and invitation respond the same whether or not the e-mail exists.
 - **CSRF:** Better Auth checks the origin; in addition, the route rejects any cross-origin request (including the first login, without a cookie).
-- **Permissions:** `owner`, `admin` and `viewer` roles in `features/auth/server/permissions.server.ts` (matrix in `docs/archive/admin-plan.md` §5.2). Every protected loader calls `requireAdmin(...)`. Panel operations go through `defineAdminOperation` (session, 2FA, permission and fresh session checked on the server).
+- **Permissions:** `owner`, `admin` and `viewer` roles; the permission matrix is defined once in `features/auth/server/permissions.server.ts`. Every protected loader calls `requireAdmin(...)`. Panel operations go through `defineAdminOperation` (session, 2FA, permission and fresh session checked on the server).
 
 - **Audit log:** `audit_logs` records who did what, when, from where (IP, browser, `request_id`) and the field-by-field "before → after", with secrets masked. It is written in the **same transaction** as the change. The table is immutable (trigger + an app role without UPDATE/DELETE; deletion only after 5 years). Every operation declares `audit: "required" | "none"`; an audited operation that finishes without recording an entry fails. Panel logins, lockouts, 2FA and password changes are also recorded.
 - **Shell:** collapsible sidebar (remembered in a cookie), breadcrumbs, search/command palette (`Ctrl/⌘ K`), loading, error and 404 states in pt-BR. The menu shows only what the role can open.
@@ -53,9 +53,9 @@ The panel uses its **own [Better Auth](https://www.better-auth.com) instance** a
 
 ```bash
 # Dev
-pnpm admin:create-owner dono@exemplo.com
+pnpm admin:create-owner owner@example.com
 # Production (app container in Coolify → Terminal, or via SSH)
-docker exec -it <app-container> node create-owner.mjs dono@exemplo.com
+docker exec -it <app-container> node create-owner.mjs owner@example.com
 ```
 
 The command prints a single-use link, valid for 30 minutes. If the only owner loses their 2FA and backup codes, run it again with `--force` to generate another owner invitation.
