@@ -61,7 +61,7 @@ export function SignUpPhotoField({
             Foto de perfil <span className="font-normal text-ink-subtle">(opcional)</span>
           </span>
           <span id={ids.hint} className="text-xs text-ink-muted">
-            {photo ? "JPG, PNG ou WebP, até 5 MB." : "Sem foto, usamos o ícone padrão."}
+            JPG, PNG ou WebP, até 5 MB.{photo ? null : " Sem foto, usamos o ícone padrão."}
           </span>
           {photo ? (
             <button
