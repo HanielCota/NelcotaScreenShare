@@ -110,10 +110,12 @@ function PeopleArea({
 export function RoomLayout({
   code,
   maxParticipants,
+  isAdmin,
   onLeave,
 }: {
   code: string;
   maxParticipants: number;
+  isAdmin: boolean;
   onLeave: () => void;
 }) {
   const scope = useRef<HTMLDivElement>(null);
@@ -149,6 +151,7 @@ export function RoomLayout({
           code={code}
           participants={participants}
           maxParticipants={maxParticipants}
+          isAdmin={isAdmin}
           connection={connection}
         />
       </header>

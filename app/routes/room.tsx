@@ -1,15 +1,15 @@
 import { routeLoader } from "@/server/route-loader.server";
-import { useLoaderData } from "react-router";
 
 import { redirect } from "@/server/http.server";
-import { RoomSession } from "@/features/room/ui/RoomSession";
 import { requireUser } from "@/features/auth/server/participant-session.server";
+import { getAdminSession } from "@/features/auth/server/admin-session.server";
 import { getDb } from "@/server/db/index.server";
 import { getEnv } from "@/server/env.server";
 import { presenceForGuests } from "@/features/room/domain/presence";
 import { roomPresence } from "@/features/room/server/presence.server";
 import { decodeRoomParam, roomCodeSchema, roomLink } from "@/features/room/domain/room-code";
 import { INVITE_TOKEN_PATTERN } from "@/features/room/domain/invite-token";
+import type { RoomEntry } from "@/features/room/ui/ActiveRoom";
 
 export const meta = () => [{ title: "Sala · Nelcota" }];
 
@@ -34,7 +34,8 @@ export const loader = routeLoader(async ({ params: routeParams, searchParams }) 
   const { ACCESS_PASSWORD, MAX_PARTICIPANTS } = getEnv();
   const passwordRequired = ACCESS_PASSWORD !== undefined;
   // Who is already inside, for the pre-join screen to show.
-  const presence = presenceForGuests(await roomPresence(getDb(), code.data), passwordRequired);
+  const [roomNow, admin] = await Promise.all([roomPresence(getDb(), code.data), getAdminSession()]);
+  const presence = presenceForGuests(roomNow, passwordRequired);
 
   return {
     invite,
@@ -43,21 +44,15 @@ export const loader = routeLoader(async ({ params: routeParams, searchParams }) 
     passwordRequired,
     maxParticipants: MAX_PARTICIPANTS,
     presence,
-  };
+    // Admin session in this browser: the call offers the panel without leaving the room.
+    isAdmin: admin !== null,
+  } satisfies RoomEntry;
 });
 
+/**
+ * The session is drawn by `ActiveRoom` in the root, from this page's data: a call
+ * keeps going while the person visits other pages (the admin panel).
+ */
 export default function RoomPage() {
-  const { invite, code, user, passwordRequired, maxParticipants, presence } =
-    useLoaderData<typeof loader>();
-  return (
-    <RoomSession
-      code={code}
-      userName={user.name}
-      userImage={user.image}
-      passwordRequired={passwordRequired}
-      invite={invite}
-      maxParticipants={maxParticipants}
-      presence={presence}
-    />
-  );
+  return null;
 }
