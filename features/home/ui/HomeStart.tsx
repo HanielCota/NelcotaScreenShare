@@ -5,7 +5,16 @@ import { newRoomHref } from "@/features/home/domain/new-room";
 import { SmartBar } from "./SmartBar";
 
 /** "Link or code" bar with the pair of mascots, which reacts while the room opens. */
-export function HomeStart({ invalidCode, signedIn }: { invalidCode: boolean; signedIn: boolean }) {
+export function HomeStart({
+  invalidCode,
+  signedIn,
+  focusShortcut,
+}: {
+  invalidCode: boolean;
+  signedIn: boolean;
+  /** Off for a second bar on the page, so "/" keeps going to the first. */
+  focusShortcut?: boolean;
+}) {
   const navigate = useNavigate();
   const [pending, startTransition] = useTransition();
 
@@ -21,6 +30,7 @@ export function HomeStart({ invalidCode, signedIn }: { invalidCode: boolean; sig
       onNavigate={openRoom}
       createRoomHref={() => newRoomHref(signedIn)}
       mascot={<MascotPair pending={pending} />}
+      focusShortcut={focusShortcut}
     />
   );
 }
