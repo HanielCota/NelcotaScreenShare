@@ -57,9 +57,7 @@ export default defineConfig({
   ],
   webServer: {
     command:
-      process.env.E2E_DEV !== "true"
-        ? `pnpm build && pnpm start --port ${E2E_PORT}`
-        : `pnpm dev --port ${E2E_PORT}`,
+      process.env.E2E_DEV !== "true" ? "pnpm build && pnpm start" : `pnpm dev --port ${E2E_PORT}`,
     url: `${E2E_URL}/api/health`,
     timeout: 240_000,
     reuseExistingServer: false,
@@ -67,6 +65,7 @@ export default defineConfig({
     stderr: "pipe",
     env: {
       HOST: "127.0.0.1",
+      PORT: String(E2E_PORT),
       DATABASE_URL: e2eDatabaseUrl(),
       APP_URL: E2E_URL,
       AUTH_SECRET: "segredo-participantes-e2e-0123456789abcdef0123",

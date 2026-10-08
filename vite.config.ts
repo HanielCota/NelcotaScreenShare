@@ -3,12 +3,19 @@ import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import babel from "@rolldown/plugin-babel";
 import { reactCompilerPreset } from "@vitejs/plugin-react";
+import { reactRouterHonoServer } from "react-router-hono-server/dev";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter(), babel({ presets: [reactCompilerPreset()] })],
+  // The Hono server (app/server.ts) must come before React Router.
+  plugins: [
+    tailwindcss(),
+    reactRouterHonoServer(),
+    reactRouter(),
+    babel({ presets: [reactCompilerPreset()] }),
+  ],
   resolve: { alias: { "@": fileURLToPath(new URL(".", import.meta.url)) } },
-  server: { host: "127.0.0.1" },
+  server: { host: "127.0.0.1", port: 3000 },
   optimizeDeps: {
     // Avoids rebuilding the cache during the first form submission or navigation.
     noDiscovery: true,
