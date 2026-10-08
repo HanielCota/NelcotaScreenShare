@@ -44,7 +44,7 @@ function faqItems(maxParticipants: number): { question: string; answer: string }
 export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
   return (
     <section aria-labelledby="faq-title" className="w-full max-w-3xl">
-      <SectionIntro id="faq-title" eyebrow="Dúvidas" title="Perguntas frequentes" />
+      <SectionIntro id="faq-title" title="Perguntas frequentes" />
 
       <div className="mt-10 flex flex-col gap-3">
         {faqItems(maxParticipants).map(({ question, answer }) => (

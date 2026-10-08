@@ -24,12 +24,7 @@ export function BrowserCheckSection() {
 
   return (
     <section aria-labelledby="browsers-title" className="w-full max-w-3xl">
-      <SectionIntro
-        id="browsers-title"
-        eyebrow="Compatibilidade"
-        title="Funciona no seu navegador?"
-        lead="A gente já checou para você."
-      />
+      <SectionIntro id="browsers-title" title="Funciona no seu navegador?" />
 
       <div data-reveal className="mt-10 flex justify-center">
         <ShareSupportNote className="rounded-2xl border border-brand/30 bg-brand/8 px-4 py-3" />

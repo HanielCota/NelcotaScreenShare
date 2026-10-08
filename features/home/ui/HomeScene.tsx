@@ -42,8 +42,8 @@ export function HomeScene({
           data-anim="subtitle"
           className="mt-4 max-w-lg text-center text-base leading-relaxed text-pretty text-ink-muted sm:text-lg"
         >
-          Sem instalar nada. Crie a sala, mande o link e mostre sua tela com o som do computador
-          junto.
+          Direto do navegador, com o som do computador junto. Quem recebe o link entra e já vê o que
+          você está mostrando.
         </p>
 
         <div data-anim="card" className="mt-8 w-full will-change-transform sm:mt-10">
