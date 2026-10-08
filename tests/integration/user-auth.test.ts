@@ -4,6 +4,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, describe, test, vi } from "vitest";
 import {
+  ADMIN_AUTH_BASE_PATH,
+  createAdminAuthForTests,
+} from "@/features/auth/server/admin-auth.server";
+import {
   createUserAuthForTests,
   USER_AUTH_BASE_PATH,
 } from "@/features/auth/server/participant-auth.server";
@@ -145,7 +149,14 @@ describe("login", () => {
   test("account cookie does not work in the admin panel", async () => {
     const caio = await verifiedParticipant(db, handler);
     assert.ok(caio.jar.has("nelcota."));
-    assert.equal(caio.jar.has("nelcota-admin"), false);
+    const adminAuth = createAdminAuthForTests(
+      db,
+      "segredo-admin-de-teste-0123456789abcdef0123456789",
+    );
+    const adminCall = makeCaller(adminAuth.handler, ADMIN_AUTH_BASE_PATH, "198.18.1.1");
+    const session = await adminCall("/get-session", { method: "GET", jar: caio.jar });
+    assert.equal(session.status, 200);
+    assert.equal(session.body, null);
   });
 });
 
