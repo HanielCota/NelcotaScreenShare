@@ -5,7 +5,7 @@ import { OPEN_ROW_EVENT } from "./settings/ExpandableRow";
 /** Goes to an expandable row on the page and opens it (works when clicked again). */
 export function OpenRowLink({ row, children }: { row: string; children: ReactNode }) {
   return (
-    <Button asChild size="sm">
+    <Button asChild>
       <a
         href={`#${row}`}
         onClick={(event) => {

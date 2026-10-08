@@ -30,7 +30,7 @@ export function SettingsSection({
       <div className="px-1">
         <h2
           id={headingId}
-          className={cn("text-lg font-semibold tracking-[-0.025em]", danger && "text-danger")}
+          className={cn("text-xl font-semibold tracking-[-0.02em]", danger && "text-danger")}
         >
           {title}
         </h2>
@@ -59,7 +59,7 @@ export function SettingsRow({
   children?: ReactNode;
 }) {
   return (
-    <div className="grid gap-4 px-5 py-5 sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] sm:gap-6 sm:px-6">
+    <div className="grid gap-4 px-5 py-5 sm:grid-cols-[15rem_minmax(0,1fr)] sm:gap-6 sm:px-6">
       <SettingsRowLabel title={title} description={description} />
       <div className="min-w-0 sm:self-center">{children}</div>
     </div>
