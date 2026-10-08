@@ -130,11 +130,8 @@ describe("data subject data", () => {
   test("the export includes rooms, screen shares and join requests", async () => {
     const lia = await verifiedParticipant(db, handler);
     const { code } = await withHistory(lia.id);
-    const response = await downloadAccountData(
-      new Request("http://localhost:3000/api/conta/dados", {
-        headers: { cookie: lia.jar.header() },
-      }),
-    );
+    requestHeaders.current = new Headers({ cookie: lia.jar.header() });
+    const response = await downloadAccountData();
     assert.equal(response.status, 200);
     const data = exportSchema.parse(await response.json());
     assert.equal(data.conta.id, lia.id);
