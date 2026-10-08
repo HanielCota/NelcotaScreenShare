@@ -53,7 +53,6 @@ export function createMascotController(
 ) {
   const hands = createHandMotions(root);
   const reasons = createReasons();
-  const reducedMotion = prefersReducedMotion;
 
   let pointer: { x: number; y: number } | null = null;
   let current: Expression = inputs.base();
@@ -166,8 +165,8 @@ export function createMascotController(
     if (eyes || isSleeping(current)) hands.cancel();
     if (personality.active && (eyes || blocksPlay(current))) personality.cancel();
     // Pairs a held pose with attention on the stage; the hand routine does not cover password eyes.
-    if (current === "presenting" && !eyes && !reducedMotion()) hands.hold();
-    if (eyes || current === "asleep" || reducedMotion()) animator.cancelBlink();
+    if (current === "presenting" && !eyes && !prefersReducedMotion()) hands.hold();
+    if (eyes || current === "asleep" || prefersReducedMotion()) animator.cancelBlink();
   }
 
   /** Reduced motion: no springs or animations, straight to the final pose. */
@@ -188,7 +187,7 @@ export function createMascotController(
     scheduleReasonExpiry();
     animator.setTargets(gazeTarget(), faceTarget());
     settleGestures(previous, eyeOverride());
-    if (reducedMotion()) {
+    if (prefersReducedMotion()) {
       snapToTargets();
       return;
     }
@@ -209,7 +208,7 @@ export function createMascotController(
   function move({ keyframes, options }: Motion) {
     bodyAnimation?.cancel();
     bodyAnimation = undefined;
-    if (reducedMotion() || document.hidden || !onScreen) return undefined;
+    if (prefersReducedMotion() || document.hidden || !onScreen) return undefined;
     bodyAnimation = root.animate(keyframes, options);
     return bodyAnimation;
   }
@@ -293,14 +292,14 @@ export function createMascotController(
 
   const stopAmbient = startAmbient({
     canBlink: () =>
-      !reducedMotion() && !document.hidden && onScreen && canBlink(current) && !eyeOverride(),
+      !prefersReducedMotion() && !document.hidden && onScreen && canBlink(current) && !eyeOverride(),
     blink: () => {
       animator.blink();
       update();
     },
     canSneeze: () =>
       !disposed &&
-      !reducedMotion() &&
+      !prefersReducedMotion() &&
       !personality.active &&
       canSneeze(current) &&
       !(document.activeElement instanceof HTMLInputElement) &&
