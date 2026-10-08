@@ -49,7 +49,7 @@ if (isEntryPoint) {
     process.exit(1);
   }
   const started = Date.now();
-  runMigrations(url, process.env.MIGRATIONS_DIR ?? join(process.cwd(), "drizzle")).then(
+  runMigrations(url, process.env.MIGRATIONS_DIR).then(
     () => console.info(`[migrate] migrations up to date (${Date.now() - started} ms)`),
     (error: unknown) => {
       console.error("[migrate] failed", error);
