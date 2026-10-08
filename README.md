@@ -128,7 +128,7 @@ pnpm knip           # unused code and dependencies
 pnpm build
 ```
 
-CI runs all of this on every PR, plus `pnpm audit`. On `main`, the deploy builds the image, runs migrations in a separate job and only then publishes.
+CI runs all of this on every PR, plus `pnpm audit`. The Deploy workflow (image, migrations in a separate job, then publish) is disabled until the production secrets exist.
 
 ## Documentation
 
