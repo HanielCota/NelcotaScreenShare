@@ -147,7 +147,7 @@ export function PreJoin({
       token: result.data.token,
       serverUrl: result.data.serverUrl,
       // Microphone blocked: join listen-only instead of failing inside.
-      micEnabled: mic.enabled && !mic.blocked,
+      micEnabled: !mic.joinsMuted,
       audioDeviceId: mic.deviceId,
     });
   }

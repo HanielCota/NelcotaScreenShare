@@ -51,10 +51,7 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
 
   return {
     levelRef,
-    check:
-      testing && check !== undefined && check.deviceId === deviceId
-        ? check.state
-        : ("starting" as MicrophoneCheck),
+    check: testing && check !== undefined && check.deviceId === deviceId ? check.state : "starting",
     enabled,
     permission,
     error,

@@ -82,7 +82,7 @@ export function LeftScreen({
   const scope = useRef<HTMLElement>(null);
   const copy = COPY[reason];
   const transitioning = useViewTransitionState(useLocation().pathname);
-  const joined = durationMs !== undefined && reason !== "failed";
+  const joined = durationMs !== undefined;
   // Room ended or person removed: the way forward is the home page, not the same room.
   const rejoinIsPrimary = copy.rejoin !== null && reason !== "elsewhere";
 
