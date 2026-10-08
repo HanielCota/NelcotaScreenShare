@@ -79,13 +79,26 @@ export function BugArt() {
   );
 }
 
-/** A sign-in screen under review, with Lia's pointer on the button and her comment. */
+/** The four corner handles of a selection box. */
+const HANDLES = [
+  "-top-[0.7cqi] -left-[0.7cqi]",
+  "-top-[0.7cqi] -right-[0.7cqi]",
+  "-bottom-[0.7cqi] -left-[0.7cqi]",
+  "-right-[0.7cqi] -bottom-[0.7cqi]",
+];
+
+/**
+ * A sign-in screen under review, drawn like a design canvas: the frame on a dotted board,
+ * the button selected with its size, Lia's pointer on it and her comment pinned beside it,
+ * with Bruno's answer.
+ */
 export function ReviewArt() {
   return (
     <Shot title="Figma · Tela de login">
-      <div className="px-[6cqi] py-[5cqi]">
-        <div className="w-[56%] rounded-[2.4cqi] bg-white p-[4cqi] text-[#1f2023]">
-          <p className="text-[4.4cqi] leading-tight font-semibold tracking-tight">
+      <div className="relative h-full bg-[radial-gradient(rgb(255_255_255/0.07)_1px,transparent_1px)] bg-size-[3cqi_3cqi] px-[6cqi] pt-[4cqi]">
+        <p className="mb-[1.2cqi] text-[2.4cqi] text-white/45">Login · Desktop</p>
+        <div className="w-[54%] rounded-[2cqi] bg-white p-[4cqi] text-[#1f2023] shadow-[0_12px_40px_-12px_rgb(0_0_0/0.6)]">
+          <p className="text-[4.2cqi] leading-tight font-semibold tracking-tight">
             Bem-vindo de volta
           </p>
           <span className="mt-[3cqi] block rounded-[1.4cqi] border border-[#d8d5ce] px-[2cqi] py-[1.4cqi] text-[2.6cqi] text-[#8a8a92]">
@@ -94,15 +107,42 @@ export function ReviewArt() {
           <span className="mt-[1.6cqi] block rounded-[1.4cqi] border border-[#d8d5ce] px-[2cqi] py-[1.4cqi] text-[2.6cqi] text-[#8a8a92]">
             ••••••••
           </span>
-          <span className="mt-[3cqi] block w-[46%] rounded-full bg-[#1f2023] py-[1.4cqi] text-center text-[2.6cqi] font-semibold text-white">
-            Entrar
+          {/* The button under discussion, selected: outline, handles and its size. */}
+          <span className="relative mt-[3cqi] block w-[46%]">
+            <span className="block rounded-full bg-[#1f2023] py-[1.4cqi] text-center text-[2.6cqi] font-semibold text-white">
+              Entrar
+            </span>
+            <span className="pointer-events-none absolute -inset-[0.8cqi] border-[0.3cqi] border-[#0d99ff]">
+              {HANDLES.map((place) => (
+                <span
+                  key={place}
+                  className={`absolute size-[1.4cqi] border-[0.3cqi] border-[#0d99ff] bg-white ${place}`}
+                />
+              ))}
+            </span>
+            <span className="absolute -bottom-[5cqi] left-1/2 -translate-x-1/2 rounded-[0.6cqi] bg-[#0d99ff] px-[1cqi] py-[0.2cqi] text-[2cqi] font-medium whitespace-nowrap text-white tabular-nums">
+              96 × 32
+            </span>
           </span>
         </div>
       </div>
-      <Pointer name="Lia" className="top-[66%] left-[27%]" />
-      <span className="absolute top-[30%] right-[5cqi] max-w-[30%] rounded-[2cqi] rounded-tr-[0.6cqi] bg-[#2c2c30] px-[2.4cqi] py-[1.6cqi] text-[2.6cqi] leading-snug">
-        <span className="font-semibold text-[#c4a7ff]">Lia:</span> esse botão podia ocupar a largura
-        toda, né?
+      <Pointer name="Lia" className="top-[68%] left-[30%]" />
+      {/* Lia's comment, pinned next to the button, with a reply. */}
+      <span className="absolute top-[64%] left-[64%] grid size-[5cqi] place-items-center rounded-full rounded-bl-none bg-[#8b5cf6] text-[2.4cqi] font-semibold">
+        L
+      </span>
+      <span className="absolute top-[18%] right-[4cqi] flex w-[32%] flex-col gap-[1.6cqi] rounded-[2cqi] border border-white/10 bg-[#232327] p-[2.4cqi] text-[2.4cqi] leading-snug shadow-[0_12px_32px_-12px_rgb(0_0_0/0.7)]">
+        <span>
+          <span className="font-semibold text-[#c4a7ff]">Lia</span>
+          <span className="text-white/40"> · agora</span>
+          <span className="mt-[0.6cqi] block text-white/90">
+            Esse botão podia ocupar a largura toda, né?
+          </span>
+        </span>
+        <span className="border-t border-white/10 pt-[1.6cqi]">
+          <span className="font-semibold text-[#8ab4ff]">Bruno</span>
+          <span className="mt-[0.6cqi] block text-white/90">Boa, já mudo.</span>
+        </span>
       </span>
     </Shot>
   );
