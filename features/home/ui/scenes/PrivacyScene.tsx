@@ -11,6 +11,15 @@ const NOT_KEPT: { icon: LucideIcon; label: string }[] = [
   { icon: MessageSquare, label: "Chat" },
 ];
 
+/** When, in the scene's timeline, the line strikes the button (and the clock stops). */
+const STRIKE_AT = 0.5;
+
+/** "00:07": minutes and seconds, like a recorder. */
+function formatClock(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 /**
  * Privacy as one picture: a record button (a microphone, recording), struck through. Pinned, the button starts lit, a
  * line crosses it out and it goes dark, then the promise and what it covers come in. Without
@@ -21,7 +30,8 @@ export function PrivacyScene() {
 
   useScrollScene(scope, (section) => {
     const q = gsap.utils.selector(section);
-    gsap
+    const clock = q("[data-rec-time]")[0];
+    const tl = gsap
       .timeline({
         defaults: { ease: "power2.inOut", duration: 0.5 },
         scrollTrigger: {
@@ -37,10 +47,23 @@ export function PrivacyScene() {
       .set(q("[data-rec-strike]"), { scaleX: 0 })
       .set(q("[data-privacy-in]"), { opacity: 0, y: 24 })
       .to(q("[data-rec-dot]"), { scale: 1.25, duration: 0.25, repeat: 1, yoyo: true }, 0)
-      .to(q("[data-rec-strike]"), { scaleX: 1, ease: "power3.out" }, 0.5)
+      .to(q("[data-rec-strike]"), { scaleX: 1, ease: "power3.out" }, STRIKE_AT)
       .to(q("[data-rec]"), { opacity: 0.4, filter: "grayscale(1)" }, 0.75)
       .to(q("[data-privacy-in]"), { opacity: 1, y: 0, stagger: 0.15 }, 1.05)
       .to({}, { duration: 0.4 });
+
+    // The clock runs in real time while the scene is on screen and the line has not struck
+    // the button yet; once struck it stops where it was, and scrolling back resumes it.
+    let seconds = 0;
+    const tick = window.setInterval(() => {
+      if (!clock || !tl.scrollTrigger?.isActive || tl.time() >= STRIKE_AT) return;
+      seconds += 1;
+      clock.textContent = formatClock(seconds);
+    }, 1000);
+    return () => {
+      window.clearInterval(tick);
+      if (clock) clock.textContent = formatClock(0);
+    };
   });
 
   return (
@@ -61,7 +84,9 @@ export function PrivacyScene() {
               <Mic className="size-5 sm:size-6" strokeWidth={2.4} />
             </span>
             <span className="text-3xl font-semibold tracking-[0.12em] sm:text-4xl">REC</span>
-            <span className="text-xl text-ink-muted tabular-nums sm:text-2xl">00:00</span>
+            <span data-rec-time className="text-xl text-ink-muted tabular-nums sm:text-2xl">
+              {formatClock(0)}
+            </span>
           </span>
           {/* Rotated around its middle; the line inside draws from left to right. */}
           <span className="absolute inset-x-[-6%] top-1/2 -translate-y-1/2 -rotate-[10deg]">
