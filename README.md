@@ -17,7 +17,7 @@ Self-hosted, with LiveKit and React Router.
 ![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL_18-1b1f24?style=flat-square&logo=postgresql&logoColor=6B9BF0)
 ![Tailwind CSS 4.3](https://img.shields.io/badge/Tailwind_CSS_4.3-1b1f24?style=flat-square&logo=tailwindcss&logoColor=06B6D4)
 
-[Quick start](#-quick-start) · [Features](#-features) · [Architecture](#-architecture) · [Documentation](#-documentation)
+[Quick start](#quick-start) · [Features](#features) · [Architecture](#architecture) · [Documentation](#documentation)
 
 <br />
 
@@ -28,18 +28,18 @@ Self-hosted, with LiveKit and React Router.
 
 </div>
 
-## ✨ Features
+## Features
 
-| Feature                     | What it does                                                                                              |
-| --------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 🖥️ **Screen with audio**    | Shares the screen with tab or system audio, when the browser allows it                                    |
-| 🎙️ **Microphone**           | Test before joining, device switching and an indicator of who is speaking                                 |
-| 💬 **In the room**          | Chat, reactions, raise your hand and point at someone else's screen (everyone sees the pointer)           |
-| 🔗 **Joining is simple**    | Create a room with `Enter` or paste the link you received; optional password and a limit of 2 to 8 people |
-| 👤 **Accounts**             | Sign-up, 2FA, profile picture, connected devices, data export and deletion (LGPD)                         |
-| 🛡️ **Admin panel**          | Rooms, participants, shares and an immutable audit log, with invitations, mandatory 2FA and permissions   |
-| 🌗 **Light and dark theme** | GSAP animations that respect `prefers-reduced-motion`                                                     |
-| 🌱 **Nelcota**              | A mascot that follows the form, celebrates, worries about errors and dozes off when you go away           |
+| Feature              | What it does                                                                                              |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| Screen with audio    | Shares the screen with tab or system audio, when the browser allows it                                    |
+| Microphone           | Test before joining, device switching and an indicator of who is speaking                                 |
+| In the room          | Chat, reactions, raise your hand and point at someone else's screen (everyone sees the pointer)           |
+| Joining is simple    | Create a room with `Enter` or paste the link you received; optional password and a limit of 2 to 8 people |
+| Accounts             | Sign-up, 2FA, profile picture, connected devices, data export and deletion (LGPD)                         |
+| Admin panel          | Rooms, participants, shares and an immutable audit log, with invitations, mandatory 2FA and permissions   |
+| Light and dark theme | GSAP animations that respect `prefers-reduced-motion`                                                     |
+| Nelcota              | A mascot that follows the form, celebrates, worries about errors and dozes off when you go away           |
 
 ### Room shortcuts
 
@@ -56,7 +56,7 @@ Self-hosted, with LiveKit and React Router.
 
 Shortcuts don't fire while you are typing in the chat or another field.
 
-## 🚀 Quick start
+## Quick start
 
 You need Node 26.9+, pnpm 12.9.1 and Docker. With the dev LiveKit container running and `.env.local` filled in:
 
@@ -68,7 +68,7 @@ pnpm dev            # http://localhost:3000
 
 The LiveKit command, the dev values for `.env.local`, every script and fixes for common problems are in [docs/development.md](docs/development.md#running-locally).
 
-## 🧱 Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -101,7 +101,7 @@ server/       infrastructure only: env, database, logs, e-mail, security, routes
 
 The linter checks the boundaries between these folders ([ADR 0003](docs/adr/0003-oxlint-boundaries.md)); the layout is detailed in the [architecture guide](docs/README.md).
 
-## 🛠️ Stack
+## Stack
 
 | Area          | Tools                                                                                    |
 | ------------- | ---------------------------------------------------------------------------------------- |
@@ -116,7 +116,7 @@ The linter checks the boundaries between these folders ([ADR 0003](docs/adr/0003
 | Observability | Pino, Sentry                                                                             |
 | Production    | Node 26.9 on Docker, image on GHCR, deployed to Coolify via GitHub Actions               |
 
-## ✅ Quality
+## Quality
 
 ```bash
 pnpm format:check   # formatting (Oxfmt)
@@ -130,7 +130,7 @@ pnpm build
 
 CI runs all of this on every PR, plus `pnpm audit`. On `main`, the deploy builds the image, runs migrations in a separate job and only then publishes.
 
-## 📚 Documentation
+## Documentation
 
 | Guide                                                      | Contents                                                             |
 | ---------------------------------------------------------- | -------------------------------------------------------------------- |
