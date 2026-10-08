@@ -1,6 +1,9 @@
 import { useState, useSyncExternalStore, type RefObject } from "react";
 import { subscribeNothing } from "@/lib/hooks/subscribe-nothing";
-import { micErrorMessage } from "@/features/room/client/microphone-errors";
+import {
+  micErrorMessage,
+  microphonePermissionDenied,
+} from "@/features/room/client/microphone-errors";
 import { saveMicrophone, savedMicrophone } from "@/features/room/client/saved-microphone";
 import { useMicLevel } from "./use-mic-level";
 import { useMicPermission } from "./use-mic-permission";
@@ -81,7 +84,7 @@ export function useMicSetup(paused: boolean, meterRef: RefObject<HTMLDivElement 
       setError(undefined);
       const failure = await request();
       setRequesting(false);
-      if (failure && !(failure instanceof DOMException && failure.name === "NotAllowedError")) {
+      if (failure && !microphonePermissionDenied(failure)) {
         setError(micErrorMessage(failure));
       }
     },
