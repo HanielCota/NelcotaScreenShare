@@ -11,7 +11,6 @@ import { ThemeChoice } from "@/components/shell/ThemeChoice";
  * (`data-layout="split"`).
  */
 export default function AccessLayout() {
-  const children = <Outlet />;
   return (
     <div className="apple-buttons flex min-h-dvh flex-col">
       <ParticipantHeader showAuthLinks={false} />
@@ -22,7 +21,7 @@ export default function AccessLayout() {
             data-layout="split"
             className="group/access flex flex-col items-center justify-center px-5 py-7 sm:px-10 sm:py-10"
           >
-            {children}
+            <Outlet />
             <ThemeChoice className="mt-8 w-full max-w-sm" />
             {/* On mobile the notice comes after the form (on desktop, on the mascot side). */}
             <ShareSupportNote className="mt-8 w-full max-w-sm border-t border-line pt-5 lg:hidden" />

@@ -6,7 +6,6 @@ export const meta = () => [{ title: "Admin · Nelcota" }];
 
 /** Admin panel access screens: outside the shell, reachable without a session. */
 export default function AdminAuthLayout() {
-  const children = <Outlet />;
   return (
     <div className="apple-buttons flex min-h-dvh flex-col">
       <AppHeader
@@ -21,7 +20,7 @@ export default function AdminAuthLayout() {
             data-layout="split"
             className="group/access flex flex-col items-center justify-center px-5 py-7 sm:px-10 sm:py-10"
           >
-            {children}
+            <Outlet />
           </div>
         </div>
       </main>
