@@ -11,9 +11,11 @@ import { newRoomHref } from "@/features/home/domain/new-room";
 export function CreateRoomButton({
   signedIn,
   variant = "default",
+  className,
 }: {
   signedIn: boolean;
   variant?: "default" | "secondary";
+  className?: string;
 }) {
   const navigate = useNavigate();
   const [pending, startTransition] = useTransition();
@@ -23,6 +25,7 @@ export function CreateRoomButton({
       size="lg"
       variant={variant}
       disabled={pending}
+      className={className}
       onClick={() =>
         startTransition(() => navigate(newRoomHref(signedIn), { viewTransition: true }))
       }
