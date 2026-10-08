@@ -158,10 +158,10 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
       ) : null}
 
       {shares.length > 1 ? (
-        <div
-          role="tablist"
-          aria-label="Telas compartilhadas"
-          className="glass absolute bottom-3 left-1/2 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 gap-1 overflow-x-auto rounded-xl p-1"
+        <fieldset
+          // Plain toggle buttons: a tablist promises arrow keys and a tabpanel.
+          aria-label="Escolher a tela compartilhada"
+          className="glass absolute bottom-3 left-1/2 flex max-w-[calc(100%-1.5rem)] min-w-0 -translate-x-1/2 gap-1 overflow-x-auto rounded-xl p-1"
         >
           {shares.map((share) => {
             const sid = share.publication.trackSid;
@@ -170,8 +170,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
               <button
                 key={sid}
                 type="button"
-                role="tab"
-                aria-selected={active}
+                aria-pressed={active}
                 onClick={() => onFocus(sid)}
                 className={cn(
                   "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
@@ -185,7 +184,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
               </button>
             );
           })}
-        </div>
+        </fieldset>
       ) : null}
     </section>
   );
