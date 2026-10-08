@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { Mascot } from "@/features/mascot/ui/Mascot";
+import { MASCOT_GREETING } from "@/features/auth/domain/access-copy";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
 import { BubbleText } from "./BubbleText";
 import { SpeechBubble } from "./SpeechBubble";
@@ -23,7 +24,7 @@ export function BrandPanel({ scope = "user" }: { scope?: "user" | "admin" }) {
           )}
           sizes="(min-width: 1024px) 624px, 288px"
         />
-        <Suspense fallback={<BubbleText text="Oi! Eu sou o Nelcota." />}>
+        <Suspense fallback={<BubbleText text={MASCOT_GREETING} />}>
           <SpeechBubble />
         </Suspense>
       </div>
