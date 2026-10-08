@@ -29,12 +29,7 @@ export function ProductDemo() {
 
   return (
     <section ref={scope} aria-labelledby="demo-title" className="w-full max-w-5xl scroll-mt-28">
-      <SectionIntro
-        id="demo-title"
-        eyebrow="Veja em ação"
-        title="Chega de “tá vendo minha tela?”"
-        lead="Tudo o que uma boa explicação precisa, numa sala que abre no navegador."
-      />
+      <SectionIntro id="demo-title" title="Chega de “tá vendo minha tela?”" />
 
       <div className="mt-12 grid items-center gap-8 lg:mt-16 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-12">
         <ol className="flex flex-col gap-2 max-lg:order-2">

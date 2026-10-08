@@ -64,12 +64,7 @@ export function StepsSection() {
       aria-labelledby="steps-title"
       className="w-full max-w-5xl scroll-mt-28"
     >
-      <SectionIntro
-        id="steps-title"
-        eyebrow="Como funciona"
-        title="Três passos. Nenhuma instalação."
-        lead="Sem programa, sem extensão e sem configurar nada: a sala abre no navegador que você já usa."
-      />
+      <SectionIntro id="steps-title" title="Como funciona" />
 
       <ol data-steps-list className="relative mt-12 grid gap-10 sm:mt-16 md:grid-cols-3 md:gap-8">
         <span

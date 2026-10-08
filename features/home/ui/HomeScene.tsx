@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
-import { HERO_START_ID } from "./FinalCta";
 import { HomeEntrance } from "./HomeEntrance";
 import { HomeSections } from "./HomeSections";
 import { HomeStart } from "./HomeStart";
@@ -43,20 +42,16 @@ export function HomeScene({
           data-anim="subtitle"
           className="mt-4 max-w-lg text-center text-base leading-relaxed text-pretty text-ink-muted sm:text-lg"
         >
-          Sem instalar nada. Crie a sala, mande o link e mostre sua tela com o som do computador
-          junto.
+          Direto do navegador, com o som do computador junto. Quem recebe o link entra e já vê o que
+          você está mostrando.
         </p>
 
-        <div
-          id={HERO_START_ID}
-          data-anim="card"
-          className="mt-8 w-full scroll-mt-40 will-change-transform sm:mt-10"
-        >
+        <div data-anim="card" className="mt-8 w-full will-change-transform sm:mt-10">
           <HomeStart invalidCode={invalidCode} />
         </div>
       </div>
 
-      <HomeSections maxParticipants={maxParticipants} signedIn={account !== null} />
+      <HomeSections maxParticipants={maxParticipants} />
 
       <footer className="mt-24 flex w-full max-w-5xl flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
         <ShareSupportNote variant="badge" />

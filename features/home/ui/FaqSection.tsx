@@ -1,4 +1,5 @@
-import { ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { Link } from "react-router";
 import { SectionIntro } from "./SectionIntro";
 
 function faqItems(maxParticipants: number): { question: string; answer: string }[] {
@@ -31,14 +32,19 @@ function faqItems(maxParticipants: number): { question: string; answer: string }
       question: "As chamadas ficam gravadas?",
       answer: "Não. Áudio, vídeo, telas e mensagens do chat passam ao vivo e não são guardados.",
     },
+    {
+      question: "O que vocês guardam sobre mim?",
+      answer:
+        "Só o necessário para a conta e para o histórico de acesso às salas. Na página da conta você baixa tudo isso ou exclui a conta quando quiser, como manda a LGPD.",
+    },
   ];
 }
 
-/** Last objections before the final call to action, as native disclosure widgets. */
+/** Last objections, as native disclosure widgets, with the full privacy notice one click away. */
 export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
   return (
     <section aria-labelledby="faq-title" className="w-full max-w-3xl">
-      <SectionIntro id="faq-title" eyebrow="Dúvidas" title="Perguntas frequentes" />
+      <SectionIntro id="faq-title" title="Perguntas frequentes" />
 
       <div className="mt-10 flex flex-col gap-3">
         {faqItems(maxParticipants).map(({ question, answer }) => (
@@ -58,6 +64,17 @@ export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
           </details>
         ))}
       </div>
+
+      <p className="mt-6 text-center">
+        <Link
+          viewTransition
+          to="/privacidade"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-soft underline-offset-4 hover:underline"
+        >
+          Leia o aviso de privacidade
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </Link>
+      </p>
     </section>
   );
 }

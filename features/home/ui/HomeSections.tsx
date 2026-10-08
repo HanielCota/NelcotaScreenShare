@@ -4,21 +4,13 @@ import { BrowserCheckSection } from "./BrowserCheckSection";
 import { ProductDemo } from "./demo/ProductDemo";
 import { FaqSection } from "./FaqSection";
 import { FeaturesSection } from "./FeaturesSection";
-import { FinalCta } from "./FinalCta";
 import { StepsSection } from "./StepsSection";
-import { TrustSection } from "./TrustSection";
 
 /**
  * Everything below the hero, in the order a first-time visitor needs it: see it working,
- * learn the steps, the details, whether their browser fits, trust, doubts, then act.
+ * learn the steps, the details, whether their browser fits, then the remaining doubts.
  */
-export function HomeSections({
-  maxParticipants,
-  signedIn,
-}: {
-  maxParticipants: number;
-  signedIn: boolean;
-}) {
+export function HomeSections({ maxParticipants }: { maxParticipants: number }) {
   const scope = useRef<HTMLDivElement>(null);
   useScrollReveal(scope);
 
@@ -28,9 +20,7 @@ export function HomeSections({
       <StepsSection />
       <FeaturesSection maxParticipants={maxParticipants} />
       <BrowserCheckSection />
-      <TrustSection />
       <FaqSection maxParticipants={maxParticipants} />
-      <FinalCta signedIn={signedIn} />
     </div>
   );
 }
