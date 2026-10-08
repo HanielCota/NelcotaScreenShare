@@ -13,7 +13,7 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="glass flex flex-col gap-3 rounded-2xl p-4 sm:p-5">
+    <section className="panel flex flex-col gap-3 rounded-2xl p-4 sm:p-5">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="text-base font-medium">{title}</h2>

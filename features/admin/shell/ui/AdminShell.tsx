@@ -235,7 +235,7 @@ export function AdminShell({
               <Button variant="secondary" onClick={() => setPaletteOpen(true)}>
                 <Search data-icon="inline-start" aria-hidden="true" />
                 <span className="max-sm:sr-only">Buscar</span>
-                <kbd className="rounded-md border border-line px-1.5 text-[0.7rem] font-medium max-sm:hidden">
+                <kbd className="rounded-md border border-line px-1.5 text-xs font-medium max-sm:hidden">
                   Ctrl K
                 </kbd>
               </Button>

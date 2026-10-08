@@ -9,7 +9,7 @@ export function AdminErrorBoundary() {
   const revalidator = useRevalidator();
   if (isRouteErrorResponse(error) && error.status === 404) return <AdminNotFound />;
   return (
-    <div role="alert" className="glass mx-auto mt-8 w-full max-w-md rounded-2xl p-8 text-center">
+    <div role="alert" className="panel mx-auto mt-8 w-full max-w-md rounded-2xl p-8 text-center">
       <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-danger/15">
         <TriangleAlert className="size-5 text-danger" aria-hidden="true" />
       </span>

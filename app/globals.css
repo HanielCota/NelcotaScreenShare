@@ -90,6 +90,10 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  /*
+   * Radius scale: controls and small chips use md–xl, cards and panels 2xl, the room's
+   * floating chrome (dock, chat, tiles) 3xl, buttons and badges full.
+   */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -319,9 +323,14 @@
 }
 
 @layer components {
-  /* "Glass" surface used by the floating bars. */
+  /* "Glass" surface for bars and overlays that float over moving content (video, scroll). */
   .glass {
     @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl backdrop-saturate-150;
+  }
+
+  /* Opaque card for surfaces that sit on the plain canvas: a blur there has nothing to blur. */
+  .panel {
+    @apply border border-line bg-surface shadow-soft;
   }
 
   /*
@@ -352,7 +361,7 @@
  * contextual design takes precedence over the sidebar's utility classes.
  * The mobile sheet is portaled to body, outside the shell itself. */
 .admin-shell [data-slot="sidebar-inner"] {
-  @apply border border-line bg-surface/70 shadow-soft backdrop-blur-xl;
+  @apply border border-line bg-surface shadow-soft;
   border-radius: var(--radius-2xl);
 }
 

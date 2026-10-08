@@ -145,7 +145,7 @@ export function DockButton({
         {shortcut ? (
           <kbd
             data-slot="kbd"
-            className="bg-background/15 px-1.5 py-0.5 font-sans text-[0.7rem] font-medium"
+            className="bg-background/15 px-1.5 py-0.5 font-sans text-xs font-medium"
           >
             {shortcut}
           </kbd>

@@ -210,9 +210,7 @@ export function ReactionsMenu() {
           <Label htmlFor={handId} className="gap-2.5 text-sm font-medium">
             <Hand className="size-4 text-ink-subtle" aria-hidden="true" />
             Levantar a mão
-            <kbd className="rounded-md border border-line px-1.5 text-[0.7rem] text-ink-subtle">
-              H
-            </kbd>
+            <kbd className="rounded-md border border-line px-1.5 text-xs text-ink-subtle">H</kbd>
           </Label>
           <Switch id={handId} checked={handRaised} onCheckedChange={toggleHand} />
         </div>
