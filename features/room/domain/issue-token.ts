@@ -6,18 +6,21 @@ import { tokenRequestSchema, type TokenErrorCode } from "./token-contract";
  * has a test (tests/unit/issue-token.test.ts).
  */
 
-/** Result recorded in token_requests (the database's `token_result` enum). */
-type TokenLogResult =
-  | "granted"
-  | "wrong_password"
-  | "room_full"
-  | "rate_limited"
-  | "blocked"
-  | "unverified"
-  | "unauthenticated"
-  | "invalid"
-  | "invite_invalid"
-  | "error";
+/** Result recorded in token_requests; the database's `token_result` enum is built from it. */
+export const TOKEN_LOG_RESULTS = [
+  "granted",
+  "wrong_password",
+  "room_full",
+  "rate_limited",
+  "blocked",
+  "unverified",
+  "unauthenticated",
+  "invalid",
+  "invite_invalid",
+  "error",
+] as const;
+
+export type TokenLogResult = (typeof TOKEN_LOG_RESULTS)[number];
 
 export interface TokenAccount {
   id: string;
