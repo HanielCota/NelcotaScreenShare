@@ -1,7 +1,8 @@
 import { createLoader, parseAsString, parseAsStringLiteral } from "nuqs/server";
 import { pageParsers, periodParsers } from "@/lib/table-params";
 
-const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
+export const ROOM_STATUSES = ["ativa", "encerrada", "excluida"] as const;
+export type RoomStatus = (typeof ROOM_STATUSES)[number];
 
 const ROOM_SORTS = ["atividade", "inicio", "pico"] as const;
 

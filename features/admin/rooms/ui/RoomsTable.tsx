@@ -25,13 +25,8 @@ import { resetPage, type BulkSelection } from "@/lib/table-params";
 import { deleteRoomsAction, restoreRoomsAction } from "@/features/admin/rooms/actions";
 import type { RoomRow } from "@/features/admin/rooms/server/queries.server";
 import { roomParsers } from "@/features/admin/rooms/domain/search-params";
+import { STATUS_OPTIONS } from "@/features/admin/rooms/domain/labels";
 import { RoomStatus } from "./RoomStatus";
-
-const STATUS_OPTIONS = [
-  { value: "ativa", label: "Ao vivo" },
-  { value: "encerrada", label: "Encerradas" },
-  { value: "excluida", label: "Excluídas" },
-] as const;
 
 const SORT_OPTIONS = [
   { value: "atividade", label: "Última atividade" },

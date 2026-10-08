@@ -1,6 +1,7 @@
 import { csvExportRoute } from "@/features/admin/shell/server/csv-export-route.server";
 import { iterateRooms } from "@/features/admin/rooms/server/queries.server";
 import { loadRoomParams } from "@/features/admin/rooms/domain/search-params";
+import { roomStatus, STATUS_LABELS } from "@/features/admin/rooms/domain/labels";
 
 /** Rooms CSV with the screen filters (requires `room.export`). */
 export const exportCsv = csvExportRoute({
@@ -22,7 +23,7 @@ export const exportCsv = csvExportRoute({
   toCells: (row) => [
     row.id,
     row.code,
-    row.deleted ? "excluída" : row.status === "active" ? "ao vivo" : "encerrada",
+    STATUS_LABELS[roomStatus(row)].label.toLowerCase(),
     row.startedAt,
     row.finishedAt,
     row.finishedAt
