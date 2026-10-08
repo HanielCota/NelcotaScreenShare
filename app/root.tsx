@@ -27,6 +27,8 @@ import { getEnv } from "@/server/env.server";
 import { publicOrigin } from "@/server/seo.server";
 import { isIndexable } from "@/lib/seo";
 import { configureBrowserTelemetry } from "@/lib/telemetry.client";
+import { ErrorScreen } from "@/components/shell/ErrorScreen";
+import { Mascot } from "@/features/mascot/ui/Mascot";
 import { NavigationProgress } from "@/components/shell/NavigationProgress";
 import { ActiveRoom } from "@/features/room/ui/ActiveRoom";
 import type { loader as roomLoader } from "./routes/room";
@@ -123,16 +125,16 @@ export function ErrorBoundary() {
   const error = useRouteError();
   const missing = isRouteErrorResponse(error) && error.status === 404;
   return (
-    <main className="mx-auto max-w-xl px-6 py-24 text-center" role="alert">
-      <h1 className="text-2xl font-semibold">
-        {missing ? "Página não encontrada" : "Não foi possível abrir esta página"}
-      </h1>
-      <p className="mt-3 text-ink-muted">
-        {missing ? "Confira o endereço e tente de novo." : "Tente de novo em instantes."}
-      </p>
-      <a href="/" className="mt-6 inline-block text-brand-soft underline">
-        Voltar ao início
-      </a>
-    </main>
+    <ErrorScreen
+      missing={missing}
+      mascot={
+        <Mascot
+          className="size-32"
+          sizes="384px"
+          expression={missing ? "worried" : "surprised"}
+          canSleep={false}
+        />
+      }
+    />
   );
 }
