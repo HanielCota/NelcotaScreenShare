@@ -28,18 +28,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatNumber } from "@/lib/format";
 import { useSearchParams } from "react-router";
-
+import { formatNumber } from "@/lib/format";
 import { filterQuery, pageParsers, type BulkSelection } from "@/lib/table-params";
 import { cn } from "@/lib/utils";
+import type { PageInfo } from "./page-info";
 
-/** Sorting, filters and pagination belong to the server: the table only displays and selects. */
 const dataTableFeatures = tableFeatures({ rowSelectionFeature });
 type DataTableFeatures = typeof dataTableFeatures;
 export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures, TData>;
-
-import type { PageInfo } from "./page-info";
 
 interface DataTableProps<TData extends RowData & { id: string }> {
   /** Table label for screen readers. */
@@ -178,6 +175,7 @@ function Pagination({
   );
 }
 
+/** Sorting, filters and pagination belong to the server: the table only displays and selects. */
 export function DataTable<TData extends RowData & { id: string }>({
   label,
   columns,

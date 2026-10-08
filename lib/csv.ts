@@ -1,7 +1,6 @@
-/**
- * CSV for pt-BR Excel: ";" separator, UTF-8 with BOM and protection against
- * CSV injection (a cell starting with = + - @ tab or CR becomes text, with ').
- */
+// CSV for pt-BR Excel: ";" separator, UTF-8 with BOM and protection against
+// CSV injection (a cell starting with = + - @ tab or CR becomes text, with ').
+
 /** Byte order mark: makes Excel open the UTF-8 with accents intact. */
 export const CSV_BOM = String.fromCharCode(0xfeff);
 const SEPARATOR = ";";
