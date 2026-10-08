@@ -1,5 +1,6 @@
 import { useRoomContext } from "@livekit/components-react";
 import {
+  ConnectionState,
   RoomEvent,
   Track,
   type RemoteParticipant,
@@ -11,7 +12,7 @@ import { participantName } from "@/features/room/domain/participant-label";
 
 /**
  * Short notices of what happens in the room: who joined, who left and who
- * started showing their screen. They disappear on their own and need no click.
+ * started or stopped showing their screen. They disappear on their own and need no click.
  */
 export function useRoomNotices() {
   const room = useRoomContext();
@@ -25,16 +26,25 @@ export function useRoomNotices() {
       if (publication.source !== Track.Source.ScreenShare) return;
       toast(`${participantName(participant)} começou a mostrar a tela`, { duration: 3000 });
     };
+    const unpublished = (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+      if (publication.source !== Track.Source.ScreenShare) return;
+      // Someone leaving (or us disconnecting) also unpublishes: "saiu da sala" is enough.
+      if (room.state !== ConnectionState.Connected) return;
+      if (!room.remoteParticipants.has(participant.identity)) return;
+      toast(`${participantName(participant)} parou de mostrar a tela`, { duration: 3000 });
+    };
 
     room
       .on(RoomEvent.ParticipantConnected, joined)
       .on(RoomEvent.ParticipantDisconnected, left)
-      .on(RoomEvent.TrackPublished, published);
+      .on(RoomEvent.TrackPublished, published)
+      .on(RoomEvent.TrackUnpublished, unpublished);
     return () => {
       room
         .off(RoomEvent.ParticipantConnected, joined)
         .off(RoomEvent.ParticipantDisconnected, left)
-        .off(RoomEvent.TrackPublished, published);
+        .off(RoomEvent.TrackPublished, published)
+        .off(RoomEvent.TrackUnpublished, unpublished);
     };
   }, [room]);
 }
