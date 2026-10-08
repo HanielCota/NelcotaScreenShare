@@ -4,8 +4,8 @@ import { createAuditRecorder, type AuditRecorder } from "@/server/audit.server";
 import { requestHeaders } from "@/server/request-context.server";
 import { clientIpFrom } from "@/server/client-ip.server";
 import { createRateLimiter, type RateLimiter } from "@/server/rate-limit.server";
-import { getAdminSession, needsTwoFactorSetup } from "./admin-session.server";
-import { getUserSession } from "./participant-session.server";
+import { getAdminSession, needsTwoFactorSetup, type AdminSession } from "./admin-session.server";
+import { getUserSession, type UserSession } from "./participant-session.server";
 import { can, type PermissionRequest } from "./permissions.server";
 import { FRESH_SESSION_SECONDS } from "./auth-shared.server";
 
@@ -16,11 +16,11 @@ interface Policy extends BasePolicy {
   allowWithoutTwoFactor?: boolean;
 }
 type AdminContext = {
-  admin: NonNullable<Awaited<ReturnType<typeof getAdminSession>>>;
+  admin: AdminSession;
   audit: AuditRecorder;
 };
 type UserContext = {
-  current: NonNullable<Awaited<ReturnType<typeof getUserSession>>>;
+  current: UserSession;
   audit: AuditRecorder;
 };
 const publicLimiters = new Map<string, RateLimiter>();
