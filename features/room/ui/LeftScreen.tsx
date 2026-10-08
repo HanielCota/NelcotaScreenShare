@@ -1,11 +1,11 @@
 import { ArrowLeft, Check, Link2, Lock, Plus, RotateCcw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useLocation, useViewTransitionState } from "react-router";
 import { Button } from "@/components/ui/button";
 import type { Expression } from "@/features/mascot/domain/face";
 import { Mascot } from "@/features/mascot/ui/Mascot";
 import { formatCallDuration, type LeaveReason } from "@/features/room/domain/leave";
-import { roomPath } from "@/features/room/domain/room-code";
+import { useCopyRoomLink } from "@/features/room/hooks/use-copy-room-link";
 import { gsap, MOTION_DURATION, MOTION_QUERIES, useGSAP } from "@/lib/animation/gsap";
 
 /** Title, mascot mood and what can be done for each leave reason. */
@@ -48,25 +48,9 @@ const COPY: Record<
 };
 
 function CopyRoomLink({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-  useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), 2500);
-    return () => clearTimeout(timer);
-  }, [copied]);
+  const { copied, copy } = useCopyRoomLink(code);
   return (
-    <Button
-      variant="outline"
-      size="lg"
-      aria-live="polite"
-      onClick={() => {
-        // Without the invite: the link is meant to be sent to another person.
-        void navigator.clipboard
-          .writeText(`${window.location.origin}${roomPath(code)}`)
-          .then(() => setCopied(true))
-          .catch(() => undefined);
-      }}
-    >
+    <Button variant="outline" size="lg" aria-live="polite" onClick={() => void copy()}>
       {copied ? (
         <Check className="text-success" aria-hidden="true" />
       ) : (

@@ -1,40 +1,24 @@
 import { Check, Link2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { roomPath } from "@/features/room/domain/room-code";
+import { useState } from "react";
+import { roomUrl, useCopyRoomLink } from "@/features/room/hooks/use-copy-room-link";
 import { cn } from "@/lib/utils";
 
 /** Copies the invite; without clipboard access, shows the link to copy by hand. */
 export function InviteLinkButton({ code }: { code: string }) {
-  const [state, setState] = useState<"idle" | "copied" | "manual">("idle");
+  const [manual, setManual] = useState(false);
+  const { copied, copy } = useCopyRoomLink(code, () => setManual(true));
 
-  useEffect(() => {
-    if (state !== "copied") return;
-    const timer = setTimeout(() => setState("idle"), 2500);
-    return () => clearTimeout(timer);
-  }, [state]);
-
-  async function copy() {
-    const url = `${window.location.origin}${roomPath(code)}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setState("copied");
-    } catch {
-      setState("manual");
-    }
-  }
-
-  if (state === "manual") {
+  if (manual) {
     return (
       <p className="w-full text-center text-sm text-ink-muted">
         Copie e mande para o time:{" "}
         <span className="font-sans font-medium break-all text-ink tabular-nums select-all">
-          {`${window.location.origin}${roomPath(code)}`}
+          {roomUrl(code)}
         </span>
       </p>
     );
   }
 
-  const copied = state === "copied";
   return (
     <button
       type="button"
