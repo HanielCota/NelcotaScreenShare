@@ -13,7 +13,7 @@ export type AuthScope = "admin" | "user";
  * - per IP: 20 failures in 15 min lock the IP for 15 min.
  * The message for whoever is trying is always the same, whether the account exists or not.
  */
-export const LOCKOUT = {
+const LOCKOUT = {
   perAccount: 5,
   baseLockMs: 15 * 60 * 1000,
   maxLockMs: 24 * 60 * 60 * 1000,
