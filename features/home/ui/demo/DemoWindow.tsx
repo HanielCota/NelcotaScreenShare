@@ -1,80 +1,53 @@
 import { Hand, MessageSquare, Mic, MonitorUp, PhoneOff, Volume2 } from "lucide-react";
 import type { ReactNode } from "react";
 
-/** Bars of the fake shared report (heights in %). */
-const CHART = [38, 54, 46, 70, 62, 84, 76];
+/**
+ * A miniature of a real call, drawn with a fixed dark palette (the room's own look, the
+ * same in both themes). Sizes use container units, so it scales like a picture.
+ */
 
-function Avatar({ initial, tone }: { initial: string; tone: string }) {
-  return (
-    <span
-      className={`grid size-6 place-items-center rounded-full text-xs font-semibold ring-2 ring-surface ${tone}`}
-    >
-      {initial}
-    </span>
-  );
-}
+const TONES = {
+  keyword: "text-[#c4a7ff]",
+  fn: "text-[#8ab4ff]",
+  type: "text-[#7fd8c7]",
+  string: "text-[#a2e1b2]",
+  number: "text-[#ffb27a]",
+};
 
-function DockKey({ children, active = false }: { children: ReactNode; active?: boolean }) {
-  return (
-    <span
-      className={
-        active
-          ? "grid size-8 place-items-center rounded-full bg-brand text-brand-ink"
-          : "grid size-8 place-items-center rounded-full bg-surface-3 text-ink-muted"
-      }
-    >
-      {children}
-    </span>
-  );
-}
+type Token = [text: string, tone?: keyof typeof TONES];
 
-/** What is being shared: a small sales report with a "Publicar" button. */
-function SharedReport() {
-  return (
-    <div className="absolute inset-0 flex gap-[3%] bg-surface p-[4%]">
-      <div className="flex w-[18%] flex-col gap-2 max-sm:hidden">
-        <span className="h-2 w-3/4 rounded-full bg-ink/15" />
-        <span className="h-2 w-full rounded-full bg-ink/8" />
-        <span className="h-2 w-2/3 rounded-full bg-ink/8" />
-        <span className="h-2 w-5/6 rounded-full bg-ink/8" />
-      </div>
-      <div className="flex flex-1 flex-col gap-[4%]">
-        <span className="h-2.5 w-2/5 rounded-full bg-ink/20" />
-        <div className="flex flex-1 items-end gap-[4%] rounded-xl border border-line p-[4%]">
-          {CHART.map((height, index) => (
-            <span
-              key={index}
-              data-demo="bar"
-              style={{ height: `${height}%` }}
-              className="flex-1 origin-bottom rounded-t-md bg-brand/70"
-            />
-          ))}
-        </div>
-      </div>
-      <span
-        data-demo="target"
-        className="absolute top-[7%] left-[74%] rounded-full bg-brand px-[3%] py-[1.5%] text-xs font-semibold text-brand-ink ring-brand-soft/40"
-      >
-        Publicar
-      </span>
-    </div>
-  );
-}
+/** The file Bruno is sharing; "BUG" marks where the pointer lands (line 4). */
+const CODE: Token[][] = [
+  [
+    ["import", "keyword"],
+    [" { "],
+    ["Cart", "type"],
+    [" } "],
+    ["from", "keyword"],
+    [' "./types"', "string"],
+    [";"],
+  ],
+  [],
+  [["export function", "keyword"], [" "], ["total", "fn"], ["(cart?: "], ["Cart", "type"], [") {"]],
+  [["  return", "keyword"], [" "], ["BUG"], [".reduce("]],
+  [["    (sum, item) => sum + item.price * item.qty,"]],
+  [["    "], ["0", "number"], [","]],
+  [["  );"]],
+  [["}"]],
+];
 
-/** Someone else's pointer, as the room draws it (arrow + name). */
+/** Ana's pointer, as the room draws it: arrow and name. It rests on the bug. */
 function RemotePointer() {
   return (
-    // The layer is as large as the stage, so xPercent/yPercent are stage percentages.
-    <div
+    <span
       data-demo="pointer"
-      className="pointer-events-none absolute inset-0"
-      style={{ transform: "translate(80%, 12%)" }}
+      className="pointer-events-none absolute top-[70%] left-[55%] z-10 flex items-start"
     >
       <span
         data-demo="ripple"
-        className="absolute -top-2 -left-2 size-6 rounded-full border-2 border-violet opacity-0"
+        className="absolute -top-[1.2cqi] -left-[1.2cqi] size-[3cqi] rounded-full border-2 border-[#a78bfa] opacity-0"
       />
-      <svg viewBox="0 0 16 16" className="size-5 text-violet drop-shadow" aria-hidden="true">
+      <svg viewBox="0 0 16 16" className="size-[2.6cqi] text-[#8b5cf6] drop-shadow">
         <path
           d="M2 1.5 13.5 7 8 8.4 5.6 14z"
           fill="currentColor"
@@ -83,110 +56,231 @@ function RemotePointer() {
           strokeLinejoin="round"
         />
       </svg>
-      <span className="ml-3 inline-block rounded-full bg-violet px-2 py-0.5 text-xs font-semibold text-canvas">
+      <span className="mt-[2cqi] rounded-full bg-[#8b5cf6] px-[1.2cqi] py-[0.3cqi] font-sans text-[1.5cqi] font-semibold text-white">
         Ana
+      </span>
+    </span>
+  );
+}
+
+function CodeLine({ tokens, number }: { tokens: Token[]; number: number }) {
+  return (
+    <div data-demo="line" className="flex gap-[3cqi] whitespace-pre">
+      <span className="w-[2.5cqi] text-right text-white/25 tabular-nums">{number}</span>
+      <span>
+        {tokens.map(([text, tone], index) => {
+          if (text === "BUG") {
+            return (
+              <span
+                key={index}
+                data-demo="target"
+                className="relative inline-block underline decoration-[#ff6b6b] decoration-wavy underline-offset-[0.5cqi]"
+              >
+                cart.items
+                <RemotePointer />
+              </span>
+            );
+          }
+          return (
+            <span key={index} className={tone ? TONES[tone] : undefined}>
+              {text}
+            </span>
+          );
+        })}
       </span>
     </div>
   );
 }
 
+/** What Bruno shares: an editor with the failing file and the error in the terminal. */
+function SharedEditor() {
+  return (
+    <div className="absolute inset-0 flex flex-col bg-[#1b1b1f] font-mono text-[1.75cqi] leading-[1.7] text-[#e6e6ea]">
+      <div className="flex border-b border-white/8 font-sans text-[1.4cqi]">
+        <span className="border-r border-white/8 bg-[#232328] px-[2cqi] py-[0.9cqi] text-white">
+          cart.ts
+        </span>
+        <span className="px-[2cqi] py-[0.9cqi] text-white/40">checkout.tsx</span>
+      </div>
+      <div className="flex-1 px-[2cqi] py-[1.6cqi]">
+        {CODE.map((tokens, index) => (
+          <CodeLine key={index} tokens={tokens} number={index + 1} />
+        ))}
+      </div>
+      <div
+        data-demo="terminal"
+        className="border-t border-white/8 bg-[#141417] px-[2cqi] py-[1.2cqi] text-[1.4cqi] leading-[1.6]"
+      >
+        <p className="text-[#ff8a8a]">
+          TypeError: Cannot read properties of undefined (reading &apos;items&apos;)
+        </p>
+        <p className="text-white/40"> at total (cart.ts:4:15)</p>
+      </div>
+    </div>
+  );
+}
+
+function Tile({
+  name,
+  tag,
+  tone,
+  speaking = false,
+  children,
+}: {
+  name: string;
+  tag?: string;
+  tone: string;
+  speaking?: boolean;
+  children?: ReactNode;
+}) {
+  return (
+    <div
+      className={`relative grid aspect-video place-items-center rounded-[1.6cqi] bg-[#232328] ${
+        speaking ? "ring-[0.3cqi] ring-[#a2e1b2] ring-inset" : ""
+      }`}
+    >
+      <span
+        className={`grid size-[5cqi] place-items-center rounded-full text-[1.8cqi] font-semibold ${tone}`}
+      >
+        {name[0]}
+      </span>
+      <span className="absolute bottom-[0.8cqi] left-[0.8cqi] rounded-full bg-black/50 px-[1cqi] py-[0.2cqi] text-[1.25cqi] font-medium text-white">
+        {name}
+        {tag ? <span className="text-white/55"> {tag}</span> : null}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+function DockKey({
+  children,
+  tone = "bg-white/10 text-white/80",
+}: {
+  children: ReactNode;
+  tone?: string;
+}) {
+  return (
+    <span
+      className={`grid size-[4.4cqi] place-items-center rounded-full ${tone} [&_svg]:size-[2cqi]`}
+    >
+      {children}
+    </span>
+  );
+}
+
 /**
- * A miniature of the room: Bruno shares a report with sound, Ana points at the
- * button, reacts and writes in the chat, and a guest joins. Every element starts in its final state,
- * so the picture makes sense without JavaScript or with reduced motion.
+ * Bruno shares the failing file with sound, Ana points at the bug, raises her hand, reacts
+ * and writes, and Iris joins through the link as a guest. Every element starts in its
+ * final state, so the picture makes sense without JavaScript or with reduced motion.
  */
 export function DemoWindow() {
   return (
-    <figure className="panel overflow-hidden rounded-2xl text-ink">
+    <figure className="@container overflow-hidden rounded-[2cqi] border border-white/12 bg-[#161618] text-white shadow-[0_40px_120px_-40px_rgb(0_0_0/0.9)]">
       <figcaption className="sr-only">
-        Prévia de uma sala do Nelcota: Bruno compartilha um relatório com som, Ana aponta para o
-        botão Publicar, reage e escreve no chat, e Iris entra pelo link como convidada.
+        Prévia de uma sala do Nelcota: Bruno compartilha o editor com um erro e o som do computador,
+        Ana aponta a linha com o bug, levanta a mão e escreve no chat, e Iris entra pelo link como
+        convidada.
       </figcaption>
-      <div aria-hidden="true">
-        <div className="flex items-center gap-3 border-b border-line px-4 py-3">
-          <span className="flex gap-1.5">
-            <span className="size-2.5 rounded-full bg-ink/15" />
-            <span className="size-2.5 rounded-full bg-ink/15" />
-            <span className="size-2.5 rounded-full bg-ink/15" />
+      <div aria-hidden="true" className="font-sans">
+        <div className="flex items-center gap-[1.6cqi] border-b border-white/8 px-[2cqi] py-[1.4cqi] text-[1.4cqi]">
+          <span className="flex gap-[0.8cqi]">
+            <span className="size-[1.2cqi] rounded-full bg-white/15" />
+            <span className="size-[1.2cqi] rounded-full bg-white/15" />
+            <span className="size-[1.2cqi] rounded-full bg-white/15" />
           </span>
-          <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-medium text-ink-muted tabular-nums">
+          <span className="rounded-full bg-white/8 px-[1.4cqi] py-[0.3cqi] text-white/70 tabular-nums">
             kfa-mtrx-q2p
           </span>
-          <span className="ml-auto flex -space-x-1.5">
-            <Avatar initial="B" tone="bg-info text-canvas" />
-            <Avatar initial="A" tone="bg-violet text-canvas" />
-            <Avatar initial="V" tone="bg-brand text-brand-ink" />
+          <span className="inline-flex items-center gap-[0.6cqi] text-white/60">
+            <span className="size-[0.9cqi] rounded-full bg-[#4ade80]" />
+            Conectado
           </span>
+          <span className="ml-auto text-white/50">3 pessoas</span>
         </div>
 
-        <div className="p-3 sm:p-4">
+        <div className="grid grid-cols-[1fr_22%] gap-[1.6cqi] p-[1.6cqi]">
           <div
             data-demo="stage"
-            className="relative aspect-video overflow-hidden rounded-2xl bg-surface-2"
+            className="relative aspect-[16/10] overflow-hidden rounded-[1.6cqi] bg-[#0d0d0f]"
           >
             <div data-demo="screen" className="absolute inset-0">
-              <SharedReport />
+              <SharedEditor />
             </div>
             <span
-              data-demo="badge"
-              className="absolute bottom-[5%] left-[4%] inline-flex items-center gap-1.5 rounded-full bg-canvas/85 px-2.5 py-1 text-xs font-medium backdrop-blur"
+              data-demo="guest"
+              className="absolute top-[3%] right-[3%] inline-flex items-center gap-[0.8cqi] rounded-full bg-black/70 px-[1.4cqi] py-[0.5cqi] text-[1.35cqi] font-medium backdrop-blur"
             >
-              <Volume2 className="size-3.5 text-brand-soft" aria-hidden="true" />
+              <span className="size-[0.9cqi] rounded-full bg-[#4ade80]" />
+              Iris (convidado) entrou na sala
+            </span>
+            <span
+              data-demo="badge"
+              className="absolute bottom-[22%] left-[3%] inline-flex items-center gap-[0.8cqi] rounded-full bg-black/70 px-[1.4cqi] py-[0.5cqi] text-[1.35cqi] font-medium backdrop-blur"
+            >
+              <Volume2 className="size-[1.8cqi] text-[#a2e1b2]" />
               Bruno · tela com som
-              <span className="flex h-3 items-end gap-0.5">
-                <span data-demo="level" className="h-full w-0.5 origin-bottom rounded bg-brand" />
-                <span data-demo="level" className="h-2/3 w-0.5 origin-bottom rounded bg-brand" />
-                <span data-demo="level" className="h-full w-0.5 origin-bottom rounded bg-brand" />
+              <span className="flex h-[1.6cqi] items-end gap-[0.3cqi]">
+                <span
+                  data-demo="level"
+                  className="h-full w-[0.35cqi] origin-bottom rounded bg-[#a2e1b2]"
+                />
+                <span
+                  data-demo="level"
+                  className="h-2/3 w-[0.35cqi] origin-bottom rounded bg-[#a2e1b2]"
+                />
+                <span
+                  data-demo="level"
+                  className="h-full w-[0.35cqi] origin-bottom rounded bg-[#a2e1b2]"
+                />
               </span>
             </span>
             <span
-              data-demo="guest"
-              className="absolute top-[5%] left-[4%] inline-flex items-center gap-1.5 rounded-full bg-canvas/85 px-2.5 py-1 text-xs font-medium backdrop-blur"
-            >
-              <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
-              Iris (convidado) entrou na sala
-            </span>
-            <RemotePointer />
-            <span
               data-demo="reaction"
-              className="absolute right-[6%] bottom-[8%] grid size-9 place-items-center rounded-full bg-canvas/85 text-lg backdrop-blur"
+              className="absolute right-[3%] bottom-[22%] grid size-[5cqi] place-items-center rounded-full bg-black/70 text-[2.6cqi] backdrop-blur"
             >
               👏
             </span>
           </div>
 
-          <div className="mt-3 flex items-center gap-2">
-            <span
-              data-demo="hand"
-              className="inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-medium text-warning"
-            >
-              <Hand className="size-3.5" aria-hidden="true" />
-              Ana levantou a mão
-            </span>
-            <span
-              data-demo="chat"
-              className="ml-auto truncate rounded-2xl rounded-br-md bg-surface-3 px-3 py-1.5 text-xs max-sm:hidden"
-            >
-              <span className="font-semibold text-violet">Ana:</span> é esse botão aqui?
-            </span>
+          <div className="flex flex-col gap-[1.6cqi]">
+            <Tile name="Bruno" tone="bg-[#3b82f6] text-white" speaking />
+            <Tile name="Ana" tone="bg-[#8b5cf6] text-white">
+              <span
+                data-demo="hand"
+                className="absolute top-[0.8cqi] right-[0.8cqi] grid size-[3cqi] place-items-center rounded-full bg-[#fbbf24] text-black [&_svg]:size-[1.7cqi]"
+              >
+                <Hand />
+              </span>
+            </Tile>
+            <Tile name="Iris" tag="(convidado)" tone="bg-[#a2e1b2] text-[#14281c]" />
           </div>
+        </div>
 
-          <div className="mt-3 flex justify-center gap-2">
+        <div className="flex items-center gap-[1.6cqi] px-[1.6cqi] pb-[1.6cqi]">
+          <span
+            data-demo="chat"
+            className="rounded-[1.6cqi] rounded-bl-[0.4cqi] bg-white/8 px-[1.6cqi] py-[0.8cqi] text-[1.4cqi]"
+          >
+            <span className="font-semibold text-[#c4a7ff]">Ana:</span> é o{" "}
+            <code className="font-mono">cart</code> vindo vazio, né?
+          </span>
+          <div className="ml-auto flex gap-[1cqi]">
             <DockKey>
-              <Mic className="size-4" />
+              <Mic />
             </DockKey>
-            <DockKey active>
-              <MonitorUp className="size-4" />
-            </DockKey>
-            <DockKey>
-              <Hand className="size-4" />
+            <DockKey tone="bg-[#a2e1b2] text-[#14281c]">
+              <MonitorUp />
             </DockKey>
             <DockKey>
-              <MessageSquare className="size-4" />
+              <Hand />
             </DockKey>
-            <span className="grid size-8 place-items-center rounded-full bg-danger/15 text-danger">
-              <PhoneOff className="size-4" />
-            </span>
+            <DockKey>
+              <MessageSquare />
+            </DockKey>
+            <DockKey tone="bg-[#f87171]/20 text-[#f87171]">
+              <PhoneOff />
+            </DockKey>
           </div>
         </div>
       </div>
