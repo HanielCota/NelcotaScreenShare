@@ -17,6 +17,7 @@ import {
 } from "@/features/mascot/client/events";
 import { generateRoomCode, roomLink, roomPath } from "@/features/room/domain/room-code";
 import { parseRoomInput, type RoomInput } from "@/features/room/domain/room-input";
+import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { cn } from "@/lib/utils";
 
 interface SmartBarProps {
@@ -136,23 +137,7 @@ export function SmartBar({ invalidCode, pending, onNavigate, mascot }: SmartBarP
   }, [invalidCode]);
 
   // "/" focuses the bar (outside text fields), like in search engines.
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
-      const target = event.target;
-      if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        (target instanceof HTMLElement && target.isContentEditable)
-      ) {
-        return;
-      }
-      event.preventDefault();
-      inputRef.current?.focus();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  useShortcut("/", () => inputRef.current?.focus());
 
   useEffect(() => () => setMascotDoubt(false), []);
 
