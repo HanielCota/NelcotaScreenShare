@@ -1,10 +1,18 @@
 import { VideoTrack, type TrackReference } from "@livekit/components-react";
-import { Maximize2, Minimize2, MonitorUp, MousePointerClick } from "lucide-react";
-import { useRef, useState } from "react";
+import {
+  Maximize2,
+  Minimize2,
+  MonitorUp,
+  MousePointerClick,
+  PictureInPicture2,
+  type LucideIcon,
+} from "lucide-react";
+import { useRef, useState, type RefObject } from "react";
 import { Hint } from "@/components/Hint";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { participantName } from "@/features/room/domain/participant-label";
 import { usePageFullscreen } from "@/features/room/hooks/use-page-fullscreen";
+import { usePictureInPicture } from "@/features/room/hooks/use-picture-in-picture";
 import { cn } from "@/lib/utils";
 import { PointerLayer, usePointers } from "./PointerLayer";
 
@@ -18,6 +26,32 @@ function sharerName(ref: TrackReference): string {
   return ref.participant.isLocal ? "Você" : participantName(ref.participant);
 }
 
+function StageButton({
+  label,
+  shortcut,
+  icon: Icon,
+  onPress,
+}: {
+  label: string;
+  shortcut: string;
+  icon: LucideIcon;
+  onPress: () => void;
+}) {
+  return (
+    <Hint text={`${label} (${shortcut})`}>
+      <button
+        type="button"
+        onClick={onPress}
+        aria-keyshortcuts={shortcut}
+        aria-label={label}
+        className="glass pointer-events-auto grid size-9 place-items-center rounded-xl text-ink-muted transition-colors hover:text-ink"
+      >
+        <Icon className="size-4" aria-hidden="true" />
+      </button>
+    </Hint>
+  );
+}
+
 function FullscreenButton({
   isFullscreen,
   onToggle,
@@ -25,20 +59,29 @@ function FullscreenButton({
   isFullscreen: boolean;
   onToggle: () => void;
 }) {
-  const label = isFullscreen ? "Sair da tela cheia" : "Tela cheia";
-  const Icon = isFullscreen ? Minimize2 : Maximize2;
   return (
-    <Hint text={`${label} (F)`}>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-keyshortcuts="F"
-        aria-label={label}
-        className="glass pointer-events-auto grid size-9 place-items-center rounded-xl text-ink-muted transition-colors hover:text-ink"
-      >
-        <Icon className="size-4" aria-hidden="true" />
-      </button>
-    </Hint>
+    <StageButton
+      label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+      shortcut="F"
+      icon={isFullscreen ? Minimize2 : Maximize2}
+      onPress={onToggle}
+    />
+  );
+}
+
+function PictureInPictureButton({ videoRef }: { videoRef: RefObject<HTMLVideoElement | null> }) {
+  const { isPictureInPicture, canPictureInPicture, toggle } = usePictureInPicture(videoRef);
+  useShortcut("j", () => void toggle(), canPictureInPicture);
+
+  if (!canPictureInPicture) return null;
+
+  return (
+    <StageButton
+      label={isPictureInPicture ? "Fechar a janela" : "Abrir em janela"}
+      shortcut="J"
+      icon={PictureInPicture2}
+      onPress={() => void toggle()}
+    />
   );
 }
 
@@ -142,6 +185,8 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
               </button>
             </Hint>
           )}
+          {/* Your own screen in a window would bring back the mirror effect. */}
+          {isOwnScreen ? null : <PictureInPictureButton videoRef={videoRef} />}
           {canFullscreen ? (
             <FullscreenButton
               isFullscreen={isFullscreen}
