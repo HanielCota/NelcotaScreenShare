@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { useShortcut } from "@/lib/hooks/use-shortcut";
 import { cn } from "@/lib/utils";
-import { canShareScreen } from "@/features/room/domain/share-support";
 import type { ChatState } from "@/features/room/hooks/use-chat-state";
 import { DockButton } from "./DockButton";
 import { LeaveMenu } from "./LeaveMenu";
@@ -31,7 +30,6 @@ export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
   const [micBusy, setMicBusy] = useState(false);
   // Microphone sign of life: alone in the room, nobody confirms you are being heard.
   const speaking = useIsSpeaking(localParticipant) && isMicrophoneEnabled;
-  const shareSupported = canShareScreen();
 
   async function toggleMic() {
     setMicBusy(true);
@@ -114,7 +112,6 @@ export function ControlDock({ chat, share, onLeave }: ControlDockProps) {
 
           <ShareMenu
             isSharing={share.isSharing}
-            supported={shareSupported}
             busy={share.busy}
             onShare={(choice) => void share.start(choice)}
             onStop={() => void share.stop()}

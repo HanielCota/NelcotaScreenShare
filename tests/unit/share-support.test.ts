@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { classifyShareSupport } from "@/features/room/domain/share-support";
+import { canShare, classifyShareSupport, sharesAudio } from "@/features/room/domain/share-support";
 
 const UA = {
   chrome:
@@ -43,4 +43,15 @@ test("desktop without the feature", () => {
     classifyShareSupport({ userAgent: UA.chrome, hasDisplayMedia: false }),
     "unsupported",
   );
+});
+
+test("only desktop browsers share, and only Chromium sends the computer audio", () => {
+  assert.equal(canShare("full"), true);
+  assert.equal(canShare("screen-only"), true);
+  assert.equal(canShare("safari"), true);
+  assert.equal(canShare("mobile"), false);
+  assert.equal(canShare("unsupported"), false);
+  assert.equal(sharesAudio("full"), true);
+  assert.equal(sharesAudio("screen-only"), false);
+  assert.equal(sharesAudio("safari"), false);
 });

@@ -1,18 +1,12 @@
 import { CircleCheck, Info, TriangleAlert } from "lucide-react";
-import { useSyncExternalStore } from "react";
-import {
-  currentShareSupport,
-  SHARE_SUPPORT_TEXT,
-  type ShareSupport,
-} from "@/features/room/domain/share-support";
+import { canShare, SHARE_SUPPORT_TEXT } from "@/features/room/domain/share-support";
+import { useShareSupport } from "@/features/room/hooks/use-share-support";
 import { cn } from "@/lib/utils";
 
 const ICONS = { ok: CircleCheck, warn: TriangleAlert, info: Info } as const;
 const ICON_COLORS = { ok: "text-success", warn: "text-warning", info: "text-brand-soft" } as const;
 
 const DOT_COLORS = { ok: "bg-success", warn: "bg-warning", info: "bg-brand-soft" } as const;
-
-const noop = () => () => {};
 
 /**
  * "Will it work here?": what the viewer's browser can do
@@ -27,12 +21,11 @@ export function ShareSupportNote({
   /** "line": access screens. "badge": footer. "prejoin": guidance for the next step. */
   variant?: "line" | "badge" | "prejoin";
 }) {
-  const support = useSyncExternalStore<ShareSupport | null>(noop, currentShareSupport, () => null);
+  const support = useShareSupport();
   if (!support) return null;
   const { tone, title, detail } = SHARE_SUPPORT_TEXT[support];
   const Icon = ICONS[tone];
   if (variant === "prejoin") {
-    const canShare = support === "full" || support === "screen-only" || support === "safari";
     return (
       <div
         className={cn(
@@ -41,7 +34,7 @@ export function ShareSupportNote({
         )}
       >
         <p>
-          {canShare
+          {canShare(support)
             ? "Você poderá compartilhar sua tela depois de entrar."
             : "Depois de entrar, você poderá conversar e assistir."}
         </p>
