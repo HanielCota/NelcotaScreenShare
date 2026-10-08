@@ -71,8 +71,8 @@ export function BugArt() {
 export function ReviewArt() {
   return (
     <Shot title="Figma · Tela de login">
-      <div className="grid place-items-center px-[6cqi] py-[5cqi]">
-        <div className="w-[62%] rounded-[2.4cqi] bg-white p-[4cqi] text-[#1f2023]">
+      <div className="px-[6cqi] py-[5cqi]">
+        <div className="w-[56%] rounded-[2.4cqi] bg-white p-[4cqi] text-[#1f2023]">
           <p className="text-[4.4cqi] leading-tight font-semibold tracking-tight">
             Bem-vindo de volta
           </p>
@@ -87,8 +87,8 @@ export function ReviewArt() {
           </span>
         </div>
       </div>
-      <Pointer name="Lia" className="top-[70%] left-[36%]" />
-      <span className="absolute top-[26%] right-[5cqi] max-w-[30%] rounded-[2cqi] rounded-tr-[0.6cqi] bg-[#2c2c30] px-[2.4cqi] py-[1.6cqi] text-[2.6cqi] leading-snug">
+      <Pointer name="Lia" className="top-[66%] left-[27%]" />
+      <span className="absolute top-[30%] right-[5cqi] max-w-[30%] rounded-[2cqi] rounded-tr-[0.6cqi] bg-[#2c2c30] px-[2.4cqi] py-[1.6cqi] text-[2.6cqi] leading-snug">
         <span className="font-semibold text-[#c4a7ff]">Lia:</span> esse botão podia ocupar a largura
         toda, né?
       </span>
