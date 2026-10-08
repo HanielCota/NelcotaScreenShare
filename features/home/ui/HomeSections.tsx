@@ -1,5 +1,3 @@
-import { useRef } from "react";
-import { useScrollReveal } from "@/features/home/hooks/use-scroll-reveal";
 import { BrowserCheckSection } from "./BrowserCheckSection";
 import { ProductDemo } from "./demo/ProductDemo";
 import { FaqSection } from "./FaqSection";
@@ -11,11 +9,8 @@ import { StepsSection } from "./StepsSection";
  * learn the steps, the details, whether their browser fits, then the remaining doubts.
  */
 export function HomeSections({ maxParticipants }: { maxParticipants: number }) {
-  const scope = useRef<HTMLDivElement>(null);
-  useScrollReveal(scope);
-
   return (
-    <div ref={scope} className="flex w-full flex-col items-center gap-28 sm:gap-40">
+    <div className="flex w-full flex-col items-center gap-28 sm:gap-40">
       <ProductDemo />
       <StepsSection />
       <FeaturesSection maxParticipants={maxParticipants} />

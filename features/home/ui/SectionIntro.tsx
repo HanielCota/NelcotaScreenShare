@@ -10,7 +10,6 @@ export function SectionIntro({
   return (
     <h2
       id={id}
-      data-reveal-heading
       className="mx-auto max-w-2xl text-center text-3xl leading-tight tracking-[-0.03em] sm:text-4xl"
     >
       {title}

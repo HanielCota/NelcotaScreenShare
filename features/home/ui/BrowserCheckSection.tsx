@@ -26,14 +26,11 @@ export function BrowserCheckSection() {
     <section aria-labelledby="browsers-title" className="w-full max-w-3xl">
       <SectionIntro id="browsers-title" title="Funciona no seu navegador?" />
 
-      <div data-reveal className="mt-10 flex justify-center">
+      <div className="mt-10 flex justify-center">
         <ShareSupportNote className="rounded-2xl border border-brand/30 bg-brand/8 px-4 py-3" />
       </div>
 
-      <div
-        data-reveal
-        className="mt-8 overflow-x-auto rounded-3xl border border-line bg-surface/60"
-      >
+      <div className="relative mt-8 overflow-x-auto rounded-3xl border border-line bg-surface/60">
         <table className="w-full min-w-[30rem] text-sm">
           <caption className="sr-only">O que cada navegador faz na sala</caption>
           <thead>
@@ -77,7 +74,7 @@ export function BrowserCheckSection() {
           </tbody>
         </table>
       </div>
-      <p data-reveal className="mt-4 text-center text-xs text-ink-subtle">
+      <p className="mt-4 text-center text-xs text-ink-subtle">
         Em qualquer um deles você assiste, fala e usa o chat.
       </p>
     </section>

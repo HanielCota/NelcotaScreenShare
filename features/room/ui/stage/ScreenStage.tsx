@@ -156,10 +156,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
 
       <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-3">
         <span className="glass pointer-events-auto inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium">
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-soft opacity-60 motion-reduce:animate-none" />
-            <span className="relative inline-flex size-2 rounded-full bg-brand-soft" />
-          </span>
+          <span className="size-2 shrink-0 rounded-full bg-brand-soft" aria-hidden="true" />
           {isOwnScreen
             ? "Você está apresentando"
             : `Tela de ${participantLabel(focused.participant)}`}

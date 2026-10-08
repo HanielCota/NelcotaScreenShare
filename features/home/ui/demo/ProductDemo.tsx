@@ -57,9 +57,7 @@ export function ProductDemo() {
           ))}
         </ol>
 
-        <div data-reveal>
-          <DemoWindow />
-        </div>
+        <DemoWindow />
       </div>
     </section>
   );

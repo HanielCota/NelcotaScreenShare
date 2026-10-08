@@ -20,7 +20,7 @@ export function StatusBadge({ tone, children }: { tone: BadgeTone; children: Rea
       )}
     >
       {tone === "live" ? (
-        <span className="size-1.5 animate-pulse rounded-full bg-danger" aria-hidden="true" />
+        <span className="size-1.5 rounded-full bg-danger" aria-hidden="true" />
       ) : null}
       {children}
     </span>
