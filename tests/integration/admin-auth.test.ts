@@ -244,7 +244,8 @@ describe("2FA TOTP", () => {
     assert.ok(session.body && typeof session.body === "object" && "user" in session.body);
 
     // A backup code works only once.
-    const code = backupCodes[0] ?? "";
+    const [code] = backupCodes;
+    assert.ok(code);
     for (const expected of [200, 401]) {
       const third = new CookieJar();
       await call("/sign-in/email", {

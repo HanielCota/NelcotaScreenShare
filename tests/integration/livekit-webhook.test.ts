@@ -15,7 +15,7 @@ import { reconcileShareAudio } from "@/features/room/server/webhook/share-audio.
  * LiveKit webhook end to end: events signed the way LiveKit sends them
  * (protobuf JSON), stored and projected into Postgres.
  */
-const { LIVEKIT_API_KEY: KEY = "", LIVEKIT_API_SECRET: SECRET = "" } = process.env;
+const { LIVEKIT_API_KEY: KEY, LIVEKIT_API_SECRET: SECRET } = process.env;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
 afterAll(() => pool.end());
@@ -126,6 +126,7 @@ function payload({ event, room, at, participant, track, id }: EventInput) {
 
 async function send(input: EventInput | string) {
   const body = typeof input === "string" ? input : payload(input);
+  assert.ok(KEY && SECRET, "file-setup sets the LiveKit keys");
   const token = new AccessToken(KEY, SECRET);
   token.sha256 = createHash("sha256").update(body).digest("base64");
   const response = await receiveLivekitWebhook(

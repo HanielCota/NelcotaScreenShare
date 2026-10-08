@@ -16,9 +16,9 @@ afterAll(() => pool.end());
 async function roomWith(code: string, online: number, left: number, shares: number) {
   const [room] = await db.insert(schema.rooms).values({ code }).returning();
   assert.ok(room);
-  const participations = [];
+  const participationIds: string[] = [];
   for (let i = 0; i < online + left; i++) {
-    const [row] = await db
+    const [row]: { id: string }[] = await db
       .insert(schema.roomParticipations)
       .values({
         roomId: room.id,
@@ -27,13 +27,16 @@ async function roomWith(code: string, online: number, left: number, shares: numb
         joinedAt: new Date(Date.now() - 60_000),
         leftAt: i < online ? null : new Date(),
       })
-      .returning();
-    participations.push(row);
+      .returning({ id: schema.roomParticipations.id });
+    assert.ok(row);
+    participationIds.push(row.id);
   }
+  const [sharerId] = participationIds;
   for (let i = 0; i < shares; i++) {
+    assert.ok(sharerId);
     await db.insert(schema.shareSessions).values({
       roomId: room.id,
-      participationId: participations[0]?.id ?? "",
+      participationId: sharerId,
       trackSid: `TR_${crypto.randomUUID()}`,
       startedAt: new Date(Date.now() - 30_000),
     });
