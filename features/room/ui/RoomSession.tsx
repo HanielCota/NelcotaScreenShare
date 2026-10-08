@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useEffectEvent, useState } from "react";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { requestToken } from "@/features/room/client/api";
 import type { JoinChoices } from "@/features/room/domain/join";
@@ -22,6 +23,10 @@ interface RoomSessionProps {
   maxParticipants: number;
   /** People in the room now (null: unknown). */
   presence: RoomPresence | null;
+  /** Another page is open: a call goes on hidden; anything else shows nothing. */
+  minimized: boolean;
+  /** Whether there is a call to keep while the person visits other pages. */
+  onCallChange: (inCall: boolean) => void;
 }
 
 type Phase =
@@ -38,8 +43,16 @@ export function RoomSession({
   invite,
   maxParticipants,
   presence,
+  minimized,
+  onCallChange,
 }: RoomSessionProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "prejoin" });
+  const inCall = phase.kind === "room";
+  const reportCall = useEffectEvent(onCallChange);
+
+  useEffect(() => {
+    reportCall(inCall);
+  }, [inCall]);
 
   // New attempt with a new token: the previous one may have expired (10 min TTL).
   async function retry(choices: JoinChoices, attempt: number, startedAt: number) {
@@ -57,6 +70,8 @@ export function RoomSession({
   }
 
   function leave(notice: LeaveNotice | undefined, startedAt: number | undefined) {
+    // The leave screen is not on display: the notice goes to a toast instead.
+    if (minimized) toast.info(notice?.message ?? "Você saiu da sala.");
     setPhase({
       kind: "left",
       reason: notice?.reason ?? "self",
@@ -69,7 +84,7 @@ export function RoomSession({
     return (
       <Suspense
         fallback={
-          <output className="grid min-h-dvh place-items-center text-ink-muted">
+          <output hidden={minimized} className="grid min-h-dvh place-items-center text-ink-muted">
             Preparando a sala…
           </output>
         }
@@ -79,12 +94,15 @@ export function RoomSession({
           code={code}
           choices={phase.choices}
           maxParticipants={maxParticipants}
+          minimized={minimized}
           onLeave={(notice) => leave(notice, phase.startedAt)}
           onRetry={() => retry(phase.choices, phase.attempt, phase.startedAt)}
         />
       </Suspense>
     );
   }
+
+  if (minimized) return null;
 
   return (
     <div className="flex min-h-dvh flex-col">

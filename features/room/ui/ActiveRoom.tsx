@@ -1,0 +1,41 @@
+import { useState } from "react";
+import type { RoomPresence } from "@/features/room/domain/presence";
+import { RoomSession } from "./RoomSession";
+
+/** What the room page loads (`/sala/:codigo`). */
+export interface RoomEntry {
+  code: string;
+  user: { name: string; image: string | null };
+  passwordRequired: boolean;
+  invite?: string;
+  maxParticipants: number;
+  presence: RoomPresence | null;
+}
+
+/**
+ * The room lives above the routes, so a call survives navigation: on the room page
+ * it fills the screen; on any other page (the admin panel) it goes on minimized
+ * until the person comes back. Outside a call, leaving the page discards it.
+ * `room`: the room page's data when it is the current page.
+ */
+export function ActiveRoom({ room }: { room: RoomEntry | undefined }) {
+  const [call, setCall] = useState<RoomEntry>();
+  const entry = room ?? call;
+  if (entry === undefined) return null;
+
+  return (
+    <RoomSession
+      // Another room drops the current call.
+      key={entry.code}
+      code={entry.code}
+      userName={entry.user.name}
+      userImage={entry.user.image}
+      passwordRequired={entry.passwordRequired}
+      invite={entry.invite}
+      maxParticipants={entry.maxParticipants}
+      presence={entry.presence}
+      minimized={room === undefined}
+      onCallChange={(inCall) => setCall(inCall ? entry : undefined)}
+    />
+  );
+}

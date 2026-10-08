@@ -1,8 +1,6 @@
 import { routeLoader } from "@/server/route-loader.server";
-import { useLoaderData } from "react-router";
 
 import { redirect } from "@/server/http.server";
-import { RoomSession } from "@/features/room/ui/RoomSession";
 import { requireUser } from "@/features/auth/server/participant-session.server";
 import { getDb } from "@/server/db/index.server";
 import { getEnv } from "@/server/env.server";
@@ -10,6 +8,7 @@ import { presenceForGuests } from "@/features/room/domain/presence";
 import { roomPresence } from "@/features/room/server/presence.server";
 import { decodeRoomParam, roomCodeSchema, roomLink } from "@/features/room/domain/room-code";
 import { INVITE_TOKEN_PATTERN } from "@/features/room/domain/invite-token";
+import type { RoomEntry } from "@/features/room/ui/ActiveRoom";
 
 export const meta = () => [{ title: "Sala · Nelcota" }];
 
@@ -43,21 +42,13 @@ export const loader = routeLoader(async ({ params: routeParams, searchParams }) 
     passwordRequired,
     maxParticipants: MAX_PARTICIPANTS,
     presence,
-  };
+  } satisfies RoomEntry;
 });
 
+/**
+ * The session is drawn by `ActiveRoom` in the root, from this page's data: a call
+ * keeps going while the person visits other pages (the admin panel).
+ */
 export default function RoomPage() {
-  const { invite, code, user, passwordRequired, maxParticipants, presence } =
-    useLoaderData<typeof loader>();
-  return (
-    <RoomSession
-      code={code}
-      userName={user.name}
-      userImage={user.image}
-      passwordRequired={passwordRequired}
-      invite={invite}
-      maxParticipants={maxParticipants}
-      presence={presence}
-    />
-  );
+  return null;
 }

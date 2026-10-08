@@ -3,41 +3,60 @@ import { useRoomConnection } from "@/features/room/hooks/use-room-connection";
 import { ReactionsProvider } from "@/features/room/ui/dock/Reactions";
 import type { JoinChoices } from "@/features/room/domain/join";
 import type { LeaveNotice } from "@/features/room/domain/leave";
+import { ShortcutScope } from "@/lib/hooks/use-shortcut";
 import { ConnectError } from "./ConnectError";
+import { MinimizedCall } from "./MinimizedCall";
 import { RoomLayout } from "./RoomLayout";
 
 interface RoomViewProps {
   code: string;
   choices: JoinChoices;
   maxParticipants: number;
+  /** Another page is open: the call goes on hidden, with a card to go back. */
+  minimized: boolean;
   onLeave: (notice?: LeaveNotice) => void;
   onRetry: () => Promise<void>;
 }
 
 /** Connects to the room and shows the call (or the failure screen, with "Tentar de novo"). */
-export function RoomView({ code, choices, maxParticipants, onLeave, onRetry }: RoomViewProps) {
+export function RoomView({
+  code,
+  choices,
+  maxParticipants,
+  minimized,
+  onLeave,
+  onRetry,
+}: RoomViewProps) {
   const { room, connectError, leave } = useRoomConnection(choices, onLeave);
 
   if (connectError) {
     return (
-      <ConnectError
-        message={connectError}
-        onRetry={onRetry}
-        onBack={() =>
-          onLeave({
-            reason: "failed",
-            message: "Não foi possível conectar. Tente entrar novamente.",
-          })
-        }
-      />
+      <div hidden={minimized}>
+        <ConnectError
+          message={connectError}
+          onRetry={onRetry}
+          onBack={() =>
+            onLeave({
+              reason: "failed",
+              message: "Não foi possível conectar. Tente entrar novamente.",
+            })
+          }
+        />
+      </div>
     );
   }
 
+  // Hidden, not unmounted: the connection, the audio and the shared screen stay on.
   return (
     <RoomContext.Provider value={room}>
-      <ReactionsProvider>
-        <RoomLayout code={code} maxParticipants={maxParticipants} onLeave={leave} />
-      </ReactionsProvider>
+      <ShortcutScope value={!minimized}>
+        <div hidden={minimized}>
+          <ReactionsProvider>
+            <RoomLayout code={code} maxParticipants={maxParticipants} onLeave={leave} />
+          </ReactionsProvider>
+        </div>
+      </ShortcutScope>
+      {minimized ? <MinimizedCall code={code} /> : null}
       <RoomAudioRenderer />
     </RoomContext.Provider>
   );

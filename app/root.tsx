@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useRouteLoaderData,
   useRevalidator,
   isRouteErrorResponse,
   useRouteError,
@@ -24,6 +25,8 @@ import { getUserSession } from "@/features/auth/server/participant-session.serve
 import { getEnv } from "@/server/env.server";
 import { configureBrowserTelemetry } from "@/lib/telemetry.client";
 import { NavigationProgress } from "@/components/shell/NavigationProgress";
+import { ActiveRoom } from "@/features/room/ui/ActiveRoom";
+import type { loader as roomLoader } from "./routes/room";
 import "./fonts.css";
 import manrope from "@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url";
 import "./globals.css";
@@ -103,7 +106,14 @@ export default function App() {
     window.addEventListener("nelcota:mutation", revalidate);
     return () => window.removeEventListener("nelcota:mutation", revalidate);
   }, [revalidator]);
-  return <Outlet />;
+  // The room page draws nothing: the call is here, so it survives navigation.
+  const room = useRouteLoaderData<typeof roomLoader>("room");
+  return (
+    <>
+      <Outlet />
+      <ActiveRoom room={room} />
+    </>
+  );
 }
 
 export function ErrorBoundary() {
