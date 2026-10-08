@@ -4,9 +4,9 @@ import { gsap } from "@/lib/animation/gsap";
 import { useScrollScene } from "@/lib/animation/scroll-scene";
 
 /**
- * One line, zoomed by the scroll: it starts small and dim in the middle of the stage, grows
- * until it fills the screen, then a mint line strikes the question everyone is tired of
- * asking. Without motion it shows the final picture, already struck through.
+ * One line, zoomed by the scroll as the stage passes: it starts smaller and dim, settles at
+ * full size, then a mint line strikes the question everyone is tired of asking. It never
+ * holds the scroll. Without motion it shows the final picture, already struck through.
  */
 export function StatementScene() {
   const scope = useRef<HTMLElement>(null);
@@ -15,18 +15,17 @@ export function StatementScene() {
     const q = gsap.utils.selector(section);
     const tl = gsap.timeline({
       defaults: { ease: "none" },
+      // Plays while the stage crosses the screen, without holding the scroll.
       scrollTrigger: {
         trigger: section,
-        start: "top top",
-        end: "+=170%",
-        pin: true,
+        start: "top 80%",
+        end: "top 10%",
         scrub: 0.5,
-        anticipatePin: 1,
       },
     });
     tl.fromTo(
       q("[data-statement]"),
-      { scale: 0.32, opacity: 0.15 },
+      { scale: 0.6, opacity: 0.15 },
       { scale: 1, opacity: 1, duration: 1, ease: "power2.out" },
     )
       .fromTo(
@@ -35,8 +34,7 @@ export function StatementScene() {
         { scaleX: 1, duration: 0.45, ease: "power2.inOut" },
         ">0.1",
       )
-      .to(q("[data-statement-quote]"), { opacity: 0.45, duration: 0.3 }, "<0.2")
-      .to({}, { duration: 0.35 });
+      .to(q("[data-statement-quote]"), { opacity: 0.45, duration: 0.3 }, "<0.2");
   });
   useStageHeader(scope);
 
