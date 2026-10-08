@@ -21,7 +21,7 @@ function Tile({
   return (
     <li
       className={cn(
-        "flex flex-col gap-8 overflow-hidden rounded-3xl border border-line p-6 sm:p-8",
+        "flex flex-col gap-8 overflow-hidden rounded-3xl border border-line p-6 transition-colors duration-(--motion-feedback) hover:border-line-strong sm:p-8",
         className,
       )}
     >

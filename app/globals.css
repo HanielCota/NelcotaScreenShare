@@ -342,6 +342,35 @@
   }
 
   /* Opaque card for surfaces that sit on the plain canvas: a blur there has nothing to blur. */
+  /*
+   * Icon feedback on hover, driven by the link or button that holds the icon: an arrow
+   * steps toward where the link goes, a plus or a reload mark turns. Short, eased, and off
+   * with reduced motion.
+   */
+  .icon-nudge,
+  .icon-turn,
+  .icon-spin {
+    transition:
+      translate var(--motion-feedback) var(--ease-out-smooth),
+      rotate var(--motion-surface) var(--ease-out-smooth);
+  }
+  :is(a, button, summary):hover .icon-nudge {
+    translate: 3px 0;
+  }
+  :is(a, button):hover .icon-turn {
+    rotate: 90deg;
+  }
+  :is(a, button):hover .icon-spin {
+    rotate: 180deg;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .icon-nudge,
+    .icon-turn,
+    .icon-spin {
+      transition: none;
+    }
+  }
+
   .panel {
     @apply border border-line bg-surface shadow-soft;
   }

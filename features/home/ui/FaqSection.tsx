@@ -66,7 +66,7 @@ export function FaqSection({ maxParticipants }: { maxParticipants: number }) {
           className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-brand-soft underline-offset-4 hover:underline"
         >
           Leia o aviso de privacidade
-          <ArrowRight className="size-4" aria-hidden="true" />
+          <ArrowRight className="icon-nudge size-4" aria-hidden="true" />
         </Link>
       </div>
 

@@ -124,14 +124,14 @@ function SubmitLabel({ pending, creating }: { pending: boolean; creating: boolea
   if (creating) {
     return (
       <>
-        <Plus className="size-4" aria-hidden="true" />
+        <Plus className="icon-turn size-4" aria-hidden="true" />
         Criar sala
       </>
     );
   }
   return (
     <>
-      <ArrowRight className="size-4" aria-hidden="true" />
+      <ArrowRight className="icon-nudge size-4" aria-hidden="true" />
       Entrar
     </>
   );
