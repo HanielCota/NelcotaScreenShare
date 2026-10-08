@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { ShareSupportNote } from "@/features/room/ui/ShareSupportNote";
-import { HERO_START_ID } from "./FinalCta";
 import { HomeEntrance } from "./HomeEntrance";
 import { HomeSections } from "./HomeSections";
 import { HomeStart } from "./HomeStart";
@@ -47,16 +46,12 @@ export function HomeScene({
           junto.
         </p>
 
-        <div
-          id={HERO_START_ID}
-          data-anim="card"
-          className="mt-8 w-full scroll-mt-40 will-change-transform sm:mt-10"
-        >
+        <div data-anim="card" className="mt-8 w-full will-change-transform sm:mt-10">
           <HomeStart invalidCode={invalidCode} />
         </div>
       </div>
 
-      <HomeSections maxParticipants={maxParticipants} signedIn={account !== null} />
+      <HomeSections maxParticipants={maxParticipants} />
 
       <footer className="mt-24 flex w-full max-w-5xl flex-col items-center gap-3 border-t border-line pt-5 sm:flex-row sm:justify-between">
         <ShareSupportNote variant="badge" />
