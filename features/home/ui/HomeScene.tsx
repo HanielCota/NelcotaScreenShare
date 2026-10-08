@@ -34,7 +34,7 @@ export function HomeScene({
           starts, the hero steps back (see useHeroRecede). */}
       <div
         ref={hero}
-        className="flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col items-center justify-center px-4 pt-28 pb-12 sm:px-8"
+        className="flex min-h-svh w-full max-w-6xl flex-col items-center justify-center px-4 pt-28 pb-12 sm:px-8"
       >
         {notice ? (
           <output className="mb-8 block w-full rounded-2xl bg-surface-2 px-4 py-3 text-center text-sm">
