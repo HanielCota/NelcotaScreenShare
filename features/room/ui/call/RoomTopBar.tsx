@@ -130,7 +130,7 @@ export function RoomTopBar({
           aria-hidden="true"
           className={cn(
             "size-2.5 rounded-full",
-            connection === "connected" ? "bg-success" : "animate-pulse bg-warning",
+            connection === "connected" ? "live-dot bg-success" : "animate-pulse bg-warning",
           )}
         />
         <span className="sr-only">{CONNECTION_LABELS[connection]}</span>

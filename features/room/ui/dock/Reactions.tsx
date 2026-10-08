@@ -185,7 +185,7 @@ export function ReactionsMenu() {
           pressed={open}
         >
           {handRaised ? (
-            <Hand className="size-5" aria-hidden="true" />
+            <Hand className="icon-wave size-5" aria-hidden="true" />
           ) : (
             <Smile className="size-5" aria-hidden="true" />
           )}

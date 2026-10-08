@@ -371,6 +371,37 @@
     }
   }
 
+  /*
+   * Room feedback, played once when an icon appears: a pop for a state that just flipped
+   * (copied, microphone on or off), a short wave for a raised hand. The live dot breathes a
+   * slow ring while connected. All of it is off with reduced motion.
+   */
+  .icon-pop {
+    animation: icon-pop var(--motion-surface) var(--ease-out-smooth);
+  }
+  .icon-wave {
+    transform-origin: 70% 90%;
+    animation: icon-wave 700ms ease-in-out;
+  }
+  .live-dot {
+    position: relative;
+  }
+  .live-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: live-ring 2.4s ease-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .icon-pop,
+    .icon-wave,
+    .live-dot::after {
+      animation: none;
+    }
+  }
+
   .panel {
     @apply border border-line bg-surface shadow-soft;
   }
@@ -527,6 +558,47 @@ body:has(.admin-shell) [data-mobile="true"] [data-slot="sidebar-menu-button"][da
   to {
     opacity: 0;
     transform: translate(var(--surface-x), var(--surface-y)) scale(var(--surface-scale));
+  }
+}
+
+@keyframes icon-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes icon-wave {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20%,
+  60% {
+    transform: rotate(-14deg);
+  }
+  40%,
+  80% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes live-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  70%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
   }
 }
 

@@ -30,7 +30,7 @@ export function InviteLinkButton({ code }: { code: string }) {
       )}
     >
       {copied ? (
-        <Check className="size-4" aria-hidden="true" />
+        <Check className="icon-pop size-4" aria-hidden="true" />
       ) : (
         <Link2 className="size-4" aria-hidden="true" />
       )}
