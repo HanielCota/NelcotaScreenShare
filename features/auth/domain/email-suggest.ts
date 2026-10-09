@@ -46,8 +46,9 @@ export function suggestEmail(email: string): string | undefined {
   let best: { domain: string; distance: number } | undefined;
   for (const candidate of COMMON_DOMAINS) {
     const edits = distance(domain, candidate);
-    if (edits <= 2 && (!best || edits < best.distance))
+    if (edits <= 2 && (!best || edits < best.distance)) {
       best = { domain: candidate, distance: edits };
+    }
   }
   return best ? `${email.slice(0, at)}@${best.domain}` : undefined;
 }

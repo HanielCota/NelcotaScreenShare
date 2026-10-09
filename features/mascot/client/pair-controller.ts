@@ -87,8 +87,9 @@ export function createPairController(
   function suspend() {
     const suspended = paused();
     // Records the last active interval before also freezing the pose deadline.
-    if (suspended && !motion.state.suspended)
+    if (suspended && !motion.state.suspended) {
       motion.advance(performance.now() - lastTick, available());
+    }
     motion.suspend(suspended);
     scene.dataset.suspended = String(suspended);
     window.clearTimeout(idleTimer);

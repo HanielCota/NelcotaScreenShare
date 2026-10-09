@@ -101,8 +101,9 @@ export function authHooks(
   return {
     before: createAuthMiddleware(async (ctx) => {
       if (scope === "user") {
-        if (ctx.path === "/update-user" || ctx.path === "/sign-up/email")
+        if (ctx.path === "/update-user" || ctx.path === "/sign-up/email") {
           validateProfilePhoto(ctx.body);
+        }
         if (ctx.path === "/reset-password") {
           await validatePasswordReset(
             db,

@@ -5,9 +5,11 @@ const ASLEEP_AFTER_MS = 45_000;
 /** Re-evaluates the last activity, even if a timer fires late. */
 export function idleSleep(lastActivity: number, now: number) {
   const elapsed = Math.max(0, now - lastActivity);
-  if (elapsed < SLEEPY_AFTER_MS)
+  if (elapsed < SLEEPY_AFTER_MS) {
     return { expression: null, nextIn: SLEEPY_AFTER_MS - elapsed } as const;
-  if (elapsed < ASLEEP_AFTER_MS)
+  }
+  if (elapsed < ASLEEP_AFTER_MS) {
     return { expression: "sleepy", nextIn: ASLEEP_AFTER_MS - elapsed } as const;
+  }
   return { expression: "asleep", nextIn: Infinity } as const;
 }

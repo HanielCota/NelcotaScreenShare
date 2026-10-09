@@ -40,8 +40,9 @@ export function operation<I, O>(id: string, method: "get" | "post" = "post"): Op
     // A proxy error page or an unexpected body: the same message as any server failure.
     if (!parsed.success) return { serverError: UNEXPECTED_RESPONSE };
     const result: OperationResult<O> = parsed.data;
-    if (result.data !== undefined && method === "post")
+    if (result.data !== undefined && method === "post") {
       window.dispatchEvent(new Event("nelcota:mutation"));
+    }
     return result;
   };
   return Object.assign(execute, { url, method });

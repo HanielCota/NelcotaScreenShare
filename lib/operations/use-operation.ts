@@ -19,8 +19,9 @@ export function useOperation<I, O>(command: Operation<I, O>, callbacks: Callback
     callbacksRef.current = callbacks;
   });
   useEffect(() => {
-    if (fetcher.state === "submitting" || !fetcher.data || fetcher.data === previous.current)
+    if (fetcher.state === "submitting" || !fetcher.data || fetcher.data === previous.current) {
       return;
+    }
     previous.current = fetcher.data;
     if (fetcher.data.data !== undefined) {
       callbacksRef.current.onSuccess?.({ data: fetcher.data.data });
