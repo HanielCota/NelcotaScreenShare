@@ -11,8 +11,18 @@ const dateTime = new Intl.DateTimeFormat("pt-BR", {
 const relative = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
 const number = new Intl.NumberFormat("pt-BR");
 
+/** Shown instead of a date that does not parse (Intl would throw a RangeError). */
+const INVALID_DATE = "—";
+
+function validTime(value: Date | string | number): number | undefined {
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? undefined : time;
+}
+
 export function formatDateTime(value: Date | string | number): string {
-  return dateTime.format(new Date(value));
+  const time = validTime(value);
+  if (time === undefined) return INVALID_DATE;
+  return dateTime.format(time);
 }
 
 export function formatNumber(value: number): string {
@@ -21,7 +31,9 @@ export function formatNumber(value: number): string {
 
 /** "há 5 minutos", "ontem"… (relative to `now`, for tests and stable rendering). */
 export function formatRelative(value: Date | string | number, now = Date.now()): string {
-  const seconds = Math.round((new Date(value).getTime() - now) / 1000);
+  const time = validTime(value);
+  if (time === undefined) return INVALID_DATE;
+  const seconds = Math.round((time - now) / 1000);
   const abs = Math.abs(seconds);
   // No seconds count: it changes on every render and helps nobody.
   if (abs < 60) return "agora mesmo";
@@ -67,5 +79,8 @@ export function formatDuration(seconds: number): string {
 /** Duration between two dates; without an end, "em andamento". */
 export function formatSpan(start: Date | string, end: Date | string | null): string {
   if (!end) return "em andamento";
-  return formatDuration((new Date(end).getTime() - new Date(start).getTime()) / 1000);
+  const startTime = validTime(start);
+  const endTime = validTime(end);
+  if (startTime === undefined || endTime === undefined) return INVALID_DATE;
+  return formatDuration((endTime - startTime) / 1000);
 }

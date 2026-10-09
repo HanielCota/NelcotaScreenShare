@@ -118,10 +118,11 @@ export function PreJoin({
 
   useGSAP(
     () => {
-      if (transitioning) return;
+      const card = scope.current;
+      if (transitioning || !card) return;
       const mm = gsap.matchMedia();
       mm.add(MOTION_QUERIES.motion, () => {
-        gsap.from(scope.current, {
+        gsap.from(card, {
           y: 10,
           opacity: 0,
           duration: MOTION_DURATION.entrance,
@@ -146,7 +147,7 @@ export function PreJoin({
     setFormError({ message, field: failure.passwordField ? "password" : undefined });
     if (failure.passwordField) passwordRef.current?.focus();
     upsetMascot(failure.mood, (failure.passwordField && passwordRef.current) || undefined);
-    if (!prefersReducedMotion()) {
+    if (!prefersReducedMotion() && scope.current) {
       gsap.to(scope.current, {
         keyframes: [{ x: -4 }, { x: 4 }, { x: 0 }],
         duration: MOTION_DURATION.surface,

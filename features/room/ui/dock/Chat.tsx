@@ -220,7 +220,7 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
               <ChatMessage
                 key={message.id}
                 message={message}
-                groupStart={starts[index]!}
+                groupStart={starts[index] ?? true}
                 editing={message.id === editingId}
                 onEdit={() => startEditing(message)}
                 onDelete={() => setDeletingId(message.id)}

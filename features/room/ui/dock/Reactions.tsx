@@ -118,6 +118,7 @@ function ReactionBubble({ item }: { item: FloatingReaction }) {
   useGSAP(
     () => {
       const el = ref.current;
+      if (!el) return;
       const mm = gsap.matchMedia();
       mm.add(MOTION_QUERIES.motion, () => {
         gsap

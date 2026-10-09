@@ -46,7 +46,8 @@ export function MicrophoneSelect({
   const id = useId();
   const options = microphoneOptions(devices);
   const selectedIndex = selectedMicrophoneIndex(options, value);
-  const selected = options[selectedIndex]!;
+  const selected = options[selectedIndex];
+  if (!selected) return null;
   return (
     <div className="min-w-0">
       <Label htmlFor={id} className="sr-only">
