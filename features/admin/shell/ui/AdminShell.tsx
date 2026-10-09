@@ -41,6 +41,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
+import { callAuth } from "@/features/auth/client/auth-call";
 import type { NavGroup } from "@/features/admin/shell/server/nav.server";
 import { CommandPalette } from "./CommandPalette";
 import { NAV_ICONS } from "./nav-icons";
@@ -100,11 +101,10 @@ export function AdminShell({
   const crumbs = useBreadcrumbs(groups);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
-  function signOut() {
-    void adminAuthClient.signOut().finally(() => {
-      void navigate("/admin/entrar?aviso=saiu", { replace: true, viewTransition: true });
-      void revalidator.revalidate();
-    });
+  async function signOut() {
+    await callAuth(() => adminAuthClient.signOut());
+    void navigate("/admin/entrar?aviso=saiu", { replace: true, viewTransition: true });
+    void revalidator.revalidate();
   }
 
   return (
@@ -191,7 +191,7 @@ export function AdminShell({
                         Minha conta
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={signOut}>
+                    <DropdownMenuItem onSelect={() => void signOut()}>
                       <LogOut aria-hidden="true" />
                       Sair
                     </DropdownMenuItem>
@@ -251,7 +251,7 @@ export function AdminShell({
         groups={groups}
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
-        onSignOut={signOut}
+        onSignOut={() => void signOut()}
       />
     </SidebarProvider>
   );

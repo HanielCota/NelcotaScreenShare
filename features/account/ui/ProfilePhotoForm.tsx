@@ -18,6 +18,7 @@ import { photoErrorMessage, preparePhoto } from "@/features/account/client/prepa
 import { PROFILE_PHOTO } from "@/features/account/domain/profile-photo";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
+import { reportBrowserError } from "@/lib/telemetry.client";
 
 /**
  * Identity card photo: the avatar itself is the control. Without a photo, it opens
@@ -64,7 +65,8 @@ export function ProfilePhotoForm({
       toast.success(draft === null ? "Foto de perfil removida." : "Foto de perfil atualizada.");
       // The draft is not cleared: it stays as the preview until the new image arrives.
       void revalidator.revalidate();
-    } catch {
+    } catch (saveError) {
+      reportBrowserError(saveError);
       setError("Não foi possível salvar a foto. Tente de novo.");
     } finally {
       setPending(false);

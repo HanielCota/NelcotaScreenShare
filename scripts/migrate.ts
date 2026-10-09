@@ -35,7 +35,10 @@ export async function runMigrations(
     await client.query("select pg_advisory_lock($1)", [MIGRATION_LOCK_ID]);
     await migrate(drizzle(client), { migrationsFolder });
   } finally {
-    await client.query("select pg_advisory_unlock($1)", [MIGRATION_LOCK_ID]).catch(() => {});
+    // The lock also ends with the connection below; a failed unlock is only worth a warning.
+    await client
+      .query("select pg_advisory_unlock($1)", [MIGRATION_LOCK_ID])
+      .catch((error: unknown) => console.warn("[migrate] could not release the lock:", error));
     await client.end();
   }
 }

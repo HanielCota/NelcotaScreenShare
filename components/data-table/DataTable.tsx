@@ -33,6 +33,7 @@ import { formatNumber } from "@/lib/format";
 import { filterQuery, pageParsers, type BulkSelection } from "@/lib/table-params";
 import { cn } from "@/lib/utils";
 import type { PageInfo } from "./page-info";
+import { runAndReport } from "@/lib/telemetry.client";
 
 const dataTableFeatures = tableFeatures({ rowSelectionFeature });
 type DataTableFeatures = typeof dataTableFeatures;
@@ -231,7 +232,7 @@ export function DataTable<TData extends RowData & { id: string }>({
   };
   const go = (cursor: string | null, dir: "next" | "prev") => {
     clear();
-    void setPage({ cursor, dir });
+    void runAndReport(() => setPage({ cursor, dir }));
   };
 
   return (

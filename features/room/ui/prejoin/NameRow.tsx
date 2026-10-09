@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { displayNameSchema } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";
@@ -32,7 +33,7 @@ export function NameRow({ name, onChange }: { name: string; onChange: (name: str
       return;
     }
     setSaving(true);
-    const { error: failure } = await authClient.updateUser({ name: parsed.data });
+    const { error: failure } = await callAuth(() => authClient.updateUser({ name: parsed.data }));
     setSaving(false);
     if (failure) {
       setError("Não foi possível salvar o nome. Tente de novo.");

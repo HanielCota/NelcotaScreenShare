@@ -3,6 +3,7 @@ import type { Database } from "@/server/db/index.server";
 import { livekitEvents } from "@/server/db/schema";
 import { projectEvent, type ProjectionResult } from "./handlers.server";
 import { occurredAt, webhookPayloadSchema } from "./payload";
+import { logger } from "@/server/logger.server";
 
 /**
  * LiveKit webhook → business tables (docs/archive/admin-plan.md §4.4).
@@ -34,6 +35,7 @@ async function processStoredEvent(
       return projected;
     });
   } catch (error) {
+    logger.error({ err: error, eventId: id }, "LiveKit event projection failed");
     const message = error instanceof Error ? error.message : String(error);
     await db
       .update(livekitEvents)

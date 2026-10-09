@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { roomPath } from "@/features/room/domain/room-code";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 /** How long the "copied" confirmation stays on screen. */
 const COPIED_MS = 2500;
@@ -28,7 +29,8 @@ export function useCopyRoomLink(code: string, onFailure: () => void = toastCopyF
     try {
       await navigator.clipboard.writeText(roomUrl(code));
       setCopied(true);
-    } catch {
+    } catch (error) {
+      logBrowserWarning("Could not copy the room link", error);
       onFailure();
     }
   }

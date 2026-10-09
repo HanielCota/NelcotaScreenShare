@@ -1,4 +1,5 @@
 import { hash, verify } from "@node-rs/argon2";
+import { logger } from "@/server/logger.server";
 
 /**
  * argon2id with the OWASP minimum (Password Storage Cheat Sheet): 19 MiB of
@@ -22,7 +23,9 @@ export async function verifyPassword({
 }): Promise<boolean> {
   try {
     return await verify(stored, password);
-  } catch {
+  } catch (error) {
+    // A corrupted hash must not look like a plain wrong password in the logs.
+    logger.error({ err: error }, "password hash could not be verified");
     return false;
   }
 }

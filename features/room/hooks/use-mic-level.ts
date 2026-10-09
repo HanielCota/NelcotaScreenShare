@@ -8,6 +8,7 @@ import {
   createMicrophoneCheck,
   type MicrophoneCheck,
 } from "@/features/room/domain/microphone-check";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 /** The analyser reads normal speech low on its 0–1 scale: the gain spreads it over the meter. */
 const METER_GAIN = 2.5;
@@ -119,8 +120,9 @@ export function useMicLevel(
         cleanup = () => {
           track.removeEventListener("ended", handleEnded);
           track.stop();
-          void analyser?.cleanup().catch(() => {
-            // The capture is already stopped, even if closing its AudioContext fails.
+          // The capture is already stopped, even if closing its AudioContext fails.
+          void analyser?.cleanup().catch((error: unknown) => {
+            logBrowserWarning("Could not close the microphone analyser", error);
           });
         };
         track.addEventListener("ended", handleEnded);

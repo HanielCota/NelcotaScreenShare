@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AuthCard } from "./AuthCard";
 import { celebrateMascot, upsetMascot } from "@/features/mascot/client/events";
 import { Button } from "@/components/ui/button";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { inboxLink } from "@/features/auth/domain/email-suggest";
 import { FormError } from "@/components/FormError";
@@ -35,10 +36,12 @@ export function VerifyEmailPanel({
     if (!email || cooldown > 0) return;
     setStatus("sending");
     setError(undefined);
-    const { error: failure } = await authClient.sendVerificationEmail({
-      email,
-      callbackURL: returnTo,
-    });
+    const { error: failure } = await callAuth(() =>
+      authClient.sendVerificationEmail({
+        email,
+        callbackURL: returnTo,
+      }),
+    );
     if (failure?.status === 429) {
       setCooldown(RESEND_COOLDOWN);
       setStatus("wait");

@@ -28,6 +28,7 @@ import {
 } from "@/features/room/domain/data-channel";
 import { DockButton } from "./DockButton";
 import { DockPopoverContent } from "./DockPopover";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 interface FloatingReaction {
   id: number;
@@ -74,7 +75,8 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
     if (now - lastSent.current < SEND_INTERVAL_MS) return;
     lastSent.current = now;
     show(emoji, SELF_LABEL);
-    send(encodeMessage({ emoji }), { reliable: true }).catch(() => {
+    send(encodeMessage({ emoji }), { reliable: true }).catch((error: unknown) => {
+      logBrowserWarning("Could not send the reaction", error);
       toast.error("Não foi possível enviar a reação.");
     });
   }

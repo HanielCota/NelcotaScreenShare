@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import type { OperationResult } from "@/lib/operations/operation";
+import { reportBrowserError } from "@/lib/telemetry.client";
 
 /**
  * "… · Desfazer" toast for 10 s. Undo calls the action directly (not through
@@ -24,7 +25,10 @@ export function toastWithUndo(
             }
             toast.success(undoneMessage);
           })
-          .catch(() => toast.error("Não foi possível desfazer. Tente de novo."));
+          .catch((error: unknown) => {
+            reportBrowserError(error);
+            toast.error("Não foi possível desfazer. Tente de novo.");
+          });
       },
     },
   });

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { BackupCodes } from "./BackupCodes";
@@ -64,7 +65,7 @@ export function TwoFactorSettings({
     setPending(true);
     setError(undefined);
     setInvalidField(undefined);
-    const { data, error: failure } = await fn();
+    const { data, error: failure } = await callAuth(fn);
     setPending(false);
     if (failure) {
       setError(authErrorMessage(failure));

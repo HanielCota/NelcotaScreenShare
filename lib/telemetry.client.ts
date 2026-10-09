@@ -53,3 +53,20 @@ export function reportBrowserError(error: unknown) {
   }
   if (pending.length < 10) pending.push(error);
 }
+
+/**
+ * Expected browser failures (permission denied, offline, best-effort cleanup): logged
+ * for debugging, but not sent to telemetry, where they would only be noise.
+ */
+export function logBrowserWarning(context: string, error: unknown) {
+  console.warn(context, error);
+}
+
+/** Runs a fire-and-forget task: a rejection is reported instead of escaping unhandled. */
+export async function runAndReport(task: () => Promise<unknown>): Promise<void> {
+  try {
+    await task();
+  } catch (error) {
+    reportBrowserError(error);
+  }
+}

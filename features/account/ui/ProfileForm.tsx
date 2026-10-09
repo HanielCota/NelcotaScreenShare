@@ -7,6 +7,7 @@ import { FormError } from "@/components/FormError";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { displayNameSchema } from "@/features/room/domain/participant-label";
@@ -27,7 +28,7 @@ export function ProfileForm({ name }: { name: string }) {
     if (!parsed.success) return setError(parsed.error.issues[0]?.message ?? "Confira seu nome.");
     setPending(true);
     setError(undefined);
-    const { error: failure } = await authClient.updateUser({ name: parsed.data });
+    const { error: failure } = await callAuth(() => authClient.updateUser({ name: parsed.data }));
     setPending(false);
     if (failure) return setError(authErrorMessage(failure));
     toast.success("Nome atualizado. Ele vale a partir da próxima sala em que você entrar.");

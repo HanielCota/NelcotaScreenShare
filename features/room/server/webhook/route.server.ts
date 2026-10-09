@@ -50,7 +50,11 @@ export async function receiveLivekitWebhook(request: Request) {
   let event;
   try {
     event = await receiver.receive(body, request.headers.get("authorization") ?? undefined);
-  } catch {
+  } catch (error) {
+    logger.warn(
+      { source: "livekit-webhook", err: error },
+      "LiveKit webhook rejected: invalid signature",
+    );
     return Response.json({ error: "invalid_signature" }, { status: 401 });
   }
 

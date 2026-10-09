@@ -8,12 +8,14 @@ import { chatGroupStarts } from "@/features/room/domain/chat-format";
 import type { ChatEntry, ChatState } from "@/features/room/hooks/use-chat-state";
 import { ChatComposer } from "./ChatComposer";
 import { ChatMessage } from "./ChatMessage";
+import { logBrowserWarning, reportBrowserError } from "@/lib/telemetry.client";
 
 async function copyMessage(text: string) {
   try {
     await navigator.clipboard.writeText(text);
     toast.success("Mensagem copiada");
-  } catch {
+  } catch (error) {
+    logBrowserWarning("Could not copy the message", error);
     toast.error("Não foi possível copiar a mensagem.");
   }
 }
@@ -134,7 +136,8 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
       await chat.send(text);
       setDraft("");
       inputRef.current?.focus();
-    } catch {
+    } catch (error) {
+      reportBrowserError(error);
       toast.error(
         editing
           ? "Não foi possível editar a mensagem. Tente de novo."
@@ -153,7 +156,8 @@ export function ChatPanel({ chat }: { chat: ChatState }) {
       await chat.remove(id);
       if (id === editingId) cancelEditing();
       setDeletingId(undefined);
-    } catch {
+    } catch (error) {
+      reportBrowserError(error);
       toast.error("Não foi possível apagar a mensagem. Tente de novo.");
     } finally {
       setBusy(false);

@@ -8,12 +8,22 @@ import { callDuration, type LeaveNotice, type LeaveReason } from "@/features/roo
 import { roomLink } from "@/features/room/domain/room-code";
 import { PreJoin } from "@/features/room/ui/prejoin/PreJoin";
 import { LeftScreen } from "./LeftScreen";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 const loadRoomView = () => import("./call/RoomView");
 const RoomView = lazy(() => loadRoomView().then((module) => ({ default: module.RoomView })));
 const prepareRoomView = () => {
-  void loadRoomView().catch(() => {});
+  void prefetchRoomView();
 };
+
+/** Best effort: if the prefetch fails, `lazy` loads (and reports) it again on render. */
+async function prefetchRoomView() {
+  try {
+    await loadRoomView();
+  } catch (error) {
+    logBrowserWarning("Could not prefetch the room view", error);
+  }
+}
 
 interface RoomSessionProps {
   code: string;

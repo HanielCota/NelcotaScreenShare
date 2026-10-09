@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { Operation, OperationResult } from "./operation";
+import { runAndReport } from "@/lib/telemetry.client";
 
 interface Callbacks<O> {
   onSuccess?: (result: { data: O }) => void;
@@ -32,14 +33,16 @@ export function useOperation<I, O>(command: Operation<I, O>, callbacks: Callback
       setInput(args[0]);
       const payload = JSON.stringify({ input: args[0] });
       if (command.method === "get") {
-        void submit({ payload }, { action: command.url, method: "get" });
+        void runAndReport(() => submit({ payload }, { action: command.url, method: "get" }));
         return;
       }
-      void submit(payload, {
-        action: command.url,
-        method: "post",
-        encType: "application/json",
-      });
+      void runAndReport(() =>
+        submit(payload, {
+          action: command.url,
+          method: "post",
+          encType: "application/json",
+        }),
+      );
     },
     [command.url, command.method, submit],
   );

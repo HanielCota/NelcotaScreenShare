@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AccessContext } from "@/features/auth/domain/access-context";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import {
@@ -127,12 +128,14 @@ export function SignUpForm({
 
     setPending(true);
     setError(undefined);
-    const { error: failure } = await authClient.signUp.email({
-      name,
-      email,
-      password,
-      callbackURL: returnTo,
-    });
+    const { error: failure } = await callAuth(() =>
+      authClient.signUp.email({
+        name,
+        email,
+        password,
+        callbackURL: returnTo,
+      }),
+    );
     // With confirmation, an already registered e-mail responds the same (the owner is notified by e-mail).
     const genericDuplicate =
       verificationRequired && (failure?.status === 422 || failure?.code === "USER_ALREADY_EXISTS");

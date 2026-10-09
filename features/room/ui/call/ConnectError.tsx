@@ -2,6 +2,7 @@ import { AlertTriangle, Loader2, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StatusScreen } from "@/features/room/ui/StatusScreen";
+import { runAndReport } from "@/lib/telemetry.client";
 
 /** The connection never opened: explains why and offers to retry (with a new token). */
 export function ConnectError({
@@ -14,6 +15,13 @@ export function ConnectError({
   onBack: () => void;
 }) {
   const [retrying, setRetrying] = useState(false);
+
+  async function retry() {
+    setRetrying(true);
+    await runAndReport(onRetry);
+    setRetrying(false);
+  }
+
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
       <StatusScreen
@@ -23,14 +31,7 @@ export function ConnectError({
         message={message}
         alert
       >
-        <Button
-          size="lg"
-          disabled={retrying}
-          onClick={() => {
-            setRetrying(true);
-            void onRetry().finally(() => setRetrying(false));
-          }}
-        >
+        <Button size="lg" disabled={retrying} onClick={() => void retry()}>
           {retrying ? (
             <Loader2 className="animate-spin" aria-hidden="true" />
           ) : (

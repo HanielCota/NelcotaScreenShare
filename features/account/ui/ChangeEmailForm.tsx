@@ -4,6 +4,7 @@ import { FormError } from "@/components/FormError";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { EMAIL_PATTERN } from "@/features/auth/domain/sign-up";
@@ -29,10 +30,12 @@ export function ChangeEmailForm({ email }: { email: string }) {
     }
     setPending(true);
     setError(undefined);
-    const { error: failure } = await authClient.changeEmail({
-      newEmail,
-      callbackURL: "/conta?aviso=email",
-    });
+    const { error: failure } = await callAuth(() =>
+      authClient.changeEmail({
+        newEmail,
+        callbackURL: "/conta?aviso=email",
+      }),
+    );
     setPending(false);
     // An e-mail already used by another account also returns 200 (the server does not reveal it);
     // any error here is real (expired session, rate limit, server failure).

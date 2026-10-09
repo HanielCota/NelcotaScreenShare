@@ -22,6 +22,16 @@ function providerMessageId(result: unknown): string | undefined {
 }
 
 /** Retries reuse one key, including when a timeout hides an accepted request. */
+/** The provider's answer; unreadable JSON only costs the message id in the log. */
+async function readProviderResult(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch (error) {
+    logger.warn({ err: error, provider: "resend" }, "e-mail provider answer is not JSON");
+    return undefined;
+  }
+}
+
 async function sendWithResend(message: MailMessage, apiKey: string, sender: string): Promise<void> {
   const headers = {
     Authorization: `Bearer ${apiKey}`,
@@ -32,6 +42,7 @@ async function sendWithResend(message: MailMessage, apiKey: string, sender: stri
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     let response: Response | undefined;
+    let failure: string | undefined;
     try {
       response = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -39,12 +50,13 @@ async function sendWithResend(message: MailMessage, apiKey: string, sender: stri
         body,
         signal: AbortSignal.timeout(10_000),
       });
-    } catch {
-      // Network errors can contain private request data: record only the outcome.
+    } catch (error) {
+      // Network errors can contain private request data: record only their kind.
+      failure = error instanceof Error ? error.name : "unknown";
     }
 
     if (response?.ok) {
-      const result: unknown = await response.json().catch(() => undefined);
+      const result = await readProviderResult(response);
       logger.info(
         {
           event: "mail.accepted",
@@ -58,11 +70,12 @@ async function sendWithResend(message: MailMessage, apiKey: string, sender: stri
     }
 
     const status = response?.status;
+    // Only frees the connection: a failure here changes nothing about the delivery.
     await response?.body?.cancel().catch(() => undefined);
     const transient = status === undefined || status === 429 || status >= 500;
     if (!transient || attempt === 3) {
       logger.error(
-        { event: "mail.failed", provider: "resend", status, attempt },
+        { event: "mail.failed", provider: "resend", status, failure, attempt },
         "e-mail delivery failed",
       );
       throw new Error(
@@ -73,7 +86,7 @@ async function sendWithResend(message: MailMessage, apiKey: string, sender: stri
     }
 
     logger.warn(
-      { event: "mail.retry", provider: "resend", status, attempt },
+      { event: "mail.retry", provider: "resend", status, failure, attempt },
       "retrying e-mail delivery",
     );
     await setTimeout(500 * 2 ** (attempt - 1));

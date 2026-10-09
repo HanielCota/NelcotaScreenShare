@@ -1,3 +1,4 @@
+import { logBrowserWarning } from "@/lib/telemetry.client";
 /** Local microphone preview uses browser APIs; the call SDK loads only when joining. */
 export async function captureMicrophone(options: MediaTrackConstraints): Promise<MediaStreamTrack> {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: options });
@@ -19,7 +20,7 @@ export function createMicrophoneAnalyser(track: MediaStreamTrack) {
     analyser.smoothingTimeConstant = 0.8;
     source.connect(analyser);
     const values = new Uint8Array(analyser.frequencyBinCount);
-    void context.resume().catch(() => {});
+    void resumeContext(context);
     return {
       calculateVolume() {
         analyser.getByteFrequencyData(values);
@@ -34,7 +35,23 @@ export function createMicrophoneAnalyser(track: MediaStreamTrack) {
       },
     };
   } catch (error) {
-    void context.close().catch(() => {});
+    void closeContext(context);
     throw error;
+  }
+}
+
+async function resumeContext(context: AudioContext) {
+  try {
+    await context.resume();
+  } catch (error) {
+    logBrowserWarning("Could not resume the microphone preview", error);
+  }
+}
+
+async function closeContext(context: AudioContext) {
+  try {
+    await context.close();
+  } catch (error) {
+    logBrowserWarning("Could not close the microphone preview", error);
   }
 }

@@ -7,6 +7,7 @@ import { FormError } from "@/components/FormError";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
@@ -38,8 +39,8 @@ export function TwoFactorCodeForm({
     setPending(true);
     setError(undefined);
     const { error: failure } = backup
-      ? await client.twoFactor.verifyBackupCode({ code })
-      : await client.twoFactor.verifyTotp({ code });
+      ? await callAuth(() => client.twoFactor.verifyBackupCode({ code }))
+      : await callAuth(() => client.twoFactor.verifyTotp({ code }));
     if (failure) {
       setPending(false);
       setError(authErrorMessage(failure, "Código inválido. Confira e tente de novo."));

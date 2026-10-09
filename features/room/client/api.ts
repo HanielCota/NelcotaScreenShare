@@ -1,3 +1,5 @@
+import { readJson } from "@/lib/read-json";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 import {
   tokenErrorSchema,
   tokenResponseSchema,
@@ -21,7 +23,8 @@ export async function requestToken(input: TokenRequest): Promise<TokenFetchResul
       body: JSON.stringify(input),
       cache: "no-store",
     });
-  } catch {
+  } catch (error) {
+    logBrowserWarning("Token request failed", error);
     return {
       ok: false,
       code: "network_error",
@@ -29,7 +32,7 @@ export async function requestToken(input: TokenRequest): Promise<TokenFetchResul
     };
   }
 
-  const json: unknown = await response.json().catch(() => null);
+  const json = await readJson(response);
 
   if (response.ok) {
     const parsed = tokenResponseSchema.safeParse(json);
@@ -55,7 +58,8 @@ export async function setHandRaised(room: string, raised: boolean): Promise<bool
       cache: "no-store",
     });
     return response.ok;
-  } catch {
+  } catch (error) {
+    logBrowserWarning("Hand request failed", error);
     return false;
   }
 }

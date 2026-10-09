@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 function subscribeFullscreen(onChange: () => void) {
   document.addEventListener("fullscreenchange", onChange);
@@ -21,8 +22,17 @@ async function toggleFullscreen() {
       return;
     }
     await document.documentElement.requestFullscreen();
-  } catch {
+  } catch (error) {
+    logBrowserWarning("Could not toggle fullscreen", error);
     toast.error("Não foi possível alternar a tela cheia.");
+  }
+}
+
+async function exitFullscreen() {
+  try {
+    await document.exitFullscreen();
+  } catch (error) {
+    logBrowserWarning("Could not leave fullscreen", error);
   }
 }
 
@@ -33,7 +43,7 @@ export function usePageFullscreen() {
   // The stage leaves (the share ended): the page must not stay in fullscreen without it.
   useEffect(
     () => () => {
-      if (isPageFullscreen()) void document.exitFullscreen().catch(() => undefined);
+      if (isPageFullscreen()) void exitFullscreen();
     },
     [],
   );

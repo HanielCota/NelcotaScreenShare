@@ -3,6 +3,8 @@ import { useId, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { proInterestResultSchema, proInterestSchema } from "@/features/home/domain/pro-interest";
+import { readJson } from "@/lib/read-json";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 type State =
   | { kind: "idle" }
@@ -19,10 +21,11 @@ async function send(email: string): Promise<State> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    const body = proInterestResultSchema.safeParse(await response.json().catch(() => null));
+    const body = proInterestResultSchema.safeParse(await readJson(response));
     const message = body.success ? body.data.message : NETWORK_ERROR;
     return response.ok ? { kind: "done", message } : { kind: "error", message };
-  } catch {
+  } catch (error) {
+    logBrowserWarning("Pro waitlist request failed", error);
     return { kind: "error", message: NETWORK_ERROR };
   }
 }
