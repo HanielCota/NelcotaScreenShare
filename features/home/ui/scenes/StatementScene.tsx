@@ -11,8 +11,8 @@ export function StatementScene() {
   const scope = useRef<HTMLElement>(null);
 
   useScrollScene(scope, (section) => {
-    const q = gsap.utils.selector(section);
-    const tl = gsap.timeline({
+    const select = gsap.utils.selector(section);
+    const timeline = gsap.timeline({
       defaults: { ease: "none" },
       // Plays while it crosses the screen, without holding the scroll.
       scrollTrigger: {
@@ -22,18 +22,19 @@ export function StatementScene() {
         scrub: 0.5,
       },
     });
-    tl.fromTo(
-      q("[data-statement]"),
-      { scale: 0.6, opacity: 0.15 },
-      { scale: 1, opacity: 1, duration: 1, ease: "power2.out" },
-    )
+    timeline
       .fromTo(
-        q("[data-statement-strike]"),
+        select("[data-statement]"),
+        { scale: 0.6, opacity: 0.15 },
+        { scale: 1, opacity: 1, duration: 1, ease: "power2.out" },
+      )
+      .fromTo(
+        select("[data-statement-strike]"),
         { scaleX: 0 },
         { scaleX: 1, duration: 0.45, ease: "power2.inOut" },
         ">0.1",
       )
-      .to(q("[data-statement-quote]"), { opacity: 0.45, duration: 0.3 }, "<0.2");
+      .to(select("[data-statement-quote]"), { opacity: 0.45, duration: 0.3 }, "<0.2");
   });
 
   return (

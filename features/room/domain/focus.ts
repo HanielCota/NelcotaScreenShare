@@ -50,5 +50,5 @@ export function sortByOrder<T extends ScreenShareLike>(
     const index = order.indexOf(share.publication.trackSid);
     return index === -1 ? order.length : index;
   };
-  return shares.toSorted((a, b) => position(a) - position(b));
+  return shares.toSorted((first, second) => position(first) - position(second));
 }

@@ -17,17 +17,17 @@ const SYSTEMS: ReadonlyArray<readonly [RegExp, string]> = [
 ];
 
 function firstMatch(
-  ua: string,
+  userAgent: string,
   table: ReadonlyArray<readonly [RegExp, string]>,
   fallback: string,
 ): string {
-  return table.find(([pattern]) => pattern.test(ua))?.[1] ?? fallback;
+  return table.find(([pattern]) => pattern.test(userAgent))?.[1] ?? fallback;
 }
 
 /** Short device description from the user agent ("Chrome no Windows"). */
-export function describeUserAgent(ua: string | null | undefined): string {
-  if (!ua) return "Dispositivo desconhecido";
-  const browser = firstMatch(ua, BROWSERS, "Navegador");
-  const os = firstMatch(ua, SYSTEMS, "sistema desconhecido");
-  return `${browser} no ${os}`;
+export function describeUserAgent(userAgent: string | null | undefined): string {
+  if (!userAgent) return "Dispositivo desconhecido";
+  const browser = firstMatch(userAgent, BROWSERS, "Navegador");
+  const system = firstMatch(userAgent, SYSTEMS, "sistema desconhecido");
+  return `${browser} no ${system}`;
 }

@@ -37,9 +37,9 @@ function filtersFrom(params: AuditParams): SQL[] {
   const actor = z.uuid().safeParse(params.autor);
   if (actor.success) filters.push(eq(auditLogs.actorAdminId, actor.data));
   filters.push(...periodFilters(auditLogs.createdAt, params));
-  const q = params.q.trim().slice(0, 100);
-  if (q) {
-    const search = or(eq(auditLogs.requestId, q), eq(auditLogs.resourceId, q));
+  const term = params.q.trim().slice(0, 100);
+  if (term) {
+    const search = or(eq(auditLogs.requestId, term), eq(auditLogs.resourceId, term));
     if (search) filters.push(search);
   }
   return filters;

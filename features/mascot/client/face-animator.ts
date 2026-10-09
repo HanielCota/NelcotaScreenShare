@@ -36,13 +36,19 @@ export function createFaceAnimator(renderer: FaceRenderer, initial: FaceState, h
       return;
     }
     // The rAF time is the frame start and may come before lastTime: never negative.
-    const dt = Math.min(Math.max(0, (time - lastTime) / 1000), 1 / 30);
+    const elapsedSeconds = Math.min(Math.max(0, (time - lastTime) / 1000), 1 / 30);
     lastTime = time;
     const extra = hooks.beforeFrame(time);
     if (extra.gaze) gazeTarget = extra.gaze;
     if (extra.face) faceTarget = extra.face;
-    const gazeSettled = springStep(gaze, gazeVelocity, gazeTarget, GAZE_RESPONSE, dt);
-    const faceSettled = springStep(face, faceVelocity, faceTarget, hooks.responseFor, dt);
+    const gazeSettled = springStep(gaze, gazeVelocity, gazeTarget, GAZE_RESPONSE, elapsedSeconds);
+    const faceSettled = springStep(
+      face,
+      faceVelocity,
+      faceTarget,
+      hooks.responseFor,
+      elapsedSeconds,
+    );
     // The rAF time may come before blinkStarted: count it as the start, without dropping the blink.
     const progress = blinkStarted ? Math.max(0, (time - blinkStarted) / BLINK_MS) : 1;
     const blinking = progress < 1;

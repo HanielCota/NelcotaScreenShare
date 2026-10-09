@@ -38,8 +38,8 @@ function statusFilters(status: RoomParams["status"]): SQL[] {
 function filtersFrom(params: RoomParams): SQL[] {
   const filters: SQL[] = statusFilters(params.status);
   filters.push(...periodFilters(rooms.startedAt, params));
-  const q = params.q.trim().toLowerCase().slice(0, 40);
-  if (q) filters.push(sql`${rooms.code} like ${`%${likeEscape(q)}%`}`);
+  const term = params.q.trim().toLowerCase().slice(0, 40);
+  if (term) filters.push(sql`${rooms.code} like ${`%${likeEscape(term)}%`}`);
   return filters;
 }
 

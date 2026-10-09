@@ -79,8 +79,8 @@ function useEntranceAnimation(scope: RefObject<HTMLFormElement | null>) {
     () => {
       const card = scope.current;
       if (transitioning || !card) return;
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
+      const media = gsap.matchMedia();
+      media.add(MOTION_QUERIES.motion, () => {
         gsap.from(card, {
           y: 10,
           opacity: 0,

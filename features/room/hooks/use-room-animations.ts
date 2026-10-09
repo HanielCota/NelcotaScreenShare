@@ -28,8 +28,8 @@ export function useRoomAnimations(scope: RefObject<HTMLElement | null>, layoutKe
   // Entrance of the fixed UI (top bar and dock).
   useGSAP(
     () => {
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
+      const media = gsap.matchMedia();
+      media.add(MOTION_QUERIES.motion, () => {
         gsap.from("[data-anim=topbar]", {
           y: -12,
           opacity: 0,

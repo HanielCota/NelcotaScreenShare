@@ -16,7 +16,7 @@ export const searchPanelAction = defineAdminOperation(
   async ({ parsedInput, ctx }) => {
     const db = getDb();
     const role = ctx.admin.user.role;
-    const q = parsedInput.q;
+    const term = parsedInput.q;
     const [foundRooms, foundPeople] = await Promise.all([
       can(role, { room: ["read"] })
         ? db
@@ -25,7 +25,7 @@ export const searchPanelAction = defineAdminOperation(
             .where(
               and(
                 isNull(rooms.deletedAt),
-                sql`${rooms.code} like ${`%${likeEscape(q.toLowerCase())}%`}`,
+                sql`${rooms.code} like ${`%${likeEscape(term.toLowerCase())}%`}`,
               ),
             )
             .orderBy(
@@ -41,7 +41,7 @@ export const searchPanelAction = defineAdminOperation(
             .where(
               and(
                 isNull(users.deletedAt),
-                unaccentLike(sql`${users.name} || ' ' || ${users.email}`, q),
+                unaccentLike(sql`${users.name} || ' ' || ${users.email}`, term),
               ),
             )
             .orderBy(sql`${desc(users.lastSeenAt)} nulls last`, sql`${desc(users.id)} nulls last`)

@@ -109,8 +109,8 @@ export function LeftScreen({
   useGSAP(
     () => {
       if (transitioning) return;
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
+      const media = gsap.matchMedia();
+      media.add(MOTION_QUERIES.motion, () => {
         gsap.from("[data-anim=left]", {
           y: 10,
           opacity: 0,

@@ -38,11 +38,11 @@ function editKey(sender: string, id: string): string {
 }
 
 /** Records the change. Deleting is final: later edits are ignored. */
-export function recordChatEdit(edits: ChatEdits, op: ChatEditOp, sender: string): ChatEdits {
-  const key = editKey(sender, op.id);
+export function recordChatEdit(edits: ChatEdits, edit: ChatEditOp, sender: string): ChatEdits {
+  const key = editKey(sender, edit.id);
   if (edits.get(key)?.deleted) return edits;
   const next = new Map(edits);
-  next.set(key, op.type === "delete" ? { deleted: true } : { text: op.text, deleted: false });
+  next.set(key, edit.type === "delete" ? { deleted: true } : { text: edit.text, deleted: false });
   return next;
 }
 

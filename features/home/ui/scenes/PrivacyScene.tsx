@@ -29,34 +29,34 @@ export function PrivacyScene() {
   const scope = useRef<HTMLElement>(null);
 
   useScrollScene(scope, (section) => {
-    const q = gsap.utils.selector(section);
-    const clock = q("[data-rec-time]")[0];
-    const tl = gsap
+    const select = gsap.utils.selector(section);
+    const clock = select("[data-rec-time]")[0];
+    const timeline = gsap
       .timeline({
         defaults: { ease: "power2.inOut", duration: 0.5 },
         scrollTrigger: {
           trigger: section,
           start: "top top",
           end: "+=160%",
-          pin: q("[data-privacy-frame]")[0],
+          pin: select("[data-privacy-frame]")[0],
           scrub: 0.5,
           anticipatePin: 1,
         },
       })
-      .set(q("[data-rec]"), { opacity: 1, filter: "grayscale(0)" })
-      .set(q("[data-rec-strike]"), { scaleX: 0 })
-      .set(q("[data-privacy-in]"), { opacity: 0, y: 24 })
-      .to(q("[data-rec-dot]"), { scale: 1.25, duration: 0.25, repeat: 1, yoyo: true }, 0)
-      .to(q("[data-rec-strike]"), { scaleX: 1, ease: "power3.out" }, STRIKE_AT)
-      .to(q("[data-rec]"), { opacity: 0.4, filter: "grayscale(1)" }, 0.75)
-      .to(q("[data-privacy-in]"), { opacity: 1, y: 0, stagger: 0.15 }, 1.05)
+      .set(select("[data-rec]"), { opacity: 1, filter: "grayscale(0)" })
+      .set(select("[data-rec-strike]"), { scaleX: 0 })
+      .set(select("[data-privacy-in]"), { opacity: 0, y: 24 })
+      .to(select("[data-rec-dot]"), { scale: 1.25, duration: 0.25, repeat: 1, yoyo: true }, 0)
+      .to(select("[data-rec-strike]"), { scaleX: 1, ease: "power3.out" }, STRIKE_AT)
+      .to(select("[data-rec]"), { opacity: 0.4, filter: "grayscale(1)" }, 0.75)
+      .to(select("[data-privacy-in]"), { opacity: 1, y: 0, stagger: 0.15 }, 1.05)
       .to({}, { duration: 0.4 });
 
     // The clock runs in real time while the scene is on screen and the line has not struck
     // the button yet; once struck it stops where it was, and scrolling back resumes it.
     let seconds = 0;
     const tick = window.setInterval(() => {
-      if (!clock || !tl.scrollTrigger?.isActive || tl.time() >= STRIKE_AT) return;
+      if (!clock || !timeline.scrollTrigger?.isActive || timeline.time() >= STRIKE_AT) return;
       seconds += 1;
       clock.textContent = formatClock(seconds);
     }, 1000);

@@ -38,10 +38,10 @@ export const adminUsers = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
-    uniqueIndex("admin_users_email_key").on(sql`lower(${t.email})`),
-    check("admin_users_role_check", sql`${t.role} in (${roleList})`),
-    check("admin_users_name_check", sql`length(${t.name}) between 1 and 80`),
+  (table) => [
+    uniqueIndex("admin_users_email_key").on(sql`lower(${table.email})`),
+    check("admin_users_role_check", sql`${table.role} in (${roleList})`),
+    check("admin_users_name_check", sql`length(${table.name}) between 1 and 80`),
   ],
 );
 
@@ -61,7 +61,7 @@ export const adminSessions = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("admin_sessions_user_id_idx").on(t.userId, t.expiresAt.desc())],
+  (table) => [index("admin_sessions_user_id_idx").on(table.userId, table.expiresAt.desc())],
 );
 
 export const adminAccounts = pgTable(
@@ -84,9 +84,9 @@ export const adminAccounts = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
-    uniqueIndex("admin_accounts_provider_account_key").on(t.providerId, t.accountId),
-    index("admin_accounts_user_id_idx").on(t.userId),
+  (table) => [
+    uniqueIndex("admin_accounts_provider_account_key").on(table.providerId, table.accountId),
+    index("admin_accounts_user_id_idx").on(table.userId),
   ],
 );
 
@@ -100,7 +100,7 @@ export const adminVerifications = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("admin_verifications_identifier_idx").on(t.identifier)],
+  (table) => [index("admin_verifications_identifier_idx").on(table.identifier)],
 );
 
 export const adminTwoFactors = pgTable(
@@ -117,7 +117,7 @@ export const adminTwoFactors = pgTable(
     failedVerificationCount: integer("failed_verification_count").notNull().default(0),
     lockedUntil: timestamptz("locked_until"),
   },
-  (t) => [index("admin_two_factors_user_id_idx").on(t.userId)],
+  (table) => [index("admin_two_factors_user_id_idx").on(table.userId)],
 );
 
 export const adminRateLimits = pgTable("admin_rate_limits", {
@@ -150,11 +150,11 @@ export const adminInvitations = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (table) => [
     uniqueIndex("admin_invitations_pending_email_key")
-      .on(sql`lower(${t.email})`)
-      .where(sql`${t.status} = 'pending'`),
-    check("admin_invitations_role_check", sql`${t.role} in (${roleList})`),
-    check("admin_invitations_expiry_check", sql`${t.expiresAt} > ${t.createdAt}`),
+      .on(sql`lower(${table.email})`)
+      .where(sql`${table.status} = 'pending'`),
+    check("admin_invitations_role_check", sql`${table.role} in (${roleList})`),
+    check("admin_invitations_expiry_check", sql`${table.expiresAt} > ${table.createdAt}`),
   ],
 );

@@ -60,8 +60,8 @@ function filtersFrom(params: ParticipantParams): SQL[] {
       filters.push(isNull(users.deletedAt));
   }
   filters.push(...periodFilters(users.createdAt, params));
-  const q = params.q.trim().slice(0, 100);
-  if (q) filters.push(unaccentLike(sql`${users.name} || ' ' || ${users.email}`, q));
+  const term = params.q.trim().slice(0, 100);
+  if (term) filters.push(unaccentLike(sql`${users.name} || ' ' || ${users.email}`, term));
   return filters;
 }
 

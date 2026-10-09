@@ -38,8 +38,8 @@ export function AuditFilters({
         placeholder="Cole um ID"
         value={params.q}
         // Only the typed search waits for the person to stop typing.
-        onChange={(q) =>
-          void setParams({ q: q || null, ...resetPage }, { limitUrlUpdates: debounce(350) })
+        onChange={(term) =>
+          void setParams({ q: term || null, ...resetPage }, { limitUrlUpdates: debounce(350) })
         }
       />
       <FilterSelect

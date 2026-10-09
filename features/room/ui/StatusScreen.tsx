@@ -29,8 +29,8 @@ export function StatusScreen({
     () => {
       const screen = scope.current;
       if (transitioning || !screen) return;
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
+      const media = gsap.matchMedia();
+      media.add(MOTION_QUERIES.motion, () => {
         gsap.from(screen, {
           y: 12,
           opacity: 0,

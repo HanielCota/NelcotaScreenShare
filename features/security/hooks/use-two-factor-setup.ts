@@ -41,11 +41,13 @@ export function useTwoFactorSetup({
     return null;
   }
 
-  async function run<T>(fn: () => Promise<{ data: T | null; error: unknown }>): Promise<T | null> {
+  async function run<T>(
+    call: () => Promise<{ data: T | null; error: unknown }>,
+  ): Promise<T | null> {
     setPending(true);
     setError(undefined);
     setInvalidField(undefined);
-    const { data, error: failure } = await callAuth(fn);
+    const { data, error: failure } = await callAuth(call);
     setPending(false);
     if (failure) {
       setError(authErrorMessage(failure));

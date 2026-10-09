@@ -33,10 +33,10 @@ export function diffChanges(
   const keys = new Set([...Object.keys(before ?? {}), ...Object.keys(after ?? {})]);
   const changes: Record<string, { antes: unknown; depois: unknown }> = {};
   for (const key of keys) {
-    const a = before?.[key] ?? null;
-    const b = after?.[key] ?? null;
-    if (JSON.stringify(a) !== JSON.stringify(b)) {
-      changes[key] = { antes: mask(key, a), depois: mask(key, b) };
+    const previous = before?.[key] ?? null;
+    const next = after?.[key] ?? null;
+    if (JSON.stringify(previous) !== JSON.stringify(next)) {
+      changes[key] = { antes: mask(key, previous), depois: mask(key, next) };
     }
   }
   return Object.keys(changes).length > 0 ? changes : null;
@@ -45,12 +45,12 @@ export function diffChanges(
 /** IP, browser and request_id of the current request (empty outside a request). */
 function requestInfo() {
   try {
-    const h = requestHeaders();
-    const ip = clientIpFrom(h);
+    const headers = requestHeaders();
+    const ip = clientIpFrom(headers);
     return {
       ip: ip && isIP(ip) ? ip : null,
-      userAgent: h.get("user-agent")?.slice(0, 500) ?? null,
-      requestId: h.get("x-request-id"),
+      userAgent: headers.get("user-agent")?.slice(0, 500) ?? null,
+      requestId: headers.get("x-request-id"),
     };
   } catch {
     return { ip: null, userAgent: null, requestId: null };

@@ -34,36 +34,40 @@ export function formatRelative(value: Date | string | number, now = Date.now()):
   const time = validTime(value);
   if (time === undefined) return INVALID_DATE;
   const seconds = Math.round((time - now) / 1000);
-  const abs = Math.abs(seconds);
+  const distance = Math.abs(seconds);
   // No seconds count: it changes on every render and helps nobody.
-  if (abs < 60) return "agora mesmo";
-  if (abs < 3600) return relative.format(Math.round(seconds / 60), "minute");
-  if (abs < 86_400) return relative.format(Math.round(seconds / 3600), "hour");
-  if (abs < 2_592_000) return relative.format(Math.round(seconds / 86_400), "day");
-  if (abs < 31_536_000) return relative.format(Math.round(seconds / 2_592_000), "month");
+  if (distance < 60) return "agora mesmo";
+  if (distance < 3600) return relative.format(Math.round(seconds / 60), "minute");
+  if (distance < 86_400) return relative.format(Math.round(seconds / 3600), "hour");
+  if (distance < 2_592_000) return relative.format(Math.round(seconds / 86_400), "day");
+  if (distance < 31_536_000) return relative.format(Math.round(seconds / 2_592_000), "month");
   return relative.format(Math.round(seconds / 31_536_000), "year");
 }
 
-function parseDay(day: string): { y: number; m: number; d: number } | undefined {
+function parseDay(day: string): { year: number; month: number; date: number } | undefined {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
   if (!match) return undefined;
-  const [, y, m, d] = match.map(Number);
-  if (!y || !m || !d) return undefined;
-  return { y, m, d };
+  const [, year, month, date] = match.map(Number);
+  if (!year || !month || !date) return undefined;
+  return { year, month, date };
 }
 
 /** "2026-10-06" → start of the day in São Paulo (as a UTC Date). */
 export function startOfDayInSaoPaulo(day: string): Date | undefined {
   const parsed = parseDay(day);
   if (!parsed) return undefined;
-  return new Date(new TZDate(parsed.y, parsed.m - 1, parsed.d, 0, 0, 0, TIME_ZONE).getTime());
+  return new Date(
+    new TZDate(parsed.year, parsed.month - 1, parsed.date, 0, 0, 0, TIME_ZONE).getTime(),
+  );
 }
 
 /** End of the day in São Paulo (start of the next day), for "até" (until) filters. */
 export function endOfDayInSaoPaulo(day: string): Date | undefined {
   const parsed = parseDay(day);
   if (!parsed) return undefined;
-  return new Date(new TZDate(parsed.y, parsed.m - 1, parsed.d + 1, 0, 0, 0, TIME_ZONE).getTime());
+  return new Date(
+    new TZDate(parsed.year, parsed.month - 1, parsed.date + 1, 0, 0, 0, TIME_ZONE).getTime(),
+  );
 }
 
 /** Short duration in pt-BR: "45 s", "12 min", "1 h 05 min". */

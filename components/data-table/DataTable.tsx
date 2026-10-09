@@ -177,9 +177,9 @@ export function DataTable<TData extends RowData & { id: string }>({
     state: { rowSelection },
   });
 
-  const go = (cursor: string | null, dir: "next" | "prev") => {
+  const goToPage = (cursor: string | null, direction: "next" | "prev") => {
     clear();
-    void runAndReport(() => setPage({ cursor, dir }));
+    void runAndReport(() => setPage({ cursor, dir: direction }));
   };
 
   return (
@@ -251,8 +251,8 @@ export function DataTable<TData extends RowData & { id: string }>({
       <Pagination
         page={page}
         pending={pending}
-        onPrev={() => go(page.prevCursor, "prev")}
-        onNext={() => go(page.nextCursor, "next")}
+        onPrev={() => goToPage(page.prevCursor, "prev")}
+        onNext={() => goToPage(page.nextCursor, "next")}
       />
     </section>
   );

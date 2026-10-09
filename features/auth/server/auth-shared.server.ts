@@ -80,9 +80,9 @@ async function validatePasswordReset(
 }
 
 /** Auditing never breaks sign-in: a failure becomes a log entry. */
-async function safeAudit(fn: () => Promise<void>) {
+async function safeAudit(audit: () => Promise<void>) {
   try {
-    await fn();
+    await audit();
   } catch (error) {
     logger.error({ err: error }, "failed to write authentication audit");
   }

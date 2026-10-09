@@ -13,8 +13,8 @@ export const proInterests = pgTable(
     email: text("email").notNull(),
     createdAt: createdAt(),
   },
-  (t) => [
-    uniqueIndex("pro_interests_email_key").on(sql`lower(${t.email})`),
-    check("pro_interests_email_check", sql`length(${t.email}) <= 254`),
+  (table) => [
+    uniqueIndex("pro_interests_email_key").on(sql`lower(${table.email})`),
+    check("pro_interests_email_check", sql`length(${table.email}) <= 254`),
   ],
 );

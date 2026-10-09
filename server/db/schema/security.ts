@@ -17,8 +17,8 @@ export const loginFailures = pgTable(
     ip: inet("ip"),
     createdAt: createdAt(),
   },
-  (t) => [
-    index("login_failures_email_idx").on(t.scope, t.emailHash, t.createdAt.desc()),
-    index("login_failures_ip_idx").on(t.scope, t.ip, t.createdAt.desc()),
+  (table) => [
+    index("login_failures_email_idx").on(table.scope, table.emailHash, table.createdAt.desc()),
+    index("login_failures_ip_idx").on(table.scope, table.ip, table.createdAt.desc()),
   ],
 );

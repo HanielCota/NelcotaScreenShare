@@ -20,9 +20,9 @@ const perAccountLimit = createRateLimiter({ limit: 20, windowMs: 60_000 });
 const passwordFailures = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
 
 /** Compares in constant time (the hash equalizes lengths before timingSafeEqual). */
-function safeEqual(a: string, b: string): boolean {
-  const hashA = createHash("sha256").update(a).digest();
-  const hashB = createHash("sha256").update(b).digest();
+function safeEqual(given: string, expected: string): boolean {
+  const hashA = createHash("sha256").update(given).digest();
+  const hashB = createHash("sha256").update(expected).digest();
   return timingSafeEqual(hashA, hashB);
 }
 

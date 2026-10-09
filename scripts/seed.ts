@@ -55,10 +55,10 @@ async function seedParticipants(count: number) {
   faker.seed(42);
   const hash = await hashPassword(SEED_PASSWORD);
   const values = Array.from({ length: count }, (_, index) => {
-    const n = String(index + 1).padStart(3, "0");
+    const sequence = String(index + 1).padStart(3, "0");
     return {
       name: faker.person.firstName().slice(0, 32),
-      email: `participante${n}@exemplo.dev`,
+      email: `participante${sequence}@exemplo.dev`,
       emailVerified: true,
       lastSeenAt: faker.date.recent({ days: 60 }),
       createdAt: faker.date.past({ years: 1 }),

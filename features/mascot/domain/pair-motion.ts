@@ -104,9 +104,9 @@ export function createPairMotion(random: () => number = Math.random) {
     },
     advance(elapsed: number, canApproach: boolean) {
       if (suspended || !geometry) return;
-      const dt = Math.max(0, elapsed);
-      if (phase === "approach" || phase === "return" || phase === "hit") move(dt);
-      remaining = Math.max(0, remaining - dt);
+      const elapsedSeconds = Math.max(0, elapsed);
+      if (phase === "approach" || phase === "return" || phase === "hit") move(elapsedSeconds);
+      remaining = Math.max(0, remaining - elapsedSeconds);
       progressPhase(canApproach);
     },
   };

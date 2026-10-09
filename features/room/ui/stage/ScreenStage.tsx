@@ -19,7 +19,7 @@ import { PointerLayer, usePointers } from "./PointerLayer";
 interface ScreenStageProps {
   shares: TrackReference[];
   focused: TrackReference;
-  onFocus: (sid: string) => void;
+  onFocus: (trackSid: string) => void;
 }
 
 function StageButton({
@@ -108,7 +108,7 @@ function SharePicker({
 }: {
   shares: TrackReference[];
   focusedSid: string;
-  onFocus: (sid: string) => void;
+  onFocus: (trackSid: string) => void;
 }) {
   return (
     <fieldset
@@ -117,14 +117,14 @@ function SharePicker({
       className="glass absolute bottom-3 left-1/2 flex max-w-[calc(100%-1.5rem)] min-w-0 -translate-x-1/2 gap-1 overflow-x-auto rounded-xl p-1"
     >
       {shares.map((share) => {
-        const sid = share.publication.trackSid;
-        const active = sid === focusedSid;
+        const trackSid = share.publication.trackSid;
+        const active = trackSid === focusedSid;
         return (
           <button
-            key={sid}
+            key={trackSid}
             type="button"
             aria-pressed={active}
-            onClick={() => onFocus(sid)}
+            onClick={() => onFocus(trackSid)}
             className={cn(
               "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
               active

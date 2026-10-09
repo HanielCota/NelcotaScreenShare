@@ -63,16 +63,16 @@ export function useChatState(): ChatState {
   const { send: publishEdit } = useDataChannel(CHAT_EDIT_TOPIC, (message) => {
     const sender = message.from?.identity;
     if (!sender) return;
-    const op = decodeMessage(message.payload, chatEditSchema);
-    if (!op) return;
-    setEdits((current) => recordChatEdit(current, op, sender));
-    toast.dismiss(chatToastId(op.id));
+    const edit = decodeMessage(message.payload, chatEditSchema);
+    if (!edit) return;
+    setEdits((current) => recordChatEdit(current, edit, sender));
+    toast.dismiss(chatToastId(edit.id));
   });
 
-  async function change(op: ChatEditOp) {
-    await publishEdit(encodeMessage(op), { reliable: true });
+  async function change(edit: ChatEditOp) {
+    await publishEdit(encodeMessage(edit), { reliable: true });
     // The channel does not echo the notice back to the sender: apply it here too.
-    setEdits((current) => recordChatEdit(current, op, localParticipant.identity));
+    setEdits((current) => recordChatEdit(current, edit, localParticipant.identity));
   }
 
   function setOpen(next: boolean) {

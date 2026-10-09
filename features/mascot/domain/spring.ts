@@ -13,16 +13,16 @@ export function springStep<K extends string>(
   velocity: Record<K, number>,
   target: Readonly<Record<K, number>>,
   response: number | ((key: K) => number),
-  dt: number,
+  elapsedSeconds: number,
 ): boolean {
   let settled = true;
   for (const key in target) {
     const omega = (2 * Math.PI) / (typeof response === "number" ? response : response(key));
-    for (let remaining = dt; remaining > 0; remaining -= MAX_STEP) {
-      const h = Math.min(remaining, MAX_STEP);
+    for (let remaining = elapsedSeconds; remaining > 0; remaining -= MAX_STEP) {
+      const step = Math.min(remaining, MAX_STEP);
       const acceleration = -omega * omega * (value[key] - target[key]) - 2 * omega * velocity[key];
-      velocity[key] += acceleration * h;
-      value[key] += velocity[key] * h;
+      velocity[key] += acceleration * step;
+      value[key] += velocity[key] * step;
     }
     // Safety net: an invalid value never reaches the drawing; it snaps back to the target.
     if (!Number.isFinite(value[key]) || !Number.isFinite(velocity[key])) {

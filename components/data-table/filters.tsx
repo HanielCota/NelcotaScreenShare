@@ -199,18 +199,24 @@ export function SortDirection({
   value: "asc" | "desc";
   onChange: (value: "asc" | "desc") => void;
 }) {
-  const desc = value === "desc";
+  const descending = value === "desc";
   return (
     <Button
       variant="outline"
       size="icon"
       className="size-9"
       aria-label={
-        desc ? "Ordem decrescente: mudar para crescente" : "Ordem crescente: mudar para decrescente"
+        descending
+          ? "Ordem decrescente: mudar para crescente"
+          : "Ordem crescente: mudar para decrescente"
       }
-      onClick={() => onChange(desc ? "asc" : "desc")}
+      onClick={() => onChange(descending ? "asc" : "desc")}
     >
-      {desc ? <ArrowDownWideNarrow aria-hidden="true" /> : <ArrowUpNarrowWide aria-hidden="true" />}
+      {descending ? (
+        <ArrowDownWideNarrow aria-hidden="true" />
+      ) : (
+        <ArrowUpNarrowWide aria-hidden="true" />
+      )}
     </Button>
   );
 }

@@ -123,7 +123,7 @@ export function RoomLayout({
   const participants = useParticipants();
   // Only goes on stage once the video is available (avoids a black stage).
   const screenShares = useTracks([Track.Source.ScreenShare]).filter(
-    (ref) => ref.publication.track !== undefined,
+    (trackReference) => trackReference.publication.track !== undefined,
   );
   const chat = useChatState();
   const share = useScreenShare();
@@ -132,13 +132,15 @@ export function RoomLayout({
   const stage = useStageFocus(screenShares);
   const focused = stage.focused;
   const hasStage = focused !== undefined;
-  const sharingIds = new Set(screenShares.map((ref) => ref.participant.identity));
+  const sharingIds = new Set(
+    screenShares.map((trackReference) => trackReference.participant.identity),
+  );
 
   const connection = connectionStatus(connectionState);
   const alone =
     !hasStage && participants.length === 1 && connectionState === ConnectionState.Connected;
 
-  const layoutKey = `${hasStage ? "stage" : alone ? "alone" : "grid"}|${participants.map((p) => p.identity).join(",")}|chat:${chat.open}`;
+  const layoutKey = `${hasStage ? "stage" : alone ? "alone" : "grid"}|${participants.map((participant) => participant.identity).join(",")}|chat:${chat.open}`;
   useRoomAnimations(scope, layoutKey);
 
   return (

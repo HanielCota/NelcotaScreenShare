@@ -117,25 +117,25 @@ function ReactionBubble({ item }: { item: FloatingReaction }) {
 
   useGSAP(
     () => {
-      const el = ref.current;
-      if (!el) return;
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
+      const bubble = ref.current;
+      if (!bubble) return;
+      const media = gsap.matchMedia();
+      media.add(MOTION_QUERIES.motion, () => {
         gsap
           .timeline()
           .fromTo(
-            el,
+            bubble,
             { y: 0, scale: 0.4, opacity: 0 },
             { y: -40, scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)" },
           )
-          .to(el, { y: -300, x: gsap.utils.random(-40, 40), duration: 2.6, ease: "power1.out" })
-          .to(el, { opacity: 0, duration: 0.6 }, "-=0.6");
+          .to(bubble, { y: -300, x: gsap.utils.random(-40, 40), duration: 2.6, ease: "power1.out" })
+          .to(bubble, { opacity: 0, duration: 0.6 }, "-=0.6");
       });
-      mm.add(MOTION_QUERIES.reduced, () => {
+      media.add(MOTION_QUERIES.reduced, () => {
         gsap
           .timeline()
-          .fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.2 })
-          .to(el, { opacity: 0, duration: 0.4, delay: 2.4 });
+          .fromTo(bubble, { opacity: 0 }, { opacity: 1, duration: 0.2 })
+          .to(bubble, { opacity: 0, duration: 0.4, delay: 2.4 });
       });
     },
     { scope: ref },

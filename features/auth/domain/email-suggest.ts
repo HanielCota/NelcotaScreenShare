@@ -13,22 +13,22 @@ const COMMON_DOMAINS = [
   "terra.com.br",
 ];
 
-function distance(a: string, b: string): number {
-  const row = Array.from({ length: b.length + 1 }, (_, index) => index);
-  for (let i = 1; i <= a.length; i++) {
+function distance(typed: string, candidateDomain: string): number {
+  const row = Array.from({ length: candidateDomain.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= typed.length; i++) {
     let previous = row[0] ?? 0;
     row[0] = i;
-    for (let j = 1; j <= b.length; j++) {
+    for (let j = 1; j <= candidateDomain.length; j++) {
       const current = row[j] ?? 0;
       row[j] = Math.min(
         (row[j] ?? 0) + 1,
         (row[j - 1] ?? 0) + 1,
-        previous + (a[i - 1] === b[j - 1] ? 0 : 1),
+        previous + (typed[i - 1] === candidateDomain[j - 1] ? 0 : 1),
       );
       previous = current;
     }
   }
-  return row[b.length] ?? 0;
+  return row[candidateDomain.length] ?? 0;
 }
 
 /**
@@ -45,8 +45,9 @@ export function suggestEmail(email: string): string | undefined {
   if (!domain || COMMON_DOMAINS.includes(domain)) return undefined;
   let best: { domain: string; distance: number } | undefined;
   for (const candidate of COMMON_DOMAINS) {
-    const d = distance(domain, candidate);
-    if (d <= 2 && (!best || d < best.distance)) best = { domain: candidate, distance: d };
+    const edits = distance(domain, candidate);
+    if (edits <= 2 && (!best || edits < best.distance))
+      best = { domain: candidate, distance: edits };
   }
   return best ? `${email.slice(0, at)}@${best.domain}` : undefined;
 }

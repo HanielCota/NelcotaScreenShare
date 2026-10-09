@@ -44,8 +44,8 @@ function Filters({ exportHref }: { exportHref: string | null }) {
         label="Código"
         placeholder="Buscar por código"
         value={params.q}
-        onChange={(q) =>
-          void setParams({ q: q || null, ...resetPage }, { limitUrlUpdates: debounce(350) })
+        onChange={(term) =>
+          void setParams({ q: term || null, ...resetPage }, { limitUrlUpdates: debounce(350) })
         }
       />
       <FilterSelect
