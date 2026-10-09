@@ -6,10 +6,9 @@ export function periodFilters(
   column: AnyColumn,
   { de, ate }: { de: string | null; ate: string | null },
 ): SQL[] {
-  const filters: SQL[] = [];
   const from = de ? startOfDayInSaoPaulo(de) : undefined;
-  if (from) filters.push(gte(column, from));
   const until = ate ? endOfDayInSaoPaulo(ate) : undefined;
-  if (until) filters.push(lt(column, until));
-  return filters;
+  return [from ? gte(column, from) : undefined, until ? lt(column, until) : undefined].filter(
+    (filter): filter is SQL => filter !== undefined,
+  );
 }

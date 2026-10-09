@@ -13,11 +13,10 @@ export type TokenFetchResult =
   | { ok: true; data: TokenResponse }
   | { ok: false; code: TokenErrorCode | "network_error"; message: string };
 
-/** Requests a token from the backend. Runs in the browser; the secret stays on the server. */
-export async function requestToken(input: TokenRequest): Promise<TokenFetchResult> {
-  let response: Response;
+/** The token endpoint's response, or `undefined` when the request never got one (offline). */
+async function postTokenRequest(input: TokenRequest): Promise<Response | undefined> {
   try {
-    response = await fetch("/api/token", {
+    return await fetch("/api/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
@@ -25,6 +24,14 @@ export async function requestToken(input: TokenRequest): Promise<TokenFetchResul
     });
   } catch (error) {
     logBrowserWarning("Token request failed", error);
+    return undefined;
+  }
+}
+
+/** Requests a token from the backend. Runs in the browser; the secret stays on the server. */
+export async function requestToken(input: TokenRequest): Promise<TokenFetchResult> {
+  const response = await postTokenRequest(input);
+  if (!response) {
     return {
       ok: false,
       code: "network_error",

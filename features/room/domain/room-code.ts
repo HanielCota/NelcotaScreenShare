@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { decodeComponent } from "@/lib/url";
 
 /**
  * Room code: lowercase letters, digits and hyphens (e.g. "abc-defg-hij"). The same
@@ -36,11 +37,7 @@ export function generateRoomCode(): string {
 
 /** Decoded URL segment; `undefined` if the encoding is invalid (e.g. "%E0"). */
 export function decodeRoomParam(segment: string): string | undefined {
-  try {
-    return decodeURIComponent(segment);
-  } catch {
-    return undefined;
-  }
+  return decodeComponent(segment);
 }
 
 export function roomPath(code: string): string {

@@ -63,20 +63,28 @@ export async function getSetting<T>(group: SettingGroup<T>, db: Database = getDb
     const cached = group.schema.safeParse(hit.value);
     if (cached.success) return cached.data;
   }
-  let value = group.defaults;
+  const stored = await readStoredSetting(group, db);
+  // A database outage must not break the page: fall back to the default, without caching.
+  if (!stored) return group.defaults;
+  cache.set(group.key, { value: stored.value, expiresAt: Date.now() + CACHE_TTL_MS });
+  return stored.value;
+}
+
+/** The stored value (or the default when it is invalid); `undefined` when the read failed. */
+async function readStoredSetting<T>(
+  group: SettingGroup<T>,
+  db: Database,
+): Promise<{ value: T } | undefined> {
   try {
     const parsed = group.schema.safeParse(await readRaw(db, group.key));
-    if (parsed.success) value = parsed.data;
+    return { value: parsed.success ? parsed.data : group.defaults };
   } catch (error) {
-    // A database outage must not break the page: fall back to the default, without caching.
     if (Date.now() - lastReadErrorAt > 60_000) {
       lastReadErrorAt = Date.now();
       logger.error({ err: error, setting: group.key }, "failed to read setting");
     }
-    return group.defaults;
+    return undefined;
   }
-  cache.set(group.key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
-  return value;
 }
 
 /**

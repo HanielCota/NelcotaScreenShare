@@ -48,6 +48,25 @@ async function readProviderResult(response: Response): Promise<unknown> {
   }
 }
 
+/** One delivery attempt: the response, or only the kind of network failure. */
+async function postToResend(
+  headers: Record<string, string>,
+  body: string,
+): Promise<{ response?: Response; failure?: string }> {
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers,
+      body,
+      signal: AbortSignal.timeout(10_000),
+    });
+    return { response };
+  } catch (error) {
+    // Network errors can contain private request data: record only their kind.
+    return { failure: error instanceof Error ? error.name : "unknown" };
+  }
+}
+
 async function sendWithResend(message: MailMessage, apiKey: string, sender: string): Promise<void> {
   const headers = {
     Authorization: `Bearer ${apiKey}`,
@@ -57,19 +76,7 @@ async function sendWithResend(message: MailMessage, apiKey: string, sender: stri
   const body = JSON.stringify({ from: sender, ...message });
 
   for (let attempt = 1; attempt <= 3; attempt++) {
-    let response: Response | undefined;
-    let failure: string | undefined;
-    try {
-      response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers,
-        body,
-        signal: AbortSignal.timeout(10_000),
-      });
-    } catch (error) {
-      // Network errors can contain private request data: record only their kind.
-      failure = error instanceof Error ? error.name : "unknown";
-    }
+    const { response, failure } = await postToResend(headers, body);
 
     if (response?.ok) {
       const result = await readProviderResult(response);

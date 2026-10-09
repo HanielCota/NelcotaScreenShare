@@ -1,4 +1,5 @@
 import { roomCodeSchema } from "@/features/room/domain/room-code";
+import { decodeComponent, parseUrl } from "@/lib/url";
 
 /**
  * Where the person came from to the access screen (via `voltar`): a room,
@@ -7,20 +8,12 @@ import { roomCodeSchema } from "@/features/room/domain/room-code";
 export type AccessContext = { kind: "room"; code: string; invited: boolean } | { kind: "app" };
 
 export function accessContext(returnTo: string): AccessContext {
-  let url: URL;
-  try {
-    url = new URL(returnTo, "http://nelcota.local");
-  } catch {
-    return { kind: "app" };
-  }
+  const url = parseUrl(returnTo, "http://nelcota.local");
+  if (!url) return { kind: "app" };
   const match = /^\/sala\/([^/]+)$/.exec(url.pathname);
   if (!match?.[1]) return { kind: "app" };
-  let raw: string;
-  try {
-    raw = decodeURIComponent(match[1]);
-  } catch {
-    return { kind: "app" };
-  }
+  const raw = decodeComponent(match[1]);
+  if (raw === undefined) return { kind: "app" };
   const code = roomCodeSchema.safeParse(raw);
   if (!code.success) return { kind: "app" };
   return { kind: "room", code: code.data, invited: url.searchParams.has("convite") };

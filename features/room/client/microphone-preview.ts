@@ -24,8 +24,7 @@ export function createMicrophoneAnalyser(track: MediaStreamTrack) {
     return {
       calculateVolume() {
         analyser.getByteFrequencyData(values);
-        let sum = 0;
-        for (const value of values) sum += (value / 255) ** 2;
+        const sum = values.reduce((total, value) => total + (value / 255) ** 2, 0);
         return Math.sqrt(sum / values.length);
       },
       async cleanup() {

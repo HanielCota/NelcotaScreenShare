@@ -13,16 +13,15 @@ import { StatementScene } from "./scenes/StatementScene";
 import { PrivacyScene } from "./scenes/PrivacyScene";
 import { ProductScene } from "./scenes/ProductScene";
 import { UseCasesScene } from "./scenes/UseCasesScene";
+import { decodeComponent } from "@/lib/url";
 
 /** The element a "#section" link points at, if the hash names one. */
 function hashTarget(): HTMLElement | null {
   const id = window.location.hash.slice(1);
   if (!id) return null;
-  try {
-    return document.getElementById(decodeURIComponent(id));
-  } catch {
-    return null;
-  }
+  const decoded = decodeComponent(id);
+  if (decoded === undefined) return null;
+  return document.getElementById(decoded);
 }
 
 /** The page itself was just opened (typed, linked or reloaded), not restored from history. */
