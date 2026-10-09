@@ -64,9 +64,8 @@ export async function receiveLivekitWebhook(request: Request) {
         source: "livekit-webhook",
         event: event.event,
         room: event.room?.name,
-        participant: event.participant
-          ? { identity: event.participant.identity, name: event.participant.name }
-          : undefined,
+        // Identity only: the display name is personal data and adds nothing to debugging.
+        participant: event.participant ? { identity: event.participant.identity } : undefined,
         at: new Date(Number(event.createdAt) * 1000).toISOString(),
       },
       "LiveKit event",

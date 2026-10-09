@@ -22,6 +22,22 @@ function providerMessageId(result: unknown): string | undefined {
 }
 
 /** Retries reuse one key, including when a timeout hides an accepted request. */
+/**
+ * Without a provider, local development reads the links straight from the log. Any other
+ * non-production environment (tests, previews) records only the subject: recipients and
+ * links with tokens never reach a shared log.
+ */
+function logUndeliveredMail(message: MailMessage) {
+  if (process.env.NODE_ENV !== "development") {
+    logger.warn({ mail: { subject: message.subject } }, "e-mail not sent (no provider)");
+    return;
+  }
+  logger.warn(
+    { mail: { to: message.to, subject: message.subject }, body: message.text },
+    "e-mail not sent (no provider): content in the log",
+  );
+}
+
 /** The provider's answer; unreadable JSON only costs the message id in the log. */
 async function readProviderResult(response: Response): Promise<unknown> {
   try {
@@ -108,10 +124,7 @@ export async function sendMail(message: MailMessage): Promise<void> {
     if (process.env.NODE_ENV === "production") {
       throw new Error("E-mail delivery is not configured");
     }
-    logger.warn(
-      { mail: { to: message.to, subject: message.subject }, body: message.text },
-      "e-mail not sent (no provider): content in the log",
-    );
+    logUndeliveredMail(message);
     return;
   }
   transporter ??= createTransport(SMTP_URL);

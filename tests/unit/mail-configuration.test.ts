@@ -123,6 +123,16 @@ describe("mail delivery", () => {
     );
   });
 
+  test("keeps recipients and links out of the log outside development", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    const { sendMail } = await import("@/server/mail.server");
+    await sendMail(message);
+    expect(mail.warn).toHaveBeenCalledWith(
+      { mail: { subject: message.subject } },
+      "e-mail not sent (no provider)",
+    );
+  });
+
   test("preserves configured SMTP delivery", async () => {
     vi.stubEnv("SMTP_URL", "smtps://localhost:465");
     vi.stubEnv("MAIL_FROM", "Nelcota <mail@example.com>");

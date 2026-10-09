@@ -58,7 +58,7 @@ test("signed event with the database down: logs it and asks for a retry (503)", 
   const line = z.record(z.string(), z.unknown()).parse(logs[0]);
   assert.equal(line.event, "participant_joined");
   assert.equal(line.room, "sala-teste");
-  assert.deepEqual(line.participant, { identity: "ana-1234", name: "Ana" });
+  assert.deepEqual(line.participant, { identity: "ana-1234" });
 });
 
 test("rejects without a signature", async () => {
