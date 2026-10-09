@@ -7,6 +7,7 @@ import { SignInForm } from "@/features/auth/ui/SignInForm";
 import { accessContext } from "@/features/auth/domain/access-context";
 import { safeReturnPath } from "@/features/auth/domain/return-path";
 import { getUserSession } from "@/features/auth/server/participant-session.server";
+import { noticeFor } from "@/lib/notice";
 
 export const meta = () => [{ title: "Entrar · Nelcota" }];
 
@@ -32,7 +33,7 @@ export default function SignInPage() {
       <SignInForm
         returnTo={returnTo}
         context={accessContext(returnTo)}
-        notice={typeof aviso === "string" ? NOTICES[aviso] : undefined}
+        notice={noticeFor(NOTICES, aviso)}
       />
     </>
   );

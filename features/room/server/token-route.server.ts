@@ -11,6 +11,7 @@ import { newGuestSession, readGuestId } from "@/features/room/server/guest-sessi
 import { clientIpFrom } from "@/server/client-ip.server";
 import { createRateLimiter } from "@/server/rate-limit.server";
 import { requestLogger } from "@/server/request-log.server";
+import { readBodyText, SMALL_JSON_MAX_BYTES } from "@/server/body.server";
 
 // Per-IP excess does not reach the database: a flood does not become a flood of writes.
 const perIpLimit = createRateLimiter({ limit: 20, windowMs: 60_000 });
@@ -46,7 +47,7 @@ async function guestCaller(
 /** Body read before the checks, only to record the requested room in every result. */
 async function readBody(request: Request) {
   try {
-    const value: unknown = await request.json();
+    const value: unknown = JSON.parse(await readBodyText(request, SMALL_JSON_MAX_BYTES));
     const room =
       value && typeof value === "object" && "room" in value && typeof value.room === "string"
         ? value.room.trim().toLowerCase()

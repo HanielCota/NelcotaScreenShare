@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { savedMicrophone, saveMicrophone } from "@/features/room/client/saved-microphone";
 import { contentBox } from "@/features/room/domain/content-box";
 import {
+  CHAT_MAX_LENGTH,
+  capChatText,
   createReceiveThrottle,
   decodeMessage,
   encodeMessage,
@@ -10,6 +12,11 @@ import {
 } from "@/features/room/domain/data-channel";
 
 describe("data channel messages", () => {
+  it("caps received chat text at the composer limit", () => {
+    expect(capChatText("oi")).toBe("oi");
+    expect(capChatText("a".repeat(CHAT_MAX_LENGTH + 50))).toHaveLength(CHAT_MAX_LENGTH);
+  });
+
   it("round-trips a valid reaction", () => {
     expect(decodeMessage(encodeMessage({ emoji: "🎉" }), reactionSchema)).toEqual({ emoji: "🎉" });
   });
@@ -81,6 +88,11 @@ describe("saved microphone", () => {
     saveMicrophone("mic-1");
     expect(savedMicrophone()).toBe("mic-1");
     saveMicrophone(undefined);
+    expect(savedMicrophone()).toBeUndefined();
+  });
+
+  it("ignores a stored value that is not a device id", () => {
+    vi.stubGlobal("localStorage", { getItem: () => "x".repeat(1000) });
     expect(savedMicrophone()).toBeUndefined();
   });
 

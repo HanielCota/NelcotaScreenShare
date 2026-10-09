@@ -9,6 +9,7 @@ import { getUserAuth } from "@/features/auth/server/participant-auth.server";
 import { roomService } from "@/features/room/server/room-service.server";
 import { createRateLimiter } from "@/server/rate-limit.server";
 import { requestLogger } from "@/server/request-log.server";
+import { readJsonBody, SMALL_JSON_MAX_BYTES } from "@/server/body.server";
 
 const handSchema = z.object({ room: roomCodeSchema, raised: z.boolean() });
 const limiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
@@ -36,7 +37,7 @@ export async function setRaisedHand(request: Request) {
   if (!identity) return fail("Entre na sala de novo para continuar.", 401);
   if (!limiter.hit(identity).ok) return fail("Muitas tentativas. Aguarde um pouco.", 429);
 
-  const parsed = handSchema.safeParse(await request.json().catch(() => null));
+  const parsed = handSchema.safeParse(await readJsonBody(request, SMALL_JSON_MAX_BYTES));
   if (!parsed.success) return fail("Pedido inválido.", 400);
   const { room, raised } = parsed.data;
 

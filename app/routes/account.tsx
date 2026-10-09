@@ -30,6 +30,7 @@ import { getDb } from "@/server/db/index.server";
 import { userSessions } from "@/server/db/schema";
 import { getEnv } from "@/server/env.server";
 import { cn } from "@/lib/utils";
+import { noticeFor } from "@/lib/notice";
 
 export const meta = () => [{ title: "Minha conta · Nelcota" }];
 
@@ -60,7 +61,7 @@ export const loader = routeLoader(async ({ searchParams }) => {
   const { voltar, aviso } = searchParams;
   const back = safeReturnPath(voltar, "");
   const sessions = await listActiveSessions(getDb(), userSessions, current.user.id);
-  const notice = typeof aviso === "string" ? NOTICES[aviso] : undefined;
+  const notice = noticeFor(NOTICES, aviso);
   const { name, email, image, emailVerified, twoFactorEnabled } = current.user;
   return {
     currentId: current.session.id,

@@ -5,6 +5,7 @@ import { HomeScene } from "@/features/home/ui/HomeScene";
 import { getUserSession } from "@/features/auth/server/participant-session.server";
 import { getEnv } from "@/server/env.server";
 import { INDEXABLE, originFromMatches, pageMeta } from "@/lib/seo";
+import { noticeFor } from "@/lib/notice";
 
 export const handle = INDEXABLE;
 
@@ -40,7 +41,7 @@ export default function HomePage() {
       invalidCode={erro === "codigo"}
       account={account}
       maxParticipants={maxParticipants}
-      notice={typeof aviso === "string" ? NOTICES[aviso] : undefined}
+      notice={noticeFor(NOTICES, aviso)}
     />
   );
 }

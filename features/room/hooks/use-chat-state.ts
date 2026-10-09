@@ -17,7 +17,7 @@ import {
   type ChatEditOp,
   type ChatEdits,
 } from "@/features/room/domain/chat-edits";
-import { decodeMessage, encodeMessage } from "@/features/room/domain/data-channel";
+import { capChatText, decodeMessage, encodeMessage } from "@/features/room/domain/data-channel";
 
 /** Message as it appears on screen: with edits and deletions already applied. */
 export interface ChatEntry {
@@ -83,7 +83,7 @@ export function useChatState(): ChatState {
   const messages = chatMessages.map((message: ReceivedChatMessage): ChatEntry => {
     const resolved = resolveChatText(edits, {
       id: message.id,
-      text: message.message,
+      text: capChatText(message.message),
       author: message.from?.identity,
     });
     return {
@@ -102,7 +102,7 @@ export function useChatState(): ChatState {
     if (open) return;
     const last = fresh.findLast((message) => !message.from?.isLocal);
     if (last) {
-      toast(`${participantLabel(last.from)}: ${last.message}`, {
+      toast(`${participantLabel(last.from)}: ${capChatText(last.message)}`, {
         id: chatToastId(last.id),
         action: { label: "Abrir", onClick: () => setOpenState(true) },
       });

@@ -85,7 +85,8 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onAttributes = (changed: Record<string, string>, participant: Participant) => {
       if (participant.isLocal || !(HAND_ATTRIBUTE in changed)) return;
-      if (changed[HAND_ATTRIBUTE]) toast(`✋ ${participantName(participant)} levantou a mão`);
+      if (changed[HAND_ATTRIBUTE] === "1")
+        toast(`✋ ${participantName(participant)} levantou a mão`);
     };
     room.on(RoomEvent.ParticipantAttributesChanged, onAttributes);
     return () => {

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { readJson } from "@/lib/read-json";
 
 export interface OperationResult<T> {
   data?: T;
@@ -10,6 +11,8 @@ export type Operation<I, O> = ((input: I) => Promise<OperationResult<O>>) & {
   url: string;
   method: "get" | "post";
 };
+
+const UNEXPECTED_RESPONSE = "Algo deu errado. Tente de novo.";
 
 /** Checks the envelope; `data` is trusted to be the operation's declared output. */
 function resultSchema<O>() {
@@ -33,7 +36,10 @@ export function operation<I, O>(id: string, method: "get" | "post" = "post"): Op
         ...(method === "post" ? { body } : {}),
       },
     );
-    const result: OperationResult<O> = resultSchema<O>().parse(await response.json());
+    const parsed = resultSchema<O>().safeParse(await readJson(response));
+    // A proxy error page or an unexpected body: the same message as any server failure.
+    if (!parsed.success) return { serverError: UNEXPECTED_RESPONSE };
+    const result: OperationResult<O> = parsed.data;
     if (result.data !== undefined && method === "post")
       window.dispatchEvent(new Event("nelcota:mutation"));
     return result;
