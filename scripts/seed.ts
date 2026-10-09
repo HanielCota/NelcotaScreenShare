@@ -83,11 +83,10 @@ async function seedParticipants(count: number) {
 }
 
 async function seedAudit(target: number) {
-  const [existing] = await db
-    .execute<{ total: number }>(
-      sql`select count(*)::int as total from audit_logs where metadata->>'seed' = 'true'`,
-    )
-    .then((result) => result.rows);
+  const counted = await db.execute<{ total: number }>(
+    sql`select count(*)::int as total from audit_logs where metadata->>'seed' = 'true'`,
+  );
+  const [existing] = counted.rows;
   const missing = target - (existing?.total ?? 0);
   if (missing <= 0) return 0;
   faker.seed(7);

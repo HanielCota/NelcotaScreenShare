@@ -165,18 +165,17 @@ export function ReactionsMenu() {
   const handRaised =
     useParticipantAttribute(HAND_ATTRIBUTE, { participant: localParticipant }) === "1";
 
-  function toggleHand() {
+  async function toggleHand() {
     const next = !handRaised;
-    void setHandRaised(room.name, next).then((ok) => {
-      if (ok) {
-        toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
-        return;
-      }
-      toast.error(`Não foi possível ${next ? "levantar" : "baixar"} a mão. Tente de novo.`);
-    });
+    const ok = await setHandRaised(room.name, next);
+    if (ok) {
+      toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
+      return;
+    }
+    toast.error(`Não foi possível ${next ? "levantar" : "baixar"} a mão. Tente de novo.`);
   }
 
-  useShortcut("h", toggleHand);
+  useShortcut("h", () => void toggleHand());
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
@@ -216,7 +215,7 @@ export function ReactionsMenu() {
             Levantar a mão
             <kbd className="rounded-md border border-line px-1.5 text-xs text-ink-subtle">H</kbd>
           </Label>
-          <Switch id={handId} checked={handRaised} onCheckedChange={toggleHand} />
+          <Switch id={handId} checked={handRaised} onCheckedChange={() => void toggleHand()} />
         </div>
       </DockPopoverContent>
     </Popover.Root>

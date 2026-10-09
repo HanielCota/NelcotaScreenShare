@@ -1,6 +1,17 @@
 import { Check, Copy, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { logBrowserWarning } from "@/lib/telemetry.client";
+
+async function copyCodes(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success("Códigos copiados.");
+  } catch (error) {
+    logBrowserWarning("Could not copy the backup codes", error);
+    toast.error("Não foi possível copiar. Use o botão Baixar .txt.");
+  }
+}
 
 export function BackupCodes({
   codes,
@@ -25,16 +36,7 @@ export function BackupCodes({
         ))}
       </ol>
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() =>
-            void navigator.clipboard.writeText(text).then(
-              () => toast.success("Códigos copiados."),
-              () => toast.error("Não foi possível copiar. Use o botão Baixar .txt."),
-            )
-          }
-        >
+        <Button type="button" variant="outline" onClick={() => void copyCodes(text)}>
           <Copy aria-hidden="true" />
           Copiar
         </Button>

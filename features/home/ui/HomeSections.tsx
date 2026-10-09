@@ -56,11 +56,13 @@ export function HomeSections({
     () => {
       const honorHash = navigationType !== NavigationType.Pop || isFreshPageLoad();
       let mounted = true;
-      void document.fonts.ready.then(() => {
+      const settle = async () => {
+        await document.fonts.ready;
         if (!mounted) return;
         ScrollTrigger.refresh();
         if (honorHash) hashTarget()?.scrollIntoView();
-      });
+      };
+      void settle();
       return () => {
         mounted = false;
       };

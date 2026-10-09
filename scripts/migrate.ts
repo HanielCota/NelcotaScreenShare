@@ -52,11 +52,11 @@ if (isEntryPoint) {
     process.exit(1);
   }
   const started = Date.now();
-  runMigrations(url, process.env.MIGRATIONS_DIR).then(
-    () => console.info(`[migrate] migrations up to date (${Date.now() - started} ms)`),
-    (error: unknown) => {
-      console.error("[migrate] failed", error);
-      process.exit(1);
-    },
-  );
+  try {
+    await runMigrations(url, process.env.MIGRATIONS_DIR);
+    console.info(`[migrate] migrations up to date (${Date.now() - started} ms)`);
+  } catch (error) {
+    console.error("[migrate] failed", error);
+    process.exit(1);
+  }
 }

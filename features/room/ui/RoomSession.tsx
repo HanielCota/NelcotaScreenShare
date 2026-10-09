@@ -11,7 +11,7 @@ import { LeftScreen } from "./LeftScreen";
 import { logBrowserWarning } from "@/lib/telemetry.client";
 
 const loadRoomView = () => import("./call/RoomView");
-const RoomView = lazy(() => loadRoomView().then((module) => ({ default: module.RoomView })));
+const RoomView = lazy(async () => ({ default: (await loadRoomView()).RoomView }));
 const prepareRoomView = () => {
   void prefetchRoomView();
 };
