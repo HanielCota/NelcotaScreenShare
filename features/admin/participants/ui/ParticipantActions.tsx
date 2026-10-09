@@ -1,90 +1,35 @@
 import { Ban, LockOpen, LogOut, MailCheck, RotateCcw, ShieldX, Trash2 } from "lucide-react";
-import { useOperation } from "@/lib/operations/use-operation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { toastWithUndo } from "@/lib/undo-toast";
 import { Button } from "@/components/ui/button";
-import {
-  anonymizeParticipantAction,
-  blockParticipantsAction,
-  deleteParticipantsAction,
-  resendVerificationAction,
-  restoreParticipantsAction,
-  revokeParticipantSessionsAction,
-  unblockParticipantsAction,
-} from "@/features/admin/participants/actions";
 import type { ParticipantStatus } from "@/features/admin/participants/domain/search-params";
 import { availableActions } from "@/features/admin/participants/domain/available-actions";
 import { BLOCK_DESCRIPTION } from "@/features/admin/participants/domain/labels";
-import { toastError } from "@/features/admin/shell/ui/toast-error";
+import { useParticipantOperations, type ParticipantOperations } from "./use-participant-operations";
 
 type Dialog = "block" | "delete" | "anonymize" | null;
 
-/** Actions on a participant's detail page, according to status and permissions. */
-export function ParticipantActions({
+interface ParticipantSelection {
+  kind: "ids";
+  ids: string[];
+}
+
+function ActionButtons({
   id,
-  status,
-  verified,
-  anonymized,
-  sessions,
-  can,
+  selection,
+  show,
+  operations,
+  openDialog,
 }: {
   id: string;
-  status: ParticipantStatus;
-  verified: boolean;
-  anonymized: boolean;
-  sessions: number;
-  can: { update: boolean; delete: boolean; anonymize: boolean };
+  selection: ParticipantSelection;
+  show: ReturnType<typeof availableActions>;
+  operations: ParticipantOperations;
+  openDialog: (dialog: Dialog) => void;
 }) {
-  const [dialog, setDialog] = useState<Dialog>(null);
-  const selection = { kind: "ids" as const, ids: [id] };
-  const block = useOperation(blockParticipantsAction, {
-    onSuccess: () => {
-      setDialog(null);
-      toast.success("Conta bloqueada. Sessões encerradas.");
-    },
-    onError: toastError("Não foi possível bloquear."),
-  });
-  const unblock = useOperation(unblockParticipantsAction, {
-    onSuccess: () => toast.success("Conta desbloqueada."),
-    onError: toastError("Não foi possível desbloquear."),
-  });
-  const revoke = useOperation(revokeParticipantSessionsAction, {
-    onSuccess: ({ data }) =>
-      toast.success(data.count === 1 ? "1 sessão encerrada." : `${data.count} sessões encerradas.`),
-    onError: toastError("Não foi possível encerrar as sessões."),
-  });
-  const resend = useOperation(resendVerificationAction, {
-    onSuccess: () => toast.success("Link de confirmação reenviado."),
-    onError: toastError("Não foi possível reenviar."),
-  });
-  const restore = useOperation(restoreParticipantsAction, {
-    onSuccess: () => toast.success("Conta restaurada."),
-    onError: toastError("Não foi possível restaurar."),
-  });
-  const remove = useOperation(deleteParticipantsAction, {
-    onSuccess: ({ data }) => {
-      setDialog(null);
-      toastWithUndo(
-        "Conta excluída",
-        () => restoreParticipantsAction({ ids: data.ids }),
-        "Conta restaurada.",
-      );
-    },
-    onError: toastError("Não foi possível excluir."),
-  });
-  const anonymize = useOperation(anonymizeParticipantAction, {
-    onSuccess: () => {
-      setDialog(null);
-      toast.success("Conta anonimizada.");
-    },
-    onError: toastError("Não foi possível anonimizar."),
-  });
-
-  const show = availableActions({ status, verified, anonymized, sessions, can });
+  const { unblock, revoke, resend, restore } = operations;
   return (
-    <div className="flex flex-wrap gap-2">
+    <>
       {show.unblock ? (
         <Button
           variant="outline"
@@ -96,7 +41,7 @@ export function ParticipantActions({
         </Button>
       ) : null}
       {show.block ? (
-        <Button variant="outline" onClick={() => setDialog("block")}>
+        <Button variant="outline" onClick={() => openDialog("block")}>
           <Ban aria-hidden="true" />
           Bloquear
         </Button>
@@ -132,18 +77,37 @@ export function ParticipantActions({
         </Button>
       ) : null}
       {show.delete ? (
-        <Button variant="destructive" onClick={() => setDialog("delete")}>
+        <Button variant="destructive" onClick={() => openDialog("delete")}>
           <Trash2 aria-hidden="true" />
           Excluir
         </Button>
       ) : null}
       {show.anonymize ? (
-        <Button variant="destructive" onClick={() => setDialog("anonymize")}>
+        <Button variant="destructive" onClick={() => openDialog("anonymize")}>
           <ShieldX aria-hidden="true" />
           Anonimizar (LGPD)
         </Button>
       ) : null}
+    </>
+  );
+}
 
+function ConfirmDialogs({
+  id,
+  selection,
+  dialog,
+  setDialog,
+  operations,
+}: {
+  id: string;
+  selection: ParticipantSelection;
+  dialog: Dialog;
+  setDialog: (dialog: Dialog) => void;
+  operations: ParticipantOperations;
+}) {
+  const { block, remove, anonymize } = operations;
+  return (
+    <>
       <ConfirmDialog
         open={dialog === "block"}
         onOpenChange={(open) => setDialog(open ? "block" : null)}
@@ -175,6 +139,47 @@ export function ParticipantActions({
         pending={anonymize.isPending}
         typedConfirmation="ANONIMIZAR"
         onConfirm={() => anonymize.execute({ id, confirmation: "ANONIMIZAR" })}
+      />
+    </>
+  );
+}
+
+/** Actions on a participant's detail page, according to status and permissions. */
+export function ParticipantActions({
+  id,
+  status,
+  verified,
+  anonymized,
+  sessions,
+  can,
+}: {
+  id: string;
+  status: ParticipantStatus;
+  verified: boolean;
+  anonymized: boolean;
+  sessions: number;
+  can: { update: boolean; delete: boolean; anonymize: boolean };
+}) {
+  const [dialog, setDialog] = useState<Dialog>(null);
+  const selection: ParticipantSelection = { kind: "ids", ids: [id] };
+  const operations = useParticipantOperations(() => setDialog(null));
+
+  const show = availableActions({ status, verified, anonymized, sessions, can });
+  return (
+    <div className="flex flex-wrap gap-2">
+      <ActionButtons
+        id={id}
+        selection={selection}
+        show={show}
+        operations={operations}
+        openDialog={setDialog}
+      />
+      <ConfirmDialogs
+        id={id}
+        selection={selection}
+        dialog={dialog}
+        setDialog={setDialog}
+        operations={operations}
       />
     </div>
   );

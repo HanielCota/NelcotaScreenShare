@@ -56,6 +56,86 @@ function StatusChip({ ok, children }: { ok: boolean; children: ReactNode }) {
   );
 }
 
+/** Who you are: the card with the photo, name, e-mail and the account status. */
+function IdentityCard({
+  user,
+}: {
+  user: {
+    name: string;
+    email: string;
+    image: string | null;
+    emailVerified: boolean;
+    twoFactorEnabled: boolean;
+  };
+}) {
+  return (
+    <header className="rounded-2xl border border-line bg-surface p-5 sm:p-7">
+      <ProfilePhotoForm image={user.image}>
+        <h1 className="truncate text-2xl font-semibold tracking-[-0.025em] sm:text-3xl">
+          {user.name}
+        </h1>
+        <p className="mt-1 text-sm [overflow-wrap:anywhere] text-ink-muted">{user.email}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <StatusChip ok={user.emailVerified}>
+            {user.emailVerified ? "E-mail confirmado" : "E-mail pendente"}
+          </StatusChip>
+          <StatusChip ok={user.twoFactorEnabled}>
+            {user.twoFactorEnabled ? "Duas etapas ativa" : "Duas etapas desativada"}
+          </StatusChip>
+        </div>
+      </ProfilePhotoForm>
+    </header>
+  );
+}
+
+function TwoFactorSummary({ enabled }: { enabled: boolean }) {
+  if (enabled) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-brand-soft">
+        <Check className="size-4" aria-hidden="true" />
+        Ativa
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-warning">
+      <ShieldAlert className="size-4" aria-hidden="true" />
+      Desativada
+    </span>
+  );
+}
+
+function SecuritySection({ twoFactorEnabled }: { twoFactorEnabled: boolean }) {
+  return (
+    <SettingsSection id="seguranca" title="Segurança">
+      <ExpandableRow
+        id="senha"
+        title="Senha"
+        description="Ao trocar, as outras sessões são encerradas."
+        summary="••••••••"
+        actionLabel="Trocar senha"
+      >
+        <ChangePasswordForm />
+      </ExpandableRow>
+      <ExpandableRow
+        id="duas-etapas"
+        title="Verificação em duas etapas"
+        description="Pede um código do app autenticador ao entrar."
+        summary={<TwoFactorSummary enabled={twoFactorEnabled} />}
+        actionLabel={twoFactorEnabled ? "Gerenciar" : "Ativar"}
+      >
+        <TwoFactorSettings
+          scope="user"
+          variant="plain"
+          enabled={twoFactorEnabled}
+          required={false}
+          doneHref="/conta#seguranca"
+        />
+      </ExpandableRow>
+    </SettingsSection>
+  );
+}
+
 export const loader = routeLoader(async ({ searchParams }) => {
   const current = await requireUser("/conta", { requireVerified: false });
   const { voltar, aviso } = searchParams;
@@ -103,22 +183,7 @@ export default function AccountPage() {
           </output>
         ) : null}
 
-        <header className="rounded-2xl border border-line bg-surface p-5 sm:p-7">
-          <ProfilePhotoForm image={user.image}>
-            <h1 className="truncate text-2xl font-semibold tracking-[-0.025em] sm:text-3xl">
-              {user.name}
-            </h1>
-            <p className="mt-1 text-sm [overflow-wrap:anywhere] text-ink-muted">{user.email}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <StatusChip ok={user.emailVerified}>
-                {user.emailVerified ? "E-mail confirmado" : "E-mail pendente"}
-              </StatusChip>
-              <StatusChip ok={user.twoFactorEnabled}>
-                {user.twoFactorEnabled ? "Duas etapas ativa" : "Duas etapas desativada"}
-              </StatusChip>
-            </div>
-          </ProfilePhotoForm>
-        </header>
+        <IdentityCard user={user} />
 
         <AccountHealth
           emailVerified={user.emailVerified}
@@ -145,44 +210,7 @@ export default function AccountPage() {
             </ExpandableRow>
           </SettingsSection>
 
-          <SettingsSection id="seguranca" title="Segurança">
-            <ExpandableRow
-              id="senha"
-              title="Senha"
-              description="Ao trocar, as outras sessões são encerradas."
-              summary="••••••••"
-              actionLabel="Trocar senha"
-            >
-              <ChangePasswordForm />
-            </ExpandableRow>
-            <ExpandableRow
-              id="duas-etapas"
-              title="Verificação em duas etapas"
-              description="Pede um código do app autenticador ao entrar."
-              summary={
-                user.twoFactorEnabled ? (
-                  <span className="inline-flex items-center gap-1.5 text-brand-soft">
-                    <Check className="size-4" aria-hidden="true" />
-                    Ativa
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 text-warning">
-                    <ShieldAlert className="size-4" aria-hidden="true" />
-                    Desativada
-                  </span>
-                )
-              }
-              actionLabel={user.twoFactorEnabled ? "Gerenciar" : "Ativar"}
-            >
-              <TwoFactorSettings
-                scope="user"
-                variant="plain"
-                enabled={user.twoFactorEnabled}
-                required={false}
-                doneHref="/conta#seguranca"
-              />
-            </ExpandableRow>
-          </SettingsSection>
+          <SecuritySection twoFactorEnabled={user.twoFactorEnabled} />
 
           <SettingsSection
             id="dispositivos"

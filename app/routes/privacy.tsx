@@ -107,6 +107,136 @@ function Duration({ children }: { children: ReactNode }) {
   );
 }
 
+function StoredDataSections() {
+  return (
+    <>
+      <PrivacySection
+        id="o-que-guardamos"
+        index={1}
+        title="O que guardamos"
+        description="Os dados ligados à sua conta, divididos pelo motivo de existirem."
+      >
+        <PrivacyList>
+          <PrivacyItem icon={UserRound} title="Conta">
+            Nome de exibição, e-mail, senha (guardada só como hash argon2id) e, se você escolher, a
+            foto de perfil, sem os metadados da imagem. Nome e foto aparecem para quem está nas
+            mesmas salas; a foto pode ser trocada ou removida em Minha conta.
+          </PrivacyItem>
+          <PrivacyItem icon={KeyRound} title="Segurança">
+            Sessões ativas (IP e navegador) e, se você ativar, o segredo da verificação em duas
+            etapas, cifrado.
+          </PrivacyItem>
+          <PrivacyItem icon={Fingerprint} title="Uso">
+            Em quais salas você entrou, quando entrou e saiu, e quando compartilhou a tela, com o IP
+            de acesso.
+          </PrivacyItem>
+          <PrivacyItem icon={UsersRound} title="Convidados sem conta">
+            O nome que a pessoa digitou para a sala, quando entrou e saiu, e o IP de acesso, com os
+            mesmos prazos dos registros de uso.
+          </PrivacyItem>
+          <PrivacyItem icon={Mail} title="Lista de espera do Pro">
+            Só o e-mail de quem pediu para ser avisado, até enviarmos o aviso do lançamento. Para
+            sair da lista antes, é só pedir.
+          </PrivacyItem>
+        </PrivacyList>
+      </PrivacySection>
+
+      <PrivacySection
+        id="o-que-nao-guardamos"
+        index={2}
+        title="O que não guardamos"
+        description="Não gravamos áudio, vídeo, telas compartilhadas nem mensagens do chat: tudo isso passa ao vivo e some quando a sala acaba."
+      >
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {NOT_STORED.map(({ icon: Icon, label }) => (
+            <li
+              key={label}
+              className="flex flex-col items-start gap-3 rounded-2xl border border-brand/25 bg-brand/8 p-4"
+            >
+              <Icon className="size-5 text-brand-soft" aria-hidden="true" />
+              <span className="text-sm font-medium">{label}</span>
+            </li>
+          ))}
+        </ul>
+      </PrivacySection>
+    </>
+  );
+}
+
+function PurposeAndRetentionSections() {
+  return (
+    <>
+      <PrivacySection id="por-que" index={3} title="Por quê">
+        <PrivacyList>
+          <PrivacyItem icon={Wrench} title="Para você usar o serviço">
+            Criar e entrar em salas.
+          </PrivacyItem>
+          <PrivacyItem icon={Landmark} title="Para cumprir a lei">
+            Registros de acesso a aplicações são guardados por 6 meses (Marco Civil da Internet,
+            art. 15).
+          </PrivacyItem>
+          <PrivacyItem icon={ShieldCheck} title="Para segurança">
+            Evitar abuso, bloquear tentativas de invasão e investigar incidentes.
+          </PrivacyItem>
+        </PrivacyList>
+      </PrivacySection>
+
+      <PrivacySection id="por-quanto-tempo" index={4} title="Por quanto tempo">
+        <PrivacyList>
+          <PrivacyItem
+            icon={UserRound}
+            title="Conta"
+            aside={<Duration>Enquanto existir</Duration>}
+          />
+          <PrivacyItem
+            icon={Fingerprint}
+            title="Registros de acesso (IP)"
+            aside={<Duration>6 meses</Duration>}
+          />
+          <PrivacyItem
+            icon={Hourglass}
+            title="Nome nas participações"
+            aside={<Duration>12 meses</Duration>}
+          >
+            Depois disso, anonimizado.
+          </PrivacyItem>
+        </PrivacyList>
+      </PrivacySection>
+    </>
+  );
+}
+
+function RightsSection() {
+  return (
+    <PrivacySection
+      id="seus-direitos"
+      index={5}
+      title="Seus direitos"
+      description="Em Minha conta você baixa todos os seus dados e pode excluir a conta a qualquer momento."
+    >
+      <div className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <RightsLink
+            to="/conta#privacidade"
+            icon={<Download className="size-5 shrink-0 text-brand-soft" aria-hidden="true" />}
+            title="Baixar meus dados"
+            detail="Arquivo JSON completo"
+          />
+          <RightsLink
+            to="/conta#excluir"
+            icon={<Trash2 className="size-5 shrink-0 text-danger" aria-hidden="true" />}
+            title="Excluir conta"
+            detail="Não pode ser desfeito"
+          />
+        </div>
+        <p className="mt-4 text-sm leading-relaxed text-ink-muted">
+          Outros pedidos sobre seus dados são respondidos em até 15 dias.
+        </p>
+      </div>
+    </PrivacySection>
+  );
+}
+
 /**
  * Technical summary of data processing (LGPD). The final legal text is the
  * responsibility of whoever operates the service (see docs/archive/admin-plan.md §7.2).
@@ -148,121 +278,9 @@ export default function PrivacyPage() {
 
         <div className="mt-10">
           <div className="flex flex-col gap-14">
-            <PrivacySection
-              id="o-que-guardamos"
-              index={1}
-              title="O que guardamos"
-              description="Os dados ligados à sua conta, divididos pelo motivo de existirem."
-            >
-              <PrivacyList>
-                <PrivacyItem icon={UserRound} title="Conta">
-                  Nome de exibição, e-mail, senha (guardada só como hash argon2id) e, se você
-                  escolher, a foto de perfil, sem os metadados da imagem. Nome e foto aparecem para
-                  quem está nas mesmas salas; a foto pode ser trocada ou removida em Minha conta.
-                </PrivacyItem>
-                <PrivacyItem icon={KeyRound} title="Segurança">
-                  Sessões ativas (IP e navegador) e, se você ativar, o segredo da verificação em
-                  duas etapas, cifrado.
-                </PrivacyItem>
-                <PrivacyItem icon={Fingerprint} title="Uso">
-                  Em quais salas você entrou, quando entrou e saiu, e quando compartilhou a tela,
-                  com o IP de acesso.
-                </PrivacyItem>
-                <PrivacyItem icon={UsersRound} title="Convidados sem conta">
-                  O nome que a pessoa digitou para a sala, quando entrou e saiu, e o IP de acesso,
-                  com os mesmos prazos dos registros de uso.
-                </PrivacyItem>
-                <PrivacyItem icon={Mail} title="Lista de espera do Pro">
-                  Só o e-mail de quem pediu para ser avisado, até enviarmos o aviso do lançamento.
-                  Para sair da lista antes, é só pedir.
-                </PrivacyItem>
-              </PrivacyList>
-            </PrivacySection>
-
-            <PrivacySection
-              id="o-que-nao-guardamos"
-              index={2}
-              title="O que não guardamos"
-              description="Não gravamos áudio, vídeo, telas compartilhadas nem mensagens do chat: tudo isso passa ao vivo e some quando a sala acaba."
-            >
-              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {NOT_STORED.map(({ icon: Icon, label }) => (
-                  <li
-                    key={label}
-                    className="flex flex-col items-start gap-3 rounded-2xl border border-brand/25 bg-brand/8 p-4"
-                  >
-                    <Icon className="size-5 text-brand-soft" aria-hidden="true" />
-                    <span className="text-sm font-medium">{label}</span>
-                  </li>
-                ))}
-              </ul>
-            </PrivacySection>
-
-            <PrivacySection id="por-que" index={3} title="Por quê">
-              <PrivacyList>
-                <PrivacyItem icon={Wrench} title="Para você usar o serviço">
-                  Criar e entrar em salas.
-                </PrivacyItem>
-                <PrivacyItem icon={Landmark} title="Para cumprir a lei">
-                  Registros de acesso a aplicações são guardados por 6 meses (Marco Civil da
-                  Internet, art. 15).
-                </PrivacyItem>
-                <PrivacyItem icon={ShieldCheck} title="Para segurança">
-                  Evitar abuso, bloquear tentativas de invasão e investigar incidentes.
-                </PrivacyItem>
-              </PrivacyList>
-            </PrivacySection>
-
-            <PrivacySection id="por-quanto-tempo" index={4} title="Por quanto tempo">
-              <PrivacyList>
-                <PrivacyItem
-                  icon={UserRound}
-                  title="Conta"
-                  aside={<Duration>Enquanto existir</Duration>}
-                />
-                <PrivacyItem
-                  icon={Fingerprint}
-                  title="Registros de acesso (IP)"
-                  aside={<Duration>6 meses</Duration>}
-                />
-                <PrivacyItem
-                  icon={Hourglass}
-                  title="Nome nas participações"
-                  aside={<Duration>12 meses</Duration>}
-                >
-                  Depois disso, anonimizado.
-                </PrivacyItem>
-              </PrivacyList>
-            </PrivacySection>
-
-            <PrivacySection
-              id="seus-direitos"
-              index={5}
-              title="Seus direitos"
-              description="Em Minha conta você baixa todos os seus dados e pode excluir a conta a qualquer momento."
-            >
-              <div className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <RightsLink
-                    to="/conta#privacidade"
-                    icon={
-                      <Download className="size-5 shrink-0 text-brand-soft" aria-hidden="true" />
-                    }
-                    title="Baixar meus dados"
-                    detail="Arquivo JSON completo"
-                  />
-                  <RightsLink
-                    to="/conta#excluir"
-                    icon={<Trash2 className="size-5 shrink-0 text-danger" aria-hidden="true" />}
-                    title="Excluir conta"
-                    detail="Não pode ser desfeito"
-                  />
-                </div>
-                <p className="mt-4 text-sm leading-relaxed text-ink-muted">
-                  Outros pedidos sobre seus dados são respondidos em até 15 dias.
-                </p>
-              </div>
-            </PrivacySection>
+            <StoredDataSections />
+            <PurposeAndRetentionSections />
+            <RightsSection />
           </div>
         </div>
       </main>

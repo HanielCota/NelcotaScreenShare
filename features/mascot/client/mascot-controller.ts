@@ -1,42 +1,41 @@
-import { type Motion } from "@/features/mascot/domain/body-motions";
-import { IDLE, type Gaze } from "@/features/mascot/domain/eye-tracking";
-import { EXPRESSIONS, toFaceState, type Expression } from "@/features/mascot/domain/face";
-import {
-  createPersonality,
-  voiceAmount,
-  type MascotActivity,
-} from "@/features/mascot/domain/personality";
-import { createReasons, type Reason } from "@/features/mascot/domain/reasons";
-import {
-  allowsPlay,
-  blocksPlay,
-  canBlink,
-  canSneeze,
-  faceResponse,
-  gazeFocus,
-  isSleeping,
-  listeningFace,
-  waitingGaze,
-} from "@/features/mascot/domain/rules";
+import type { Reason } from "@/features/mascot/domain/reasons";
+import { allowsPlay, canBlink, canSneeze, isSleeping } from "@/features/mascot/domain/rules";
 import { prefersReducedMotion } from "@/lib/animation/motion";
-import { createFaceAnimator } from "./face-animator";
 import type { FaceRenderer } from "./face-renderer";
-import { focusTarget, gazeFor, passwordEyes } from "./gaze";
-import { createHandMotions } from "./hand-motions";
 import { startAmbient } from "./ambient";
+import { createMascotCore, type MascotInputs } from "./mascot-core";
 import { listenToSignals } from "./signals";
 import { subscribePageInput } from "./page-input";
 import { createSleepClock } from "./sleep-clock";
 import { pageReactions } from "./page-reactions";
 import { attachTouch } from "./touch";
 
-/** What the component tells the controller (read on demand, without recreating anything). */
-export interface MascotInputs {
-  base: () => Expression;
-  canSleep: () => boolean;
-  activity: () => MascotActivity;
-  /** Voice level (0–1) for "listening". */
-  voice: () => number;
+export type { MascotInputs } from "./mascot-core";
+
+type MascotCore = ReturnType<typeof createMascotCore>;
+
+/** Blinks and sneezes on their own while the mascot is free. */
+function startMascotAmbient({ state, animator, personality, eyeOverride, update }: MascotCore) {
+  return startAmbient({
+    canBlink: () =>
+      !prefersReducedMotion() &&
+      !document.hidden &&
+      state.onScreen &&
+      canBlink(state.current) &&
+      !eyeOverride(),
+    blink: () => {
+      animator.blink();
+      update();
+    },
+    canSneeze: () =>
+      !state.disposed &&
+      !prefersReducedMotion() &&
+      !personality.active &&
+      canSneeze(state.current) &&
+      !(document.activeElement instanceof HTMLInputElement) &&
+      !(document.activeElement instanceof HTMLTextAreaElement),
+    sneeze: () => personality.sneeze(),
+  });
 }
 
 /**
@@ -53,174 +52,27 @@ export function createMascotController(
   renderer: FaceRenderer,
   inputs: MascotInputs,
 ) {
-  const hands = createHandMotions(root);
-  const reasons = createReasons();
-
-  let pointer: { x: number; y: number } | null = null;
-  let current: Expression = inputs.base();
-  let reasonTimer = 0;
-  let bodyAnimation: Animation | undefined;
-  /** Update scheduled for the next frame (several events in the same frame become one). */
-  let queuedUpdate = 0;
-  /** After unmount, late updates (timers) do nothing. */
-  let disposed = false;
-  let onScreen = true;
-
-  const animator = createFaceAnimator(renderer, toFaceState(EXPRESSIONS[current]), {
-    canRun: () => !disposed && !document.hidden && onScreen,
-    beforeFrame(time) {
-      const waiting = current === "waiting";
-      const listening = current === "listening";
-      const trackingPartner = gazeFocus(current) === "partner";
-      const voice = listening ? voiceAmount(inputs.voice()) : 0;
-      const nextFace = listening ? listeningFace(faceTarget(), voice) : undefined;
-      root.style.setProperty("--voice", listening ? voice.toFixed(3) : "0");
-      const gaze = animatedGaze(time);
-      return {
-        ...(gaze ? { gaze } : {}),
-        ...(nextFace ? { face: nextFace } : {}),
-        keepAlive: waiting || listening || trackingPartner,
-      };
-    },
-    responseFor: (key) => faceResponse(current, key),
-  });
-
-  const personality = createPersonality({
-    root,
-    hands,
-    react: (expression) => toggleReason("interaction", expression),
-    move,
-    stopMotion: () => {
-      bodyAnimation?.cancel();
-      bodyAnimation = undefined;
-    },
-    available: () =>
-      !disposed &&
-      onScreen &&
-      !document.hidden &&
-      !eyeOverride() &&
-      allowsPlay(inputs.activity()) &&
-      !blocksPlay(current),
-  });
+  const core = createMascotCore(root, face, renderer, inputs, () => signals.attentionTarget());
+  const { state, hands, reasons, animator, personality, move } = core;
+  const { setReason, clearReason, toggleReason, update } = core;
+  const dropReason = (reason: Reason) => void reasons.delete(reason);
 
   const signals = listenToSignals({
     personality,
     hands,
     onActivity,
-    dropReason: (reason) => void reasons.delete(reason),
+    dropReason,
     setReason,
     clearReason,
     move,
-    stopBody: () => bodyAnimation?.cancel(),
+    stopBody: core.stopBody,
     update,
   });
-
-  function setReason(reason: Reason, expression: Expression, durationMs?: number) {
-    reasons.set(reason, expression, durationMs);
-    update();
-  }
-
-  function clearReason(reason: Reason) {
-    if (reasons.delete(reason)) update();
-  }
-
-  /** Sets the reason, or clears it when there is no expression. */
-  function toggleReason(reason: Reason, expression: Expression | undefined) {
-    if (!expression) {
-      clearReason(reason);
-      return;
-    }
-    setReason(reason, expression);
-  }
-
-  const eyeOverride = () => passwordEyes(current);
-
-  function faceTarget() {
-    return toFaceState(EXPRESSIONS[current], eyeOverride());
-  }
-
-  function gazeTarget() {
-    const focus = gazeFocus(current);
-    if (focus === "idle") return IDLE;
-    const target = signals.attentionTarget() ?? focusTarget(root, focus);
-    return gazeFor(face, target, pointer);
-  }
-
-  /** Gaze that moves on its own every frame, without pointer or focus events. */
-  function animatedGaze(time: number): Gaze | undefined {
-    if (current === "waiting") return waitingGaze(time);
-    if (gazeFocus(current) === "partner") return gazeTarget();
-    return undefined;
-  }
-
-  /** Schedules a re-evaluation for the next reason that will expire. */
-  function scheduleReasonExpiry() {
-    window.clearTimeout(reasonTimer);
-    const next = reasons.nextExpiry();
-    if (Number.isFinite(next)) {
-      reasonTimer = window.setTimeout(update, Math.max(0, next - performance.now()) + 16);
-    }
-  }
-
-  /** Hands and gestures that the current expression does not allow stop here. */
-  function settleGestures(previous: Expression, eyes: readonly [number, number] | undefined) {
-    if (previous === "presenting" && current !== "presenting") hands.cancel();
-    // The closed pose takes priority over a wave started before the password got focus.
-    if (eyes || isSleeping(current)) hands.cancel();
-    if (personality.active && (eyes || blocksPlay(current))) personality.cancel();
-    // Pairs a held pose with attention on the stage; the hand routine does not cover password eyes.
-    if (current === "presenting" && !eyes && !prefersReducedMotion()) hands.hold();
-    if (eyes || current === "asleep" || prefersReducedMotion()) animator.cancelBlink();
-  }
-
-  /** Reduced motion: no springs or animations, straight to the final pose. */
-  function snapToTargets() {
-    root.getAnimations().forEach((animation) => animation.cancel());
-    hands.cancel();
-    renderer.lids.forEach((lid) => lid.getAnimations().forEach((animation) => animation.cancel()));
-    animator.snap();
-  }
-
-  /** Recomputes expression and gaze and animates towards them (or jumps straight there, with reduced motion). */
-  function update() {
-    if (disposed) return;
-    const previous = current;
-    current = reasons.current(inputs.base());
-    root.dataset.expression = current;
-    root.dataset.motion = document.hidden || !onScreen ? "paused" : "active";
-    scheduleReasonExpiry();
-    animator.setTargets(gazeTarget(), faceTarget());
-    settleGestures(previous, eyeOverride());
-    if (prefersReducedMotion()) {
-      snapToTargets();
-      return;
-    }
-    if (!document.hidden && onScreen) animator.start();
-  }
-
-  /** For frequent events (mouse, selection, scroll): recomputes once per frame. */
-  function requestUpdate() {
-    // Off screen: does not measure or animate on every mouse move (the gaze catches up on return).
-    if (disposed || queuedUpdate || !onScreen) return;
-    queuedUpdate = requestAnimationFrame(() => {
-      queuedUpdate = 0;
-      update();
-    });
-  }
-
-  /** Whole-body motion; turned off with reduced motion. */
-  function move({ keyframes, options }: Motion) {
-    bodyAnimation?.cancel();
-    bodyAnimation = undefined;
-    if (prefersReducedMotion() || document.hidden || !onScreen) return undefined;
-    bodyAnimation = root.animate(keyframes, options);
-    return bodyAnimation;
-  }
 
   const sleep = createSleepClock({
     personality,
     canSleep: () =>
-      inputs.canSleep() && inputs.activity() === "idle" && !document.hidden && onScreen,
+      inputs.canSleep() && inputs.activity() === "idle" && !document.hidden && state.onScreen,
     setSleep: (expression) => setReason("sleep", expression),
     dropSleep: () => reasons.delete("sleep"),
     clearSleep: () => clearReason("sleep"),
@@ -237,10 +89,10 @@ export function createMascotController(
     personality,
     move,
     onActivity,
-    current: () => current,
+    current: () => state.current,
     activity: inputs.activity,
-    visible: () => onScreen && !document.hidden,
-    sleeping: () => isSleeping(current),
+    visible: () => state.onScreen && !document.hidden,
+    sleeping: () => isSleeping(state.current),
   });
 
   const stopPageInput = subscribePageInput(
@@ -250,12 +102,12 @@ export function createMascotController(
       activity: inputs.activity,
       setReason,
       clearReason,
-      dropReason: (reason) => void reasons.delete(reason),
+      dropReason,
       setPointer: (next) => {
-        pointer = next;
+        state.pointer = next;
       },
       update,
-      requestUpdate,
+      requestUpdate: core.requestUpdate,
       onActivity,
       pauseMotion,
     }),
@@ -265,10 +117,9 @@ export function createMascotController(
   function pauseMotion() {
     root.dataset.motion = "paused";
     animator.pause();
-    cancelAnimationFrame(queuedUpdate);
-    queuedUpdate = 0;
+    core.cancelQueuedUpdate();
     touch.cancelPress();
-    bodyAnimation?.cancel();
+    core.stopBody();
     personality.cancel();
     hands.cancel();
     sleep.stop();
@@ -293,30 +144,11 @@ export function createMascotController(
   syncContext();
   touch.greetWhenReady();
 
-  const stopAmbient = startAmbient({
-    canBlink: () =>
-      !prefersReducedMotion() &&
-      !document.hidden &&
-      onScreen &&
-      canBlink(current) &&
-      !eyeOverride(),
-    blink: () => {
-      animator.blink();
-      update();
-    },
-    canSneeze: () =>
-      !disposed &&
-      !prefersReducedMotion() &&
-      !personality.active &&
-      canSneeze(current) &&
-      !(document.activeElement instanceof HTMLInputElement) &&
-      !(document.activeElement instanceof HTMLTextAreaElement),
-    sneeze: () => personality.sneeze(),
-  });
+  const stopAmbient = startMascotAmbient(core);
 
   const visibility = new IntersectionObserver(([entry]) => {
-    onScreen = entry?.isIntersecting ?? true;
-    if (!onScreen) {
+    state.onScreen = entry?.isIntersecting ?? true;
+    if (!state.onScreen) {
       pauseMotion();
       return;
     }
@@ -335,18 +167,9 @@ export function createMascotController(
       sleep.restart();
     },
     dispose() {
-      disposed = true;
-      animator.dispose();
-      cancelAnimationFrame(queuedUpdate);
-      root.getAnimations().forEach((animation) => animation.cancel());
-      hands.cancel();
-      personality.cancel();
-      renderer.lids.forEach((lid) =>
-        lid.getAnimations().forEach((animation) => animation.cancel()),
-      );
+      core.dispose();
       sleep.stop();
       stopAmbient();
-      window.clearTimeout(reasonTimer);
       visibility.disconnect();
       signals.stop();
       stopPageInput();
