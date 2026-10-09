@@ -8,6 +8,7 @@
  * Refuses production and databases outside the local machine (use --force for a
  * disposable remote test database).
  */
+import { randomBytes } from "node:crypto";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 import { hashPassword } from "@/features/auth/server/password.server";
@@ -24,8 +25,12 @@ const args = new Map(
 const profile = args.get("profile") ?? "dev";
 const rows = Number(args.get("rows") ?? 300_000);
 const started = Date.now();
-/** Password of every seeded participant (dev only). */
-const SEED_PASSWORD = "dev-password-1234";
+/**
+ * Password of every seeded participant (dev only), from SEED_PASSWORD. Without it, a
+ * random one is generated for this run and printed at the end.
+ */
+const seedPasswordFromEnv = process.env.SEED_PASSWORD;
+const SEED_PASSWORD = seedPasswordFromEnv || randomBytes(12).toString("base64url");
 
 const url = process.env.DATABASE_URL ?? "";
 const local = /@(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//.test(url);
@@ -245,7 +250,7 @@ async function seedDevProfile() {
   const devRooms = await seedRooms(60, "seed-", "participante%@exemplo.dev");
   console.info(`[seed] dev: +${devRooms} rooms with participations and shares`);
   console.info(
-    `[seed] dev: +${participants} participants (password "${SEED_PASSWORD}"), +${audit} audit records (${Date.now() - started} ms)`,
+    `[seed] dev: +${participants} participants (${seedPasswordFromEnv ? "password from SEED_PASSWORD" : `password "${SEED_PASSWORD}"`}), +${audit} audit records (${Date.now() - started} ms)`,
   );
 }
 
