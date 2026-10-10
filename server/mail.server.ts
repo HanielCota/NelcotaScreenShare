@@ -21,7 +21,6 @@ function providerMessageId(result: unknown): string | undefined {
   return result.id;
 }
 
-/** Retries reuse one key, including when a timeout hides an accepted request. */
 /**
  * Without a provider, local development reads the links straight from the log. Any other
  * non-production environment (tests, previews) records only the subject: recipients and
@@ -67,6 +66,7 @@ async function postToResend(
   }
 }
 
+/** Retries reuse one key, including when a timeout hides an accepted request. */
 async function sendWithResend(message: MailMessage, apiKey: string, sender: string): Promise<void> {
   const headers = {
     Authorization: `Bearer ${apiKey}`,
