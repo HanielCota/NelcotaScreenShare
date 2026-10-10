@@ -55,8 +55,10 @@ async function verifiedEvent(
   try {
     return await webhookReceiver.receive(body, authorization);
   } catch (error) {
-    logger.warn(
-      { source: "livekit-webhook", err: error },
+    // Anyone can reach this endpoint: debug level keeps forged requests out of the
+    // production log, and only the reason is kept.
+    logger.debug(
+      { source: "livekit-webhook", reason: error instanceof Error ? error.message : "unknown" },
       "LiveKit webhook rejected: invalid signature",
     );
     return Response.json({ error: "invalid_signature" }, { status: 401 });
