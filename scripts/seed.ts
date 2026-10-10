@@ -243,13 +243,21 @@ async function seedLoadProfile() {
   );
 }
 
+/** Only a run that inserted accounts knows their password; earlier runs set the existing ones. */
+function describeSeedPassword(insertedParticipants: number): string {
+  if (insertedParticipants === 0)
+    return "existing accounts keep the password of the run that created them";
+  if (seedPasswordFromEnv) return "password from SEED_PASSWORD";
+  return `password "${SEED_PASSWORD}"`;
+}
+
 async function seedDevProfile() {
   const participants = await seedParticipants(300);
   const audit = await seedAudit(2_000);
   const devRooms = await seedRooms(60, "seed-", "participante%@exemplo.dev");
   console.info(`[seed] dev: +${devRooms} rooms with participations and shares`);
   console.info(
-    `[seed] dev: +${participants} participants (${seedPasswordFromEnv ? "password from SEED_PASSWORD" : `password "${SEED_PASSWORD}"`}), +${audit} audit records (${Date.now() - started} ms)`,
+    `[seed] dev: +${participants} participants (${describeSeedPassword(participants)}), +${audit} audit records (${Date.now() - started} ms)`,
   );
 }
 
