@@ -68,6 +68,28 @@ export function logBrowserWarning(context: string, error: unknown) {
   console.warn(context, error);
 }
 
+/**
+ * A request that never got an answer: the browser is offline, `fetch` rejected with its
+ * network TypeError (Chrome, Firefox and Safari word it differently) or it timed out.
+ */
+function isNetworkFailure(error: unknown): boolean {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true;
+  if (error instanceof DOMException) {
+    return error.name === "AbortError" || error.name === "TimeoutError";
+  }
+  if (!(error instanceof TypeError)) return false;
+  return /failed to fetch|networkerror|load failed|network request failed/i.test(error.message);
+}
+
+/** Reports a failure to telemetry, unless it is the expected loss of the network. */
+export function reportUnlessNetworkFailure(context: string, error: unknown) {
+  if (isNetworkFailure(error)) {
+    logBrowserWarning(context, error);
+    return;
+  }
+  reportBrowserError(error);
+}
+
 /** Runs a fire-and-forget task: a rejection is reported instead of escaping unhandled. */
 export async function runAndReport(task: () => Promise<unknown>): Promise<void> {
   try {

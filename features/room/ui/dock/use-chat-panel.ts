@@ -2,7 +2,17 @@ import { useEffect, useEffectEvent, useRef, useState, type RefObject } from "rea
 import { toast } from "sonner";
 import { gsap, MOTION_DURATION, useGSAP } from "@/lib/animation/gsap";
 import type { ChatEntry, ChatState } from "@/features/room/hooks/use-chat-state";
-import { reportBrowserError } from "@/lib/telemetry.client";
+import { UnexpectedConnectionState } from "livekit-client";
+import { logBrowserWarning, reportUnlessNetworkFailure } from "@/lib/telemetry.client";
+
+/** A message sent while the room is reconnecting fails as expected: the toast is enough. */
+function reportChatFailure(error: unknown) {
+  if (error instanceof UnexpectedConnectionState) {
+    logBrowserWarning("Chat message failed while disconnected:", error);
+    return;
+  }
+  reportUnlessNetworkFailure("Chat message failed:", error);
+}
 
 /** Slides the panel in and out as the chat opens and closes. */
 export function useChatPanelMotion(
@@ -141,7 +151,7 @@ export function useChatEditing(chat: ChatState, inputRef: RefObject<HTMLTextArea
       setDraft("");
       inputRef.current?.focus();
     } catch (error) {
-      reportBrowserError(error);
+      reportChatFailure(error);
       toast.error(
         editing
           ? "Não foi possível editar a mensagem. Tente de novo."
@@ -161,7 +171,7 @@ export function useChatEditing(chat: ChatState, inputRef: RefObject<HTMLTextArea
       if (id === editingId) cancelEditing();
       setDeletingId(undefined);
     } catch (error) {
-      reportBrowserError(error);
+      reportChatFailure(error);
       toast.error("Não foi possível apagar a mensagem. Tente de novo.");
     } finally {
       setBusy(false);
