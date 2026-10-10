@@ -25,7 +25,7 @@ import {
   inviteMaxUsesSchema,
 } from "@/features/admin/rooms/domain/invites";
 import { toastError } from "@/features/admin/shell/ui/toast-error";
-import { logBrowserWarning } from "@/lib/telemetry.client";
+import { copyText } from "@/lib/clipboard";
 
 export interface InviteRow {
   id: string;
@@ -53,13 +53,11 @@ const STATES = {
 } as const;
 
 async function copyInviteLink(link: string) {
-  try {
-    await navigator.clipboard.writeText(link);
-    toast.success("Link copiado.");
-  } catch (error) {
-    logBrowserWarning("Could not copy the invite link", error);
-    toast.error("Não deu para copiar. Selecione e copie o link.");
-  }
+  await copyText(link, {
+    context: "Could not copy the invite link",
+    success: "Link copiado.",
+    failure: "Não deu para copiar. Selecione e copie o link.",
+  });
 }
 
 function CreateInviteDialog({

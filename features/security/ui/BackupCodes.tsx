@@ -1,16 +1,13 @@
 import { Check, Copy, Download } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { logBrowserWarning } from "@/lib/telemetry.client";
+import { copyText } from "@/lib/clipboard";
 
 async function copyCodes(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast.success("Códigos copiados.");
-  } catch (error) {
-    logBrowserWarning("Could not copy the backup codes", error);
-    toast.error("Não foi possível copiar. Use o botão Baixar .txt.");
-  }
+  await copyText(text, {
+    context: "Could not copy the backup codes",
+    success: "Códigos copiados.",
+    failure: "Não foi possível copiar. Use o botão Baixar .txt.",
+  });
 }
 
 export function BackupCodes({

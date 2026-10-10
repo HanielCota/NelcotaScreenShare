@@ -1,19 +1,16 @@
 import { ArrowDown, EyeOff, MessagesSquare, X } from "lucide-react";
 import type { RefObject } from "react";
-import { toast } from "sonner";
 import { chatGroupStarts } from "@/features/room/domain/chat-format";
 import type { ChatEntry } from "@/features/room/hooks/use-chat-state";
 import { ChatMessage } from "./ChatMessage";
-import { logBrowserWarning } from "@/lib/telemetry.client";
+import { copyText } from "@/lib/clipboard";
 
 async function copyMessage(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast.success("Mensagem copiada");
-  } catch (error) {
-    logBrowserWarning("Could not copy the message", error);
-    toast.error("Não foi possível copiar a mensagem.");
-  }
+  await copyText(text, {
+    context: "Could not copy the message",
+    success: "Mensagem copiada",
+    failure: "Não foi possível copiar a mensagem.",
+  });
 }
 
 export function ChatHeader({ onClose }: { onClose: () => void }) {
