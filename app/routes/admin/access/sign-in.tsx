@@ -6,6 +6,7 @@ import { AdminSignInForm } from "@/features/auth/ui/AdminSignInForm";
 import { AdminDisabled } from "@/features/auth/ui/AdminDisabled";
 import { getAdminAuth } from "@/features/auth/server/admin-auth.server";
 import { getAdminSession } from "@/features/auth/server/admin-session.server";
+import { noticeFor } from "@/lib/notice";
 
 const NOTICES: Record<string, string> = {
   convite: "Conta criada. Entre com seu e-mail e a senha que você escolheu.",
@@ -17,7 +18,7 @@ export const loader = routeLoader(async ({ searchParams }) => {
   if (!getAdminAuth()) return { disabled: true, notice: undefined };
   if (await getAdminSession()) redirect("/admin");
   const { aviso } = searchParams;
-  const notice = typeof aviso === "string" ? NOTICES[aviso] : undefined;
+  const notice = noticeFor(NOTICES, aviso);
 
   return { notice, disabled: false };
 });

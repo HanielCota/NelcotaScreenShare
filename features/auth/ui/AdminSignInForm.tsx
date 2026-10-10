@@ -9,6 +9,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { formText } from "@/lib/utils";
@@ -28,10 +29,12 @@ export function AdminSignInForm({ notice }: { notice?: string | undefined }) {
     const data = new FormData(event.currentTarget);
     setPending(true);
     setError(undefined);
-    const { data: result, error: failure } = await adminAuthClient.signIn.email({
-      email: formText(data, "email"),
-      password: formText(data, "password"),
-    });
+    const { data: result, error: failure } = await callAuth(() =>
+      adminAuthClient.signIn.email({
+        email: formText(data, "email"),
+        password: formText(data, "password"),
+      }),
+    );
     if (failure) {
       setPending(false);
       setError(authErrorMessage(failure));

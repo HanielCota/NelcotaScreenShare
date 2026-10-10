@@ -43,3 +43,16 @@ export async function readBodyText(request: Request, maxBytes: number): Promise<
   }
   return new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks));
 }
+
+/** Small JSON requests (token, raised hand, waitlist): anything bigger is not legitimate. */
+export const SMALL_JSON_MAX_BYTES = 16 * 1024;
+
+/** JSON body capped at `maxBytes`; `null` when it is too large, not UTF-8 or not JSON. */
+export async function readJsonBody(request: Request, maxBytes: number): Promise<unknown> {
+  try {
+    return JSON.parse(await readBodyText(request, maxBytes));
+  } catch {
+    // Every one of those cases is the same invalid request for the caller (400).
+    return null;
+  }
+}

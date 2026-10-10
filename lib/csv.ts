@@ -22,8 +22,9 @@ function cellText(value: unknown): string {
 
 export function csvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
-  let text = cellText(value);
-  if (FORMULA_START.test(text)) text = `'${text}`;
+  const raw = cellText(value);
+  // Spreadsheets run a cell that starts like a formula: a leading quote keeps it as text.
+  const text = FORMULA_START.test(raw) ? `'${raw}` : raw;
   return /[";\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 

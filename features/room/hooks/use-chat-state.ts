@@ -17,7 +17,7 @@ import {
   type ChatEditOp,
   type ChatEdits,
 } from "@/features/room/domain/chat-edits";
-import { decodeMessage, encodeMessage } from "@/features/room/domain/data-channel";
+import { capChatText, decodeMessage, encodeMessage } from "@/features/room/domain/data-channel";
 
 /** Message as it appears on screen: with edits and deletions already applied. */
 export interface ChatEntry {
@@ -63,16 +63,16 @@ export function useChatState(): ChatState {
   const { send: publishEdit } = useDataChannel(CHAT_EDIT_TOPIC, (message) => {
     const sender = message.from?.identity;
     if (!sender) return;
-    const op = decodeMessage(message.payload, chatEditSchema);
-    if (!op) return;
-    setEdits((current) => recordChatEdit(current, op, sender));
-    toast.dismiss(chatToastId(op.id));
+    const edit = decodeMessage(message.payload, chatEditSchema);
+    if (!edit) return;
+    setEdits((current) => recordChatEdit(current, edit, sender));
+    toast.dismiss(chatToastId(edit.id));
   });
 
-  async function change(op: ChatEditOp) {
-    await publishEdit(encodeMessage(op), { reliable: true });
+  async function change(edit: ChatEditOp) {
+    await publishEdit(encodeMessage(edit), { reliable: true });
     // The channel does not echo the notice back to the sender: apply it here too.
-    setEdits((current) => recordChatEdit(current, op, localParticipant.identity));
+    setEdits((current) => recordChatEdit(current, edit, localParticipant.identity));
   }
 
   function setOpen(next: boolean) {
@@ -83,7 +83,7 @@ export function useChatState(): ChatState {
   const messages = chatMessages.map((message: ReceivedChatMessage): ChatEntry => {
     const resolved = resolveChatText(edits, {
       id: message.id,
-      text: message.message,
+      text: capChatText(message.message),
       author: message.from?.identity,
     });
     return {
@@ -102,7 +102,7 @@ export function useChatState(): ChatState {
     if (open) return;
     const last = fresh.findLast((message) => !message.from?.isLocal);
     if (last) {
-      toast(`${participantLabel(last.from)}: ${last.message}`, {
+      toast(`${participantLabel(last.from)}: ${capChatText(last.message)}`, {
         id: chatToastId(last.id),
         action: { label: "Abrir", onClick: () => setOpenState(true) },
       });

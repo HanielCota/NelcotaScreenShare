@@ -25,6 +25,59 @@ function deliver(to: string, subject: string, content: ReturnType<typeof mailLay
   return deliverAccountMail({ to, subject, ...content });
 }
 
+type MailRecipient = { email: string; name: string };
+
+async function sendResetPasswordMail({ user, url }: { user: MailRecipient; url: string }) {
+  await deliver(
+    user.email,
+    "Redefinir sua senha do Nelcota",
+    mailLayout({
+      title: "Redefinir senha",
+      intro: `Olá, ${user.name}. Recebemos um pedido para redefinir sua senha. Use o botão abaixo para escolher uma nova senha.`,
+      notice: "Link válido por 30 minutos · Uso único",
+      action: { label: "Definir nova senha", url },
+      outro: "Se não foi você, ignore este e-mail: sua senha continua a mesma.",
+    }),
+  );
+}
+
+async function sendExistingAccountMail({ user }: { user: MailRecipient }) {
+  await deliver(
+    user.email,
+    "Alguém tentou criar uma conta com seu e-mail",
+    mailLayout({
+      title: "Você já tem uma conta no Nelcota",
+      intro:
+        "Alguém tentou criar uma nova conta com este e-mail. Se foi você, é só entrar com sua senha (ou redefini-la). Se não foi, pode ignorar.",
+      action: { label: "Entrar no Nelcota", url: `${appUrl()}/entrar` },
+    }),
+  );
+}
+
+async function sendVerificationMail({ user, url }: { user: MailRecipient; url: string }) {
+  await deliver(
+    user.email,
+    "Confirme seu e-mail no Nelcota",
+    mailLayout({
+      title: "Confirme seu e-mail",
+      intro: `Olá, ${user.name}. Confirme seu e-mail para entrar em salas e compartilhar a tela.`,
+      notice: "Link válido por 24 horas",
+      action: { label: "Confirmar e-mail", url },
+      outro: "Se você não criou uma conta no Nelcota, ignore este e-mail.",
+    }),
+  );
+}
+
+/** `false` vetoes the session; `undefined` lets Better Auth create it. */
+async function sessionAllowed(db: Database, userId: string): Promise<false | undefined> {
+  const [user] = await db
+    .select({ blockedAt: users.blockedAt, deletedAt: users.deletedAt })
+    .from(users)
+    .where(eq(users.id, userId));
+  if (!user || user.blockedAt || user.deletedAt) return false;
+  return undefined;
+}
+
 function createUserAuth(db: Database, secret: string) {
   const production = process.env.NODE_ENV === "production";
   const verificationRequired = getEnv().REQUIRE_EMAIL_VERIFICATION;
@@ -81,33 +134,10 @@ function createUserAuth(db: Database, secret: string) {
       password: { hash: hashPassword, verify: verifyPassword },
       resetPasswordTokenExpiresIn: 30 * 60,
       revokeSessionsOnPasswordReset: true,
-      sendResetPassword: async ({ user, url }) => {
-        await deliver(
-          user.email,
-          "Redefinir sua senha do Nelcota",
-          mailLayout({
-            title: "Redefinir senha",
-            intro: `Olá, ${user.name}. Recebemos um pedido para redefinir sua senha. Use o botão abaixo para escolher uma nova senha.`,
-            notice: "Link válido por 30 minutos · Uso único",
-            action: { label: "Definir nova senha", url },
-            outro: "Se não foi você, ignore este e-mail: sua senha continua a mesma.",
-          }),
-        );
-      },
+      sendResetPassword: sendResetPasswordMail,
       // Sign-up with an existing e-mail: the screen responds the same (no enumeration)
       // and the e-mail owner is notified.
-      onExistingUserSignUp: async ({ user }) => {
-        await deliver(
-          user.email,
-          "Alguém tentou criar uma conta com seu e-mail",
-          mailLayout({
-            title: "Você já tem uma conta no Nelcota",
-            intro:
-              "Alguém tentou criar uma nova conta com este e-mail. Se foi você, é só entrar com sua senha (ou redefini-la). Se não foi, pode ignorar.",
-            action: { label: "Entrar no Nelcota", url: `${appUrl()}/entrar` },
-          }),
-        );
-      },
+      onExistingUserSignUp: sendExistingAccountMail,
     },
     emailVerification: {
       // With confirmation off, the link is only sent when the person asks (at /conta).
@@ -115,19 +145,7 @@ function createUserAuth(db: Database, secret: string) {
       sendOnSignIn: verificationRequired,
       autoSignInAfterVerification: true,
       expiresIn: 24 * 60 * 60,
-      sendVerificationEmail: async ({ user, url }) => {
-        await deliver(
-          user.email,
-          "Confirme seu e-mail no Nelcota",
-          mailLayout({
-            title: "Confirme seu e-mail",
-            intro: `Olá, ${user.name}. Confirme seu e-mail para entrar em salas e compartilhar a tela.`,
-            notice: "Link válido por 24 horas",
-            action: { label: "Confirmar e-mail", url },
-            outro: "Se você não criou uma conta no Nelcota, ignore este e-mail.",
-          }),
-        );
-      },
+      sendVerificationEmail: sendVerificationMail,
     },
     rateLimit: {
       enabled: true,
@@ -153,13 +171,7 @@ function createUserAuth(db: Database, secret: string) {
       session: {
         create: {
           // An account blocked by the panel or deleted does not open a session.
-          before: async (session) => {
-            const [user] = await db
-              .select({ blockedAt: users.blockedAt, deletedAt: users.deletedAt })
-              .from(users)
-              .where(eq(users.id, session.userId));
-            if (!user || user.blockedAt || user.deletedAt) return false;
-          },
+          before: (session) => sessionAllowed(db, session.userId),
         },
       },
     },

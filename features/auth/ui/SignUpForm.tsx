@@ -1,7 +1,7 @@
 import { Check, Circle, Loader2, UserPlus } from "lucide-react";
 import { Link, useNavigate, useRevalidator } from "react-router";
 
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent, type RefObject } from "react";
 import { AccessTabs } from "./AccessTabs";
 import { EmailField, forgetTypedEmail } from "./EmailField";
 import { AuthCard } from "./AuthCard";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AccessContext } from "@/features/auth/domain/access-context";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import {
@@ -127,12 +128,14 @@ export function SignUpForm({
 
     setPending(true);
     setError(undefined);
-    const { error: failure } = await authClient.signUp.email({
-      name,
-      email,
-      password,
-      callbackURL: returnTo,
-    });
+    const { error: failure } = await callAuth(() =>
+      authClient.signUp.email({
+        name,
+        email,
+        password,
+        callbackURL: returnTo,
+      }),
+    );
     // With confirmation, an already registered e-mail responds the same (the owner is notified by e-mail).
     const genericDuplicate =
       verificationRequired && (failure?.status === 422 || failure?.code === "USER_ALREADY_EXISTS");
@@ -166,29 +169,11 @@ export function SignUpForm({
       <form
         method="post"
         onSubmit={(event) => void handleSubmit(event)}
-        onChange={(event) => {
-          // Name and e-mail count in the strength score: a password containing them is "Fraca".
-          const form = event.currentTarget;
-          const value = (field: string) =>
-            form.querySelector<HTMLInputElement>(`[name=${field}]`)?.value ?? "";
-          setPersonal([value("name"), value("email").split("@")[0] ?? ""]);
-        }}
+        onChange={(event) => setPersonal(personalWords(event.currentTarget))}
         noValidate
         className="flex flex-col gap-4"
       >
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={ids.name}>Seu nome</Label>
-          <Input
-            ref={nameRef}
-            id={ids.name}
-            name="name"
-            autoComplete="nickname"
-            placeholder="Como vão te ver na sala"
-            required
-            maxLength={32}
-            className="h-11"
-          />
-        </div>
+        <NameField id={ids.name} ref={nameRef} />
         <EmailField id={ids.email} autoComplete="email" />
         <div className="flex flex-col gap-2">
           <Label htmlFor={ids.password}>Senha</Label>
@@ -211,19 +196,50 @@ export function SignUpForm({
           {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           Criar conta
         </Button>
-        <p className="text-center text-xs text-ink-subtle">
-          Ao criar a conta, você concorda com o{" "}
-          <Link
-            viewTransition
-            to="/privacidade"
-            target="_blank"
-            className="font-medium text-brand-soft hover:underline"
-          >
-            aviso de privacidade
-          </Link>
-          .
-        </p>
+        <PrivacyConsent />
       </form>
     </AuthCard>
+  );
+}
+
+/** Name and e-mail count in the strength score: a password containing them is "Fraca". */
+function personalWords(form: HTMLFormElement): string[] {
+  const value = (field: string) =>
+    form.querySelector<HTMLInputElement>(`[name=${field}]`)?.value ?? "";
+  return [value("name"), value("email").split("@")[0] ?? ""];
+}
+
+function NameField({ id, ref }: { id: string; ref: RefObject<HTMLInputElement | null> }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={id}>Seu nome</Label>
+      <Input
+        ref={ref}
+        id={id}
+        name="name"
+        autoComplete="nickname"
+        placeholder="Como vão te ver na sala"
+        required
+        maxLength={32}
+        className="h-11"
+      />
+    </div>
+  );
+}
+
+function PrivacyConsent() {
+  return (
+    <p className="text-center text-xs text-ink-subtle">
+      Ao criar a conta, você concorda com o{" "}
+      <Link
+        viewTransition
+        to="/privacidade"
+        target="_blank"
+        className="font-medium text-brand-soft hover:underline"
+      >
+        aviso de privacidade
+      </Link>
+      .
+    </p>
   );
 }

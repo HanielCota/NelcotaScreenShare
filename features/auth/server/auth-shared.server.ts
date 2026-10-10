@@ -80,9 +80,9 @@ async function validatePasswordReset(
 }
 
 /** Auditing never breaks sign-in: a failure becomes a log entry. */
-async function safeAudit(fn: () => Promise<void>) {
+async function safeAudit(audit: () => Promise<void>) {
   try {
-    await fn();
+    await audit();
   } catch (error) {
     logger.error({ err: error }, "failed to write authentication audit");
   }
@@ -101,8 +101,9 @@ export function authHooks(
   return {
     before: createAuthMiddleware(async (ctx) => {
       if (scope === "user") {
-        if (ctx.path === "/update-user" || ctx.path === "/sign-up/email")
+        if (ctx.path === "/update-user" || ctx.path === "/sign-up/email") {
           validateProfilePhoto(ctx.body);
+        }
         if (ctx.path === "/reset-password") {
           await validatePasswordReset(
             db,

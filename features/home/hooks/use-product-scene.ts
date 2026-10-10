@@ -12,18 +12,18 @@ const SCENE_LENGTH = "+=420%";
  */
 export function useProductScene(scope: RefObject<HTMLElement | null>) {
   useScrollScene(scope, (section) => {
-    const q = gsap.utils.selector(section);
-    const frame = q("[data-scene-frame]")[0];
-    const chapters = q("[data-chapter]");
-    const progress = q("[data-chapter-progress]");
-    const part = (name: string) => q(`[data-demo=${name}]`);
+    const select = gsap.utils.selector(section);
+    const frame = select("[data-scene-frame]")[0];
+    const chapters = select("[data-chapter]");
+    const progress = select("[data-chapter-progress]");
+    const part = (name: string) => select(`[data-demo=${name}]`);
     const screen = part("screen");
     const pointer = part("pointer");
 
     gsap.set(section, { attr: { "data-scene": "live" } });
 
     // The window rises into place while the stage scrolls in.
-    gsap.from(q("[data-scene-window]"), {
+    gsap.from(select("[data-scene-window]"), {
       y: 140,
       scale: 0.88,
       opacity: 0.4,
@@ -31,7 +31,7 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
       scrollTrigger: { trigger: section, start: "top bottom", end: "top top", scrub: true },
     });
 
-    const tl = gsap.timeline({
+    const timeline = gsap.timeline({
       defaults: { duration: 0.5, ease: "power2.out" },
       scrollTrigger: {
         trigger: section,
@@ -43,7 +43,8 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
       },
     });
 
-    tl.set(chapters, { opacity: 0, y: 28 })
+    timeline
+      .set(chapters, { opacity: 0, y: 28 })
       .set(chapters[0] ?? [], { opacity: 1, y: 0 })
       .set(screen, { opacity: 0, scale: 0.96 })
       .set(part("terminal"), { opacity: 0, y: 12 })
@@ -59,22 +60,19 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
 
     /** Swaps the caption: the previous one leaves upward as the next one rises. */
     const chapter = (index: number, at: number) => {
-      tl.addLabel(`chapter-${index}`, at).to(
-        progress[index] ?? [],
-        { scaleX: 1, duration: 1, ease: "none" },
-        at,
-      );
+      timeline
+        .addLabel(`chapter-${index}`, at)
+        .to(progress[index] ?? [], { scaleX: 1, duration: 1, ease: "none" }, at);
       if (index === 0) return;
-      tl.to(chapters[index - 1] ?? [], { opacity: 0, y: -28, duration: 0.3 }, at).to(
-        chapters[index] ?? [],
-        { opacity: 1, y: 0, duration: 0.3 },
-        at + 0.15,
-      );
+      timeline
+        .to(chapters[index - 1] ?? [], { opacity: 0, y: -28, duration: 0.3 }, at)
+        .to(chapters[index] ?? [], { opacity: 1, y: 0, duration: 0.3 }, at + 0.15);
     };
 
     // 1. Bruno's editor arrives whole, then the error lands in the terminal with a flash.
     chapter(0, 0);
-    tl.to(screen, { opacity: 1, scale: 1 }, 0.05)
+    timeline
+      .to(screen, { opacity: 1, scale: 1 }, 0.05)
       .to(part("terminal"), { opacity: 1, y: 0 }, 0.45)
       .fromTo(
         part("terminal"),
@@ -85,7 +83,7 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
 
     // 2. The computer's sound comes along.
     chapter(1, 1);
-    tl.to(part("badge"), { opacity: 1, y: 0 }, 1.15).to(
+    timeline.to(part("badge"), { opacity: 1, y: 0 }, 1.15).to(
       [...part("level"), ...part("tile-level")],
       {
         scaleY: 0.35,
@@ -100,7 +98,8 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
 
     // 3. Ana's pointer travels to the bug and "clicks" on it.
     chapter(2, 2);
-    tl.to(pointer, { opacity: 1, duration: 0.2 }, 2.1)
+    timeline
+      .to(pointer, { opacity: 1, duration: 0.2 }, 2.1)
       .to(pointer, { xPercent: 0, yPercent: 0, duration: 0.6, ease: "power2.inOut" }, 2.15)
       .fromTo(
         part("target"),
@@ -117,7 +116,8 @@ export function useProductScene(scope: RefObject<HTMLElement | null>) {
 
     // 4. Everyone takes part, and a guest joins through the link.
     chapter(3, 3);
-    tl.to(part("iris"), { opacity: 1, x: 0, scale: 1 }, 3.05)
+    timeline
+      .to(part("iris"), { opacity: 1, x: 0, scale: 1 }, 3.05)
       .to(part("count-before"), { opacity: 0, duration: 0.2 }, 3.1)
       .to(part("count-after"), { opacity: 1, duration: 0.2 }, 3.15)
       .to(part("guest"), { opacity: 1, y: 0 }, 3.1)

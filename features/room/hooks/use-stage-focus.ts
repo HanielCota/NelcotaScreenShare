@@ -2,8 +2,10 @@ import type { TrackReference } from "@livekit/components-react";
 import { useState } from "react";
 import { pickFocusedShare, sortByOrder, trackShareOrder } from "@/features/room/domain/focus";
 
-function sameOrder(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && a.every((sid, index) => sid === b[index]);
+function sameOrder(current: readonly string[], next: readonly string[]): boolean {
+  return (
+    current.length === next.length && current.every((trackSid, index) => trackSid === next[index])
+  );
 }
 
 /**

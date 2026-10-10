@@ -23,7 +23,7 @@ export const requestMiddleware: MiddlewareFunction<Response> = async ({ request 
     "Permissions-Policy",
     "camera=(), microphone=(self), display-capture=(self), geolocation=()",
   );
-  if (response.headers.get("Content-Type")?.includes("text/html"))
+  if (response.headers.get("Content-Type")?.includes("text/html")) {
     response.headers.set(
       "Content-Security-Policy",
       buildCsp({
@@ -34,5 +34,6 @@ export const requestMiddleware: MiddlewareFunction<Response> = async ({ request 
         devWebSocketOrigin: new URL(request.url).origin.replace(/^http/, "ws"),
       }),
     );
+  }
   return response;
 };

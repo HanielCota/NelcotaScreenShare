@@ -30,17 +30,17 @@ function dispatch<E>(call: (handlers: PageInputHandlers, event: E) => void) {
 }
 
 function attach(): () => void {
-  const pointerMove = dispatch<PointerEvent>((h, e) => h.pointerMove(e));
-  const pointerOut = dispatch<PointerEvent>((h, e) => h.pointerOut(e));
-  const pointerDown = dispatch<PointerEvent>((h, e) => h.pointerDown(e));
-  const windowBlur = dispatch<Event>((h) => h.windowBlur());
-  const windowFocus = dispatch<Event>((h) => h.windowFocus());
-  const scroll = dispatch<Event>((h) => h.scroll());
-  const layoutChange = dispatch<unknown>((h) => h.layoutChange());
-  const focusChange = dispatch<FocusEvent>((h, e) => h.focusChange(e));
-  const input = dispatch<Event>((h, e) => h.input(e));
-  const key = dispatch<Event>((h, e) => h.key(e));
-  const visibilityChange = dispatch<Event>((h) => h.visibilityChange());
+  const pointerMove = dispatch<PointerEvent>((handlers, event) => handlers.pointerMove(event));
+  const pointerOut = dispatch<PointerEvent>((handlers, event) => handlers.pointerOut(event));
+  const pointerDown = dispatch<PointerEvent>((handlers, event) => handlers.pointerDown(event));
+  const windowBlur = dispatch<Event>((handlers) => handlers.windowBlur());
+  const windowFocus = dispatch<Event>((handlers) => handlers.windowFocus());
+  const scroll = dispatch<Event>((handlers) => handlers.scroll());
+  const layoutChange = dispatch<unknown>((handlers) => handlers.layoutChange());
+  const focusChange = dispatch<FocusEvent>((handlers, event) => handlers.focusChange(event));
+  const input = dispatch<Event>((handlers, event) => handlers.input(event));
+  const key = dispatch<Event>((handlers, event) => handlers.key(event));
+  const visibilityChange = dispatch<Event>((handlers) => handlers.visibilityChange());
   const motionPreference = window.matchMedia(MOTION_QUERIES.reduced);
 
   // The password field changes type on "Mostrar senha": the eyes must follow.

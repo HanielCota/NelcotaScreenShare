@@ -11,9 +11,9 @@ export function HomeEntrance({ className, children }: { className: string; child
     () => {
       // Let the router capture the fully visible page for its cross-fade.
       if (transitioning) return;
-      const mm = gsap.matchMedia();
+      const media = gsap.matchMedia();
 
-      mm.add(MOTION_QUERIES.motion, () => {
+      media.add(MOTION_QUERIES.motion, () => {
         gsap.from("[data-anim]", {
           y: 10,
           opacity: 0,
@@ -23,7 +23,7 @@ export function HomeEntrance({ className, children }: { className: string; child
         });
       });
 
-      mm.add(MOTION_QUERIES.reduced, () => {
+      media.add(MOTION_QUERIES.reduced, () => {
         gsap.set("[data-anim]", { opacity: 1 });
       });
     },

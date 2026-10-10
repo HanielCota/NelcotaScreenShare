@@ -28,8 +28,12 @@ function newCaller() {
 }
 const PASSWORD = "senha-do-participante-1";
 
-/** Without SMTP, the email goes to the log: grabs the link from the last email to `to`. */
+/**
+ * Without SMTP, local development logs the email: grabs the link from the last email to `to`.
+ * Other environments keep recipients and links out of the log, so this runs as development.
+ */
 function captureMail() {
+  vi.stubEnv("NODE_ENV", "development");
   const mails: { to: string; body: string }[] = [];
   vi.spyOn(logger, "warn").mockImplementation((entry: unknown) => {
     const mail = entry as { mail?: { to: string }; body?: string };

@@ -8,6 +8,7 @@
  * Refuses production and databases outside the local machine (use --force for a
  * disposable remote test database).
  */
+import { randomBytes } from "node:crypto";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 import { hashPassword } from "@/features/auth/server/password.server";
@@ -24,8 +25,12 @@ const args = new Map(
 const profile = args.get("profile") ?? "dev";
 const rows = Number(args.get("rows") ?? 300_000);
 const started = Date.now();
-/** Password of every seeded participant (dev only). */
-const SEED_PASSWORD = "dev-password-1234";
+/**
+ * Password of every seeded participant (dev only), from SEED_PASSWORD. Without it, a
+ * random one is generated for this run and printed at the end.
+ */
+const seedPasswordFromEnv = process.env.SEED_PASSWORD;
+const SEED_PASSWORD = seedPasswordFromEnv || randomBytes(12).toString("base64url");
 
 const url = process.env.DATABASE_URL ?? "";
 const local = /@(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//.test(url);
@@ -50,10 +55,10 @@ async function seedParticipants(count: number) {
   faker.seed(42);
   const hash = await hashPassword(SEED_PASSWORD);
   const values = Array.from({ length: count }, (_, index) => {
-    const n = String(index + 1).padStart(3, "0");
+    const sequence = String(index + 1).padStart(3, "0");
     return {
       name: faker.person.firstName().slice(0, 32),
-      email: `participante${n}@exemplo.dev`,
+      email: `participante${sequence}@exemplo.dev`,
       emailVerified: true,
       lastSeenAt: faker.date.recent({ days: 60 }),
       createdAt: faker.date.past({ years: 1 }),
@@ -78,11 +83,10 @@ async function seedParticipants(count: number) {
 }
 
 async function seedAudit(target: number) {
-  const [existing] = await db
-    .execute<{ total: number }>(
-      sql`select count(*)::int as total from audit_logs where metadata->>'seed' = 'true'`,
-    )
-    .then((result) => result.rows);
+  const counted = await db.execute<{ total: number }>(
+    sql`select count(*)::int as total from audit_logs where metadata->>'seed' = 'true'`,
+  );
+  const [existing] = counted.rows;
   const missing = target - (existing?.total ?? 0);
   if (missing <= 0) return 0;
   faker.seed(7);
@@ -239,13 +243,21 @@ async function seedLoadProfile() {
   );
 }
 
+/** Only a run that inserted accounts knows their password; earlier runs set the existing ones. */
+function describeSeedPassword(insertedParticipants: number): string {
+  if (insertedParticipants === 0)
+    return "existing accounts keep the password of the run that created them";
+  if (seedPasswordFromEnv) return "password from SEED_PASSWORD";
+  return `password "${SEED_PASSWORD}"`;
+}
+
 async function seedDevProfile() {
   const participants = await seedParticipants(300);
   const audit = await seedAudit(2_000);
   const devRooms = await seedRooms(60, "seed-", "participante%@exemplo.dev");
   console.info(`[seed] dev: +${devRooms} rooms with participations and shares`);
   console.info(
-    `[seed] dev: +${participants} participants (password "${SEED_PASSWORD}"), +${audit} audit records (${Date.now() - started} ms)`,
+    `[seed] dev: +${participants} participants (${describeSeedPassword(participants)}), +${audit} audit records (${Date.now() - started} ms)`,
   );
 }
 

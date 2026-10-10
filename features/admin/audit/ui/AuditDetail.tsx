@@ -9,9 +9,9 @@ import { actionLabel, actorText, resourceLabel } from "@/features/admin/audit/do
 import type { AuditRow } from "@/features/admin/audit/server/queries.server";
 import { formatDateTime } from "@/lib/format";
 
-function value(v: unknown): string {
-  if (v === null || v === undefined) return "—";
-  return typeof v === "string" ? v : JSON.stringify(v);
+function value(recorded: unknown): string {
+  if (recorded === null || recorded === undefined) return "—";
+  return typeof recorded === "string" ? recorded : JSON.stringify(recorded);
 }
 
 /** Side panel with everything recorded for an event (before → after, details). */

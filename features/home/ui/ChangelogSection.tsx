@@ -24,8 +24,12 @@ const shortDate = new Intl.DateTimeFormat("pt-BR", {
 
 /** A mix for the stack: two new things, then a fix and an improvement, when there are some. */
 function highlights(release: Release) {
-  const of = (kind: ChangeKind) => release.changes.filter((change) => change.kind === kind);
-  return [...of("new").slice(0, 2), ...of("fix").slice(0, 1), ...of("improvement").slice(0, 1)];
+  const changesOf = (kind: ChangeKind) => release.changes.filter((change) => change.kind === kind);
+  return [
+    ...changesOf("new").slice(0, 2),
+    ...changesOf("fix").slice(0, 1),
+    ...changesOf("improvement").slice(0, 1),
+  ];
 }
 
 /**

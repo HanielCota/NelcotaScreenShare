@@ -16,13 +16,10 @@ export function QrCode({
 }) {
   const { data } = encode(value, { ecc: "M", border: 4 });
   const modules = data.length;
-  let d = "";
-  data.forEach((row, y) => {
-    row.forEach((dark, x) => {
-      if (dark) d += `M${x} ${y}h1v1h-1z`;
-    });
-  });
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${modules} ${modules}" shape-rendering="crispEdges"><rect width="${modules}" height="${modules}" fill="#fff"/><path d="${d}" fill="#111"/></svg>`;
+  const path = data
+    .flatMap((row, y) => row.map((dark, x) => (dark ? `M${x} ${y}h1v1h-1z` : "")))
+    .join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${modules} ${modules}" shape-rendering="crispEdges"><rect width="${modules}" height="${modules}" fill="#fff"/><path d="${path}" fill="#111"/></svg>`;
   return (
     <img
       src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}

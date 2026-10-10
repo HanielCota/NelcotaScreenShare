@@ -8,6 +8,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { adminAuthClient } from "@/features/auth/client/admin-auth-client";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
@@ -74,10 +75,12 @@ export function ForgotPasswordForm({ scope }: { scope: Scope }) {
     if (pending) return;
     setPending(true);
     setError(undefined);
-    const { error: failure } = await client.requestPasswordReset({
-      email: formText(new FormData(event.currentTarget), "email"),
-      redirectTo: PATHS[scope].reset,
-    });
+    const { error: failure } = await callAuth(() =>
+      client.requestPasswordReset({
+        email: formText(new FormData(event.currentTarget), "email"),
+        redirectTo: PATHS[scope].reset,
+      }),
+    );
     setPending(false);
     if (failure) {
       setError(authErrorMessage(failure, "Não foi possível enviar o link. Tente de novo."));
@@ -184,7 +187,7 @@ export function ResetPasswordForm({ scope, token }: { scope: Scope; token: strin
     }
     setPending(true);
     setError(undefined);
-    const { error: failure } = await client.resetPassword({ newPassword, token });
+    const { error: failure } = await callAuth(() => client.resetPassword({ newPassword, token }));
     if (failure) {
       setPending(false);
       setError(authErrorMessage(failure));

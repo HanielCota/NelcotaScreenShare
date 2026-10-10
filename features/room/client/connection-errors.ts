@@ -6,8 +6,9 @@ export function connectErrorMessage(error: unknown): string {
   if (error instanceof ConnectionError) {
     // LiveKit has no dedicated reason for a full room: only the message says so.
     // Happens when two people pass the /api/token check at the same time.
-    if (/full/i.test(error.message))
+    if (/full/i.test(error.message)) {
       return "A sala está cheia. Aguarde alguém sair e tente de novo.";
+    }
     switch (error.reason) {
       case ConnectionErrorReason.NotAllowed:
         return "Não foi possível autorizar sua entrada. Toque em Tentar de novo para renovar o acesso.";

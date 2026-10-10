@@ -61,10 +61,6 @@ function CopyRoomLink({ code }: { code: string }) {
   );
 }
 
-/**
- * After the call: why it ended, how long it lasted and the next step.
- * No card: the mascot says goodbye, just as it welcomed on the way in.
- */
 /** A guest who took part sees how to open their own rooms. */
 function GuestSignUp({ guest, joined }: { guest: boolean; joined: boolean }) {
   if (!guest || !joined) return null;
@@ -82,6 +78,10 @@ function GuestSignUp({ guest, joined }: { guest: boolean; joined: boolean }) {
   );
 }
 
+/**
+ * After the call: why it ended, how long it lasted and the next step.
+ * No card: the mascot says goodbye, just as it welcomed on the way in.
+ */
 export function LeftScreen({
   code,
   reason,
@@ -109,8 +109,8 @@ export function LeftScreen({
   useGSAP(
     () => {
       if (transitioning) return;
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
+      const media = gsap.matchMedia();
+      media.add(MOTION_QUERIES.motion, () => {
         gsap.from("[data-anim=left]", {
           y: 10,
           opacity: 0,

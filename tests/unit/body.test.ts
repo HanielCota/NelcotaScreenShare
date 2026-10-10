@@ -1,5 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { BodyTooLargeError, readBodyText } from "@/server/body.server";
+import { BodyTooLargeError, readBodyText, readJsonBody } from "@/server/body.server";
 
 function postStream(body: ReadableStream<Uint8Array>) {
   const init: RequestInit & { duplex: "half" } = { method: "POST", body, duplex: "half" };
@@ -52,4 +52,12 @@ test("preserves the signed body when a character is split across chunks", async 
   });
   const request = postStream(stream);
   expect(await readBodyText(request, bytes.length)).toBe('{"nome":"João"}');
+});
+
+const post = (body: string) => new Request("http://localhost/", { method: "POST", body });
+
+test("a capped JSON body reads as data, and an oversized or broken one as null", async () => {
+  expect(await readJsonBody(post('{"room":"abc"}'), 64)).toEqual({ room: "abc" });
+  expect(await readJsonBody(post(`{"room":"${"a".repeat(100)}"}`), 64)).toBeNull();
+  expect(await readJsonBody(post("not json"), 64)).toBeNull();
 });

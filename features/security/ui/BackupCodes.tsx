@@ -1,6 +1,14 @@
 import { Check, Copy, Download } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { copyText } from "@/lib/clipboard";
+
+async function copyCodes(text: string) {
+  await copyText(text, {
+    context: "Could not copy the backup codes",
+    success: "Códigos copiados.",
+    failure: "Não foi possível copiar. Use o botão Baixar .txt.",
+  });
+}
 
 export function BackupCodes({
   codes,
@@ -25,16 +33,7 @@ export function BackupCodes({
         ))}
       </ol>
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() =>
-            void navigator.clipboard.writeText(text).then(
-              () => toast.success("Códigos copiados."),
-              () => toast.error("Não foi possível copiar. Use o botão Baixar .txt."),
-            )
-          }
-        >
+        <Button type="button" variant="outline" onClick={() => void copyCodes(text)}>
           <Copy aria-hidden="true" />
           Copiar
         </Button>

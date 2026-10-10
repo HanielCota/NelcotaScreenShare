@@ -4,6 +4,7 @@ import type { PairPhase } from "@/features/mascot/domain/pair";
 import { PAIR_BUSY_SELECTOR } from "@/features/mascot/domain/rules";
 import { SLEEPY_AFTER_MS } from "@/features/mascot/domain/sleep";
 import { MOTION_QUERIES } from "@/lib/animation/motion";
+import { createPhaseRenderer, createTickHandle, listenToPageActivity } from "./pair-scheduling";
 
 /** Focusing or touching these sends the visitor back: the person is busy with the page. */
 const INTERRUPTING_TARGETS = "input, textarea, [contenteditable=true], [data-mascot-action]";
@@ -15,17 +16,15 @@ export function createPairController(
 ) {
   const motion = createPairMotion();
   const preference = window.matchMedia(MOTION_QUERIES.reduced);
+  const render = createPhaseRenderer(scene, motion, onPhase);
+  const ticks = createTickHandle();
   let pending = false;
   let visible = true;
   let idle = false;
   let disposed = false;
-  let frame = 0;
-  let timer = 0;
   let idleTimer = 0;
   let lastActivity = performance.now();
   let lastTick = lastActivity;
-  let renderedPhase: PairPhase | undefined;
-  let renderedSuspended = false;
 
   function paused() {
     return pending || !visible || document.hidden || preference.matches;
@@ -39,37 +38,13 @@ export function createPairController(
     );
   }
 
-  function render() {
-    const state = motion.state;
-    scene.style.setProperty("--visitor-x", `${state.visitor.toFixed(3)}px`);
-    scene.style.setProperty("--resident-x", `${state.resident.toFixed(3)}px`);
-    scene.dataset.positioned = "true";
-    if (renderedPhase !== state.phase || renderedSuspended !== state.suspended) {
-      renderedPhase = state.phase;
-      renderedSuspended = state.suspended;
-      onPhase(state.phase, state.suspended);
-    }
-  }
-
-  function cancelTick() {
-    cancelAnimationFrame(frame);
-    window.clearTimeout(timer);
-    frame = 0;
-    timer = 0;
-  }
-
   function schedule() {
     if (disposed || paused() || (idle && motion.state.phase === "rest")) return;
-    if (motion.nextIn === 0) {
-      frame = requestAnimationFrame(tick);
-      return;
-    }
-    timer = window.setTimeout(tick, motion.nextIn);
+    ticks.request(tick, motion.nextIn);
   }
 
   function tick() {
-    frame = 0;
-    timer = 0;
+    ticks.clear();
     if (disposed || paused()) return;
     const now = performance.now();
     motion.advance(now - lastTick, available());
@@ -79,7 +54,7 @@ export function createPairController(
   }
 
   function restartTick() {
-    cancelTick();
+    ticks.cancel();
     lastTick = performance.now();
     schedule();
   }
@@ -112,8 +87,9 @@ export function createPairController(
   function suspend() {
     const suspended = paused();
     // Records the last active interval before also freezing the pose deadline.
-    if (suspended && !motion.state.suspended)
+    if (suspended && !motion.state.suspended) {
       motion.advance(performance.now() - lastTick, available());
+    }
     motion.suspend(suspended);
     scene.dataset.suspended = String(suspended);
     window.clearTimeout(idleTimer);
@@ -147,14 +123,11 @@ export function createPairController(
     noteActivity();
     interrupt();
   });
-  document.addEventListener("focusin", focusOrTouch);
-  window.addEventListener("pointermove", noteActivity, { passive: true });
-  window.addEventListener("pointerdown", noteActivity, { passive: true });
-  document.addEventListener("keydown", noteActivity);
-  document.addEventListener("input", noteActivity);
-  scene.addEventListener("pointerdown", focusOrTouch);
-  document.addEventListener("visibilitychange", suspend);
-  preference.addEventListener("change", suspend);
+  const stopPageActivity = listenToPageActivity(scene, preference, {
+    noteActivity,
+    focusOrTouch,
+    suspend,
+  });
   measure();
   suspend();
   resize.observe(scene);
@@ -168,19 +141,12 @@ export function createPairController(
     },
     dispose() {
       disposed = true;
-      cancelTick();
+      ticks.cancel();
       window.clearTimeout(idleTimer);
       resize.disconnect();
       intersection.disconnect();
       stopSignals();
-      document.removeEventListener("focusin", focusOrTouch);
-      window.removeEventListener("pointermove", noteActivity);
-      window.removeEventListener("pointerdown", noteActivity);
-      document.removeEventListener("keydown", noteActivity);
-      document.removeEventListener("input", noteActivity);
-      scene.removeEventListener("pointerdown", focusOrTouch);
-      document.removeEventListener("visibilitychange", suspend);
-      preference.removeEventListener("change", suspend);
+      stopPageActivity();
     },
   };
 }

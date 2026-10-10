@@ -51,34 +51,34 @@ export const rooms = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (table) => [
     check("rooms_code_check", sql.raw(`code ~ '${ROOM_CODE_PATTERN}'`)),
-    check("rooms_note_check", sql`length(${t.note}) <= 500`),
-    check("rooms_peak_check", sql`${t.peakParticipants} >= 0`),
+    check("rooms_note_check", sql`length(${table.note}) <= 500`),
+    check("rooms_peak_check", sql`${table.peakParticipants} >= 0`),
     check(
       "rooms_finished_check",
-      sql`${t.finishedAt} is null or ${t.finishedAt} >= ${t.startedAt}`,
+      sql`${table.finishedAt} is null or ${table.finishedAt} >= ${table.startedAt}`,
     ),
     // The same code can be reopened: only one "live" (not deleted) room per code.
     uniqueIndex("rooms_code_live_key")
-      .on(t.code)
-      .where(sql`${t.deletedAt} is null`),
+      .on(table.code)
+      .where(sql`${table.deletedAt} is null`),
     index("rooms_activity_idx")
-      .on(t.status, t.lastActivityAt.desc(), t.id.desc())
-      .where(sql`${t.deletedAt} is null`),
+      .on(table.status, table.lastActivityAt.desc(), table.id.desc())
+      .where(sql`${table.deletedAt} is null`),
     index("rooms_activity_all_idx")
-      .on(t.lastActivityAt.desc(), t.id.desc())
-      .where(sql`${t.deletedAt} is null`),
+      .on(table.lastActivityAt.desc(), table.id.desc())
+      .where(sql`${table.deletedAt} is null`),
     index("rooms_started_idx")
-      .on(t.startedAt.desc(), t.id.desc())
-      .where(sql`${t.deletedAt} is null`),
+      .on(table.startedAt.desc(), table.id.desc())
+      .where(sql`${table.deletedAt} is null`),
     index("rooms_peak_idx")
-      .on(t.peakParticipants.desc(), t.id.desc())
-      .where(sql`${t.deletedAt} is null`),
+      .on(table.peakParticipants.desc(), table.id.desc())
+      .where(sql`${table.deletedAt} is null`),
     index("rooms_code_search_idx")
-      .using("gin", sql`${t.code} gin_trgm_ops`)
-      .where(sql`${t.deletedAt} is null`),
-    index("rooms_created_by_idx").on(t.createdByUserId),
+      .using("gin", sql`${table.code} gin_trgm_ops`)
+      .where(sql`${table.deletedAt} is null`),
+    index("rooms_created_by_idx").on(table.createdByUserId),
   ],
 );
 
@@ -113,19 +113,19 @@ export const roomParticipations = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (table) => [
     // One row per connection: join, tracks and leave land on the same row.
-    uniqueIndex("room_participations_livekit_sid_key").on(t.livekitSid),
-    check("room_participations_name_check", sql`length(${t.displayName}) <= 32`),
+    uniqueIndex("room_participations_livekit_sid_key").on(table.livekitSid),
+    check("room_participations_name_check", sql`length(${table.displayName}) <= 32`),
     check(
       "room_participations_left_check",
-      sql`${t.leftAt} is null or ${t.leftAt} >= ${t.joinedAt}`,
+      sql`${table.leftAt} is null or ${table.leftAt} >= ${table.joinedAt}`,
     ),
-    index("room_participations_room_idx").on(t.roomId, t.joinedAt.desc()),
-    index("room_participations_user_idx").on(t.userId, t.joinedAt.desc()),
+    index("room_participations_room_idx").on(table.roomId, table.joinedAt.desc()),
+    index("room_participations_user_idx").on(table.userId, table.joinedAt.desc()),
     index("room_participations_online_idx")
-      .on(t.roomId)
-      .where(sql`${t.leftAt} is null`),
+      .on(table.roomId)
+      .where(sql`${table.leftAt} is null`),
   ],
 );
 
@@ -149,17 +149,17 @@ export const shareSessions = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  (table) => [
     check(
       "share_sessions_ended_check",
-      sql`${t.endedAt} is null or ${t.endedAt} >= ${t.startedAt}`,
+      sql`${table.endedAt} is null or ${table.endedAt} >= ${table.startedAt}`,
     ),
-    index("share_sessions_started_idx").on(t.startedAt.desc(), t.id.desc()),
-    index("share_sessions_room_idx").on(t.roomId, t.startedAt.desc()),
-    index("share_sessions_participation_idx").on(t.participationId),
+    index("share_sessions_started_idx").on(table.startedAt.desc(), table.id.desc()),
+    index("share_sessions_room_idx").on(table.roomId, table.startedAt.desc()),
+    index("share_sessions_participation_idx").on(table.participationId),
     index("share_sessions_active_idx")
-      .on(t.roomId)
-      .where(sql`${t.endedAt} is null`),
+      .on(table.roomId)
+      .where(sql`${table.endedAt} is null`),
   ],
 );
 
@@ -184,12 +184,15 @@ export const roomInvites = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
-    check("room_invites_label_check", sql`length(${t.label}) <= 80`),
-    check("room_invites_max_uses_check", sql`${t.maxUses} > 0`),
-    check("room_invites_uses_check", sql`${t.uses} >= 0`),
-    check("room_invites_limit_check", sql`${t.maxUses} is null or ${t.uses} <= ${t.maxUses}`),
-    index("room_invites_room_idx").on(t.roomId, t.createdAt.desc()),
+  (table) => [
+    check("room_invites_label_check", sql`length(${table.label}) <= 80`),
+    check("room_invites_max_uses_check", sql`${table.maxUses} > 0`),
+    check("room_invites_uses_check", sql`${table.uses} >= 0`),
+    check(
+      "room_invites_limit_check",
+      sql`${table.maxUses} is null or ${table.uses} <= ${table.maxUses}`,
+    ),
+    index("room_invites_room_idx").on(table.roomId, table.createdAt.desc()),
   ],
 );
 
@@ -208,7 +211,7 @@ export const roomInviteUses = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     createdAt: createdAt(),
   },
-  (t) => [primaryKey({ columns: [t.inviteId, t.userId] })],
+  (table) => [primaryKey({ columns: [table.inviteId, table.userId] })],
 );
 
 export const tokenResult = pgEnum("token_result", TOKEN_LOG_RESULTS);
@@ -225,11 +228,11 @@ export const tokenRequests = pgTable(
     ip: inet("ip"),
     createdAt: createdAt(),
   },
-  (t) => [
-    check("token_requests_room_code_check", sql`length(${t.roomCode}) <= 64`),
-    index("token_requests_created_brin").using("brin", t.createdAt),
-    index("token_requests_ip_idx").on(t.ip, t.createdAt.desc()),
-    index("token_requests_user_idx").on(t.userId, t.roomCode, t.createdAt.desc()),
+  (table) => [
+    check("token_requests_room_code_check", sql`length(${table.roomCode}) <= 64`),
+    index("token_requests_created_brin").using("brin", table.createdAt),
+    index("token_requests_ip_idx").on(table.ip, table.createdAt.desc()),
+    index("token_requests_user_idx").on(table.userId, table.roomCode, table.createdAt.desc()),
   ],
 );
 
@@ -247,18 +250,18 @@ export const livekitEvents = pgTable(
     processedAt: timestamptz("processed_at"),
     error: text("error"),
   },
-  (t) => [
+  (table) => [
     index("livekit_events_pending_idx")
-      .on(t.occurredAt)
-      .where(sql`${t.processedAt} is null`),
-    index("livekit_events_received_idx").on(t.receivedAt.desc()),
+      .on(table.occurredAt)
+      .where(sql`${table.processedAt} is null`),
+    index("livekit_events_received_idx").on(table.receivedAt.desc()),
     // Publications and their ending lookups must not scan every room's raw history.
     index("livekit_events_track_idx").on(
-      t.roomName,
-      t.event,
-      sql`(${t.payload}->'participant'->>'sid')`,
-      sql`(${t.payload}->'track'->>'sid')`,
-      t.occurredAt,
+      table.roomName,
+      table.event,
+      sql`(${table.payload}->'participant'->>'sid')`,
+      sql`(${table.payload}->'track'->>'sid')`,
+      table.occurredAt,
     ),
   ],
 );

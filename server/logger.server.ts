@@ -29,6 +29,8 @@ export const logger: Logger = pino({
       "headers.cookie",
       "totp*",
       "backupCodes",
+      "email",
+      "*.email",
     ],
     censor: "[oculto]",
   },

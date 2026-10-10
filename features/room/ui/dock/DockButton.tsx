@@ -88,21 +88,21 @@ export function DockButton({
           aria-busy={busy || undefined}
           aria-keyshortcuts={shortcut}
           {...props}
-          onPointerLeave={(e) => {
-            onPointerLeave?.(e);
-            animate(e.currentTarget, { scale: 1 });
+          onPointerLeave={(event) => {
+            onPointerLeave?.(event);
+            animate(event.currentTarget, { scale: 1 });
           }}
-          onPointerDown={(e) => {
-            onPointerDown?.(e);
-            animate(e.currentTarget, { scale: 0.96, duration: MOTION_DURATION.feedback });
+          onPointerDown={(event) => {
+            onPointerDown?.(event);
+            animate(event.currentTarget, { scale: 0.96, duration: MOTION_DURATION.feedback });
           }}
-          onPointerUp={(e) => {
-            onPointerUp?.(e);
-            animate(e.currentTarget, { scale: 1 });
+          onPointerUp={(event) => {
+            onPointerUp?.(event);
+            animate(event.currentTarget, { scale: 1 });
           }}
-          onPointerCancel={(e) => {
-            onPointerCancel?.(e);
-            animate(e.currentTarget, { scale: 1 });
+          onPointerCancel={(event) => {
+            onPointerCancel?.(event);
+            animate(event.currentTarget, { scale: 1 });
           }}
           className={cn(
             "group flex shrink-0 touch-manipulation flex-col items-center gap-2 rounded-xl outline-none disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50",

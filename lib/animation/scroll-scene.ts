@@ -31,8 +31,8 @@ export function useScrollScene<T extends HTMLElement>(
 ) {
   useGSAP(
     () => {
-      const mm = gsap.matchMedia();
-      mm.add(query, () => {
+      const media = gsap.matchMedia();
+      media.add(query, () => {
         const section = scope.current;
         if (!section) return undefined;
         const cleanup = setup(section);

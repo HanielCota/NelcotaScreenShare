@@ -35,7 +35,10 @@ export async function runMigrations(
     await client.query("select pg_advisory_lock($1)", [MIGRATION_LOCK_ID]);
     await migrate(drizzle(client), { migrationsFolder });
   } finally {
-    await client.query("select pg_advisory_unlock($1)", [MIGRATION_LOCK_ID]).catch(() => {});
+    // The lock also ends with the connection below; a failed unlock is only worth a warning.
+    await client
+      .query("select pg_advisory_unlock($1)", [MIGRATION_LOCK_ID])
+      .catch((error: unknown) => console.warn("[migrate] could not release the lock:", error));
     await client.end();
   }
 }
@@ -49,11 +52,11 @@ if (isEntryPoint) {
     process.exit(1);
   }
   const started = Date.now();
-  runMigrations(url, process.env.MIGRATIONS_DIR).then(
-    () => console.info(`[migrate] migrations up to date (${Date.now() - started} ms)`),
-    (error: unknown) => {
-      console.error("[migrate] failed", error);
-      process.exit(1);
-    },
-  );
+  try {
+    await runMigrations(url, process.env.MIGRATIONS_DIR);
+    console.info(`[migrate] migrations up to date (${Date.now() - started} ms)`);
+  } catch (error) {
+    console.error("[migrate] failed", error);
+    process.exit(1);
+  }
 }

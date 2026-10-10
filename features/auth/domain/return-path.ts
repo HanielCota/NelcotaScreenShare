@@ -1,3 +1,5 @@
+import { parseUrl } from "@/lib/url";
+
 const BASE = "http://nelcota.local";
 
 /**
@@ -8,13 +10,8 @@ const BASE = "http://nelcota.local";
  */
 export function safeReturnPath(value: unknown, fallback = "/"): string {
   if (typeof value !== "string" || !value.startsWith("/")) return fallback;
-  let url: URL;
-  try {
-    url = new URL(value, BASE);
-  } catch {
-    return fallback;
-  }
-  if (url.origin !== BASE) return fallback;
+  const url = parseUrl(value, BASE);
+  if (!url || url.origin !== BASE) return fallback;
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/admin")) return fallback;
   return value;
 }

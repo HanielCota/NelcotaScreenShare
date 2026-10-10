@@ -10,6 +10,7 @@ import {
   type ShareChoice,
 } from "@/features/room/domain/share-support";
 import { useShareSupport } from "@/features/room/hooks/use-share-support";
+import { reportBrowserError } from "@/lib/telemetry.client";
 
 /**
  * Drops the computer audio when it would carry the room back to everyone (see
@@ -102,6 +103,7 @@ export function useScreenShare() {
         toast.error(shareSupportMessage("unsupported"));
         return;
       }
+      reportBrowserError(error);
       toast.error(
         "Não foi possível compartilhar a tela. Tente de novo e confirme a tela no seletor do navegador.",
       );
@@ -114,7 +116,8 @@ export function useScreenShare() {
     setBusy(true);
     try {
       await localParticipant.setScreenShareEnabled(false);
-    } catch {
+    } catch (error) {
+      reportBrowserError(error);
       toast.error(
         "Não foi possível parar o compartilhamento. Tente de novo ou use o botão Parar compartilhamento do navegador.",
       );

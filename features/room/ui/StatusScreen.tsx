@@ -27,10 +27,11 @@ export function StatusScreen({
 
   useGSAP(
     () => {
-      if (transitioning) return;
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
-        gsap.from(scope.current, {
+      const screen = scope.current;
+      if (transitioning || !screen) return;
+      const media = gsap.matchMedia();
+      media.add(MOTION_QUERIES.motion, () => {
+        gsap.from(screen, {
           y: 12,
           opacity: 0,
           duration: MOTION_DURATION.entrance,

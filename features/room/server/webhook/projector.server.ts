@@ -3,6 +3,7 @@ import type { Database } from "@/server/db/index.server";
 import { livekitEvents } from "@/server/db/schema";
 import { projectEvent, type ProjectionResult } from "./handlers.server";
 import { occurredAt, webhookPayloadSchema } from "./payload";
+import { logger } from "@/server/logger.server";
 
 /**
  * LiveKit webhook → business tables (docs/archive/admin-plan.md §4.4).
@@ -17,11 +18,15 @@ import { occurredAt, webhookPayloadSchema } from "./payload";
 
 export type IngestResult = "duplicate" | ProjectionResult | "failed";
 
-/** Projects an already stored event; the error is recorded on the event itself. */
+/**
+ * Projects an already stored event; the error is recorded on the event itself. Only the
+ * first attempt logs at error level: maintenance retries a broken event on every pass.
+ */
 async function processStoredEvent(
   db: Database,
   id: string,
   payload: unknown,
+  failureLevel: "error" | "debug",
 ): Promise<IngestResult> {
   try {
     const parsed = webhookPayloadSchema.parse(payload);
@@ -34,6 +39,7 @@ async function processStoredEvent(
       return projected;
     });
   } catch (error) {
+    logger[failureLevel]({ err: error, eventId: id }, "LiveKit event projection failed");
     const message = error instanceof Error ? error.message : String(error);
     await db
       .update(livekitEvents)
@@ -66,7 +72,7 @@ export async function ingestEvent(
     .onConflictDoNothing()
     .returning({ id: livekitEvents.id });
   if (!stored) return "duplicate";
-  return processStoredEvent(db, id, payload);
+  return processStoredEvent(db, id, payload, "error");
 }
 
 /**
@@ -96,7 +102,7 @@ export async function reprocessPendingEvents(
     failed: 0,
   };
   for (const event of pending) {
-    results[await processStoredEvent(db, event.id, event.payload)]++;
+    results[await processStoredEvent(db, event.id, event.payload, "debug")]++;
   }
   return results;
 }

@@ -11,6 +11,7 @@ import type { LeaveNotice } from "@/features/room/domain/leave";
 import type { JoinChoices } from "@/features/room/domain/join";
 import { roomMicErrorMessage } from "@/features/room/client/microphone-errors";
 import { MIC_ERROR_TOAST } from "@/features/room/client/toast-ids";
+import { logBrowserWarning, runAndReport } from "@/lib/telemetry.client";
 
 /**
  * Room connection lifecycle: creates the Room, connects, turns on the requested
@@ -78,7 +79,8 @@ export function useRoomConnection(
         if (cancelled) return;
         connected = true;
         if (choices.micEnabled) {
-          await room.localParticipant.setMicrophoneEnabled(true).catch(() => {
+          await room.localParticipant.setMicrophoneEnabled(true).catch((error: unknown) => {
+            logBrowserWarning("Could not turn on the microphone on join", error);
             toast.error(
               "Você entrou com o microfone desligado. Confira as permissões deste site e tente ligá-lo nos controles da sala.",
               { id: MIC_ERROR_TOAST },
@@ -97,13 +99,18 @@ export function useRoomConnection(
         .off(RoomEvent.Disconnected, handleDisconnected)
         .off(RoomEvent.Reconnected, handleReconnected)
         .off(RoomEvent.MediaDevicesError, handleMediaError);
-      void disconnect();
+      void runAndReport(disconnect);
     };
   }, [room, connect, disconnect, choices]);
 
   function leave() {
     leavingRef.current = true;
-    void disconnect().finally(() => onLeave());
+    void disconnectAndLeave();
+  }
+
+  async function disconnectAndLeave() {
+    await runAndReport(disconnect);
+    onLeave();
   }
 
   return { room, connectError, leave };

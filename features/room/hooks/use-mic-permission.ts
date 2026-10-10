@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { microphonePermissionDenied } from "@/features/room/client/microphone-errors";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 /**
  * "unknown": the browser does not tell (no Permissions API): treated as
@@ -16,17 +17,20 @@ export function useMicPermission() {
     const update = () => {
       if (status) setPermission(status.state);
     };
-    navigator.permissions
-      ?.query({ name: "microphone" })
-      .then((result) => {
+    const watch = async () => {
+      if (!navigator.permissions) return;
+      try {
+        const result = await navigator.permissions.query({ name: "microphone" });
         if (cancelled) return;
         status = result;
         update();
         result.addEventListener("change", update);
-      })
-      .catch(() => {
+      } catch (error) {
         // Browser without the "microphone" permission in the API: stays "unknown".
-      });
+        logBrowserWarning("Could not read the microphone permission", error);
+      }
+    };
+    void watch();
     return () => {
       cancelled = true;
       status?.removeEventListener("change", update);

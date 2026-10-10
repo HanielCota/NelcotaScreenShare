@@ -7,6 +7,7 @@ import { FormError } from "@/components/FormError";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { newPasswordError, PASSWORD_LIMITS } from "@/features/auth/domain/password-rules";
@@ -33,11 +34,13 @@ export function ChangePasswordForm() {
     if (invalid) return setError(invalid);
     setPending(true);
     setError(undefined);
-    const { error: failure } = await authClient.changePassword({
-      currentPassword: formText(data, "current"),
-      newPassword,
-      revokeOtherSessions: true,
-    });
+    const { error: failure } = await callAuth(() =>
+      authClient.changePassword({
+        currentPassword: formText(data, "current"),
+        newPassword,
+        revokeOtherSessions: true,
+      }),
+    );
     setPending(false);
     if (failure) return setError(authErrorMessage(failure, "Senha atual incorreta."));
     form.reset();

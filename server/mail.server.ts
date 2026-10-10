@@ -21,6 +21,51 @@ function providerMessageId(result: unknown): string | undefined {
   return result.id;
 }
 
+/**
+ * Without a provider, local development reads the links straight from the log. Any other
+ * non-production environment (tests, previews) records only the subject: recipients and
+ * links with tokens never reach a shared log.
+ */
+function logUndeliveredMail(message: MailMessage) {
+  if (process.env.NODE_ENV !== "development") {
+    logger.warn({ mail: { subject: message.subject } }, "e-mail not sent (no provider)");
+    return;
+  }
+  logger.warn(
+    { mail: { to: message.to, subject: message.subject }, body: message.text },
+    "e-mail not sent (no provider): content in the log",
+  );
+}
+
+/** The provider's answer; unreadable JSON only costs the message id in the log. */
+async function readProviderResult(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch (error) {
+    logger.warn({ err: error, provider: "resend" }, "e-mail provider answer is not JSON");
+    return undefined;
+  }
+}
+
+/** One delivery attempt: the response, or only the kind of network failure. */
+async function postToResend(
+  headers: Record<string, string>,
+  body: string,
+): Promise<{ response?: Response; failure?: string }> {
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers,
+      body,
+      signal: AbortSignal.timeout(10_000),
+    });
+    return { response };
+  } catch (error) {
+    // Network errors can contain private request data: record only their kind.
+    return { failure: error instanceof Error ? error.name : "unknown" };
+  }
+}
+
 /** Retries reuse one key, including when a timeout hides an accepted request. */
 async function sendWithResend(message: MailMessage, apiKey: string, sender: string): Promise<void> {
   const headers = {
@@ -31,20 +76,10 @@ async function sendWithResend(message: MailMessage, apiKey: string, sender: stri
   const body = JSON.stringify({ from: sender, ...message });
 
   for (let attempt = 1; attempt <= 3; attempt++) {
-    let response: Response | undefined;
-    try {
-      response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers,
-        body,
-        signal: AbortSignal.timeout(10_000),
-      });
-    } catch {
-      // Network errors can contain private request data: record only the outcome.
-    }
+    const { response, failure } = await postToResend(headers, body);
 
     if (response?.ok) {
-      const result: unknown = await response.json().catch(() => undefined);
+      const result = await readProviderResult(response);
       logger.info(
         {
           event: "mail.accepted",
@@ -58,11 +93,12 @@ async function sendWithResend(message: MailMessage, apiKey: string, sender: stri
     }
 
     const status = response?.status;
+    // Only frees the connection: a failure here changes nothing about the delivery.
     await response?.body?.cancel().catch(() => undefined);
     const transient = status === undefined || status === 429 || status >= 500;
     if (!transient || attempt === 3) {
       logger.error(
-        { event: "mail.failed", provider: "resend", status, attempt },
+        { event: "mail.failed", provider: "resend", status, failure, attempt },
         "e-mail delivery failed",
       );
       throw new Error(
@@ -73,7 +109,7 @@ async function sendWithResend(message: MailMessage, apiKey: string, sender: stri
     }
 
     logger.warn(
-      { event: "mail.retry", provider: "resend", status, attempt },
+      { event: "mail.retry", provider: "resend", status, failure, attempt },
       "retrying e-mail delivery",
     );
     await setTimeout(500 * 2 ** (attempt - 1));
@@ -95,10 +131,7 @@ export async function sendMail(message: MailMessage): Promise<void> {
     if (process.env.NODE_ENV === "production") {
       throw new Error("E-mail delivery is not configured");
     }
-    logger.warn(
-      { mail: { to: message.to, subject: message.subject }, body: message.text },
-      "e-mail not sent (no provider): content in the log",
-    );
+    logUndeliveredMail(message);
     return;
   }
   transporter ??= createTransport(SMTP_URL);

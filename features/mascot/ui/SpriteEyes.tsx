@@ -19,7 +19,9 @@ export function SpriteEyes() {
       {POSE_EYES.flatMap((eyes, pose) =>
         eyes.map((eye, index) => {
           const clipId = `${id}-eye-${pose}-${index}`;
-          const { rx, ry, pupilRx, pupilRy } = EYE_SHAPES[index]!;
+          const shape = EYE_SHAPES[index];
+          if (!shape) return null;
+          const { rx, ry, pupilRx, pupilRy } = shape;
           return (
             <g key={clipId} transform={`translate(${eye.x} ${eye.y}) rotate(${EYE_ANGLE})`}>
               <defs>

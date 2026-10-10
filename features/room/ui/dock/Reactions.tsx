@@ -28,6 +28,7 @@ import {
 } from "@/features/room/domain/data-channel";
 import { DockButton } from "./DockButton";
 import { DockPopoverContent } from "./DockPopover";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 interface FloatingReaction {
   id: number;
@@ -74,7 +75,8 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
     if (now - lastSent.current < SEND_INTERVAL_MS) return;
     lastSent.current = now;
     show(emoji, SELF_LABEL);
-    send(encodeMessage({ emoji }), { reliable: true }).catch(() => {
+    send(encodeMessage({ emoji }), { reliable: true }).catch((error: unknown) => {
+      logBrowserWarning("Could not send the reaction", error);
       toast.error("Não foi possível enviar a reação.");
     });
   }
@@ -83,7 +85,9 @@ export function ReactionsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onAttributes = (changed: Record<string, string>, participant: Participant) => {
       if (participant.isLocal || !(HAND_ATTRIBUTE in changed)) return;
-      if (changed[HAND_ATTRIBUTE]) toast(`✋ ${participantName(participant)} levantou a mão`);
+      if (changed[HAND_ATTRIBUTE] === "1") {
+        toast(`✋ ${participantName(participant)} levantou a mão`);
+      }
     };
     room.on(RoomEvent.ParticipantAttributesChanged, onAttributes);
     return () => {
@@ -114,24 +118,25 @@ function ReactionBubble({ item }: { item: FloatingReaction }) {
 
   useGSAP(
     () => {
-      const el = ref.current;
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_QUERIES.motion, () => {
+      const bubble = ref.current;
+      if (!bubble) return;
+      const media = gsap.matchMedia();
+      media.add(MOTION_QUERIES.motion, () => {
         gsap
           .timeline()
           .fromTo(
-            el,
+            bubble,
             { y: 0, scale: 0.4, opacity: 0 },
             { y: -40, scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)" },
           )
-          .to(el, { y: -300, x: gsap.utils.random(-40, 40), duration: 2.6, ease: "power1.out" })
-          .to(el, { opacity: 0, duration: 0.6 }, "-=0.6");
+          .to(bubble, { y: -300, x: gsap.utils.random(-40, 40), duration: 2.6, ease: "power1.out" })
+          .to(bubble, { opacity: 0, duration: 0.6 }, "-=0.6");
       });
-      mm.add(MOTION_QUERIES.reduced, () => {
+      media.add(MOTION_QUERIES.reduced, () => {
         gsap
           .timeline()
-          .fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.2 })
-          .to(el, { opacity: 0, duration: 0.4, delay: 2.4 });
+          .fromTo(bubble, { opacity: 0 }, { opacity: 1, duration: 0.2 })
+          .to(bubble, { opacity: 0, duration: 0.4, delay: 2.4 });
       });
     },
     { scope: ref },
@@ -161,18 +166,17 @@ export function ReactionsMenu() {
   const handRaised =
     useParticipantAttribute(HAND_ATTRIBUTE, { participant: localParticipant }) === "1";
 
-  function toggleHand() {
+  async function toggleHand() {
     const next = !handRaised;
-    void setHandRaised(room.name, next).then((ok) => {
-      if (ok) {
-        toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
-        return;
-      }
-      toast.error(`Não foi possível ${next ? "levantar" : "baixar"} a mão. Tente de novo.`);
-    });
+    const ok = await setHandRaised(room.name, next);
+    if (ok) {
+      toast(next ? "✋ Você levantou a mão" : "Você baixou a mão");
+      return;
+    }
+    toast.error(`Não foi possível ${next ? "levantar" : "baixar"} a mão. Tente de novo.`);
   }
 
-  useShortcut("h", toggleHand);
+  useShortcut("h", () => void toggleHand());
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
@@ -212,7 +216,7 @@ export function ReactionsMenu() {
             Levantar a mão
             <kbd className="rounded-md border border-line px-1.5 text-xs text-ink-subtle">H</kbd>
           </Label>
-          <Switch id={handId} checked={handRaised} onCheckedChange={toggleHand} />
+          <Switch id={handId} checked={handRaised} onCheckedChange={() => void toggleHand()} />
         </div>
       </DockPopoverContent>
     </Popover.Root>

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "vitest";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
-import { formatDateTime, formatRelative } from "@/lib/format";
+import { formatDateTime, formatRelative, formatSpan } from "@/lib/format";
 import { describeUserAgent } from "@/lib/user-agent";
 import { emailHash, lockDurationMs } from "@/features/auth/server/lockout.server";
 import { hashPassword, verifyPassword } from "@/features/auth/server/password.server";
@@ -153,5 +153,11 @@ describe("messages and formatting", () => {
     assert.equal(formatRelative(now - 5 * 60_000, now), "há 5 minutos");
     assert.equal(formatRelative(now - 12_000, now), "agora mesmo");
     assert.equal(formatRelative(now - 86_400_000, now), "ontem");
+  });
+
+  test("an unparseable date shows a dash instead of throwing", () => {
+    assert.equal(formatDateTime("not a date"), "—");
+    assert.equal(formatRelative("not a date"), "—");
+    assert.equal(formatSpan("not a date", "2026-10-06T12:00:00Z"), "—");
   });
 });

@@ -23,8 +23,9 @@ export interface JoinFailure {
 }
 
 export function joinFailure(code: TokenErrorCode | "network_error"): JoinFailure {
-  if (code === "unauthenticated")
+  if (code === "unauthenticated") {
     return { redirect: "login", passwordField: false, mood: "worried" };
+  }
   if (code === "email_unverified") {
     return { redirect: "verify-email", passwordField: false, mood: "worried" };
   }

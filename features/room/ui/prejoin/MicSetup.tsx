@@ -72,8 +72,9 @@ function MicStatus({
   meterRef: RefObject<HTMLDivElement | null>;
 }) {
   if (mic.blocked) return <BlockedSteps />;
-  if (mic.permission === "granted" && !mic.error)
+  if (mic.permission === "granted" && !mic.error) {
     return <LiveMeter mic={mic} meterRef={meterRef} />;
+  }
   if (mic.error) {
     // Another problem (no microphone, in use): what to do, and retry.
     return (

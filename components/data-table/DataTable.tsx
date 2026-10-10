@@ -8,7 +8,6 @@ import {
   type RowData,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { ChevronLeft, ChevronRight, Inbox } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import {
   createContext,
@@ -18,7 +17,6 @@ import {
   type ReactNode,
   type TransitionStartFunction,
 } from "react";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -29,10 +27,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useSearchParams } from "react-router";
-import { formatNumber } from "@/lib/format";
 import { filterQuery, pageParsers, type BulkSelection } from "@/lib/table-params";
 import { cn } from "@/lib/utils";
 import type { PageInfo } from "./page-info";
+import { runAndReport } from "@/lib/telemetry.client";
+import { CardList, EmptyState, Pagination, SelectionBar, selectionLabel } from "./table-parts";
 
 const dataTableFeatures = tableFeatures({ rowSelectionFeature });
 type DataTableFeatures = typeof dataTableFeatures;
@@ -99,82 +98,37 @@ export function useTableTransition(): TransitionStartFunction {
   return startTransition;
 }
 
-function totalLabel({ total, capped }: PageInfo): string {
-  if (capped) return `Mais de ${formatNumber(total)} resultados`;
-  return total === 1 ? "1 resultado" : `${formatNumber(total)} resultados`;
-}
-
-function selectionLabel(allMatching: boolean, selected: number, total: number): string {
-  if (allMatching) return `Todos os ${formatNumber(total)} resultados`;
-  return selected === 1 ? "1 selecionado" : `${selected} selecionados`;
-}
-
-/** Bar shown when rows are checked: how many, "select all" and the actions. */
-function SelectionBar({
-  label,
-  offerAll,
-  page,
-  onSelectAll,
-  onClear,
-  children,
-}: {
-  label: string;
-  /** The whole page is checked and there are more results beyond it. */
-  offerAll: boolean;
-  page: PageInfo;
-  onSelectAll: () => void;
-  onClear: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <div className="panel flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
-      <span className="font-medium">{label}</span>
-      {offerAll ? (
-        // Above the limit the server always rejects the bulk action (server/table/selection.ts).
-        page.capped ? (
-          <span className="text-ink-muted">
-            Mais de {formatNumber(page.total)} resultados: refine o filtro para agir em todos.
-          </span>
-        ) : (
-          <Button variant="link" size="sm" onClick={onSelectAll}>
-            Selecionar todos os {formatNumber(page.total)} resultados
-          </Button>
-        )
-      ) : null}
-      {children}
-      <Button variant="ghost" size="sm" className="ml-auto" onClick={onClear}>
-        Limpar seleção
-      </Button>
-    </div>
-  );
-}
-
-function Pagination({
-  page,
-  pending,
-  onPrev,
-  onNext,
-}: {
-  page: PageInfo;
-  pending: boolean;
-  onPrev: () => void;
-  onNext: () => void;
-}) {
-  return (
-    <nav aria-label="Paginação" className="flex items-center justify-between gap-3 text-sm">
-      <span className="text-ink-muted">{totalLabel(page)}</span>
-      <span className="flex gap-2">
-        <Button variant="outline" size="sm" disabled={!page.prevCursor || pending} onClick={onPrev}>
-          <ChevronLeft aria-hidden="true" />
-          Anterior
-        </Button>
-        <Button variant="outline" size="sm" disabled={!page.nextCursor || pending} onClick={onNext}>
-          Próxima
-          <ChevronRight aria-hidden="true" />
-        </Button>
-      </span>
-    </nav>
-  );
+/** Checked rows of the current page, plus "every result of the filter" when chosen. */
+function useBulkSelection(data: readonly { id: string }[], page: PageInfo) {
+  // Same as DataTable, where this logic came from: kept out of the React Compiler.
+  "use no memo";
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  // Only counts what is on the current page (changing the filter "drops" the rest).
+  const pageIds = new Set(data.map((row) => row.id));
+  const selected = Object.keys(rowSelection).filter((id) => rowSelection[id] && pageIds.has(id));
+  // "All results" only applies to the filter it was chosen under.
+  const filterKey = filterQuery(useSearchParams()[0].toString());
+  const [allFor, setAllFor] = useState<string | null>(null);
+  const allMatching = allFor === filterKey && selected.length === data.length;
+  const selection: BulkSelection = allMatching
+    ? { kind: "filter", query: filterKey }
+    : { kind: "ids", ids: selected };
+  const count = allMatching ? page.total : selected.length;
+  const clear = () => {
+    setRowSelection({});
+    setAllFor(null);
+  };
+  const selectAll = () => setAllFor(filterKey);
+  return {
+    rowSelection,
+    setRowSelection,
+    selected,
+    allMatching,
+    selection,
+    count,
+    clear,
+    selectAll,
+  };
 }
 
 /** Sorting, filters and pagination belong to the server: the table only displays and selects. */
@@ -195,7 +149,16 @@ export function DataTable<TData extends RowData & { id: string }>({
     startTransition,
     scroll: true,
   });
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const {
+    rowSelection,
+    setRowSelection,
+    selected,
+    allMatching,
+    selection,
+    count,
+    clear,
+    selectAll,
+  } = useBulkSelection(data, page);
   const selectable = bulkActions !== undefined;
 
   const selectColumn: DataTableColumn<TData> = {
@@ -214,24 +177,9 @@ export function DataTable<TData extends RowData & { id: string }>({
     state: { rowSelection },
   });
 
-  // Only counts what is on the current page (changing the filter "drops" the rest).
-  const pageIds = new Set(data.map((row) => row.id));
-  const selected = Object.keys(rowSelection).filter((id) => rowSelection[id] && pageIds.has(id));
-  // "All results" only applies to the filter it was chosen under.
-  const filterKey = filterQuery(useSearchParams()[0].toString());
-  const [allFor, setAllFor] = useState<string | null>(null);
-  const allMatching = allFor === filterKey && selected.length === data.length;
-  const selection: BulkSelection = allMatching
-    ? { kind: "filter", query: filterKey }
-    : { kind: "ids", ids: selected };
-  const count = allMatching ? page.total : selected.length;
-  const clear = () => {
-    setRowSelection({});
-    setAllFor(null);
-  };
-  const go = (cursor: string | null, dir: "next" | "prev") => {
+  const goToPage = (cursor: string | null, direction: "next" | "prev") => {
     clear();
-    void setPage({ cursor, dir });
+    void runAndReport(() => setPage({ cursor, dir: direction }));
   };
 
   return (
@@ -247,7 +195,7 @@ export function DataTable<TData extends RowData & { id: string }>({
           label={selectionLabel(allMatching, selected.length, page.total)}
           offerAll={!allMatching && selected.length === data.length && page.total > data.length}
           page={page}
-          onSelectAll={() => setAllFor(filterKey)}
+          onSelectAll={selectAll}
           onClear={clear}
         >
           {bulkActions(selection, clear, count)}
@@ -262,10 +210,7 @@ export function DataTable<TData extends RowData & { id: string }>({
         )}
       >
         {data.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-ink-muted">
-            <Inbox className="size-8 text-ink-subtle" aria-hidden="true" />
-            <p>{emptyMessage}</p>
-          </div>
+          <EmptyState message={emptyMessage} />
         ) : (
           <>
             {/* Desktop/tablet: table with horizontal scrolling when needed. */}
@@ -298,16 +243,7 @@ export function DataTable<TData extends RowData & { id: string }>({
                 </TableBody>
               </Table>
             </div>
-            {/* Phone: one card per row. */}
-            {renderCard ? (
-              <ul className="flex flex-col divide-y divide-line sm:hidden">
-                {data.map((row) => (
-                  <li key={row.id} className="p-4">
-                    {renderCard(row)}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            {renderCard ? <CardList data={data} renderCard={renderCard} /> : null}
           </>
         )}
       </div>
@@ -315,8 +251,8 @@ export function DataTable<TData extends RowData & { id: string }>({
       <Pagination
         page={page}
         pending={pending}
-        onPrev={() => go(page.prevCursor, "prev")}
-        onNext={() => go(page.nextCursor, "next")}
+        onPrev={() => goToPage(page.prevCursor, "prev")}
+        onNext={() => goToPage(page.nextCursor, "next")}
       />
     </section>
   );

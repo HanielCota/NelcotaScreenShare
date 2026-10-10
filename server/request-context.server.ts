@@ -15,14 +15,18 @@ export function withRequest<T>(
   context: Readonly<RouterContextProvider>,
   run: () => T,
 ): T {
-  let memo: Map<object, unknown>;
+  return scope.run({ request, memo: memoFor(context) }, run);
+}
+
+/** The request's memo, created on first use (`context.get` throws while it is unset). */
+function memoFor(context: Readonly<RouterContextProvider>): Map<object, unknown> {
   try {
-    memo = context.get(memoContext);
+    return context.get(memoContext);
   } catch {
-    memo = new Map();
+    const memo = new Map<object, unknown>();
     context.set(memoContext, memo);
+    return memo;
   }
-  return scope.run({ request, memo }, run);
 }
 
 export function requestHeaders(): Headers {

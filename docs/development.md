@@ -29,7 +29,7 @@ cp .env.example .env.local
 # 4. App
 pnpm install
 pnpm db:migrate     # migrations with the migration user
-pnpm db:seed        # optional: sample participants (password dev-password-1234), rooms and audit entries
+pnpm db:seed        # optional: sample participants (password from SEED_PASSWORD, or a random one it prints), rooms and audit entries
 pnpm dev            # http://localhost:3000
 ```
 

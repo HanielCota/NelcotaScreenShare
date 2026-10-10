@@ -113,8 +113,9 @@ function refuse(
 }
 
 function invalidMessage(field: PropertyKey | undefined): string {
-  if (field === "password")
+  if (field === "password") {
     return "Confira a senha de acesso. Ela deve ter no máximo 128 caracteres.";
+  }
   if (field === "room") return "Confira o código da sala ou peça um novo convite a quem enviou.";
   return "Confira os dados de entrada e tente de novo.";
 }

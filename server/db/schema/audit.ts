@@ -27,17 +27,21 @@ export const auditLogs = pgTable(
     requestId: text("request_id"),
     createdAt: createdAt(),
   },
-  (t) => [
-    check("audit_logs_action_check", sql`${t.action} ~ '^[a-z][a-z_]*\\.[a-z][a-z_]*$'`),
+  (table) => [
+    check("audit_logs_action_check", sql`${table.action} ~ '^[a-z][a-z_]*\\.[a-z][a-z_]*$'`),
     check(
       "audit_logs_single_actor_check",
-      sql`num_nonnulls(${t.actorAdminId}, ${t.actorUserId}) <= 1`,
+      sql`num_nonnulls(${table.actorAdminId}, ${table.actorUserId}) <= 1`,
     ),
-    index("audit_logs_created_at_idx").on(t.createdAt.desc(), t.id.desc()),
-    index("audit_logs_actor_admin_idx").on(t.actorAdminId, t.createdAt.desc()),
-    index("audit_logs_actor_user_idx").on(t.actorUserId, t.createdAt.desc()),
-    index("audit_logs_resource_idx").on(t.resourceType, t.resourceId, t.createdAt.desc()),
-    index("audit_logs_action_idx").on(t.action, t.createdAt.desc()),
-    index("audit_logs_request_id_idx").on(t.requestId),
+    index("audit_logs_created_at_idx").on(table.createdAt.desc(), table.id.desc()),
+    index("audit_logs_actor_admin_idx").on(table.actorAdminId, table.createdAt.desc()),
+    index("audit_logs_actor_user_idx").on(table.actorUserId, table.createdAt.desc()),
+    index("audit_logs_resource_idx").on(
+      table.resourceType,
+      table.resourceId,
+      table.createdAt.desc(),
+    ),
+    index("audit_logs_action_idx").on(table.action, table.createdAt.desc()),
+    index("audit_logs_request_id_idx").on(table.requestId),
   ],
 );

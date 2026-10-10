@@ -12,6 +12,7 @@ import { celebrateMascot, nodMascot, upsetMascot } from "@/features/mascot/clien
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { AccessContext } from "@/features/auth/domain/access-context";
+import { callAuth } from "@/features/auth/client/auth-call";
 import { authClient } from "@/features/auth/client/participant-auth-client";
 import { authErrorMessage } from "@/features/auth/domain/auth-errors";
 import { formText } from "@/lib/utils";
@@ -50,11 +51,13 @@ export function SignInForm({
     }
     setPending(true);
     setError(undefined);
-    const { data: result, error: failure } = await authClient.signIn.email({
-      email,
-      password,
-      callbackURL: returnTo,
-    });
+    const { data: result, error: failure } = await callAuth(() =>
+      authClient.signIn.email({
+        email,
+        password,
+        callbackURL: returnTo,
+      }),
+    );
     if (failure) {
       setPending(false);
       setError(authErrorMessage(failure));

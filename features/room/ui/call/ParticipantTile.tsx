@@ -1,7 +1,7 @@
 import { useIsMuted, useIsSpeaking } from "@livekit/components-react";
 import { Track, type Participant } from "livekit-client";
 import { MicOff, MonitorUp } from "lucide-react";
-import { useRef } from "react";
+import { useRef, type RefObject } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/animation/gsap";
 import { participantLabel, participantName } from "@/features/room/domain/participant-label";
 import { initials } from "@/lib/initials";
@@ -12,14 +12,13 @@ interface ParticipantTileProps {
   compact: boolean;
 }
 
-export function ParticipantTile({ participant, isSharing, compact }: ParticipantTileProps) {
-  const scope = useRef<HTMLDivElement>(null);
+/** Soft pulse on the border of whoever is speaking. */
+function useSpeakingPulse(
+  scope: RefObject<HTMLDivElement | null>,
+  isSpeaking: boolean,
+  compact: boolean,
+) {
   const pulse = useRef<gsap.core.Tween | null>(null);
-  const isSpeaking = useIsSpeaking(participant);
-  const isMuted = useIsMuted({ participant, source: Track.Source.Microphone });
-  const name = participantName(participant);
-
-  // Soft pulse on the border of whoever is speaking.
   useGSAP(
     () => {
       pulse.current?.kill();
@@ -52,6 +51,14 @@ export function ParticipantTile({ participant, isSharing, compact }: Participant
     },
     { scope, dependencies: [isSpeaking, compact] },
   );
+}
+
+export function ParticipantTile({ participant, isSharing, compact }: ParticipantTileProps) {
+  const scope = useRef<HTMLDivElement>(null);
+  const isSpeaking = useIsSpeaking(participant);
+  const isMuted = useIsMuted({ participant, source: Track.Source.Microphone });
+  const name = participantName(participant);
+  useSpeakingPulse(scope, isSpeaking, compact);
 
   if (compact) {
     // Stage in use: round avatar with the name below (FaceTime style).

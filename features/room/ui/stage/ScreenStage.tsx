@@ -19,7 +19,7 @@ import { PointerLayer, usePointers } from "./PointerLayer";
 interface ScreenStageProps {
   shares: TrackReference[];
   focused: TrackReference;
-  onFocus: (sid: string) => void;
+  onFocus: (trackSid: string) => void;
 }
 
 function StageButton({
@@ -78,6 +78,66 @@ function PictureInPictureButton({ videoRef }: { videoRef: RefObject<HTMLVideoEle
       icon={PictureInPicture2}
       onPress={() => void toggle()}
     />
+  );
+}
+
+function PointingButton({ pointing, onToggle }: { pointing: boolean; onToggle: () => void }) {
+  return (
+    <Hint text={pointing ? "Parar de apontar (P)" : "Apontar na tela (P)"}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-pressed={pointing}
+        aria-keyshortcuts="P"
+        aria-label={pointing ? "Parar de apontar" : "Apontar na tela"}
+        className={cn(
+          "glass pointer-events-auto grid size-9 place-items-center rounded-xl transition-colors",
+          pointing ? "bg-brand! text-brand-ink" : "text-ink-muted hover:text-ink",
+        )}
+      >
+        <MousePointerClick className="size-4" aria-hidden="true" />
+      </button>
+    </Hint>
+  );
+}
+
+function SharePicker({
+  shares,
+  focusedSid,
+  onFocus,
+}: {
+  shares: TrackReference[];
+  focusedSid: string;
+  onFocus: (trackSid: string) => void;
+}) {
+  return (
+    <fieldset
+      // Plain toggle buttons: a tablist promises arrow keys and a tabpanel.
+      aria-label="Escolher a tela compartilhada"
+      className="glass absolute bottom-3 left-1/2 flex max-w-[calc(100%-1.5rem)] min-w-0 -translate-x-1/2 gap-1 overflow-x-auto rounded-xl p-1"
+    >
+      {shares.map((share) => {
+        const trackSid = share.publication.trackSid;
+        const active = trackSid === focusedSid;
+        return (
+          <button
+            key={trackSid}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onFocus(trackSid)}
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
+              active
+                ? "bg-brand text-brand-ink"
+                : "text-ink-muted hover:bg-surface-3 hover:text-ink",
+            )}
+          >
+            <MonitorUp className="size-3.5" aria-hidden="true" />
+            {participantLabel(share.participant)}
+          </button>
+        );
+      })}
+    </fieldset>
   );
 }
 
@@ -163,23 +223,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
         </span>
 
         <span className="flex gap-2">
-          {isOwnScreen ? null : (
-            <Hint text={pointing ? "Parar de apontar (P)" : "Apontar na tela (P)"}>
-              <button
-                type="button"
-                onClick={togglePointing}
-                aria-pressed={pointing}
-                aria-keyshortcuts="P"
-                aria-label={pointing ? "Parar de apontar" : "Apontar na tela"}
-                className={cn(
-                  "glass pointer-events-auto grid size-9 place-items-center rounded-xl transition-colors",
-                  pointing ? "bg-brand! text-brand-ink" : "text-ink-muted hover:text-ink",
-                )}
-              >
-                <MousePointerClick className="size-4" aria-hidden="true" />
-              </button>
-            </Hint>
-          )}
+          {isOwnScreen ? null : <PointingButton pointing={pointing} onToggle={togglePointing} />}
           {/* Your own screen in a window would bring back the mirror effect. */}
           {isOwnScreen ? null : <PictureInPictureButton videoRef={videoRef} />}
           {canFullscreen ? (
@@ -198,33 +242,7 @@ export function ScreenStage({ shares, focused, onFocus }: ScreenStageProps) {
       ) : null}
 
       {shares.length > 1 ? (
-        <fieldset
-          // Plain toggle buttons: a tablist promises arrow keys and a tabpanel.
-          aria-label="Escolher a tela compartilhada"
-          className="glass absolute bottom-3 left-1/2 flex max-w-[calc(100%-1.5rem)] min-w-0 -translate-x-1/2 gap-1 overflow-x-auto rounded-xl p-1"
-        >
-          {shares.map((share) => {
-            const sid = share.publication.trackSid;
-            const active = sid === trackSid;
-            return (
-              <button
-                key={sid}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onFocus(sid)}
-                className={cn(
-                  "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
-                  active
-                    ? "bg-brand text-brand-ink"
-                    : "text-ink-muted hover:bg-surface-3 hover:text-ink",
-                )}
-              >
-                <MonitorUp className="size-3.5" aria-hidden="true" />
-                {participantLabel(share.participant)}
-              </button>
-            );
-          })}
-        </fieldset>
+        <SharePicker shares={shares} focusedSid={trackSid} onFocus={onFocus} />
       ) : null}
     </section>
   );

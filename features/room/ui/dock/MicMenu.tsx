@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DockButton } from "./DockButton";
 import { DockPopoverContent, DockPopoverTitle } from "./DockPopover";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 /**
  * Microphone choice inside the room, with the same list as the pre-join screen (one
@@ -40,7 +41,8 @@ export function MicMenu({ disabled = false }: { disabled?: boolean }) {
       // "" follows the system default: in LiveKit it is the "default" device.
       await setActiveMediaDevice(value || "default");
       saveMicrophone(value || undefined);
-    } catch {
+    } catch (error) {
+      logBrowserWarning("Could not switch the microphone", error);
       toast.error("Não foi possível trocar o microfone. Confira se ele está conectado.");
     }
   }

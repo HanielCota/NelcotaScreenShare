@@ -36,23 +36,44 @@ function tooLarge() {
  * already saved and maintenance (features/runtime/server/maintenance.server.ts)
  * re-projects it later.
  */
-export async function receiveLivekitWebhook(request: Request) {
-  const env = getEnv();
-  receiver ??= new WebhookReceiver(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET);
-
-  let body: string;
+async function readWebhookBody(request: Request): Promise<string | Response> {
   try {
-    body = await readBodyText(request, MAX_BODY_BYTES);
+    return await readBodyText(request, MAX_BODY_BYTES);
   } catch (error) {
     if (error instanceof BodyTooLargeError) return tooLarge();
     return Response.json({ error: "invalid_payload" }, { status: 400 });
   }
-  let event;
+}
+
+type WebhookEvent = Awaited<ReturnType<WebhookReceiver["receive"]>>;
+
+async function verifiedEvent(
+  webhookReceiver: WebhookReceiver,
+  body: string,
+  authorization: string | undefined,
+): Promise<WebhookEvent | Response> {
   try {
-    event = await receiver.receive(body, request.headers.get("authorization") ?? undefined);
-  } catch {
+    return await webhookReceiver.receive(body, authorization);
+  } catch (error) {
+    // Anyone can reach this endpoint: debug level keeps forged requests out of the
+    // production log, and only the reason is kept.
+    logger.debug(
+      { source: "livekit-webhook", reason: error instanceof Error ? error.message : "unknown" },
+      "LiveKit webhook rejected: invalid signature",
+    );
     return Response.json({ error: "invalid_signature" }, { status: 401 });
   }
+}
+
+export async function receiveLivekitWebhook(request: Request) {
+  const env = getEnv();
+  receiver ??= new WebhookReceiver(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET);
+
+  const body = await readWebhookBody(request);
+  if (body instanceof Response) return body;
+  const authorization = request.headers.get("authorization") ?? undefined;
+  const event = await verifiedEvent(receiver, body, authorization);
+  if (event instanceof Response) return event;
 
   if (LOGGED_EVENTS.has(event.event)) {
     logger.info(
@@ -60,9 +81,8 @@ export async function receiveLivekitWebhook(request: Request) {
         source: "livekit-webhook",
         event: event.event,
         room: event.room?.name,
-        participant: event.participant
-          ? { identity: event.participant.identity, name: event.participant.name }
-          : undefined,
+        // Identity only: the display name is personal data and adds nothing to debugging.
+        participant: event.participant ? { identity: event.participant.identity } : undefined,
         at: new Date(Number(event.createdAt) * 1000).toISOString(),
       },
       "LiveKit event",

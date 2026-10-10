@@ -4,8 +4,9 @@ import { getDb, type Database } from "@/server/db/index.server";
 export function openDb(): Database {
   try {
     return getDb();
-  } catch {
-    console.error("Set DATABASE_URL.");
+  } catch (error) {
+    console.error("Could not open the database. Set DATABASE_URL.");
+    console.error(error instanceof Error ? error.message : error);
     process.exit(1);
   }
 }

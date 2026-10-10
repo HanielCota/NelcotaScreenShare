@@ -34,10 +34,12 @@ function checkFresh(createdAt: Date, policy: Policy) {
 export const defineAdminOperation = defineOperation<Policy, AdminContext>(async (policy) => {
   const admin = await getAdminSession();
   if (!admin) throw new ActionError("Sua sessão expirou. Entre de novo.");
-  if (!policy.allowWithoutTwoFactor && needsTwoFactorSetup(admin))
+  if (!policy.allowWithoutTwoFactor && needsTwoFactorSetup(admin)) {
     throw new ActionError("Ative a verificação em duas etapas para continuar.");
-  if (policy.permission && !can(admin.user.role, policy.permission))
+  }
+  if (policy.permission && !can(admin.user.role, policy.permission)) {
     throw new ActionError("Você não tem permissão para fazer isso.");
+  }
   checkFresh(admin.session.createdAt, policy);
   return { admin, audit: createAuditRecorder({ adminId: admin.user.id }) };
 });
@@ -49,13 +51,18 @@ export const defineUserOperation = defineOperation<Policy, UserContext>(async (p
   return { current, audit: createAuditRecorder({ userId: current.user.id }) };
 });
 
+/** One limiter per public operation, created on first use. */
+function publicLimiterFor(name: string) {
+  const existing = publicLimiters.get(name);
+  if (existing) return existing;
+  const created = createRateLimiter({ limit: 10, windowMs: 15 * 60_000 });
+  publicLimiters.set(name, created);
+  return created;
+}
+
 export const definePublicOperation = defineOperation(async (policy: Policy) => {
-  let limiter = publicLimiters.get(policy.name);
-  if (!limiter) {
-    limiter = createRateLimiter({ limit: 10, windowMs: 15 * 60_000 });
-    publicLimiters.set(policy.name, limiter);
-  }
-  if (!limiter.hit(clientIpFrom(requestHeaders()) ?? "desconhecido").ok)
+  if (!publicLimiterFor(policy.name).hit(clientIpFrom(requestHeaders()) ?? "desconhecido").ok) {
     throw new ActionError("Muitas tentativas. Aguarde alguns minutos.");
+  }
   return { audit: createAuditRecorder("system") };
 });

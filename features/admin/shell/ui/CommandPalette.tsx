@@ -17,22 +17,10 @@ import { currentTheme, switchTheme } from "@/lib/theme";
 import type { NavGroup } from "@/features/admin/shell/server/nav.server";
 import { NAV_ICONS } from "./nav-icons";
 
-/**
- * Command palette (Ctrl/⌘ K): admin navigation, quick actions and search for
- * rooms (code) and participants (name or e-mail, accent-insensitive).
- */
-export function CommandPalette({
-  groups,
-  open,
-  onOpenChange,
-  onSignOut,
-}: {
-  groups: NavGroup[];
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSignOut: () => void;
-}) {
-  const navigate = useNavigate();
+type RunCommand = (action: () => void) => void;
+type GoTo = (href: string) => void;
+
+function usePanelSearch() {
   const [query, setQuery] = useState("");
   const search = useOperation(searchPanelAction);
   const { execute } = search;
@@ -49,6 +37,12 @@ export function CommandPalette({
     return () => clearTimeout(timer);
   }, [term, execute]);
 
+  return { query, setQuery, term, results, isPending: search.isPending };
+}
+
+type PanelSearchResults = ReturnType<typeof usePanelSearch>["results"];
+
+function useToggleShortcut(open: boolean, onOpenChange: (open: boolean) => void) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
@@ -59,11 +53,124 @@ export function CommandPalette({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onOpenChange]);
+}
+
+function SearchResultGroups({
+  results,
+  term,
+  goTo,
+}: {
+  results: PanelSearchResults;
+  term: string;
+  goTo: GoTo;
+}) {
+  if (!results) return null;
+  return (
+    <>
+      {results.rooms.length > 0 ? (
+        <CommandGroup heading="Salas">
+          {results.rooms.map((room) => (
+            <CommandItem
+              key={room.id}
+              // The typed text goes in the value: cmdk's local filter does not hide the result.
+              value={`${term} sala ${room.code}`}
+              onSelect={() => goTo(`/admin/salas/${room.id}`)}
+            >
+              <Video aria-hidden="true" />
+              <span className="font-sans tabular-nums">{room.code}</span>
+              {room.status === "active" ? (
+                <span className="ml-auto text-xs text-danger">ao vivo</span>
+              ) : null}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      ) : null}
+      {results.people.length > 0 ? (
+        <CommandGroup heading="Participantes">
+          {results.people.map((person) => (
+            <CommandItem
+              key={person.id}
+              value={`${term} pessoa ${person.id}`}
+              onSelect={() => goTo(`/admin/usuarios/${person.id}`)}
+            >
+              <User aria-hidden="true" />
+              <span className="truncate">{person.name}</span>
+              <span className="ml-auto truncate text-xs text-ink-muted">{person.email}</span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      ) : null}
+    </>
+  );
+}
+
+function NavigationGroups({ groups, goTo }: { groups: NavGroup[]; goTo: GoTo }) {
+  return groups.map((group) => (
+    <CommandGroup key={group.label} heading={group.label}>
+      {group.items.map((item) => {
+        const Icon = NAV_ICONS[item.icon];
+        return (
+          <CommandItem
+            key={item.href}
+            value={`${item.label} ${item.keywords.join(" ")}`}
+            onSelect={() => goTo(item.href)}
+          >
+            <Icon aria-hidden="true" />
+            {item.label}
+          </CommandItem>
+        );
+      })}
+    </CommandGroup>
+  ));
+}
+
+function QuickActionsGroup({ run, onSignOut }: { run: RunCommand; onSignOut: () => void }) {
+  return (
+    <CommandGroup heading="Ações">
+      <CommandItem
+        value="alternar tema claro escuro"
+        onSelect={() => run(() => switchTheme(currentTheme() === "light" ? "dark" : "light"))}
+      >
+        <SunMoon aria-hidden="true" />
+        Alternar tema claro/escuro
+      </CommandItem>
+      <CommandItem value="sair logout" onSelect={() => run(onSignOut)}>
+        <LogOut aria-hidden="true" />
+        Sair do painel
+      </CommandItem>
+    </CommandGroup>
+  );
+}
+
+/**
+ * Command palette (Ctrl/⌘ K): admin navigation, quick actions and search for
+ * rooms (code) and participants (name or e-mail, accent-insensitive).
+ */
+export function CommandPalette({
+  groups,
+  open,
+  onOpenChange,
+  onSignOut,
+}: {
+  groups: NavGroup[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSignOut: () => void;
+}) {
+  const navigate = useNavigate();
+  const { query, setQuery, term, results, isPending } = usePanelSearch();
+  useToggleShortcut(open, onOpenChange);
 
   function run(action: () => void) {
     onOpenChange(false);
     setQuery("");
     action();
+  }
+
+  function goTo(href: string) {
+    run(() => {
+      void navigate(href, { viewTransition: true });
+    });
   }
 
   return (
@@ -81,83 +188,11 @@ export function CommandPalette({
           onValueChange={setQuery}
         />
         <CommandList>
-          <CommandEmpty>{search.isPending ? "Buscando…" : "Nada encontrado."}</CommandEmpty>
-          {results && results.rooms.length > 0 ? (
-            <CommandGroup heading="Salas">
-              {results.rooms.map((room) => (
-                <CommandItem
-                  key={room.id}
-                  // The typed text goes in the value: cmdk's local filter does not hide the result.
-                  value={`${term} sala ${room.code}`}
-                  onSelect={() =>
-                    run(() => {
-                      void navigate(`/admin/salas/${room.id}`, { viewTransition: true });
-                    })
-                  }
-                >
-                  <Video aria-hidden="true" />
-                  <span className="font-sans tabular-nums">{room.code}</span>
-                  {room.status === "active" ? (
-                    <span className="ml-auto text-xs text-danger">ao vivo</span>
-                  ) : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          ) : null}
-          {results && results.people.length > 0 ? (
-            <CommandGroup heading="Participantes">
-              {results.people.map((person) => (
-                <CommandItem
-                  key={person.id}
-                  value={`${term} pessoa ${person.id}`}
-                  onSelect={() =>
-                    run(() => {
-                      void navigate(`/admin/usuarios/${person.id}`, { viewTransition: true });
-                    })
-                  }
-                >
-                  <User aria-hidden="true" />
-                  <span className="truncate">{person.name}</span>
-                  <span className="ml-auto truncate text-xs text-ink-muted">{person.email}</span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          ) : null}
-          {groups.map((group) => (
-            <CommandGroup key={group.label} heading={group.label}>
-              {group.items.map((item) => {
-                const Icon = NAV_ICONS[item.icon];
-                return (
-                  <CommandItem
-                    key={item.href}
-                    value={`${item.label} ${item.keywords.join(" ")}`}
-                    onSelect={() =>
-                      run(() => {
-                        void navigate(item.href, { viewTransition: true });
-                      })
-                    }
-                  >
-                    <Icon aria-hidden="true" />
-                    {item.label}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          ))}
+          <CommandEmpty>{isPending ? "Buscando…" : "Nada encontrado."}</CommandEmpty>
+          <SearchResultGroups results={results} term={term} goTo={goTo} />
+          <NavigationGroups groups={groups} goTo={goTo} />
           <CommandSeparator />
-          <CommandGroup heading="Ações">
-            <CommandItem
-              value="alternar tema claro escuro"
-              onSelect={() => run(() => switchTheme(currentTheme() === "light" ? "dark" : "light"))}
-            >
-              <SunMoon aria-hidden="true" />
-              Alternar tema claro/escuro
-            </CommandItem>
-            <CommandItem value="sair logout" onSelect={() => run(onSignOut)}>
-              <LogOut aria-hidden="true" />
-              Sair do painel
-            </CommandItem>
-          </CommandGroup>
+          <QuickActionsGroup run={run} onSignOut={onSignOut} />
         </CommandList>
       </Command>
     </CommandDialog>

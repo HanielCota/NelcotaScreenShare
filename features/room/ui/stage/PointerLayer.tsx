@@ -20,6 +20,7 @@ import {
 import { participantName, SELF_LABEL } from "@/features/room/domain/participant-label";
 import { moveCursor, type CursorPosition } from "@/features/room/domain/pointer-cursor";
 import { useTimeouts } from "@/lib/hooks/use-timeouts";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 /** Pointer on the shared screen: a dot that appears for everyone for a few seconds. */
 interface Ping extends PointerMessage {
@@ -59,7 +60,8 @@ export function usePointers() {
     if (now - lastSent.current < SEND_INTERVAL_MS) return;
     lastSent.current = now;
     add(message, SELF_LABEL);
-    send(encodeMessage(message), { reliable: false }).catch(() => {
+    send(encodeMessage(message), { reliable: false }).catch((error: unknown) => {
+      logBrowserWarning("Could not send the pointer", error);
       toast.error("Não foi possível marcar o ponto na tela.");
     });
   }

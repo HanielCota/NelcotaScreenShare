@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore, type RefObject } from "react";
 import { toast } from "sonner";
+import { logBrowserWarning } from "@/lib/telemetry.client";
 
 // Both events bubble from the video up to the document.
 function subscribePictureInPicture(onChange: () => void) {
@@ -23,8 +24,17 @@ async function togglePictureInPicture(video: HTMLVideoElement | null) {
     }
     if (video === null) return;
     await video.requestPictureInPicture();
-  } catch {
+  } catch (error) {
+    logBrowserWarning("Could not toggle picture-in-picture", error);
     toast.error("Não foi possível abrir a tela em janela.");
+  }
+}
+
+async function exitPictureInPicture() {
+  try {
+    await document.exitPictureInPicture();
+  } catch (error) {
+    logBrowserWarning("Could not close picture-in-picture", error);
   }
 }
 
@@ -42,7 +52,7 @@ export function usePictureInPicture(videoRef: RefObject<HTMLVideoElement | null>
   // The stage leaves (the share ended): the window must not stay open without it.
   useEffect(
     () => () => {
-      if (isInPictureInPicture()) void document.exitPictureInPicture().catch(() => undefined);
+      if (isInPictureInPicture()) void exitPictureInPicture();
     },
     [],
   );

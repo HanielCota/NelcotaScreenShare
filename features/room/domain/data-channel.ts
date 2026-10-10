@@ -28,6 +28,14 @@ export const HAND_ATTRIBUTE = "hand";
 /** Chat limit (LiveKit accepts more; long messages hurt readability). */
 export const CHAT_MAX_LENGTH = 500;
 
+/**
+ * Received chat text within the limit: the composer caps what this app sends, but
+ * another client can send any length.
+ */
+export function capChatText(text: string): string {
+  return text.slice(0, CHAT_MAX_LENGTH);
+}
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
